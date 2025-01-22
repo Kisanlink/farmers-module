@@ -1,31 +1,26 @@
 package main
 
 import (
-	// "log"
-	// "net/http"
-	"github.com/gin-gonic/gin"
-	"github.com/Kisanlink/farmers-module/config" // Import the config package
-	// Import the routes package
+	"log"
+
+	"github.com/Kisanlink/farmers-module/database"
+	"github.com/Kisanlink/farmers-module/routes"
 )
 
 func main() {
-	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-	r.Run() // listen and serve on 0.0.0.0:8080
+	// Step 0: Setup the logger
 
-	// Initialize MongoDB connection
-	config.InitDB()
+	// Step 1: Initialize the router
+	router := routes.Setup()
 
-	// // Set up routes for the application
-	// // routes.SetupRoutes()
+	// Step 2: Defer MongoDB client disconnection
+	defer func() {
+		if err := database.GetClient().Disconnect(nil); err != nil {
+			log.Fatalf("Failed to disconnect MongoDB client: %v", err)
+		}
+	}()
 
-	// // Start the web server on port 8080
-	// log.Print("Starting server on :8080...")
-	// err := http.ListenAndServe(":8080", nil)
-	// if err != nil {
-	// 	log.Fatal("Error starting server:", err)
+	// Step 3: Start the server
+	log.Println("Server is running on http://localhost:8080")
+	router.Run(":8080")
 }
