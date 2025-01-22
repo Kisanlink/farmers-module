@@ -42,7 +42,11 @@ func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
 	v1 := router.Group("/api/v1")
 
 	// Farmer routes
-	v1.GET("/farmers/:id", deps.FarmerController.GetFarmerByID)
+	farmer := v1.Group("/farmers")
+	{
+		farmer.GET("/:id", deps.FarmerController.GetFarmerPersonalDetailsByID)
+		// Additional routes (POST, PUT, DELETE) can be added here
+	}
 
 	// Product routes
 	// v1.GET("/products/:id", deps.ProductController.GetProductByID)

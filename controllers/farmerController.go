@@ -19,7 +19,7 @@ func NewFarmerController(repo *repositories.FarmerRepository) *FarmerController 
 	return &FarmerController{Repository: repo}
 }
 
-func (fc *FarmerController) GetFarmerByID(c *gin.Context) {
+func (fc *FarmerController) GetFarmerPersonalDetailsByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -35,6 +35,15 @@ func (fc *FarmerController) GetFarmerByID(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": err})
 		return
 	}
+	// Exclude certain fields dynamically
+	response := map[string]interface{}{
+		"id":        farmer.ID.Hex(),
+		"farmedID":  farmer.FarmerID,
+		"firstName": farmer.FirstName,
+		"lastName":  farmer.LastName,
+		"city":      farmer.City,
+		"state":     farmer.State,
+	}
 
-	c.JSON(http.StatusOK, farmer)
+	c.JSON(http.StatusOK, response)
 }

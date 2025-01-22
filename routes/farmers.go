@@ -8,7 +8,7 @@ import (
 func RegisterFarmerRoutes(router *gin.RouterGroup, farmerController *controllers.FarmerController) {
 	farmer := router.Group("/farmer")
 	{
-		farmer.GET("/:id", farmerController.GetFarmerByID)
+		farmer.GET("/:id", farmerController.GetFarmerPersonalDetailsByID)
 		// Additional routes (POST, PUT, DELETE) can be added here
 	}
 }
