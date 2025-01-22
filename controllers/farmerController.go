@@ -43,7 +43,16 @@ func (fc *FarmerController) GetFarmerPersonalDetailsByID(c *gin.Context) {
 		"lastName":  farmer.LastName,
 		"city":      farmer.City,
 		"state":     farmer.State,
-	}
+		"age":       farmer.Age,
+		"district":  farmer.District, 
+		"pincode":   farmer.Pincode,
+		"mobileNumber":farmer.MobileNumber,
+		"kisansathiName": farmer.KisansathiName,
+		"shares":     farmer.Shares,
+		"areaManagerName"	:farmer.AreaManagerName,
+	  "areaManagerId":farmer.AreaManagerID, 
+	 "totalWalletAmount":farmer.TotalWalletAmount, 
+		}
 
 	c.JSON(http.StatusOK, response)
 }
