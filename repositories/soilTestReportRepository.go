@@ -19,10 +19,12 @@ func NewSoilTestReportRepository(db *mongo.Database) *SoilTestReportRepository {
 	}
 }
 
-// GetSoilTestReports retrieves soil test reports by farmID
-func (repo *SoilTestReportRepository) GetSoilTestReports(ctx context.Context, farmID int) ([]models.SoilTestReport, error) {
-	log.Printf("DEBUG: Fetching soil test reports for farmID: %d", farmID)
+// GetSoilTestReportsByFarmID retrieves soil test reports for a given farm ID
+func (repo *SoilTestReportRepository) GetSoilTestReportsByFarmID(ctx context.Context, farmID int) ([]models.SoilTestReport, error) {
+	// Debug log
+	log.Printf("DEBUG: Querying soil test reports for farmID: %d", farmID)
 
+	// Query soil test reports by farm ID
 	cursor, err := repo.Collection.Find(ctx, bson.M{"farmId": farmID})
 	if err != nil {
 		log.Printf("ERROR: Failed to retrieve soil test reports for farmID %d: %v", farmID, err)
@@ -30,6 +32,7 @@ func (repo *SoilTestReportRepository) GetSoilTestReports(ctx context.Context, fa
 	}
 	defer cursor.Close(ctx)
 
+	// Parse results
 	var reports []models.SoilTestReport
 	for cursor.Next(ctx) {
 		var report models.SoilTestReport
@@ -40,11 +43,8 @@ func (repo *SoilTestReportRepository) GetSoilTestReports(ctx context.Context, fa
 		reports = append(reports, report)
 	}
 
-	if err := cursor.Err(); err != nil {
-		log.Printf("ERROR: Cursor error while fetching soil test reports: %v", err)
-		return nil, err
-	}
-
+	// Debug log
 	log.Printf("DEBUG: Successfully retrieved %d soil test reports for farmID %d", len(reports), farmID)
+
 	return reports, nil
 }

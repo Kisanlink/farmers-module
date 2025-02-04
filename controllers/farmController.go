@@ -62,7 +62,7 @@ func (fc *FarmController) GetFarmsByFarmerID(c *gin.Context) {
 		}
 
 		// Fetch soil test reports for each farm
-		soilReports, err := fc.SoilTestReportRepo.GetSoilTestReports(ctx, farm.FarmID)
+		soilReports, err := fc.SoilTestReportRepo.GetSoilTestReportsByFarmID(ctx, farm.FarmID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

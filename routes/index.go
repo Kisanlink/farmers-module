@@ -12,6 +12,7 @@ type Dependencies struct {
 	FarmController            *controllers.FarmController
 	OrderController           *controllers.OrderController
 	CommodityPriceController  *controllers.CommodityPriceController
+	SoilTestReportController *controllers.SoilTestReportController
 }
 
 
@@ -31,13 +32,14 @@ func Setup() *gin.Engine {
 	farmController := controllers.NewFarmController(farmRepo, commodityRepo, soilTestRepo) // Inject Soil Test Repo
 	orderController := controllers.NewOrderController(orderRepo)
   commodityPriceController := controllers.NewCommodityPriceController(commodityRepo)
-
+  soilTestReportController := controllers.NewSoilTestReportController(soilTestRepo)
 	// Setup dependencies
 deps := &Dependencies{
 	FarmerController:         farmerController,
 	FarmController:           farmController,
 	OrderController:          orderController,
 	CommodityPriceController: commodityPriceController,
+	SoilTestReportController: soilTestReportController,
 }
 
 
@@ -73,5 +75,11 @@ commodity := v1.Group("/commodity")
 {
 	commodity.GET("/price/:crop", deps.CommodityPriceController.GetCommodityPrice)
 }
+// Soil Test Report routes
+soilTests := v1.Group("/soil-test")
+{
+	soilTests.GET("/farm/:farmId", deps.SoilTestReportController.GetSoilTestReports)
+}
+
 
 }
