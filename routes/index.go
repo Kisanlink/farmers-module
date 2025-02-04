@@ -8,10 +8,12 @@ import (
 )
 
 type Dependencies struct {
-	FarmerController *controllers.FarmerController
-	FarmController   *controllers.FarmController
-	OrderController  *controllers.OrderController
+	FarmerController          *controllers.FarmerController
+	FarmController            *controllers.FarmController
+	OrderController           *controllers.OrderController
+	CommodityPriceController  *controllers.CommodityPriceController
 }
+
 
 func Setup() *gin.Engine {
 	database.InitializeDatabase()
@@ -28,13 +30,16 @@ func Setup() *gin.Engine {
 	farmerController := controllers.NewFarmerController(farmerRepo)
 	farmController := controllers.NewFarmController(farmRepo, commodityRepo, soilTestRepo) // Inject Soil Test Repo
 	orderController := controllers.NewOrderController(orderRepo)
+  commodityPriceController := controllers.NewCommodityPriceController(commodityRepo)
 
 	// Setup dependencies
-	deps := &Dependencies{
-		FarmerController: farmerController,
-		FarmController:   farmController,
-		OrderController:  orderController,
-	}
+deps := &Dependencies{
+	FarmerController:         farmerController,
+	FarmController:           farmController,
+	OrderController:          orderController,
+	CommodityPriceController: commodityPriceController,
+}
+
 
 	// Setup router and routes
 	router := gin.Default()
@@ -63,4 +68,10 @@ func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
 	{
 		orders.GET("/farmer/:farmerId", deps.OrderController.GetOrdersByFarmerID)
 	}
+	// Commodity Price routes
+commodity := v1.Group("/commodity")
+{
+	commodity.GET("/price/:crop", deps.CommodityPriceController.GetCommodityPrice)
+}
+
 }
