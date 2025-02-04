@@ -13,60 +13,69 @@ import (
 type FarmController struct {
 	FarmRepository         *repositories.FarmRepository
 	CommodityPriceRepo     *repositories.CommodityPriceRepository
+	SoilTestReportRepo     *repositories.SoilTestReportRepository
 }
 
-func NewFarmController(farmRepo *repositories.FarmRepository, commodityRepo *repositories.CommodityPriceRepository) *FarmController {
+func NewFarmController(farmRepo *repositories.FarmRepository, commodityRepo *repositories.CommodityPriceRepository, soilTestRepo *repositories.SoilTestReportRepository) *FarmController {
 	return &FarmController{
 		FarmRepository:        farmRepo,
 		CommodityPriceRepo:    commodityRepo,
+		SoilTestReportRepo:    soilTestRepo,
 	}
 }
 
-// GetFarmsByFarmerID retrieves farms by farmerID along with crop price
+// GetFarmsByFarmerID retrieves farms by farmerID along with crop price and soil test reports
 func (fc *FarmController) GetFarmsByFarmerID(c *gin.Context) {
-	// Parse farmer ID from URL parameter
 	farmerIDstr := c.Param("farmerId")
 	farmerid, err := strconv.ParseInt(farmerIDstr, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid farmer ID"})
 		return
 	}
-	// Context and timeout
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Get farms from repository (now expects multiple farms)
 	farms, err := fc.FarmRepository.GetFarms(ctx, farmerid)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err})
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Check if no farms were found
 	if len(farms) == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"message": "No farms found for this farmer"})
 		return
 	}
 
-	// Prepare response array to hold farm data along with crop price
 	var farmResponses []map[string]interface{}
 
-	// Iterate through all farms and add crop price for each
 	for _, farm := range farms {
-		// Get commodity price for each farm's crop
 		commodityPrice, err := fc.CommodityPriceRepo.GetCommodityPriceByCropID(ctx, farm.Crop)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": err})
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
 
-		// Default price is 0 if no price is found
 		price := 0.0
 		if commodityPrice != nil {
 			price = commodityPrice.Price
 		}
 
-		// Exclude certain fields dynamically and prepare the response map for each farm
+		// Fetch soil test reports for each farm
+		soilReports, err := fc.SoilTestReportRepo.GetSoilTestReports(ctx, farm.FarmID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		var soilTestData []map[string]interface{}
+		for _, report := range soilReports {
+			soilTestData = append(soilTestData, map[string]interface{}{
+				"reportDate": fmt.Sprintf("%04d-%02d-%02d", report.ReportDate.Year, report.ReportDate.Month, report.ReportDate.Day),
+				"reports":    report.Reports,
+			})
+		}
+
 		farmResponse := map[string]interface{}{
 			"farmID":       farm.FarmID,
 			"acres":        farm.Acres,
@@ -76,14 +85,12 @@ func (fc *FarmController) GetFarmsByFarmerID(c *gin.Context) {
 		                 farm.HarvestDate.FractionalSecond),
 			"crop":         farm.Crop,
 			"cropImage":    farm.CropImage,
-			"price":        price, // Adding the price
+			"price":        price,
+			"soilTests":    soilTestData, // Adding soil test reports
 		}
 
-		// Add the farm response to the response array
 		farmResponses = append(farmResponses, farmResponse)
 	}
 
-	// Return response with all farms and their prices
 	c.JSON(http.StatusOK, farmResponses)
 }
-
