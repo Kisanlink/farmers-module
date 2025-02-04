@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"time"
+	"fmt"
 	"strconv"
 	"github.com/Kisanlink/farmers-module/repositories"
 	"github.com/gin-gonic/gin"
@@ -69,7 +70,10 @@ func (fc *FarmController) GetFarmsByFarmerID(c *gin.Context) {
 		farmResponse := map[string]interface{}{
 			"farmID":       farm.FarmID,
 			"acres":        farm.Acres,
-			"harvestDate":  farm.HarvestDate,
+			"harvestDate": fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d.%s",
+		                 farm.HarvestDate.Year, farm.HarvestDate.Month, farm.HarvestDate.Day,
+		                 farm.HarvestDate.Hour, farm.HarvestDate.Minute, farm.HarvestDate.Second,
+		                 farm.HarvestDate.FractionalSecond),
 			"crop":         farm.Crop,
 			"cropImage":    farm.CropImage,
 			"price":        price, // Adding the price
