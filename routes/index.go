@@ -80,6 +80,12 @@ soilTests := v1.Group("/soil-test")
 {
 	soilTests.GET("/farm/:farmId", deps.SoilTestReportController.GetSoilTestReports)
 }
+// Credit Order route
 
+
+credits := v1.Group("/credits")
+{
+	credits.GET("/farmer/:farmerId", deps.OrderController.GetCreditOrdersByFarmerID)
+}
 
 }
