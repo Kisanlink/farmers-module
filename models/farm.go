@@ -1,9 +1,7 @@
 package models
 
 import (
-	
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	
 )
 
 type Farm struct {
@@ -22,7 +20,7 @@ type Farm struct {
 	CropVariety         string             `bson:"cropVariety" json:"cropVariety"`
 	Acres               float64            `bson:"acres" json:"acres"`
 	Tons                float64            `bson:"tons" json:"tons"`
-	HarvestDate         Date                `bson:"harvestDate" json:"harvestDate"`
+	HarvestDate         Date               `bson:"harvestDate" json:"harvestDate"`
 	FarmerMobileNumber  int64              `bson:"farmerMobileNumber" json:"farmerMobileNumber"`
 	Address             string             `bson:"address" json:"address"`
 	Dimensions          []Dimension        `bson:"dimensions" json:"dimensions"`
@@ -48,9 +46,9 @@ type Farm struct {
 	AreaManagerID       string             `bson:"areaManagerId" json:"areaManagerId"`
 	AreaManagerName     string             `bson:"areaManagerName" json:"areaManagerName"`
 	CreatedBy           string             `bson:"createdBy" json:"createdBy"`
-  CreatedAt           Date               `bson:"createdAt"`
+	CreatedAt           Date               `bson:"createdAt"`
 	ModifiedBy          string             `bson:"modifiedBy" json:"modifiedBy"`
-  ModifiedAt          Date               `bson:"modifiedAt"`
+	ModifiedAt          Date               `bson:"modifiedAt"`
 	IsDeleted           bool               `bson:"isDeleted" json:"isDeleted"`
 	Class               string             `bson:"_class" json:"_class"`
 }
@@ -60,21 +58,20 @@ type Dimension struct {
 	Latitude  float64 `bson:"latitude" json:"latitude"`
 }
 type Date struct {
-	OrigYear          int     `bson:"orig_year" json:"orig_year"`
-	OrigMonth         int     `bson:"orig_month" json:"orig_month"`
-	OrigDay           int     `bson:"orig_day" json:"orig_day"`
-	OrigHour          int     `bson:"orig_hour" json:"orig_hour"`
-	OrigMinute        int     `bson:"orig_minute" json:"orig_minute"`
-	OrigSecond        int     `bson:"orig_second" json:"orig_second"`
-	OrigTimezone      int     `bson:"orig_timezone" json:"orig_timezone"`
-	Year              int     `bson:"year" json:"year"`
-	Month             int     `bson:"month" json:"month"`
-	Day               int     `bson:"day" json:"day"`
-	Timezone          int     `bson:"timezone" json:"timezone"`
-	Hour              int     `bson:"hour" json:"hour"`
-	Minute            int     `bson:"minute" json:"minute"`
-	Second            int     `bson:"second" json:"second"`
-	FractionalSecond string  `bson:"fractionalSecond" json:"fractionalSecond"`
-	Class             string  `bson:"_class" json:"class"`
+	OrigYear         int    `bson:"orig_year" json:"orig_year"`
+	OrigMonth        int    `bson:"orig_month" json:"orig_month"`
+	OrigDay          int    `bson:"orig_day" json:"orig_day"`
+	OrigHour         int    `bson:"orig_hour" json:"orig_hour"`
+	OrigMinute       int    `bson:"orig_minute" json:"orig_minute"`
+	OrigSecond       int    `bson:"orig_second" json:"orig_second"`
+	OrigTimezone     int    `bson:"orig_timezone" json:"orig_timezone"`
+	Year             int    `bson:"year" json:"year"`
+	Month            int    `bson:"month" json:"month"`
+	Day              int    `bson:"day" json:"day"`
+	Timezone         int    `bson:"timezone" json:"timezone"`
+	Hour             int    `bson:"hour" json:"hour"`
+	Minute           int    `bson:"minute" json:"minute"`
+	Second           int    `bson:"second" json:"second"`
+	FractionalSecond string `bson:"fractionalSecond" json:"fractionalSecond"`
+	Class            string `bson:"_class" json:"class"`
 }
-

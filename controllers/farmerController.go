@@ -5,10 +5,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/Kisanlink/farmers-module/repositories"
-
-	"github.com/gin-gonic/gin"
+  "github.com/Kisanlink/farmers-module/repositories"
+  "github.com/gin-gonic/gin"
 )
 
 type FarmerController struct {
@@ -37,22 +35,22 @@ func (fc *FarmerController) GetFarmerPersonalDetailsByID(c *gin.Context) {
 	}
 	// Exclude certain fields dynamically
 	response := map[string]interface{}{
-		"id":        farmer.ID.Hex(),
-		"farmedID":  farmer.FarmerID,
-		"firstName": farmer.FirstName,
-		"lastName":  farmer.LastName,
-		"city":      farmer.City,
-		"state":     farmer.State,
-		"age":       farmer.Age,
-		"district":  farmer.District, 
-		"pincode":   farmer.Pincode,
-		"mobileNumber":farmer.MobileNumber,
-		"kisansathiName": farmer.KisansathiName,
-		"shares":     farmer.Shares,
-		"areaManagerName"	:farmer.AreaManagerName,
-	  "areaManagerId":farmer.AreaManagerID, 
-	 "totalWalletAmount":farmer.TotalWalletAmount, 
-		}
+		"id":                farmer.ID.Hex(),
+		"farmedID":          farmer.FarmerID,
+		"firstName":         farmer.FirstName,
+		"lastName":          farmer.LastName,
+		"city":              farmer.City,
+		"state":             farmer.State,
+		"age":               farmer.Age,
+		"district":          farmer.District,
+		"pincode":           farmer.Pincode,
+		"mobileNumber":      farmer.MobileNumber,
+		"kisansathiName":    farmer.KisansathiName,
+		"shares":            farmer.Shares,
+		"areaManagerName":   farmer.AreaManagerName,
+		"areaManagerId":     farmer.AreaManagerID,
+		"totalWalletAmount": farmer.TotalWalletAmount,
+	}
 
 	c.JSON(http.StatusOK, response)
 }
