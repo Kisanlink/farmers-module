@@ -2,41 +2,47 @@ package controllers
 
 import (
 	"context"
-	"net/http"
-	"time"
 	"fmt"
+	"net/http"
 	"strconv"
+	"strings"
+	"time"
+
 	"github.com/Kisanlink/farmers-module/repositories"
 	"github.com/gin-gonic/gin"
 )
 
 type FarmController struct {
-	FarmRepository         *repositories.FarmRepository
-	CommodityPriceRepo     *repositories.CommodityPriceRepository
-	SoilTestReportRepo     *repositories.SoilTestReportRepository
+	FarmRepository *repositories.FarmRepository
 }
 
-func NewFarmController(farmRepo *repositories.FarmRepository, commodityRepo *repositories.CommodityPriceRepository, soilTestRepo *repositories.SoilTestReportRepository) *FarmController {
+func NewFarmController(farmRepo *repositories.FarmRepository) *FarmController {
 	return &FarmController{
-		FarmRepository:        farmRepo,
-		CommodityPriceRepo:    commodityRepo,
-		SoilTestReportRepo:    soilTestRepo,
+		FarmRepository: farmRepo,
 	}
 }
 
-// GetFarmsByFarmerID retrieves farms by farmerID along with crop price and soil test reports
+// GetFarmsByFarmerID retrieves farms by farmerID and allows filtering fields via query parameters
 func (fc *FarmController) GetFarmsByFarmerID(c *gin.Context) {
-	farmerIDstr := c.Param("farmerId")
+	farmerIDstr := c.DefaultQuery("farmerId", "")
+	if farmerIDstr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Farmer ID is required"})
+		return
+	}
+
 	farmerid, err := strconv.ParseInt(farmerIDstr, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid farmer ID"})
 		return
 	}
 
+	// Extract the "fields" query parameter to decide which fields to return
+	fields := c.DefaultQuery("fields", "farmID,acres,harvestDate,crop,cropImage")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	farms, err := fc.FarmRepository.GetFarms(ctx, farmerid)
+	farms, err := fc.FarmRepository.GetFarms(ctx, farmerid, fields)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -47,46 +53,29 @@ func (fc *FarmController) GetFarmsByFarmerID(c *gin.Context) {
 		return
 	}
 
+	// Response based on dynamic fields
 	var farmResponses []map[string]interface{}
-
 	for _, farm := range farms {
-		commodityPrice, err := fc.CommodityPriceRepo.GetCommodityPriceByCropID(ctx, farm.Crop)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
-		}
+		farmResponse := map[string]interface{}{}
 
-		price := 0.0
-		if commodityPrice != nil {
-			price = commodityPrice.Price
+		// Dynamically populate the response based on requested fields
+		if contains(fields, "farmID") {
+			farmResponse["farmID"] = farm.FarmID
 		}
-
-		// Fetch soil test reports for each farm
-		soilReports, err := fc.SoilTestReportRepo.GetSoilTestReportsByFarmID(ctx, farm.FarmID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+		if contains(fields, "acres") {
+			farmResponse["acres"] = farm.Acres
 		}
-
-		var soilTestData []map[string]interface{}
-		for _, report := range soilReports {
-			soilTestData = append(soilTestData, map[string]interface{}{
-				"reportDate": fmt.Sprintf("%04d-%02d-%02d", report.ReportDate.Year, report.ReportDate.Month, report.ReportDate.Day),
-				"reports":    report.Reports,
-			})
+		if contains(fields, "harvestDate") {
+			farmResponse["harvestDate"] = fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d.%s",
+				farm.HarvestDate.Year, farm.HarvestDate.Month, farm.HarvestDate.Day,
+				farm.HarvestDate.Hour, farm.HarvestDate.Minute, farm.HarvestDate.Second,
+				farm.HarvestDate.FractionalSecond)
 		}
-
-		farmResponse := map[string]interface{}{
-			"farmID":       farm.FarmID,
-			"acres":        farm.Acres,
-			"harvestDate": fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d.%s",
-		                 farm.HarvestDate.Year, farm.HarvestDate.Month, farm.HarvestDate.Day,
-		                 farm.HarvestDate.Hour, farm.HarvestDate.Minute, farm.HarvestDate.Second,
-		                 farm.HarvestDate.FractionalSecond),
-			"crop":         farm.Crop,
-			"cropImage":    farm.CropImage,
-			"price":        price,
-			"soilTests":    soilTestData, // Adding soil test reports
+		if contains(fields, "crop") {
+			farmResponse["crop"] = farm.Crop
+		}
+		if contains(fields, "cropImage") {
+			farmResponse["cropImage"] = farm.CropImage
 		}
 
 		farmResponses = append(farmResponses, farmResponse)
@@ -94,3 +83,10 @@ func (fc *FarmController) GetFarmsByFarmerID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, farmResponses)
 }
+
+// Helper function to check if a field exists in the fields string
+func contains(fields, field string) bool {
+	return strings.Contains(fields, field)
+}
+
+
