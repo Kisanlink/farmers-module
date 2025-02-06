@@ -11,35 +11,72 @@ import (
 
 type CommodityPriceRepository struct {
 	Collection *mongo.Collection
+	Db         *mongo.Database
 }
 
 func NewCommodityPriceRepository(db *mongo.Database) *CommodityPriceRepository {
 	return &CommodityPriceRepository{
 		Collection: db.Collection("ComodityPrice"),
+		Db:         db,
 	}
 }
 
-// GetCommodityPriceByCropID retrieves the commodity price for a given crop ID
-func (repo *CommodityPriceRepository) GetCommodityPriceByCropID(ctx context.Context, crop string) (*models.CommodityPrice, error) {
-	var price models.CommodityPrice
+// GetCropsByFarmerID fetches all unique crops associated with a farmer
+func (repo *CommodityPriceRepository) GetCropsByFarmerID(ctx context.Context, farmerID int) ([]string, error) {
+	var crops []string
 
-	// Log the cropID being queried
-	log.Printf("DEBUG: Starting query for commodity price for cropID: %s", crop)
-
-	// Query for commodity price by cropID
-	err := repo.Collection.FindOne(ctx, bson.M{"comodityName": crop}).Decode(&price)
-
+	// Query the database for farms belonging to the given farmer
+	cursor, err := repo.Db.Collection("Farms").Find(ctx, bson.M{"farmerId": farmerID})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			log.Printf("DEBUG: No commodity price found for crop: %s", crop)
-			return nil, nil // No price found for the crop
-		}
-		log.Printf("ERROR: Failed to retrieve commodity price for cropID %s: %v", crop, err)
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 
-	// Debug log: Successfully retrieved commodity price
-	log.Printf("DEBUG: Successfully retrieved commodity price for cropID: %s, Price: %.2f", crop, price.Price)
+	// Extract unique crop names
+	cropSet := make(map[string]bool)
+	for cursor.Next(ctx) {
+		var farm models.Farm
+		if err := cursor.Decode(&farm); err != nil {
+			return nil, err
+		}
+		if farm.Crop != "" {
+			cropSet[farm.Crop] = true
+		}
+	}
 
-	return &price, nil
+	// Convert map keys to slice
+	for crop := range cropSet {
+		crops = append(crops, crop)
+	}
+
+	log.Printf("DEBUG: Found %d unique crops for farmerID: %d", len(crops), farmerID)
+	return crops, nil
+}
+
+// GetPricesForCrops fetches prices for multiple crops in a single query
+func (repo *CommodityPriceRepository) GetPricesForCrops(ctx context.Context, cropNames []string) ([]models.CommodityPrice, error) {
+	var prices []models.CommodityPrice
+
+	// Log crops being queried
+	log.Printf("DEBUG: Fetching prices for crops: %v", cropNames)
+
+	// Query the database for prices of multiple crops at once
+	cursor, err := repo.Collection.Find(ctx, bson.M{"comodityName": bson.M{"$in": cropNames}})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var price models.CommodityPrice
+		if err := cursor.Decode(&price); err != nil {
+			return nil, err
+		}
+		prices = append(prices, price)
+	}
+
+	// Log successful retrieval
+	log.Printf("DEBUG: Successfully retrieved %d commodity prices", len(prices))
+
+	return prices, nil
 }
