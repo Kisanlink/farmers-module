@@ -8,13 +8,12 @@ import (
 )
 
 type Dependencies struct {
-	FarmerController          *controllers.FarmerController
-	FarmController            *controllers.FarmController
-	OrderController           *controllers.OrderController
+	FarmerController   *controllers.FarmerController
+	FarmController     *controllers.FarmController
+	OrderController    *controllers.OrderController
 	CommodityPriceController  *controllers.CommodityPriceController
 	SoilTestReportController *controllers.SoilTestReportController
 }
-
 
 func Setup() *gin.Engine {
 	database.InitializeDatabase()
@@ -25,23 +24,23 @@ func Setup() *gin.Engine {
 	farmRepo := repositories.NewFarmRepository(db)
 	commodityRepo := repositories.NewCommodityPriceRepository(db)
 	orderRepo := repositories.NewOrderRepository(db)
-	soilTestRepo := repositories.NewSoilTestReportRepository(db) // Still needed but used inside FarmController
+	soilTestRepo := repositories.NewSoilTestReportRepository(db)
 
 	// Initialize controllers
 	farmerController := controllers.NewFarmerController(farmerRepo)
-	farmController := controllers.NewFarmController(farmRepo, commodityRepo, soilTestRepo) // Inject Soil Test Repo
+	farmController := controllers.NewFarmController(farmRepo) // No price or soil test info in farm
 	orderController := controllers.NewOrderController(orderRepo)
-  commodityPriceController := controllers.NewCommodityPriceController(commodityRepo)
-  soilTestReportController := controllers.NewSoilTestReportController(soilTestRepo)
-	// Setup dependencies
-deps := &Dependencies{
-	FarmerController:         farmerController,
-	FarmController:           farmController,
-	OrderController:          orderController,
-	CommodityPriceController: commodityPriceController,
-	SoilTestReportController: soilTestReportController,
-}
+	commodityPriceController := controllers.NewCommodityPriceController(commodityRepo)
+	soilTestReportController := controllers.NewSoilTestReportController(soilTestRepo)
 
+	// Setup dependencies
+	deps := &Dependencies{
+		FarmerController:    farmerController,
+		FarmController:      farmController,
+		OrderController:     orderController,
+		CommodityPriceController: commodityPriceController,
+		SoilTestReportController: soilTestReportController,
+	}
 
 	// Setup router and routes
 	router := gin.Default()
@@ -59,33 +58,33 @@ func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
 		farmer.GET("/:id", deps.FarmerController.GetFarmerPersonalDetailsByID)
 	}
 
-	// Farm routes (Includes Soil Test Reports)
+	// Farm routes (With query parameters for fields)
 	farms := v1.Group("/farms")
 	{
-		farms.GET("/farmer/:farmerId", deps.FarmController.GetFarmsByFarmerID) // Fetches farms WITH soil reports
+		farms.GET("/", deps.FarmController.GetFarmsByFarmerID) // Modified to use query params
 	}
 
-	// Order routes
+	// Order routes (Optimized: Using query parameters)
 	orders := v1.Group("/orders")
 	{
-		orders.GET("/farmer/:farmerId", deps.OrderController.GetOrdersByFarmerID)
+		// Fetch orders using query params like ?farmerId=123&status=Delivered
+		orders.GET("/", deps.OrderController.GetOrdersByFarmerID)
 	}
-	// Commodity Price routes
 commodity := v1.Group("/commodity")
 {
-	commodity.GET("/price/:crop", deps.CommodityPriceController.GetCommodityPrice)
+	commodity.GET("/prices/farmer/:farmerId", deps.CommodityPriceController.GetCommodityPricesByFarmerID)
 }
-// Soil Test Report routes
-soilTests := v1.Group("/soil-test")
-{
-	soilTests.GET("/farm/:farmId", deps.SoilTestReportController.GetSoilTestReports)
-}
-// Credit Order route
 
 
+	// Soil Test Report routes (Optimized to use query params)
+	soilTests := v1.Group("/soil-test")
+	{
+		soilTests.GET("/", deps.SoilTestReportController.GetSoilTestReports)
+	}
+
+	// Credit Order route (Updated to use query parameters)
 credits := v1.Group("/credits")
 {
-	credits.GET("/farmer/:farmerId", deps.OrderController.GetCreditOrdersByFarmerID)
+    credits.GET("/", deps.OrderController.GetCreditOrdersByFarmerID) // Use query parameters
 }
-
 }
