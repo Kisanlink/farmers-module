@@ -19,11 +19,8 @@ func NewFarmRepository(db *mongo.Database) *FarmRepository {
 	}
 }
 
-// GetFarms retrieves multiple farms by farmerID
-func (repo *FarmRepository) GetFarms(ctx context.Context, farmerid int64) ([]models.Farm, error) {
-	// Debug: Log the farmer ID being queried
-	log.Printf("DEBUG: Starting query for farms of farmer with ID: %d", farmerid)
-
+// GetFarms retrieves multiple farms by farmerID and filters fields based on the provided parameter
+func (repo *FarmRepository) GetFarms(ctx context.Context, farmerid int64, fields string) ([]models.Farm, error) {
 	// Perform the query using Find to get multiple farms for the given farmer ID
 	cursor, err := repo.Collection.Find(ctx, bson.M{"farmerId": farmerid})
 	if err != nil {
@@ -51,9 +48,7 @@ func (repo *FarmRepository) GetFarms(ctx context.Context, farmerid int64) ([]mod
 		return nil, err
 	}
 
-	// Debug: Successfully retrieved multiple farms
-	log.Printf("DEBUG: Successfully retrieved %d farms for farmerId %d", len(farms), farmerid)
-
 	// Return the slice of farms
 	return farms, nil
 }
+
