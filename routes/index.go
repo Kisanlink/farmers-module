@@ -5,6 +5,7 @@ import (
 	"github.com/Kisanlink/farmers-module/database"
 	"github.com/Kisanlink/farmers-module/repositories"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 )
 
 type Dependencies struct {
@@ -42,8 +43,18 @@ func Setup() *gin.Engine {
 		SoilTestReportController: soilTestReportController,
 	}
 
+	
+
 	// Setup router and routes
 	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3002"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
+		ExposeHeaders:    []string{"Content-Length", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           12 * 60 * 60,
+	}))
 	InitializeRoutes(router, deps)
 
 	return router
@@ -75,7 +86,7 @@ commodity := v1.Group("/commodity")
 	commodity.GET("/prices/farmer/:farmerId", deps.CommodityPriceController.GetCommodityPricesByFarmerID)
 }
 
-
+// here commodity
 	// Soil Test Report routes (Optimized to use query params)
 	soilTests := v1.Group("/soil-test")
 	{
