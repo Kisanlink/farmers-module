@@ -4,6 +4,7 @@ import (
 	"github.com/Kisanlink/farmers-module/controllers"
 	"github.com/Kisanlink/farmers-module/database"
 	"github.com/Kisanlink/farmers-module/repositories"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,6 +45,17 @@ func Setup() *gin.Engine {
 
 	// Setup router and routes
 	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
+		ExposeHeaders:    []string{"Content-Length", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           12 * 60 * 60,
+	}))
+	router.OPTIONS("/*path", func(c *gin.Context) {
+		c.Status(204) // No content response for preflight requests
+	})
 	InitializeRoutes(router, deps)
 
 	return router
