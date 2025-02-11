@@ -3,11 +3,11 @@ package controllers
 import (
 	"context"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/repositories"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type CommodityPriceController struct {
@@ -18,48 +18,6 @@ func NewCommodityPriceController(repo *repositories.CommodityPriceRepository) *C
 	return &CommodityPriceController{
 		CommodityPriceRepo: repo,
 	}
-}
-
-// GetCommodityPricesByFarmer retrieves all crop prices for a given farmer
-func (cpc *CommodityPriceController) GetCommodityPricesByFarmerID(c *gin.Context) {
-
-	// Extract farmerID from request parameters
-	farmerIDStr := c.Param("farmerId")
-	farmerID, err := strconv.Atoi(farmerIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid farmer ID"})
-		return
-	}
-
-	// Context with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	// Fetch crops grown by the farmer
-	crops, err := cpc.CommodityPriceRepo.GetCropsByFarmerID(ctx, farmerID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch crops"})
-		return
-	}
-
-	// If no crops found
-	if len(crops) == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"message": "No crops found for this farmer"})
-		return
-	}
-
-	// Fetch commodity prices for the crops
-	commodityPrices, err := cpc.CommodityPriceRepo.GetPricesForCrops(ctx, crops)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch commodity prices"})
-		return
-	}
-
-	// Return response
-	c.JSON(http.StatusOK, gin.H{
-		"farmerId": farmerID,
-		"prices":   commodityPrices,
-	})
 }
 
 // GetAllCommodityPrices retrieves prices for all crops
@@ -81,13 +39,13 @@ func (cpc *CommodityPriceController) GetAllCommodityPrices(c *gin.Context) {
 	})
 }
 
-// GetOwnedCommodityPricesByFarmerID retrieves prices for crops sowed by a particular farmer
-func (cpc *CommodityPriceController) GetOwnedCommodityPricesByFarmerID(c *gin.Context) {
-	// Extract farmerID from request parameters
-	farmerIDStr := c.Param("id")
-	farmerID, err := strconv.Atoi(farmerIDStr)
+// GetCommodityPriceByID retrieves a crop price by cropId
+func (cpc *CommodityPriceController) GetCommodityPriceByID(c *gin.Context) {
+	// Extract cropId from request parameters
+	cropIDStr := c.Param("id")
+	cropID, err := primitive.ObjectIDFromHex(cropIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid farmer ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid crop ID"})
 		return
 	}
 
@@ -95,29 +53,13 @@ func (cpc *CommodityPriceController) GetOwnedCommodityPricesByFarmerID(c *gin.Co
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Fetch crops grown by the farmer
-	crops, err := cpc.CommodityPriceRepo.GetCropsByFarmerID(ctx, farmerID)
+	// Fetch commodity price by cropId
+	commodityPrice, err := cpc.CommodityPriceRepo.GetPriceByCropID(ctx, cropID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch crops"})
-		return
-	}
-
-	// If no crops found
-	if len(crops) == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"message": "No crops found for this farmer"})
-		return
-	}
-
-	// Fetch commodity prices for the crops
-	commodityPrices, err := cpc.CommodityPriceRepo.GetPricesForCrops(ctx, crops)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch commodity prices"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch commodity price"})
 		return
 	}
 
 	// Return response
-	c.JSON(http.StatusOK, gin.H{
-		"farmerId": farmerID,
-		"prices":   commodityPrices,
-	})
+	c.JSON(http.StatusOK, commodityPrice)
 }

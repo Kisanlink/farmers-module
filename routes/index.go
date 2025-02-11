@@ -26,7 +26,6 @@ func Setup() *gin.Engine {
 	commodityRepo := repositories.NewCommodityPriceRepository(db)
 	orderRepo := repositories.NewOrderRepository(db)
 	soilTestRepo := repositories.NewSoilTestReportRepository(db)
-
 	// Initialize controllers
 	farmerController := controllers.NewFarmerController(farmerRepo)
 	farmController := controllers.NewFarmController(farmRepo)
@@ -60,7 +59,6 @@ func Setup() *gin.Engine {
 
 	return router
 }
-
 func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
 	v1 := router.Group("/api/v1")
 
@@ -72,7 +70,6 @@ func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
 
 	// Initialize order routes
 	InitializeOrderRoutes(v1, deps)
-
 
 	// Initialize commodity price routes
 	InitializeCommodityPriceRoutes(v1, deps)

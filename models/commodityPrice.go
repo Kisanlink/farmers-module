@@ -6,7 +6,7 @@ import (
 
 // CommodityPrice model definition for storing crop prices
 type CommodityPrice struct {
-	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	CommodityName string             `bson:"comodityName" json:"comodityName"`
 	Image         string             `bson:"image" json:"image"`
 	Price         float64            `bson:"price" json:"price"`
