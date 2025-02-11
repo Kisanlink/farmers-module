@@ -24,7 +24,7 @@ func NewFarmController(farmRepo *repositories.FarmRepository) *FarmController {
 
 // GetFarmsByFarmerID retrieves farms by farmerID and allows filtering fields via query parameters
 func (fc *FarmController) GetFarmsByFarmerID(c *gin.Context) {
-	farmerIDstr := c.DefaultQuery("farmerId", "")
+	farmerIDstr := c.Param("id")
 	if farmerIDstr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Farmer ID is required"})
 		return
@@ -84,9 +84,33 @@ func (fc *FarmController) GetFarmsByFarmerID(c *gin.Context) {
 	c.JSON(http.StatusOK, farmResponses)
 }
 
+// GetFarmByFarmID retrieves a farm by its farmID
+func (fc *FarmController) GetFarmByFarmID(c *gin.Context) {
+	farmIDstr := c.Param("id")
+	if farmIDstr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Farm ID is required"})
+		return
+	}
+
+	farmID, err := strconv.ParseInt(farmIDstr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid farm ID"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	farm, err := fc.FarmRepository.GetFarmByID(ctx, farmID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, farm)
+}
+
 // Helper function to check if a field exists in the fields string
 func contains(fields, field string) bool {
 	return strings.Contains(fields, field)
 }
-
-

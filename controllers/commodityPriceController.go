@@ -61,3 +61,63 @@ func (cpc *CommodityPriceController) GetCommodityPricesByFarmerID(c *gin.Context
 		"prices":   commodityPrices,
 	})
 }
+
+// GetAllCommodityPrices retrieves prices for all crops
+func (cpc *CommodityPriceController) GetAllCommodityPrices(c *gin.Context) {
+	// Context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Fetch all commodity prices
+	commodityPrices, err := cpc.CommodityPriceRepo.GetAllPrices(ctx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch commodity prices"})
+		return
+	}
+
+	// Return response
+	c.JSON(http.StatusOK, gin.H{
+		"prices": commodityPrices,
+	})
+}
+
+// GetOwnedCommodityPricesByFarmerID retrieves prices for crops sowed by a particular farmer
+func (cpc *CommodityPriceController) GetOwnedCommodityPricesByFarmerID(c *gin.Context) {
+	// Extract farmerID from request parameters
+	farmerIDStr := c.Param("id")
+	farmerID, err := strconv.Atoi(farmerIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid farmer ID"})
+		return
+	}
+
+	// Context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Fetch crops grown by the farmer
+	crops, err := cpc.CommodityPriceRepo.GetCropsByFarmerID(ctx, farmerID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch crops"})
+		return
+	}
+
+	// If no crops found
+	if len(crops) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "No crops found for this farmer"})
+		return
+	}
+
+	// Fetch commodity prices for the crops
+	commodityPrices, err := cpc.CommodityPriceRepo.GetPricesForCrops(ctx, crops)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch commodity prices"})
+		return
+	}
+
+	// Return response
+	c.JSON(http.StatusOK, gin.H{
+		"farmerId": farmerID,
+		"prices":   commodityPrices,
+	})
+}

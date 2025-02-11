@@ -80,3 +80,28 @@ func (repo *CommodityPriceRepository) GetPricesForCrops(ctx context.Context, cro
 
 	return prices, nil
 }
+
+// GetAllPrices fetches prices for all crops
+func (repo *CommodityPriceRepository) GetAllPrices(ctx context.Context) ([]models.CommodityPrice, error) {
+	var prices []models.CommodityPrice
+
+	// Query the database for all commodity prices
+	cursor, err := repo.Collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var price models.CommodityPrice
+		if err := cursor.Decode(&price); err != nil {
+			return nil, err
+		}
+		prices = append(prices, price)
+	}
+
+	// Log successful retrieval
+	log.Printf("DEBUG: Successfully retrieved %d commodity prices", len(prices))
+
+	return prices, nil
+}

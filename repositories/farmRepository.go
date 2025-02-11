@@ -52,3 +52,13 @@ func (repo *FarmRepository) GetFarms(ctx context.Context, farmerid int64, fields
 	return farms, nil
 }
 
+// GetFarmByID retrieves a farm by its farmID
+func (repo *FarmRepository) GetFarmByID(ctx context.Context, farmID int64) (*models.Farm, error) {
+	var farm models.Farm
+	err := repo.Collection.FindOne(ctx, bson.M{"farmId": farmID}).Decode(&farm)
+	if err != nil {
+		log.Printf("ERROR: Failed to retrieve farm with farmId %d: %v", farmID, err)
+		return nil, err
+	}
+	return &farm, nil
+}

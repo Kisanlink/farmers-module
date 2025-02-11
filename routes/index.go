@@ -13,6 +13,10 @@ type Dependencies struct {
 	FarmController           *controllers.FarmController
 	OrderController          *controllers.OrderController
 	CommodityPriceController *controllers.CommodityPriceController
+	FarmerController         *controllers.FarmerController
+	FarmController           *controllers.FarmController
+	OrderController          *controllers.OrderController
+	CommodityPriceController *controllers.CommodityPriceController
 	SoilTestReportController *controllers.SoilTestReportController
 }
 
@@ -29,13 +33,16 @@ func Setup() *gin.Engine {
 
 	// Initialize controllers
 	farmerController := controllers.NewFarmerController(farmerRepo)
-	farmController := controllers.NewFarmController(farmRepo) // No price or soil test info in farm
+	farmController := controllers.NewFarmController(farmRepo)
 	orderController := controllers.NewOrderController(orderRepo)
 	commodityPriceController := controllers.NewCommodityPriceController(commodityRepo)
 	soilTestReportController := controllers.NewSoilTestReportController(soilTestRepo)
 
 	// Setup dependencies
 	deps := &Dependencies{
+		FarmerController:         farmerController,
+		FarmController:           farmController,
+		OrderController:          orderController,
 		FarmerController:         farmerController,
 		FarmController:           farmController,
 		OrderController:          orderController,
@@ -64,36 +71,16 @@ func Setup() *gin.Engine {
 func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
 	v1 := router.Group("/api/v1")
 
-	// Farmer routes
-	farmer := v1.Group("/farmers")
-	{
-		farmer.GET("/:id", deps.FarmerController.GetFarmerPersonalDetailsByID)
+	// Initialize farmer routes
+	InitializeFarmerRoutes(v1, deps)
 
-	}
+	// Initialize farm routes
+	InitializeFarmRoutes(v1, deps)
 
-	// Farm routes (With query parameters for fields)
-	farms := v1.Group("/farms")
-	{
-		farms.GET("", deps.FarmController.GetFarmsByFarmerID) // Modified to use query params
-		farms.GET("soil-test", deps.SoilTestReportController.GetSoilTestReports)
-	}
+	// Initialize order routes
+	InitializeOrderRoutes(v1, deps)
 
-	// Order routes (Optimized: Using query parameters)
-	orders := v1.Group("/orders")
-	{
-		// Fetch orders using query params like ?farmerId=123&status=Delivered
-		orders.GET("", deps.OrderController.GetOrdersByFarmerID)
-	}
 
-	commodity := v1.Group("/commodity")
-	{
-		commodity.GET("/prices/farmer/:farmerId", deps.CommodityPriceController.GetCommodityPricesByFarmerID)
-	}
-
-	// here commodity
-	// Credit Order route (Updated to use query parameters)
-	credits := v1.Group("/credits")
-	{
-		credits.GET("", deps.OrderController.GetCreditOrdersByFarmerID) // Use query parameters
-	}
+	// Initialize commodity price routes
+	InitializeCommodityPriceRoutes(v1, deps)
 }
