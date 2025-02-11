@@ -69,9 +69,7 @@ func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
     // Initialize farm routes
     InitializeFarmRoutes(v1, deps)
 
-	// Initialize order routes
-	InitializeOrderRoutes(v1, deps)
-
+	
     // Initialize commodity price routes
     InitializeCommodityPriceRoutes(v1, deps)
 }

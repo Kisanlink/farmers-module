@@ -19,11 +19,48 @@ func NewOrderRepository(db *mongo.Database) *OrderRepository {
 	}
 }
 
-func (repo *OrderRepository) GetOrders(ctx context.Context, farmerID int64, paymentMode, orderStatus string) ([]models.Order, error) {
+func (repo *OrderRepository) GetOrders(ctx context.Context, farmerID int64, status, startDate, endDate string) ([]models.Order, error) {
 	// Create the base query
 	filter := bson.M{"farmerId": farmerID}
 
 	// Apply optional filters
+	if status != "" {
+		filter["orderStatus"] = status
+	}
+
+	// Filter by date range if provided
+	if startDate != "" && endDate != "" {
+		filter["orderDate"] = bson.M{
+			"$gte": startDate,
+			"$lte": endDate,
+		}
+	}
+
+	// Perform the query
+	cursor, err := repo.Collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var orders []models.Order
+	for cursor.Next(ctx) {
+		var order models.Order
+		if err := cursor.Decode(&order); err != nil {
+			return nil, err
+		}
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
+// GetOrdersWithFilters fetches orders by farmer ID with paymentmode and orderstatus filters
+func (repo *OrderRepository) GetOrdersWithFilters(ctx context.Context, farmerID int64, paymentMode, orderStatus string) ([]models.Order, error) {
+	// Create the base query
+	filter := bson.M{"farmerId": farmerID}
+
+	// Apply filters
 	if paymentMode != "" {
 		filter["paymentMode"] = paymentMode
 	}
