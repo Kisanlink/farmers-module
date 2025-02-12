@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"log"
-
 	"github.com/Kisanlink/farmers-module/controllers"
 	"github.com/Kisanlink/farmers-module/database"
 	"github.com/Kisanlink/farmers-module/repositories"
