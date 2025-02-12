@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"log"
+
 	"github.com/Kisanlink/farmers-module/controllers"
 	"github.com/Kisanlink/farmers-module/database"
 	"github.com/Kisanlink/farmers-module/repositories"
@@ -45,8 +47,10 @@ func Setup() *gin.Engine {
 
 	// Setup router and routes
 	router := gin.Default()
+
+	//cors setup
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
 		ExposeHeaders:    []string{"Content-Length", "Content-Type"},

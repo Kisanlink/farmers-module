@@ -12,6 +12,7 @@ func main() {
 
     // Step 1: Initialize the router
     router := routes.Setup()
+    
 
     // Step 2: Defer MongoDB client disconnection
     defer func() {
@@ -21,6 +22,8 @@ func main() {
     }()
 
     // Step 3: Start the server
-    log.Println("Server is running on http://localhost:8080")
-    router.Run(":8080")
+    err := router.RunTLS(":443", "cert.pem", "key.pem")
+	if err != nil {
+		log.Fatal("Error starting HTTPS server:", err)
+	}
 }
