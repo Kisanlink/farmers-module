@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -37,7 +36,7 @@ func (fc *FarmController) GetFarmsByFarmerID(c *gin.Context) {
 	}
 
 	// Extract the "fields" query parameter to decide which fields to return
-	fields := c.DefaultQuery("fields", "farmID,acres,harvestDate,crop,cropImage")
+	fields := c.DefaultQuery("fields", "farmID, acres, harvestDate, crop, cropImage, cropCategory, cropVariety, locality")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -53,35 +52,12 @@ func (fc *FarmController) GetFarmsByFarmerID(c *gin.Context) {
 		return
 	}
 
-	// Response based on dynamic fields
-	var farmResponses []map[string]interface{}
-	for _, farm := range farms {
-		farmResponse := map[string]interface{}{}
-
-		// Dynamically populate the response based on requested fields
-		if contains(fields, "farmID") {
-			farmResponse["farmID"] = farm.FarmID
-		}
-		if contains(fields, "acres") {
-			farmResponse["acres"] = farm.Acres
-		}
-		if contains(fields, "harvestDate") {
-			farmResponse["harvestDate"] = fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d.%s",
-				farm.HarvestDate.Year, farm.HarvestDate.Month, farm.HarvestDate.Day,
-				farm.HarvestDate.Hour, farm.HarvestDate.Minute, farm.HarvestDate.Second,
-				farm.HarvestDate.FractionalSecond)
-		}
-		if contains(fields, "crop") {
-			farmResponse["crop"] = farm.Crop
-		}
-		if contains(fields, "cropImage") {
-			farmResponse["cropImage"] = farm.CropImage
-		}
-
-		farmResponses = append(farmResponses, farmResponse)
-	}
-
-	c.JSON(http.StatusOK, farmResponses)
+	c.JSON(http.StatusOK, gin.H{
+		"data": farms,
+		"success": true,
+		"message": "Farms fetched successfully for the farmerId",
+		"statusCode": 200,
+	})
 }
 
 // GetFarmByFarmID retrieves a farm by its farmID
