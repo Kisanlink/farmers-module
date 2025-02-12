@@ -40,7 +40,9 @@ func (cpc *CommodityPriceController) GetAllCommodityPrices(c *gin.Context) {
 
 	// Return response
 	c.JSON(http.StatusOK, gin.H{
-		"prices": commodityPrices,
+		"data": commodityPrices,
+		"message": "Successfully fetched all crops",
+		"success": true,
 	})
 }
 
@@ -95,7 +97,5 @@ func (cpc *CommodityPriceController) GetCommodityPriceByID(c *gin.Context) {
 	}
 
 	// Return response
-	c.JSON(http.StatusOK, gin.H{
-		"price": commodityPrice,
-	})
+	c.JSON(http.StatusOK, commodityPrice)
 }
