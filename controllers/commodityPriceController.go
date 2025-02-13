@@ -83,7 +83,7 @@ func (cpc *CommodityPriceController) GetCommodityPriceByID(c *gin.Context) {
 	defer cancel()
 
 	// Fetch commodity price by ID
-	commodityPrice, err := cpc.CommodityPriceRepo.GetPriceByID(ctx, id)
+	commodityPrice, err := cpc.CommodityPriceRepo.GetPricesByID(ctx, id)
 	if err != nil {
 		log.Printf("ERROR: Failed to fetch commodity price for ID %s: %v", id, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch commodity price"})

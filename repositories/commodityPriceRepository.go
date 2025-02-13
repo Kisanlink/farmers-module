@@ -6,17 +6,18 @@ import (
 
 	"github.com/Kisanlink/farmers-module/models"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type CommodityPriceRepository struct {
-	Collection *mongo.Collection
+	Commodities           *mongo.Collection
+	CommodityPriceHistory *mongo.Collection
 }
 
 func NewCommodityPriceRepository(db *mongo.Database) *CommodityPriceRepository {
 	return &CommodityPriceRepository{
-		Collection: db.Collection("ComodityPrice"),
+		Commodities:           db.Collection("Comodities"),
+		CommodityPriceHistory: db.Collection("ComodityPriceHistory"), // Change to your actual second collection name
 	}
 }
 
@@ -25,7 +26,7 @@ func (repo *CommodityPriceRepository) GetAllPrices(ctx context.Context) ([]model
 	var prices []models.CommodityPrice
 
 	// Query the database for all commodity prices
-	cursor, err := repo.Collection.Find(ctx, bson.M{})
+	cursor, err := repo.Commodities.Find(ctx, bson.M{})
 	if err != nil {
 		log.Printf("ERROR: Failed to execute query: %v", err)
 		return nil, err
@@ -63,7 +64,7 @@ func (repo *CommodityPriceRepository) GetPriceByName(ctx context.Context, cropNa
 	var price models.CommodityPrice
 
 	// Query the database for the commodity price by crop name
-	err := repo.Collection.FindOne(ctx, bson.M{"comodityName": cropName}).Decode(&price)
+	err := repo.Commodities.FindOne(ctx, bson.M{"commodityName": cropName}).Decode(&price)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Printf("DEBUG: No commodity price found for crop name: %s", cropName)
@@ -80,18 +81,11 @@ func (repo *CommodityPriceRepository) GetPriceByName(ctx context.Context, cropNa
 }
 
 // GetPriceByID fetches the price for a specific crop by ID
-func (repo *CommodityPriceRepository) GetPriceByID(ctx context.Context, id string) (*models.CommodityPrice, error) {
-	var price models.CommodityPrice
-
-	// Convert the ID string to an ObjectID
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		log.Printf("ERROR: Invalid ID format: %v", err)
-		return nil, err
-	}
+func (repo *CommodityPriceRepository) GetPricesByID(ctx context.Context, id string) (*[]models.CommodityPrice, error) {
+	var prices []models.CommodityPrice
 
 	// Query the database for the commodity price by ID
-	err = repo.Collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&price)
+	cursor, err := repo.CommodityPriceHistory.Find(ctx, bson.M{"comodityPriceId": id})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Printf("DEBUG: No commodity price found for ID: %s", id)
@@ -100,9 +94,14 @@ func (repo *CommodityPriceRepository) GetPriceByID(ctx context.Context, id strin
 		log.Printf("ERROR: Failed to execute query: %v", err)
 		return nil, err
 	}
+	defer cursor.Close(ctx)
+
+	if err := cursor.All(ctx, &prices); err != nil {
+		return nil, err
+	}
 
 	// Log successful retrieval
 	log.Printf("DEBUG: Successfully retrieved commodity price for ID: %s", id)
 
-	return &price, nil
+	return &prices, nil
 }
