@@ -22,7 +22,7 @@ func main() {
     }()
 
     // Step 3: Start the server
-    err := router.RunTLS(":443", "cert.pem", "key.pem")
+    err := router.Run("0.0.0.0:80")
 	if err != nil {
 		log.Fatal("Error starting HTTPS server:", err)
 	}
