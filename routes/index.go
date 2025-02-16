@@ -48,7 +48,7 @@ func Setup() *gin.Engine {
 
 	//cors setup
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins:     []string{"http://localhost:5173", "https://farmers.kisanlink.in", "https://api.farmers.kisanlink.in"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
 		ExposeHeaders:    []string{"Content-Length", "Content-Type"},
