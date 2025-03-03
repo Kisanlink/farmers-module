@@ -9,16 +9,16 @@ import (
 )
 
 type Dependencies struct {
-    FarmerController         *controllers.FarmerController
-    FarmController           *controllers.FarmController
-    OrderController          *controllers.OrderController
-    CommodityPriceController *controllers.CommodityPriceController
-    SoilTestReportController *controllers.SoilTestReportController
+	FarmerController         *controllers.FarmerController
+	FarmController           *controllers.FarmController
+	OrderController          *controllers.OrderController
+	CommodityPriceController *controllers.CommodityPriceController
+	SoilTestReportController *controllers.SoilTestReportController
 }
 
 func Setup() *gin.Engine {
-    database.InitializeDatabase()
-    db := database.GetDatabase()
+	database.InitializeDatabase()
+	db := database.GetDatabase()
 
 	// Initialize repositories
 	farmerRepo := repositories.NewFarmerRepository(db)
@@ -27,21 +27,20 @@ func Setup() *gin.Engine {
 	orderRepo := repositories.NewOrderRepository(db)
 	soilTestRepo := repositories.NewSoilTestReportRepository(db)
 	// Initialize controllers
-    farmerController := controllers.NewFarmerController(farmerRepo)
-    farmController := controllers.NewFarmController(farmRepo)
-    orderController := controllers.NewOrderController(orderRepo)
-    commodityPriceController := controllers.NewCommodityPriceController(commodityRepo)
-    soilTestReportController := controllers.NewSoilTestReportController(soilTestRepo)
+	farmerController := controllers.NewFarmerController(farmerRepo)
+	farmController := controllers.NewFarmController(farmRepo)
+	orderController := controllers.NewOrderController(orderRepo)
+	commodityPriceController := controllers.NewCommodityPriceController(commodityRepo)
+	soilTestReportController := controllers.NewSoilTestReportController(soilTestRepo)
 
 	// Setup dependencies
-    deps := &Dependencies{
-        FarmerController:         farmerController,
-        FarmController:           farmController,
-        OrderController:          orderController,
-        CommodityPriceController: commodityPriceController,
-        SoilTestReportController: soilTestReportController,
-    }
-
+	deps := &Dependencies{
+		FarmerController:         farmerController,
+		FarmController:           farmController,
+		OrderController:          orderController,
+		CommodityPriceController: commodityPriceController,
+		SoilTestReportController: soilTestReportController,
+	}
 
 	// Setup router and routes
 	router := gin.Default()
@@ -58,18 +57,17 @@ func Setup() *gin.Engine {
 	})
 	InitializeRoutes(router, deps)
 
-    return router
+	return router
 }
 func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
-    v1 := router.Group("/api/v1")
+	v1 := router.Group("/api/v1")
 
-    // Initialize farmer routes
-    InitializeFarmerRoutes(v1, deps)
+	// Initialize farmer routes
+	InitializeFarmerRoutes(v1, deps)
 
-    // Initialize farm routes
-    InitializeFarmRoutes(v1, deps)
+	// Initialize farm routes
+	InitializeFarmRoutes(v1, deps)
 
-	
-    // Initialize commodity price routes
-    InitializeCommodityPriceRoutes(v1, deps)
+	// Initialize commodity price routes
+	InitializeCommodityPriceRoutes(v1, deps)
 }

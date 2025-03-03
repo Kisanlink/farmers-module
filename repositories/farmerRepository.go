@@ -2,11 +2,11 @@ package repositories
 
 import (
 	"context"
-"log"
 	"github.com/Kisanlink/farmers-module/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 )
 
 type FarmerRepository struct {
@@ -43,7 +43,6 @@ func (repo *FarmerRepository) UpdateFarmer(ctx context.Context, id int64, update
 
 func (repo *FarmerRepository) SearchFarmers(ctx context.Context, filter string, orderBy string, page int, perPage int) ([]models.Farmer, int64, error) {
 	var farmers []models.Farmer
-	
 
 	// Build the filter query
 	query := bson.M{}
@@ -59,8 +58,8 @@ func (repo *FarmerRepository) SearchFarmers(ctx context.Context, filter string, 
 
 	// Get the list of farmers with pagination and sorting
 	options := &options.FindOptions{
-		Sort: bson.M{orderBy: 1}, // Ascending order by default
-		Skip: &[]int64{int64((page - 1) * perPage)}[0],
+		Sort:  bson.M{orderBy: 1}, // Ascending order by default
+		Skip:  &[]int64{int64((page - 1) * perPage)}[0],
 		Limit: &[]int64{int64(perPage)}[0],
 	}
 
@@ -77,9 +76,6 @@ func (repo *FarmerRepository) SearchFarmers(ctx context.Context, filter string, 
 
 	return farmers, count, nil
 }
-
-
-
 
 // GetFarmerByID retrieves a farmer by their farmerId
 func (repo *FarmerRepository) GetFarmerByID(ctx context.Context, id int64) (*models.Farmer, error) {
