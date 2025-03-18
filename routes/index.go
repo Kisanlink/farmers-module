@@ -1,52 +1,43 @@
 package routes
 
 import (
-	"github.com/Kisanlink/farmers-module/controllers"
+	"log"
+
 	"github.com/Kisanlink/farmers-module/database"
 	"github.com/Kisanlink/farmers-module/repositories"
+	"github.com/Kisanlink/farmers-module/services"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
+// Dependencies struct to hold service dependencies
 type Dependencies struct {
-    FarmerController         *controllers.FarmerController
-    FarmController           *controllers.FarmController
-    OrderController          *controllers.OrderController
-    CommodityPriceController *controllers.CommodityPriceController
-    SoilTestReportController *controllers.SoilTestReportController
+	FarmerService services.FarmerServiceInterface
+	AAAService    *services.AAAService
 }
 
+// Setup initializes the database, services, handlers, and routes
 func Setup() *gin.Engine {
-    database.InitializeDatabase()
-    db := database.GetDatabase()
+  	// Get database instance
+	db := database.GetDatabase()
 
-	// Initialize repositories
+	// Initialize repository
 	farmerRepo := repositories.NewFarmerRepository(db)
-	farmRepo := repositories.NewFarmRepository(db)
-	commodityRepo := repositories.NewCommodityPriceRepository(db)
-	orderRepo := repositories.NewOrderRepository(db)
-	soilTestRepo := repositories.NewSoilTestReportRepository(db)
-	// Initialize controllers
-    farmerController := controllers.NewFarmerController(farmerRepo)
-    farmController := controllers.NewFarmController(farmRepo)
-    orderController := controllers.NewOrderController(orderRepo)
-    commodityPriceController := controllers.NewCommodityPriceController(commodityRepo)
-    soilTestReportController := controllers.NewSoilTestReportController(soilTestRepo)
+
+	// Initialize service
+	farmerService := services.NewFarmerService(farmerRepo)
+
+// Initialize AAA service (Replace "AAA_SERVICE_ADDRESS" with actual address)
+aaaService := services.NewAAAService("AAA_SERVICE_ADDRESS")
+
 
 	// Setup dependencies
-    deps := &Dependencies{
-        FarmerController:         farmerController,
-        FarmController:           farmController,
-        OrderController:          orderController,
-        CommodityPriceController: commodityPriceController,
-        SoilTestReportController: soilTestReportController,
-    }
-
-
-	// Setup router and routes
+	deps := &Dependencies{
+		FarmerService: farmerService,
+		AAAService:    aaaService,
+	}
+	// Setup router with CORS middleware
 	router := gin.Default()
-
-	//cors setup
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173", "https://farmers.kisanlink.in", "https://api.farmers.kisanlink.in"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -55,23 +46,22 @@ func Setup() *gin.Engine {
 		AllowCredentials: true,
 		MaxAge:           12 * 60 * 60,
 	}))
+
+	// Handle CORS preflight requests
 	router.OPTIONS("/*path", func(c *gin.Context) {
-		c.Status(204) // No content response for preflight requests
+		c.Status(204)
 	})
+
+	// Initialize API routes
 	InitializeRoutes(router, deps)
 
-    return router
+	return router
 }
+
+// InitializeRoutes sets up the API routes with handlers
 func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
-    v1 := router.Group("/api/v1")
+	log.Println("Inside InitializeRoutes") // ✅ Log when function is called
+	v1 := router.Group("/api/v1")
 
-    // Initialize farmer routes
-    InitializeFarmerRoutes(v1, deps)
-
-    // Initialize farm routes
-    InitializeFarmRoutes(v1, deps)
-
-	
-    // Initialize commodity price routes
-    InitializeCommodityPriceRoutes(v1, deps)
+	RegisterFarmerRoutes(v1, deps.FarmerService, deps.AAAService)
 }
