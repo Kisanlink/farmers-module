@@ -10,7 +10,7 @@ import (
 )
 
 // FarmerSignupHandler handles farmer registration requests
-func FarmerSignupHandler(farmerService services.FarmerServiceInterface, aaaService services.AAAServiceInterface) gin.HandlerFunc {
+func FarmerSignupHandler(farmerService services.FarmerServiceInterface) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req models.FarmerSignupRequest
 		log.Println("Received request for farmer signup")
@@ -22,20 +22,16 @@ func FarmerSignupHandler(farmerService services.FarmerServiceInterface, aaaServi
 		}
 		log.Println("Request parsed successfully:", req)
 
-		// Define Farmer Role ID (you should retrieve this from config or DB)
-		farmerRoleID := "FARMER_ROLE_ID" // Change this to actual role ID
-
-		// Call gRPC to create user in AAA service
-		userID, err := aaaService.CreateUser(req.Email, req.Name, []string{farmerRoleID})
+		// Call the AAA service to create a user
+		response, err := services.CreateUserClient(req, "")
 		if err != nil {
 			log.Println("Failed to create user in AAA service:", err)
-			c.JSON(http.StatusUnauthorized, gin.H{"status": 401, "message": "Failed to create user", "error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"status": 500, "message": "Failed to create user in AAA service", "error": err.Error()})
 			return
 		}
-		log.Println("User created successfully, userID:", userID)
 
-		// Register Farmer
-		newFarmer, err := farmerService.CreateFarmer(userID, req)
+		// Register Farmer with the user_id from the AAA service response
+		newFarmer, err := farmerService.CreateFarmer(response.User.Id, req)
 		if err != nil {
 			log.Println("Failed to register farmer:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"status": 500, "message": "Failed to register farmer", "error": err.Error()})
@@ -51,10 +47,9 @@ func FarmerSignupHandler(farmerService services.FarmerServiceInterface, aaaServi
 			"data": gin.H{
 				"id":                 newFarmer.ID,
 				"user_id":            newFarmer.UserID,
-				"kisansathi_user_id": newFarmer.KisanSathiUserID,
+				"kisansathi_user_id": newFarmer.KisansathiUserID,
 				"is_active":          newFarmer.IsActive,
 			},
 		})
 	}
 }
-

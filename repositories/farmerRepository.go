@@ -25,8 +25,8 @@ func NewFarmerRepository(db *gorm.DB) *FarmerRepository {
 
 // CreateFarmerEntry inserts a new farmer in the database
 func (r *FarmerRepository) CreateFarmerEntry(farmer *models.Farmer) (*models.Farmer, error) {
-	if err := r.db.Create(farmer).Error; err != nil {
-		return nil, err
-	}
-	return farmer, nil
+    if err := r.db.Create(farmer).Error; err != nil {
+        return nil, err
+    }
+    return farmer, nil
 }

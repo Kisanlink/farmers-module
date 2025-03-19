@@ -21,16 +21,19 @@ func InitializeDatabase() {
 		// Load environment variables
 		config.LoadEnv()
 
-		// Get PostgreSQL connection details
-		host := config.GetEnv("DB_HOST")
-		port := config.GetEnv("DB_PORT")
-		user := config.GetEnv("DB_USER")
-		password := config.GetEnv("DB_PASSWORD")
-		dbName := config.GetEnv("DB_NAME")
-		sslMode := config.GetEnv("DB_SSLMODE")
+		// // Get PostgreSQL connection details
+		// host := config.GetEnv("DB_HOST")
+		// port := config.GetEnv("DB_PORT")
+		// user := config.GetEnv("DB_USER")
+		// password := config.GetEnv("DB_PASSWORD")
+		// dbName := config.GetEnv("DB_NAME")
+		// sslMode := config.GetEnv("DB_SSLMODE")
 
 		// PostgreSQL DSN
-		dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, port, user, password, dbName, sslMode)
+		dsn := fmt.Sprintf("postgresql://neondb_owner:npg_8pxWGSuh7BQX@ep-odd-math-a5pm4pai-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require")
+
+		// // PostgreSQL DSN
+		// dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, port, user, password, dbName, sslMode)
 
 		// Connect to PostgreSQL
 		var err error
@@ -38,8 +41,8 @@ func InitializeDatabase() {
 		if err != nil {
 			log.Fatalf("Failed to connect to PostgreSQL: %v", err)
 		}
-
 		log.Println("Connected to PostgreSQL successfully")
+    RunMigrations()
 	})
 }
 

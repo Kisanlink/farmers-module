@@ -13,7 +13,7 @@ import (
 // Dependencies struct to hold service dependencies
 type Dependencies struct {
 	FarmerService services.FarmerServiceInterface
-	AAAService    *services.AAAService
+	
 }
 
 // Setup initializes the database, services, handlers, and routes
@@ -27,14 +27,11 @@ func Setup() *gin.Engine {
 	// Initialize service
 	farmerService := services.NewFarmerService(farmerRepo)
 
-// Initialize AAA service (Replace "AAA_SERVICE_ADDRESS" with actual address)
-aaaService := services.NewAAAService("AAA_SERVICE_ADDRESS")
 
 
 	// Setup dependencies
 	deps := &Dependencies{
 		FarmerService: farmerService,
-		AAAService:    aaaService,
 	}
 	// Setup router with CORS middleware
 	router := gin.Default()
@@ -63,5 +60,5 @@ func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
 	log.Println("Inside InitializeRoutes") // ✅ Log when function is called
 	v1 := router.Group("/api/v1")
 
-	RegisterFarmerRoutes(v1, deps.FarmerService, deps.AAAService)
+	RegisterFarmerRoutes(v1, deps.FarmerService)
 }

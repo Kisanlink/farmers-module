@@ -4,44 +4,58 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
-	pb "github.com/Kisanlink/farmers-module/pb" // Import generated gRPC code
+	grpcclient "github.com/Kisanlink/farmers-module/grpc_client"
+	"github.com/Kisanlink/farmers-module/models"
+	"github.com/kisanlink/protobuf/pb-aaa"
 	"google.golang.org/grpc"
 )
 
-// AAAServiceInterface defines methods required for AAA service
-type AAAServiceInterface interface {
-	CreateUser(username string, password string, userRoleIds []string) (string, error)
+func InitializeGrpcClient(token string, retries int) (*grpc.ClientConn, error) {
+	var conn *grpc.ClientConn
+	var err error
+
+	for i := 0; i < retries; i++ {
+		conn, err = grpcclient.GrpcClient(token)
+		if err == nil {
+			return conn, nil
+		}
+		log.Printf("Failed to initialize gRPC client (attempt %d): %v", i+1, err)
+		time.Sleep(10 * time.Second)
+	}
+
+	return nil, fmt.Errorf("failed to initialize gRPC client after %d retries: %v", retries, err)
 }
 
-// AAAService handles communication with the AAA gRPC service
-type AAAService struct {
-	client pb.UserServiceClient
-}
-
-// NewAAAService creates a new AAA service client
-func NewAAAService(aaaServiceAddress string) *AAAService {
-	conn, err := grpc.Dial(aaaServiceAddress, grpc.WithInsecure())
+func CreateUserClient(req models.FarmerSignupRequest, token string) (*pb.CreateUserResponse, error) {
+	// Initialize gRPC connection with retry mechanism
+	conn, err := InitializeGrpcClient(token, 3)
 	if err != nil {
-		log.Fatalf("Failed to connect to AAA Service at %s: %v", aaaServiceAddress, err)
+		return nil, fmt.Errorf("failed to establish gRPC connection: %v", err)
 	}
-	client := pb.NewUserServiceClient(conn)
-	return &AAAService{client: client}
-}
+	defer conn.Close()
 
-// CreateUser creates a new user via gRPC
-func (s *AAAService) CreateUser(username string, password string, userRoleIds []string) (string, error) {
-	req := &pb.CreateUserRequest{
-		Username:    username,
-		Password:    password,
-		UserRoleIds: userRoleIds,
+	// Create User Service Client
+	userClient := pb.NewUserServiceClient(conn)
+
+	// Prepare gRPC request
+	userRequest := &pb.CreateUserRequest{
+		Username:      req.Name,
+		MobileNumber:  req.MobileNumber,
+		AadhaarNumber: req.AadhaarNumber,
 	}
-	resp, err := s.client.CreateUser(context.Background(), req)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Call gRPC service
+	response, err := userClient.CreateUser(ctx, userRequest)
 	if err != nil {
-		return "", err
+		log.Printf("Failed to create user via gRPC: %v", err)
+		return nil, err
 	}
-	if resp == nil || resp.User == nil {
-		return "", fmt.Errorf("received nil response from AAA service")
-	}
-	return resp.User.Id, nil
+
+	log.Printf("Successfully created user: %v", response)
+	return response, nil
 }

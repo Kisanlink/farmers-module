@@ -9,8 +9,8 @@ import (
 )
 
 // RegisterFarmerRoutes registers routes related to farmers
-func RegisterFarmerRoutes(router *gin.RouterGroup, farmerService services.FarmerServiceInterface, aaaService *services.AAAService) {
+func RegisterFarmerRoutes(router *gin.RouterGroup, farmerService services.FarmerServiceInterface) {
 	log.Println("Inside RegisterFarmerRoutes") // ✅ Log when function is called
 
-	router.POST("/farmers", handlers.FarmerSignupHandler(farmerService, aaaService))
+	router.POST("/farmers", handlers.FarmerSignupHandler(farmerService))
 }

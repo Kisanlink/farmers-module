@@ -17,7 +17,7 @@ func main() {
 	router := routes.Setup()
 
 	// Step 3: Start the server
-	err := router.Run(":8080")
+	err := router.Run(":3000")
 	if err != nil {
 		log.Fatal("Error starting HTTP server:", err)
 	}
