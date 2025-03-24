@@ -12,7 +12,7 @@ func RunMigrations() {
 	db := GetDatabase()
 
 	// Auto migrate the Farmer model
-	err := db.AutoMigrate(&models.Farmer{})
+	err := db.AutoMigrate(&models.Farmer{}, &models.Farm{})
 	if err != nil {
 		log.Fatalf("❌ Failed to run migrations: %v", err)
 	}

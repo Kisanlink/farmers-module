@@ -1,13 +1,17 @@
 package models
 
-// FarmerSignupRequest represents the request body for farmer registration
+
+// FarmerSignupRequest defines the request structure for farmer registration
 type FarmerSignupRequest struct {
-	Name             string  `json:"name" binding:"required"`
-	Email            string  `json:"email" binding:"required,email"`
-	CountryCode      string  `json:"country_code" binding:"required"`
-	MobileNumber     string  `json:"mobile_number" binding:"required"`
-	AadhaarNumber    string  `json:"aadhaar_number" binding:"required"`
-	KisansathiUserID *string `json:"kisansathi_user_id"` //union of uuid and nil
+	UserID          *string `json:"user_id"`           // Optional
+	Name            *string  `json:"name"` // Optional
+	Email           *string `json:"email"`             // Optional
+	CountryCode     string  `json:"country_code" binding:"required"` // Mandatory
+	MobileNumber    string  `json:"mobile_number" binding:"required"` // Mandatory
+	AadhaarNumber   *string `json:"aadhaar_number"`    // Optional
+	KisansathiUserID *string `json:"kisansathi_user_id"` // Optional
+	Roles            []string `json:"roles"` // Optional
+	Actions       []string `json:"actions"` // Optional
 }
 
 // Farmer represents a farmer entity in the database

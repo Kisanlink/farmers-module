@@ -13,26 +13,30 @@ import (
 // Dependencies struct to hold service dependencies
 type Dependencies struct {
 	FarmerService services.FarmerServiceInterface
-	
+	FarmService   services.FarmServiceInterface // ✅ Use interface
 }
+
 
 // Setup initializes the database, services, handlers, and routes
 func Setup() *gin.Engine {
-  	// Get database instance
-	db := database.GetDatabase()
+	log.Println("Initializing database connection...") // ✅ Log DB initialization
 
-	// Initialize repository
+	db := database.GetDatabase() // Get database instance
+
+	// Initialize repositories
 	farmerRepo := repositories.NewFarmerRepository(db)
+	farmRepo := repositories.NewFarmRepository(db)
 
-	// Initialize service
+	// Initialize services
 	farmerService := services.NewFarmerService(farmerRepo)
-
-
+	farmService := services.NewFarmService(farmRepo)
 
 	// Setup dependencies
 	deps := &Dependencies{
 		FarmerService: farmerService,
+		FarmService:   farmService,
 	}
+
 	// Setup router with CORS middleware
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
@@ -49,16 +53,15 @@ func Setup() *gin.Engine {
 		c.Status(204)
 	})
 
-	// Initialize API routes
-	InitializeRoutes(router, deps)
+	InitializeRoutes(router, deps) // Initialize API routes
 
 	return router
 }
 
 // InitializeRoutes sets up the API routes with handlers
 func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
-	log.Println("Inside InitializeRoutes") // ✅ Log when function is called
 	v1 := router.Group("/api/v1")
 
 	RegisterFarmerRoutes(v1, deps.FarmerService)
+	RegisterFarmRoutes(v1, deps.FarmService) // ✅ Register farm routes
 }

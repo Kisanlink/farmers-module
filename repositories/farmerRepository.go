@@ -9,6 +9,7 @@ import (
 // FarmerRepositoryInterface defines repository methods for farmers
 type FarmerRepositoryInterface interface {
 	CreateFarmerEntry(farmer *models.Farmer) (*models.Farmer, error)
+	FetchFarmers() ([]models.Farmer, error) // New method for fetching farmers
 }
 
 // FarmerRepository interacts with the database
@@ -29,4 +30,12 @@ func (r *FarmerRepository) CreateFarmerEntry(farmer *models.Farmer) (*models.Far
         return nil, err
     }
     return farmer, nil
+}
+// FetchFarmers retrieves all farmers from the database
+func (r *FarmerRepository) FetchFarmers() ([]models.Farmer, error) {
+	var farmers []models.Farmer
+	if err := r.db.Find(&farmers).Error; err != nil {
+		return nil, err
+	}
+	return farmers, nil
 }
