@@ -1,150 +1,135 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
+	"time"
 
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/services"
 	"github.com/gin-gonic/gin"
 )
-func FarmerSignupHandler(farmerService services.FarmerServiceInterface) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		log.Println("FarmerSignupHandler triggered") // Debug log
-		var req models.FarmerSignupRequest
-		log.Println("Received request for farmer signup")
 
-		// Parse Request Body
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": 400, "message": "Invalid request parameters", "error": err.Error()})
-			return
-		}
-		log.Println("Request parsed successfully:", req)
+type FarmerHandler struct {
+	farmerService services.FarmerServiceInterface
+}
 
-		// 1️⃣ Check if KisansathiUserID exists and validate it
-		if req.KisansathiUserID != nil {
-			// Fetch user details from AAA service
-			userResp, err := services.GetUserByIdClient(c.Request.Context(), *req.KisansathiUserID )
-			if err != nil || userResp.User == nil {
-				log.Println("Failed to fetch user or user not found:", err)
-				c.JSON(http.StatusUnauthorized, gin.H{
-					"status":  401,
-					"message": "User not found",
-					"error":   "Unauthorized",
-				})
-				return
-			}
-		}
-
-		// 2️⃣ Check if Kisansathi has permission to create a farmer
-		if req.KisansathiUserID != nil {
-			permResp, err := services.CheckPermissionClient(c.Request.Context(), *req.KisansathiUserID,  req.Actions,"")
-			if err != nil {
-				log.Println("User does not have permission to create farmer:", *req.KisansathiUserID)
-				c.JSON(http.StatusForbidden, gin.H{
-					"status":  403,
-					"message": "User does not have permission to create farmer",
-					"error":   "Forbidden",
-				})
-				return
-			}
-			log.Println("User has permission to create farmer:", permResp)
-		} else {
-			log.Println("KisansathiUserID is nil, skipping permission check")
-		}
-
-		var userID string
-		// **Step 1: Check if User ID is present in the request**
-		if req.UserID != nil {
-			userID = *req.UserID
-		} else {
-			// **Step 2: Create user via AAA Service**
-			response, err := services.CreateUserClient(req, "")
-			if err != nil {
-				log.Println("Failed to create user in AAA service:", err)
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"status":  500,
-					"message": "Failed to create user in AAA service",
-					"error":   err.Error(),
-				})
-				return
-			}
-
-			// Ensure AAA service response is valid
-			if response == nil || response.User == nil || response.User.Id == "" {
-				log.Println("AAA service returned an invalid response")
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"status":  500,
-					"message": "AAA service returned an invalid response",
-					"error":   "User ID not found in response",
-				})
-				return
-			}
-
-			// Use user ID from AAA response
-			userID = response.User.Id
-		}
-
-		// **Step 3: Register Farmer with userID**
-		newFarmer, err := farmerService.CreateFarmer(userID, req)
-		if err != nil {
-			log.Println("Failed to register farmer:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  500,
-				"message": "Failed to register farmer",
-				"error":   err.Error(),
-			})
-			return
-		}
-
-		log.Println("Farmer registered successfully:", newFarmer)
-		roleResp, err := services.AssignRoleToUserClient(c.Request.Context(), userID, req.Roles)
-		if err != nil {
-			log.Println("Failed to assign role to user:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  500,
-				"message": "Failed to assign role to user",
-				"error":   err.Error(),
-			})
-			return
-		}
-
-		log.Println("Role assigned successfully:", roleResp)
-		// **Step 4: Return Success Response**
-		c.JSON(http.StatusCreated, gin.H{
-			"status":  http.StatusCreated,
-			"message": "Farmer registered successfully",
-			"error":   false,
-			"data": gin.H{
-				"id":                 newFarmer.ID,
-				"user_id":            newFarmer.UserID,
-				"kisansathi_user_id": newFarmer.KisansathiUserID,
-				"is_active":          newFarmer.IsActive,
-				"role_assignment":    roleResp.Message,
-			},
-		})
+func NewFarmerHandler(farmerService services.FarmerServiceInterface) *FarmerHandler {
+	return &FarmerHandler{
+		farmerService: farmerService,
 	}
 }
 
-// FetchFarmersHandler handles fetching farmers
-func FetchFarmersHandler(farmerService services.FarmerServiceInterface) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Fetch farmers from the service
-		farmers, err := farmerService.FetchFarmers()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  http.StatusInternalServerError,
-				"message": "Failed to fetch farmers",
-				"error":   err.Error(),
-			})
+func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
+	var req models.FarmerSignupRequest
+	
+	// Validate request
+	if err := c.ShouldBindJSON(&req); err != nil {
+		h.sendErrorResponse(c, http.StatusBadRequest, "Invalid request parameters", err.Error())
+		return
+	}
+
+	// Handle Kisansathi User ID if present
+	if req.KisansathiUserID != nil {
+		// Verify Kisansathi user exists
+		userResp, err := services.GetUserByIdClient(c.Request.Context(), *req.KisansathiUserID)
+		if err != nil || userResp == nil || userResp.User == nil {
+			h.sendErrorResponse(c, http.StatusUnauthorized, "Kisansathi user not found", "user verification failed")
 			return
 		}
 
-		// Return success response
-		c.JSON(http.StatusOK, gin.H{
-			"status":  http.StatusOK,
-			"message": "Farmers fetched successfully",
-			"data":    farmers,
-		})
+		// Check permissions using CheckPermissionClient
+		permResp, err := services.CheckPermissionClient(
+			c.Request.Context(),
+			*req.KisansathiUserID,
+			[]string{"CREATE_FARMER"},
+			"", // token if needed
+		)
+		if err != nil {
+			h.sendErrorResponse(c, http.StatusInternalServerError, "Permission verification failed", err.Error())
+			return
+		}
+
+		// Check if CREATE_FARMER action is allowed
+		if permResp == nil || !permResp.Actions["CREATE_FARMER"] {
+			h.sendErrorResponse(c, http.StatusForbidden, 
+				"User doesn't have permission to create farmers", 
+				"missing required permission")
+			return
+		}
 	}
+
+	// Handle User Creation
+	var userID string
+	if req.UserID != nil {
+		userID = *req.UserID
+	} else {
+		// Create new user via AAA service
+		createUserResp, err := services.CreateUserClient(req, "")
+		if err != nil {
+			h.sendErrorResponse(c, http.StatusInternalServerError, 
+				"Failed to create user in AAA service", err.Error())
+			return
+		}
+		if createUserResp == nil || createUserResp.User == nil || createUserResp.User.Id == "" {
+			h.sendErrorResponse(c, http.StatusInternalServerError,
+				"Invalid response from AAA service", 
+				"empty user ID in response")
+			return
+		}
+		userID = createUserResp.User.Id
+	}
+
+	// Create Farmer Record
+	farmer, err := h.farmerService.CreateFarmer(userID, req)
+	if err != nil {
+		h.sendErrorResponse(c, http.StatusInternalServerError,
+			"Failed to create farmer record", err.Error())
+		return
+	}
+
+	// Assign Farmer Role
+	if _, err := services.AssignRoleToUserClient(
+		c.Request.Context(), 
+		userID, 
+		[]string{"FARMER"},
+	); err != nil {
+		h.sendErrorResponse(c, http.StatusInternalServerError,
+			"Farmer created but role assignment failed", err.Error())
+		return
+	}
+
+	// Return Success Response
+	h.sendSuccessResponse(c, http.StatusCreated, "Farmer registered successfully", farmer)
+}
+
+func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
+	farmers, err := h.farmerService.FetchFarmers()
+	if err != nil {
+		h.sendErrorResponse(c, http.StatusInternalServerError, "Failed to fetch farmers", err.Error())
+		return
+	}
+	h.sendSuccessResponse(c, http.StatusOK, "Farmers fetched successfully", farmers)
+}
+
+// Helper methods as receiver functions
+func (h *FarmerHandler) sendErrorResponse(c *gin.Context, status int, userMessage string, errorDetail string) {
+	c.JSON(status, gin.H{
+		"status":    status,
+		"message":   userMessage,
+		"error":     errorDetail,
+		"timestamp": time.Now().UTC(),
+		"data":      nil,
+		"success":   false,
+	})
+}
+
+func (h *FarmerHandler) sendSuccessResponse(c *gin.Context, status int, message string, data interface{}) {
+	c.JSON(status, gin.H{
+		"status":    status,
+		"message":   message,
+		"error":     nil,
+		"timestamp": time.Now().UTC(),
+		"data":      data,
+		"success":   true,
+	})
 }
