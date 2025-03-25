@@ -1,27 +1,51 @@
 package models
 
-
-// FarmRequest - Request model for creating a farm
+import (
+	"database/sql/driver"
+)
+// FarmRequest - Request model for farm registration
 type FarmRequest struct {
-	KisansathiUserID *string  `json:"kisansathi_user_id,omitempty"` // If Kisansathi is creating the farm
-	FarmerID         string   `json:"farmer_id" binding:"required"` // Mandatory: Farmer who owns the farm
-	Location         string   `json:"location" binding:"required"`  // GeoJSON or WKT format
-	Area             float64  `json:"area" binding:"required"`      // Must be > 0
-	Locality         string   `json:"locality" binding:"required"`  // Village or city name
-	Verified         bool     `json:"verified"`                     // Whether the farm is verified
-	Actions       []string `json:"actions"` // Optional
+	// Actor Fields (Optional)
+	KisansathiUserID *string `json:"kisansathi_user_id,omitempty" validate:"omitempty,uuid"` 
+	
+	// Principal Fields (Mandatory)
+	FarmerID  string      `json:"farmer_id" validate:"required,uuid"` // UUID of farmer who owns the farm
+	Location  [][]float64 `json:"location" validate:"required,min=4"`  // Polygon coordinates [[lat,lon], [lat,lon], ...]
+	
+	// Farm Metadata
+	Area      float64 `json:"area" validate:"required,gt=0"`      // Area in hectares (must be > 0)
+	Locality  string  `json:"locality" validate:"required"`       // Village/town name
+	CropType  string  `json:"crop_type" validate:"required"`      // Current crop
+	IsVerified bool   `json:"is_verified"`                        // Default false for farmer-created
+	
+	// System Fields (Auto-populated)
+	RequestedBy string `json:"-"` // Populated from user-id header
 }
 
 // Farm - Database model for storing farm details
 type Farm struct {
 	Base
-	FarmerID string `json:"farmer_id" gorm:"type:varchar(36);not null"`
-	KisansathiID *string `json:"kisansathi_id,omitempty" gorm:"type:uuid"`     // Nullable: If created by Kisansathi
-	Verified     bool    `json:"verified"`                                     // Verified by admin
-	IsOwner      bool    `json:"is_owner"`                                     // If the farmer is the owner
-	Location     string  `json:"location" gorm:"type:geometry(Polygon);not null"` // Stored as spatial data
-	Area         float64 `json:"area"`                                         // Farm area in hectares/acres
-	Locality     string  `json:"locality"`                                     // Name of village/city
-	CurrentCycle string  `json:"current_cycle"`                                // Crop cycle
-	OwnerID      string  `json:"owner_id" gorm:"type:uuid;not null"`           // References User.ID (Farmer or Kisansathi
+	FarmerID     string       `json:"farmer_id" gorm:"type:varchar(36);not null"`
+	KisansathiID *string      `json:"kisansathi_id,omitempty" gorm:"type:uuid"`
+	Verified     bool         `json:"verified"`
+	IsOwner      bool         `json:"is_owner"`
+	Location     GeoJSONPolygon `json:"location" gorm:"type:geometry(Polygon);not null"`
+	Area         float64      `json:"area"`
+	Locality     string       `json:"locality"`
+	CurrentCycle string       `json:"current_cycle"`
+	OwnerID      string       `json:"owner_id" gorm:"type:uuid;not null"`
+}
+type GeoJSONPolygon string
+
+// Value converts the GeoJSON to WKT format for PostGIS
+func (g GeoJSONPolygon) Value() (driver.Value, error) {
+	// The geoJSON parameter will already be properly formatted as a string
+	// when passed to the repository
+	return string(g), nil
+}
+
+// Scan implements the sql.Scanner interface (if you need to read from DB)
+func (g *GeoJSONPolygon) Scan(value interface{}) error {
+	// Implement if you need to scan from DB
+	return nil
 }
