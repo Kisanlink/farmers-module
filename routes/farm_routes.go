@@ -6,8 +6,10 @@ import (
 	"github.com/Kisanlink/farmers-module/services"
 )
 
-// ✅ Accept FarmServiceInterface instead of FarmService
-func RegisterFarmRoutes(router *gin.RouterGroup, farmService services.FarmServiceInterface) {
-	router.POST("/farms", handlers.FarmHandler(farmService)) // ✅ Now it accepts the interface
+func RegisterFarmRoutes(router *gin.RouterGroup, farmService services.FarmServiceInterface, userService services.UserServiceInterface) {
+	// Initialize handler with required services only
+	farmHandler := handlers.NewFarmHandler(farmService, userService)
+	
+	// Register farm endpoints
+	router.POST("/farms", farmHandler.CreateFarmHandler)
 }
-
