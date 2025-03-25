@@ -2,83 +2,56 @@ package repositories
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"log"
 
 	"github.com/Kisanlink/farmers-module/models"
 	"gorm.io/gorm"
 )
 
-// FarmRepositoryInterface defines database operations for farms
-type FarmRepositoryInterface interface {
-	CreateFarm( farm *models.Farm) error
-	GetFarmByID(ctx context.Context, farmID string) (*models.Farm, error)
-	GetFarmsByFarmerID(ctx context.Context, farmerID string) ([]models.Farm, error)
-	UpdateFarm(ctx context.Context, farm *models.Farm) error
-	DeleteFarm(ctx context.Context, farmID string) error
-}
-
-// FarmRepository handles actual database operations
 type FarmRepository struct {
 	db *gorm.DB
 }
 
-// NewFarmRepository initializes a FarmRepository
 func NewFarmRepository(db *gorm.DB) *FarmRepository {
 	return &FarmRepository{db: db}
 }
 
-// CreateFarm inserts a new farm into the database
-func (r *FarmRepository) CreateFarm( farm *models.Farm) error {
-	result := r.db.Create(farm)
-	if result.Error != nil {
-		log.Printf("Failed to create farm: %v", result.Error)
-		return result.Error
-	}
-	return nil
+type FarmRepositoryInterface interface {
+	CheckFarmOverlap(ctx context.Context, geoJSON map[string]interface{}) (bool, error)
+	CreateFarmRecord(ctx context.Context, farm *models.Farm, geoJSON map[string]interface{}) error
 }
 
-// GetFarmByID fetches a farm by ID
-func (r *FarmRepository) GetFarmByID(ctx context.Context, farmID string) (*models.Farm, error) {
-	var farm models.Farm
-	result := r.db.WithContext(ctx).First(&farm, "id = ?", farmID)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, errors.New("farm not found")
-		}
-		log.Printf("Failed to fetch farm: %v", result.Error)
-		return nil, result.Error
+func (r *FarmRepository) CheckFarmOverlap(ctx context.Context, geoJSON map[string]interface{}) (bool, error) {
+	var exists bool
+	err := r.db.WithContext(ctx).
+		Raw(`
+			SELECT EXISTS(
+				SELECT 1 FROM farms 
+				WHERE ST_Intersects(
+					location, 
+					ST_GeomFromGeoJSON(?)
+				)
+			)`, geoJSON).
+		Scan(&exists).Error
+
+	if err != nil {
+		log.Printf("CheckFarmOverlap query failed: %v", err)
+		return false, fmt.Errorf("error checking farm overlap")
 	}
-	return &farm, nil
+	return exists, nil
 }
 
-// GetFarmsByFarmerID fetches all farms belonging to a farmer
-func (r *FarmRepository) GetFarmsByFarmerID(ctx context.Context, farmerID string) ([]models.Farm, error) {
-	var farms []models.Farm
-	result := r.db.WithContext(ctx).Where("farmer_id = ?", farmerID).Find(&farms)
-	if result.Error != nil {
-		log.Printf("Failed to fetch farms: %v", result.Error)
-		return nil, result.Error
-	}
-	return farms, nil
-}
-
-// UpdateFarm updates an existing farm entry
-func (r *FarmRepository) UpdateFarm(ctx context.Context, farm *models.Farm) error {
-	result := r.db.WithContext(ctx).Save(farm)
-	if result.Error != nil {
-		log.Printf("Failed to update farm: %v", result.Error)
-		return result.Error
-	}
-	return nil
-}
-
-// DeleteFarm deletes a farm by ID
-func (r *FarmRepository) DeleteFarm(ctx context.Context, farmID string) error {
-	result := r.db.WithContext(ctx).Delete(&models.Farm{}, "id = ?", farmID)
-	if result.Error != nil {
-		log.Printf("Failed to delete farm: %v", result.Error)
-		return result.Error
+func (r *FarmRepository) CreateFarmRecord(ctx context.Context, farm *models.Farm, geoJSON map[string]interface{}) error {
+	// Convert the geoJSON to a string representation
+	geoJSONStr := fmt.Sprintf(`{"type":"Polygon","coordinates":%v}`, geoJSON["coordinates"])
+	farm.Location = models.GeoJSONPolygon(geoJSONStr)
+	
+	// Use standard GORM Create
+	err := r.db.WithContext(ctx).Create(farm).Error
+	if err != nil {
+		log.Printf("CreateFarmRecord failed: %v", err)
+		return fmt.Errorf("failed to create farm: %v", err)
 	}
 	return nil
 }
