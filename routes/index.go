@@ -10,58 +10,49 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Dependencies struct to hold service dependencies
 type Dependencies struct {
+	FarmService   services.FarmServiceInterface
+	UserService   services.UserServiceInterface
 	FarmerService services.FarmerServiceInterface
-	FarmService   services.FarmServiceInterface // ✅ Use interface
 }
 
-
-// Setup initializes the database, services, handlers, and routes
 func Setup() *gin.Engine {
-	log.Println("Initializing database connection...") // ✅ Log DB initialization
-
-	db := database.GetDatabase() // Get database instance
+	log.Println("Initializing database connection...")
+	db := database.GetDatabase()
 
 	// Initialize repositories
-	farmerRepo := repositories.NewFarmerRepository(db)
 	farmRepo := repositories.NewFarmRepository(db)
+	userRepo := repositories.NewUserRepository(db)
+	farmerRepo := repositories.NewFarmerRepository(db)
 
 	// Initialize services
-	farmerService := services.NewFarmerService(farmerRepo)
 	farmService := services.NewFarmService(farmRepo)
+	userService := services.NewUserService(userRepo)
+	farmerService := services.NewFarmerService(farmerRepo)
 
 	// Setup dependencies
 	deps := &Dependencies{
-		FarmerService: farmerService,
 		FarmService:   farmService,
+		UserService:   userService,
+		FarmerService: farmerService,
 	}
 
-	// Setup router with CORS middleware
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "https://farmers.kisanlink.in", "https://api.farmers.kisanlink.in"},
+		AllowOrigins:     []string{"http://localhost:5173", "https://farmers.kisanlink.in"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
-		ExposeHeaders:    []string{"Content-Length", "Content-Type"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * 60 * 60,
 	}))
 
-	// Handle CORS preflight requests
-	router.OPTIONS("/*path", func(c *gin.Context) {
-		c.Status(204)
-	})
-
-	InitializeRoutes(router, deps) // Initialize API routes
-
+	InitializeRoutes(router, deps)
 	return router
 }
 
-// InitializeRoutes sets up the API routes with handlers
 func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
 	v1 := router.Group("/api/v1")
-
+	RegisterFarmRoutes(v1, deps.FarmService, deps.UserService)
 	RegisterFarmerRoutes(v1, deps.FarmerService)
-	RegisterFarmRoutes(v1, deps.FarmService) // ✅ Register farm routes
 }
