@@ -1,90 +1,169 @@
 package handlers
 
 import (
-	"log"
+	"fmt"
 	"net/http"
+	"strings"
+	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/services"
-	"github.com/gin-gonic/gin"
 )
 
-// CreateFarmHandler handles farm creation based on user permissions.
-func FarmHandler(farmService services.FarmServiceInterface) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		log.Println("CreateFarmHandler triggered")
+type FarmHandler struct {
+	farmService services.FarmServiceInterface
+	userService services.UserServiceInterface
+}
 
-		var req models.FarmRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": 400, "message": "Invalid request parameters", "error": err.Error()})
-			return
-		}
-
-		log.Println("Received farm creation request:", req)
-
-		// 1️⃣ **Ensure FarmerID is present in the request**
-		if req.FarmerID == "" {
-			log.Println("Missing FarmerID in request")
-			c.JSON(http.StatusBadRequest, gin.H{"status": 400, "message": "Farmer ID is required"})
-			return
-		}
-
-		
-	// 1️⃣ Check if KisansathiUserID exists and validate it
-		if req.KisansathiUserID != nil {
-			// Fetch user details from AAA service
-			userResp, err := services.GetUserByIdClient(c.Request.Context(), *req.KisansathiUserID)
-			if err != nil || userResp.User == nil {
-				log.Println("Failed to fetch user or user not found:", err)
-				c.JSON(http.StatusUnauthorized, gin.H{
-					"status":  401,
-					"message": "User not found",
-					"error":   "Unauthorized",
-				})
-				return
-			}
-		}
-
-		// 2️⃣ Check if Kisansathi has permission to create a farm
-		if req.KisansathiUserID != nil {
-permResp, err := services.CheckPermissionClient(c.Request.Context(), *req.KisansathiUserID,  req.Actions,"")		
-	if err != nil {
-				log.Println("User does not have permission to create farm:", *req.KisansathiUserID)
-				c.JSON(http.StatusForbidden, gin.H{
-					"status":  403,
-					"message": "User does not have permission to create farm",
-					"error":   "Forbidden",
-				})
-				return
-			}
-			log.Println("User has permission to create farm:", permResp)
-		} else {
-			log.Println("KisansathiUserID is nil, skipping permission check")
-		}
-
-
-		// 5️⃣ **Proceed with Farm Creation**
-		log.Println("Creating farm for FarmerID:", req.FarmerID)
-		newFarm, err := farmService.CreateFarm(req)
-
-		if err != nil {
-			log.Println("Failed to create farm:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"status": 500, "message": "Failed to create farm", "error": err.Error()})
-			return
-		}
-
-		log.Println("Farm created successfully:", newFarm)
-		c.JSON(http.StatusCreated, gin.H{
-			"status":  http.StatusCreated,
-			"message": "Farm created successfully",
-			"data": gin.H{
-				"id":        newFarm.ID,
-				"user_id":   newFarm.FarmerID,
-				"verified":  newFarm.Verified,
-				"location":  newFarm.Location,
-				"area":      newFarm.Area,
-				"locality":  newFarm.Locality,
-			},
-		})
+func NewFarmHandler(
+	farmService services.FarmServiceInterface,
+	userService services.UserServiceInterface,
+) *FarmHandler {
+	return &FarmHandler{
+		farmService: farmService,
+		userService: userService,
 	}
+}
+
+func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
+	// Step 0: Header validation
+	actorID := c.GetHeader("user-id")
+	if actorID == "" {
+		sendStandardError(c, http.StatusUnauthorized, 
+			"Please include your user ID in headers",
+			"missing user-id header")
+		return
+	}
+
+	// Step 1: User verification
+	exists, isKisansathi, err := h.userService.VerifyUserAndType(actorID)
+	if err != nil {
+		sendStandardError(c, http.StatusInternalServerError,
+			"Something went wrong on our end",
+			"user verification failed: "+err.Error())
+		return
+	}
+	if !exists {
+		sendStandardError(c, http.StatusUnauthorized,
+			"Your account isn't registered",
+			"user not found in farmer/kisansathi records")
+		return
+	}
+
+	// Step 2: Parse body
+	var farmRequest models.FarmRequest
+	if err := c.ShouldBindJSON(&farmRequest); err != nil {
+		sendStandardError(c, http.StatusBadRequest,
+			"Invalid farm details provided",
+			"request body parsing failed: "+err.Error())
+		return
+	}
+
+	// Validate location polygon
+	if len(farmRequest.Location) < 4 {
+		sendStandardError(c, http.StatusBadRequest,
+			"A polygon requires at least 4 points (first and last should be same)",
+			"insufficient polygon points")
+		return
+	}
+
+	// Check if first and last points are same (closed polygon)
+	first := farmRequest.Location[0]
+	last := farmRequest.Location[len(farmRequest.Location)-1]
+	if first[0] != last[0] || first[1] != last[1] {
+		sendStandardError(c, http.StatusBadRequest,
+			"Polygon must be closed (first and last points should be identical)",
+			"unclosed polygon")
+		return
+	}
+
+	// Validate coordinates
+	for _, point := range farmRequest.Location {
+		if len(point) != 2 {
+			sendStandardError(c, http.StatusBadRequest,
+				"Each location point must have exactly 2 values (latitude, longitude)",
+				"invalid coordinate format")
+			return
+		}
+		lat, lon := point[0], point[1]
+		if lat < -90 || lat > 90 || lon < -180 || lon > 180 {
+			sendStandardError(c, http.StatusBadRequest,
+				"Invalid coordinates (latitude must be -90 to 90, longitude -180 to 180)",
+				"invalid coordinate range")
+			return
+		}
+	}
+
+	// Step 3: Permission check
+	requiredAction := "CREATE_UNVERIFIED_FARM"
+	if isKisansathi {
+		requiredAction = "CREATE_VERIFIED_FARM"
+	}
+
+	isAllowed, err := services.ValidateActionClient(c.Request.Context(), actorID, requiredAction)
+	if err != nil {
+		sendStandardError(c, http.StatusInternalServerError,
+			"Permission verification failed",
+			fmt.Sprintf("AAA service error: %v", err))
+		return
+	}
+	if !isAllowed {
+		sendStandardError(c, http.StatusForbidden,
+			"You don't have permission",
+			fmt.Sprintf("action %s not allowed", requiredAction))
+		return
+	}
+
+	// Step 4: Farm creation
+	farm, err := h.farmService.CreateFarm(
+		c.Request.Context(),
+		farmRequest.FarmerID,
+		farmRequest.Location,
+		farmRequest.Area,
+		farmRequest.Locality,
+		farmRequest.CropType,
+		isKisansathi,
+	)
+	
+	if err != nil {
+		handleFarmCreationError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"status":    http.StatusCreated,
+		"message":   "Farm created successfully",
+		"data":      farm,
+		"timestamp": time.Now().UTC(),
+		"success":   true,
+	})
+}
+
+func handleFarmCreationError(c *gin.Context, err error) {
+	switch {
+	case strings.Contains(err.Error(), "invalid location"):
+		sendStandardError(c, http.StatusBadRequest,
+			"Please provide a valid farm boundary",
+			"Invalid farm location format")
+	case strings.Contains(err.Error(), "overlap"):
+		sendStandardError(c, http.StatusConflict,
+			"This farm overlaps with an existing farm",
+			"Farm location overlaps")
+	default:
+		sendStandardError(c, http.StatusInternalServerError,
+			"Something went wrong while creating your farm",
+			err.Error())
+	}
+}
+
+func sendStandardError(c *gin.Context, status int, userMessage string, errorDetail string) {
+	c.JSON(status, gin.H{
+		"status":    status,
+		"message":   userMessage,
+		"error":     errorDetail,
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
+		"data":      nil,
+		"success":   false,
+	})
 }
