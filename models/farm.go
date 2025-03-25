@@ -2,6 +2,8 @@ package models
 
 import (
 	"database/sql/driver"
+	"encoding/json"
+	"fmt"
 )
 // FarmRequest - Request model for farm registration
 type FarmRequest struct {
@@ -25,27 +27,33 @@ type FarmRequest struct {
 // Farm - Database model for storing farm details
 type Farm struct {
 	Base
-	FarmerID     string       `json:"farmer_id" gorm:"type:varchar(36);not null"`
-	KisansathiID *string      `json:"kisansathi_id,omitempty" gorm:"type:uuid"`
+	FarmerId    string       `json:"farmer_id" gorm:"type:varchar(36);not null"`
+	KisansathiId *string      `json:"kisansathi_id,omitempty" gorm:"type:uuid"`
 	Verified     bool         `json:"verified"`
 	IsOwner      bool         `json:"is_owner"`
 	Location     GeoJSONPolygon `json:"location" gorm:"type:geometry(Polygon);not null"`
 	Area         float64      `json:"area"`
 	Locality     string       `json:"locality"`
 	CurrentCycle string       `json:"current_cycle"`
-	OwnerID      string       `json:"owner_id" gorm:"type:uuid;not null"`
+	OwnerId      string       `json:"owner_id" gorm:"type:uuid;not null"`
 }
-type GeoJSONPolygon string
 
-// Value converts the GeoJSON to WKT format for PostGIS
+// GeoJSONPolygon represents a GeoJSON Polygon.
+type GeoJSONPolygon struct {
+    Type        string          `json:"type"`       // should be "Polygon"
+    Coordinates [][][]float64   `json:"coordinates"` // array of linear rings
+}
+
+// Value marshals the GeoJSONPolygon into JSON for storage.
 func (g GeoJSONPolygon) Value() (driver.Value, error) {
-	// The geoJSON parameter will already be properly formatted as a string
-	// when passed to the repository
-	return string(g), nil
+    return json.Marshal(g)
 }
 
-// Scan implements the sql.Scanner interface (if you need to read from DB)
+// Scan unmarshals a JSON-encoded value from the database into GeoJSONPolygon.
 func (g *GeoJSONPolygon) Scan(value interface{}) error {
-	// Implement if you need to scan from DB
-	return nil
+    bytes, ok := value.([]byte)
+    if !ok {
+        return fmt.Errorf("failed to convert value to []byte")
+    }
+    return json.Unmarshal(bytes, g)
 }

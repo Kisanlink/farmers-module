@@ -6,6 +6,7 @@ import (
 
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/repositories"
+	"github.com/Kisanlink/farmers-module/utils"
 )
 
 type FarmServiceInterface interface {
@@ -55,13 +56,14 @@ func (s *FarmService) CreateFarm(
 
 	// Create farm model
 	farm := &models.Farm{
-		FarmerID:     farmerID,
+		Id     :      utils.Generate10DigitID(),
+		FarmerId:     farmerID,
 		Verified:     isKisansathi, // Auto-verified if created by Kisansathi
 		IsOwner:      true,
 		Area:         area,
 		Locality:     locality,
 		CurrentCycle: cropType,
-		OwnerID:      farmerID,
+		OwnerId:      farmerID,
 	}
 
 	// Store the farm in database
