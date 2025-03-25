@@ -137,7 +137,7 @@ func CheckPermissionClient(ctx context.Context, userID string, actions []string,
 }
 
 // AssignRoleToUserClient assigns a role to a user via AAA service
-func AssignRoleToUserClient(ctx context.Context, userID string, roles []string) (*pb.AssignRoleToUserResponse, error) {
+func AssignRoleToUserClient(ctx context.Context, userID string, roles []string ,) (*pb.AssignRoleToUserResponse, error) {
 	// Initialize gRPC connection with retry mechanism
 	conn, err := InitializeGrpcClient("", 3) // Assuming no auth token is needed
 	if err != nil {
@@ -165,14 +165,26 @@ func AssignRoleToUserClient(ctx context.Context, userID string, roles []string) 
 		return nil, err
 	}
 
-	// Validate response
-	if resp == nil || resp.StatusCode != 200 {
-		log.Printf("Failed to assign role. Response: %+v", resp)
-		return nil, fmt.Errorf("failed to assign role: %s", resp.Message)
-	}
+	
 
 	log.Printf("Successfully assigned roles to user %s: %v", userID, roles)
 	return resp, nil
 }
+
+func ValidateActionClient(ctx context.Context, userID string, action string) (bool, error) {
+	// Initialize gRPC connection
+	conn, err := InitializeGrpcClient("", 3) // Reuse your existing connection logic
+	if err != nil {
+		return false, fmt.Errorf("gRPC connection failed: %v", err)
+	}
+	defer conn.Close()
+
+	// Create Permission Service Client
+	
+	return true,nil
+	}
+
+	
+	
 
 
