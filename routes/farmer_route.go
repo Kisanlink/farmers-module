@@ -1,4 +1,3 @@
-
 package routes
 
 import (
@@ -9,6 +8,8 @@ import (
 
 // RegisterFarmerRoutes registers routes related to farmers
 func RegisterFarmerRoutes(router *gin.RouterGroup, farmerService services.FarmerServiceInterface) {
-	router.POST("/farmers", handlers.FarmerSignupHandler(farmerService))
-	router.GET("/farmers", handlers.FetchFarmersHandler(farmerService)) // New route for fetching farmersc
+	farmerHandler := handlers.NewFarmerHandler(farmerService)
+	
+	router.POST("/farmers", farmerHandler.FarmerSignupHandler)
+	router.GET("/farmers", farmerHandler.FetchFarmersHandler)
 }
