@@ -1,39 +1,74 @@
 package services
 
 import (
+	"context"
+	"fmt"
 
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/repositories"
 )
 
-// FarmServiceInterface defines service methods for farm operations
 type FarmServiceInterface interface {
-	CreateFarm( req models.FarmRequest) (*models.Farm, error)
+	CreateFarm(
+		ctx context.Context,
+		farmerID string,
+		coordinates [][]float64,
+		area float64,
+		locality string,
+		cropType string,
+		isKisansathi bool,
+	) (*models.Farm, error)
 }
 
-// FarmService handles business logic for farms
 type FarmService struct {
 	repo repositories.FarmRepositoryInterface
 }
 
-// NewFarmService initializes a new FarmService
 func NewFarmService(repo repositories.FarmRepositoryInterface) *FarmService {
 	return &FarmService{repo: repo}
 }
-// CreateFarm creates a new farm entry
-func (s *FarmService) CreateFarm(req models.FarmRequest) (*models.Farm, error) {
-	newFarm := &models.Farm{
-		FarmerID: req.FarmerID,
-		Verified: req.Verified,
-		Location: req.Location,
-		Area:     req.Area,
-		Locality: req.Locality,
+
+func (s *FarmService) CreateFarm(
+	ctx context.Context,
+	farmerID string,
+	coordinates [][]float64,
+	area float64,
+	locality string,
+	cropType string,
+	isKisansathi bool,
+) (*models.Farm, error) {
+	
+	// Convert coordinates to GeoJSON Polygon format
+	geoJSON := map[string]interface{}{
+		"type": "Polygon",
+		"coordinates": [][][]float64{coordinates}, // Note the extra wrapping array for Polygon
 	}
 
-	// Insert farm record into database via repository
-	err := s.repo.CreateFarm(newFarm)
+	// Check for overlapping farms
+	overlap, err := s.repo.CheckFarmOverlap(ctx, geoJSON)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to check farm overlap: %w", err)
 	}
-	return newFarm, nil
+	if overlap {
+		return nil, fmt.Errorf("farm location overlaps with existing farm")
+	}
+
+	// Create farm model
+	farm := &models.Farm{
+		FarmerID:     farmerID,
+		Verified:     isKisansathi, // Auto-verified if created by Kisansathi
+		IsOwner:      true,
+		Area:         area,
+		Locality:     locality,
+		CurrentCycle: cropType,
+		OwnerID:      farmerID,
+	}
+
+	// Store the farm in database
+	err = s.repo.CreateFarmRecord(ctx, farm, geoJSON)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create farm record: %w", err)
+	}
+
+	return farm, nil
 }
