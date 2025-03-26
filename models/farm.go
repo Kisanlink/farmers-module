@@ -20,16 +20,16 @@ type FarmRequest struct {
 
 // models/farm.go
 type Farm struct {
-	Base
-	FarmerId     string         `json:"farmer_id" gorm:"type:varchar(36);not null"`
-	KisansathiId *string        `json:"kisansathi_id,omitempty" gorm:"type:uuid;default:null"` // Changed to pointer and default null
-	Verified     bool           `json:"verified"`
-	IsOwner      bool           `json:"is_owner"`
-	Location     GeoJSONPolygon `json:"location" gorm:"type:geometry(Polygon,4326);not null"`
-	Area         float64        `json:"area"`
-	Locality     string         `json:"locality"`
-	CurrentCycle string         `json:"current_cycle"`
-	OwnerId      string         `json:"owner_id" gorm:"type:uuid;not null"`
+    Base
+    FarmerId     string         `json:"farmer_id" gorm:"type:varchar(36);not null"`
+    KisansathiId *string        `json:"kisansathi_id,omitempty" gorm:"type:uuid;default:null"`
+    Verified     bool           `json:"verified"`
+    IsOwner      bool           `json:"is_owner"`
+    Location     GeoJSONPolygon `json:"location" gorm:"type:geometry(Polygon,4326);not null"`
+    Area         float64        `json:"area"`
+    Locality     string         `json:"locality"`
+    CurrentCycle string         `json:"current_cycle"`
+    OwnerId      string         `json:"owner_id" gorm:"type:varchar(36);not null"` // Changed from type:uuid to varchar(36)
 }
 
 // GeoJSONPolygon represents a GeoJSON Polygon.
