@@ -60,7 +60,7 @@ func (r *FarmRepository) CheckFarmOverlap( geoJSON models.GeoJSONPolygon) (bool,
 // repositories/farm_repository.go
 
 // repositories/farm_repository.go
-func (r *FarmRepository) CreateFarmRecord( farm *models.Farm, geoJSON models.GeoJSONPolygon) error {
+func (r *FarmRepository) CreateFarmRecord( farm *models.Farm) error {
     // Convert GeoJSONPolygon to map
     // Use standard GORM Create
     err := r.db.Create(farm).Error
