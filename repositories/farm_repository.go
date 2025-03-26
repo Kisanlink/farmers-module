@@ -60,10 +60,29 @@ func (r *FarmRepository) CheckFarmOverlap( geoJSON models.GeoJSONPolygon) (bool,
 // repositories/farm_repository.go
 
 // repositories/farm_repository.go
-func (r *FarmRepository) CreateFarmRecord( farm *models.Farm) error {
-    // Convert GeoJSONPolygon to map
-    // Use standard GORM Create
-    err := r.db.Create(farm).Error
+func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
+    // Marshal the GeoJSONPolygon to a JSON string.
+    geoJSONBytes, err := json.Marshal(farm.Location)
+    if err != nil {
+        log.Printf("failed to marshal location: %v", err)
+        return fmt.Errorf("failed to marshal location: %v", err)
+    }
+    geoJSONString := string(geoJSONBytes)
+
+    // Build a map for insertion so we can use a raw SQL expression for the location field.
+    farmData := map[string]interface{}{
+        "farmer_id":     farm.FarmerId,
+        "kisansathi_id": farm.KisansathiId,
+        "verified":      farm.Verified,
+        "is_owner":      farm.IsOwner,
+        "location":      gorm.Expr("ST_SetSRID(ST_GeomFromGeoJSON(?),4326)", geoJSONString),
+        "area":          farm.Area,
+        "locality":      farm.Locality,
+        "current_cycle": farm.CurrentCycle,
+        "owner_id":      farm.OwnerId,
+    }
+
+    err = r.db.Model(&models.Farm{}).Create(farmData).Error
     if err != nil {
         log.Printf("CreateFarmRecord failed: %v", err)
         return fmt.Errorf("failed to create farm: %v", err)
