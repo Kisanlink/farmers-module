@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Kisanlink/farmers-module/models"
+	"github.com/Kisanlink/farmers-module/utils"
 	"gorm.io/gorm"
 )
 
@@ -72,6 +73,7 @@ func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
 
     // Build a map for insertion so we can use a raw SQL expression for the location field.
     farmData := map[string]interface{}{
+        "id":            utils.Generate10DigitID(),
         "farmer_id":     farm.FarmerId,
         "kisansathi_id": farm.KisansathiId,
         "verified":      farm.Verified,
