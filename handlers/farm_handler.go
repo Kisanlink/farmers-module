@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -26,118 +25,57 @@ func NewFarmHandler(
 	}
 }
 
+// handlers/farm_handler.go
+
 func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
-	// Step 0: Header validation
-	actorID := c.GetHeader("user-id")
-	if actorID == "" {
-		sendStandardError(c, http.StatusUnauthorized, 
-			"Please include your user ID in headers",
-			"missing user-id header")
-		return
-	}
+    var farmRequest models.FarmRequest
+    if err := c.ShouldBindJSON(&farmRequest); err != nil {
+        sendStandardError(c, http.StatusBadRequest,
+            "Invalid farm details provided",
+            "request body parsing failed: "+err.Error())
+        return
+    }
 
-	// Step 1: User verification
-	exists, isKisansathi, err := h.userService.VerifyUserAndType(actorID)
-	if err != nil {
-		sendStandardError(c, http.StatusInternalServerError,
-			"Something went wrong on our end",
-			"user verification failed: "+err.Error())
-		return
-	}
-	if !exists {
-		sendStandardError(c, http.StatusUnauthorized,
-			"Your account isn't registered",
-			"user not found in farmer/kisansathi records")
-		return
-	}
+    // Convert to proper GeoJSON structure
+    geoJSONPolygon := models.GeoJSONPolygon{
+        Type:        "Polygon",
+        Coordinates: farmRequest.Location,
+    }
 
-	// Step 2: Parse body
-	var farmRequest models.FarmRequest
-	if err := c.ShouldBindJSON(&farmRequest); err != nil {
-		sendStandardError(c, http.StatusBadRequest,
-			"Invalid farm details provided",
-			"request body parsing failed: "+err.Error())
-		return
-	}
+    // Validate coordinates
+    if len(geoJSONPolygon.Coordinates) == 0 || len(geoJSONPolygon.Coordinates[0]) < 4 {
+        sendStandardError(c, http.StatusBadRequest,
+            "A polygon requires at least 4 points",
+            "insufficient polygon points")
+        return
+    }
 
-	// Validate location polygon
-	if len(farmRequest.Location) < 4 {
-		sendStandardError(c, http.StatusBadRequest,
-			"A polygon requires at least 4 points (first and last should be same)",
-			"insufficient polygon points")
-		return
-	}
+    // Auto-close polygon if not closed
+    ring := geoJSONPolygon.Coordinates[0]
+    first, last := ring[0], ring[len(ring)-1]
+    if first[0] != last[0] || first[1] != last[1] {
+        geoJSONPolygon.Coordinates[0] = append(ring, ring[0])
+    }
 
-	// Check if first and last points are same (closed polygon)
-	first := farmRequest.Location[0]
-	last := farmRequest.Location[len(farmRequest.Location)-1]
-	if first[0] != last[0] || first[1] != last[1] {
-		sendStandardError(c, http.StatusBadRequest,
-			"Polygon must be closed (first and last points should be identical)",
-			"unclosed polygon")
-		return
-	}
+    farm, err := h.farmService.CreateFarm(
+        farmRequest.FarmerID,
+        geoJSONPolygon,
+        farmRequest.Area,
+        farmRequest.Locality,
+    )
+    
+    if err != nil {
+        handleFarmCreationError(c, err)
+        return
+    }
 
-	// Validate coordinates
-	for _, point := range farmRequest.Location {
-		if len(point) != 2 {
-			sendStandardError(c, http.StatusBadRequest,
-				"Each location point must have exactly 2 values (latitude, longitude)",
-				"invalid coordinate format")
-			return
-		}
-		lat, lon := point[0], point[1]
-		if lat < -90 || lat > 90 || lon < -180 || lon > 180 {
-			sendStandardError(c, http.StatusBadRequest,
-				"Invalid coordinates (latitude must be -90 to 90, longitude -180 to 180)",
-				"invalid coordinate range")
-			return
-		}
-	}
-
-	// Step 3: Permission check
-	requiredAction := "CREATE_UNVERIFIED_FARM"
-	if isKisansathi {
-		requiredAction = "CREATE_VERIFIED_FARM"
-	}
-
-	isAllowed, err := services.ValidateActionClient(c.Request.Context(), actorID, requiredAction)
-	if err != nil {
-		sendStandardError(c, http.StatusInternalServerError,
-			"Permission verification failed",
-			fmt.Sprintf("AAA service error: %v", err))
-		return
-	}
-	if !isAllowed {
-		sendStandardError(c, http.StatusForbidden,
-			"You don't have permission",
-			fmt.Sprintf("action %s not allowed", requiredAction))
-		return
-	}
-
-	// Step 4: Farm creation
-	farm, err := h.farmService.CreateFarm(
-		c.Request.Context(),
-		farmRequest.FarmerID,
-		farmRequest.Location,
-		farmRequest.Area,
-		farmRequest.Locality,
-		farmRequest.CropType,
-		isKisansathi,
-	)
-	
-	if err != nil {
-		handleFarmCreationError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"status":    http.StatusCreated,
-		"message":   "Farm created successfully",
-		"data":      farm,
-		"timestamp": time.Now().UTC(),
-		"success":   true,
-	})
+    c.JSON(http.StatusCreated, gin.H{
+        "status":    http.StatusCreated,
+        "message":   "Farm created successfully",
+        "data":      farm,
+        "timestamp": time.Now().UTC(),
+        "success":   true,
+    })
 }
 
 func handleFarmCreationError(c *gin.Context, err error) {

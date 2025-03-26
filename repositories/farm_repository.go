@@ -1,9 +1,9 @@
 package repositories
 
 import (
-	"context"
 	"fmt"
 	"log"
+    "strings"
 
 	"github.com/Kisanlink/farmers-module/models"
 	"gorm.io/gorm"
@@ -18,40 +18,103 @@ func NewFarmRepository(db *gorm.DB) *FarmRepository {
 }
 
 type FarmRepositoryInterface interface {
-	CheckFarmOverlap(ctx context.Context, geoJSON map[string]interface{}) (bool, error)
-	CreateFarmRecord(ctx context.Context, farm *models.Farm, geoJSON map[string]interface{}) error
+	CheckFarmOverlap( geoJSON models.GeoJSONPolygon) (bool, error)
+	CreateFarmRecord(farm *models.Farm) error
+  
 }
 
-func (r *FarmRepository) CheckFarmOverlap(ctx context.Context, geoJSON map[string]interface{}) (bool, error) {
-	var exists bool
-	err := r.db.WithContext(ctx).
-		Raw(`
-			SELECT EXISTS(
-				SELECT 1 FROM farms 
-				WHERE ST_Intersects(
-					location, 
-					ST_GeomFromGeoJSON(?)
-				)
-			)`, geoJSON).
-		Scan(&exists).Error
+func (r *FarmRepository) CheckFarmOverlap( geoJSON models.GeoJSONPolygon) (bool, error) {
+    var count int64
 
-	if err != nil {
-		log.Printf("CheckFarmOverlap query failed: %v", err)
-		return false, fmt.Errorf("error checking farm overlap")
-	}
-	return exists, nil
+    // Convert GeoJSON to JSON using the Value() method
+    val, err := geoJSON.Value()
+    if err != nil {
+        return false, fmt.Errorf("failed to get GeoJSON value: %w", err)
+    }
+
+    // Type assert the driver.Value to []byte
+    geoJSONBytes, ok := val.([]byte)
+    if !ok {
+        return false, fmt.Errorf("expected []byte from GeoJSON value, got %T", val)
+    }
+
+    // Build the query using GORM's expression builder
+    query := r.db.
+        Model(&models.Farm{}).
+        Where(
+            "ST_Intersects(location, ST_GeomFromGeoJSON(?))", 
+            string(geoJSONBytes), // Now safely converted to string
+        )
+
+    // Count overlapping farms
+    err = query.Count(&count).Error
+    if err != nil {
+        log.Printf("CheckFarmOverlap query failed: %v", err)
+        return false, fmt.Errorf("error checking farm overlap: %w", err)
+    }
+
+    return count > 0, nil
 }
 
-func (r *FarmRepository) CreateFarmRecord(ctx context.Context, farm *models.Farm, geoJSON map[string]interface{}) error {
-	// Convert the geoJSON to a string representation
-	geoJSONStr := fmt.Sprintf(`{"type":"Polygon","coordinates":%v}`, geoJSON["coordinates"])
-	farm.Location = models.GeoJSONPolygon(geoJSONStr)
-	
-	// Use standard GORM Create
-	err := r.db.WithContext(ctx).Create(farm).Error
-	if err != nil {
-		log.Printf("CreateFarmRecord failed: %v", err)
-		return fmt.Errorf("failed to create farm: %v", err)
-	}
-	return nil
+// Alternative solution if you must use map[string]interface{}
+// repositories/farm_repository.go
+
+// repositories/farm_repository.go
+func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
+    // Convert GeoJSON to WKT format
+    wktPolygon := convertGeoJSONToWKT(farm.Location)
+    
+    // Handle nullable UUID
+    var kisansathiId interface{}
+    if farm.KisansathiId != nil && *farm.KisansathiId != "" {
+        kisansathiId = *farm.KisansathiId
+    } else {
+        kisansathiId = nil
+    }
+
+    err := r.db.Exec(`
+        INSERT INTO farms (
+            farmer_id,
+            kisansathi_id,
+            verified,
+            is_owner,
+            location,
+            area,
+            locality,
+            current_cycle,
+            owner_id
+        ) VALUES (?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?)`,
+        farm.FarmerId,
+        kisansathiId,  // Properly handled nullable UUID
+        farm.Verified,
+        farm.IsOwner,
+        wktPolygon,
+        farm.Area,
+        farm.Locality,
+        farm.CurrentCycle,
+        farm.OwnerId,
+    ).Error
+
+    if err != nil {
+        return fmt.Errorf("failed to create farm: %v", err)
+    }
+    return nil
+}
+
+func convertGeoJSONToWKT(geoJSON models.GeoJSONPolygon) string {
+    if len(geoJSON.Coordinates) == 0 || len(geoJSON.Coordinates[0]) == 0 {
+        return "POLYGON EMPTY"
+    }
+    
+    var points []string
+    for _, coord := range geoJSON.Coordinates[0] {
+        points = append(points, fmt.Sprintf("%f %f", coord[0], coord[1]))
+    }
+    
+    // Ensure polygon is closed
+    if len(points) > 0 && points[0] != points[len(points)-1] {
+        points = append(points, points[0])
+    }
+    
+    return fmt.Sprintf("POLYGON((%s))", strings.Join(points, ", "))
 }
