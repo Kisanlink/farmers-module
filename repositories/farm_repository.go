@@ -1,9 +1,10 @@
 package repositories
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
-    "strings"
+	"strings"
 
 	"github.com/Kisanlink/farmers-module/models"
 	"gorm.io/gorm"
