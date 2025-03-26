@@ -44,7 +44,7 @@ func CreateUserClient(req models.FarmerSignupRequest, token string) (*pb.CreateU
 		Username:      *req.Name,
 		MobileNumber:  string(req.MobileNumber),
 		AadhaarNumber: *req.AadhaarNumber,
-		Password:      "Default@123", // ✅ Add a default password if not provided
+		Password:      "Default@123",
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

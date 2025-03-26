@@ -60,42 +60,12 @@ func (r *FarmRepository) CheckFarmOverlap( geoJSON models.GeoJSONPolygon) (bool,
 // repositories/farm_repository.go
 
 // repositories/farm_repository.go
-func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
-    // Convert GeoJSON to WKT format
-    wktPolygon := convertGeoJSONToWKT(farm.Location)
-    
-    // Handle nullable UUID
-    var kisansathiId interface{}
-    if farm.KisansathiId != nil && *farm.KisansathiId != "" {
-        kisansathiId = *farm.KisansathiId
-    } else {
-        kisansathiId = nil
-    }
-
-    err := r.db.Exec(`
-        INSERT INTO farms (
-            farmer_id,
-            kisansathi_id,
-            verified,
-            is_owner,
-            location,
-            area,
-            locality,
-            current_cycle,
-            owner_id
-        ) VALUES (?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, ?, ?, ?)`,
-        farm.FarmerId,
-        kisansathiId,  // Properly handled nullable UUID
-        farm.Verified,
-        farm.IsOwner,
-        wktPolygon,
-        farm.Area,
-        farm.Locality,
-        farm.CurrentCycle,
-        farm.OwnerId,
-    ).Error
-
+func (r *FarmRepository) CreateFarmRecord( farm *models.Farm, geoJSON models.GeoJSONPolygon) error {
+    // Convert GeoJSONPolygon to map
+    // Use standard GORM Create
+    err := r.db.Create(farm).Error
     if err != nil {
+        log.Printf("CreateFarmRecord failed: %v", err)
         return fmt.Errorf("failed to create farm: %v", err)
     }
     return nil
