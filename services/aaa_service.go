@@ -42,7 +42,7 @@ func CreateUserClient(req models.FarmerSignupRequest, token string) (*pb.CreateU
 	// Prepare gRPC request
 	userRequest := &pb.CreateUserRequest{
 		Username:      *req.Name,
-		MobileNumber:  req.MobileNumber,
+		MobileNumber:  string(req.MobileNumber),
 		AadhaarNumber: *req.AadhaarNumber,
 		Password:      "Default@123", // ✅ Add a default password if not provided
 	}
