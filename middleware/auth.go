@@ -5,7 +5,6 @@ import(
 "github.com/gin-gonic/gin"
 )
 
-
 func AuthenticateGRPC() gin.HandlerFunc {
     return func(c *gin.Context) {
         grpcToken := c.GetHeader("aaa-auth-token")
@@ -18,4 +17,4 @@ func AuthenticateGRPC() gin.HandlerFunc {
         c.Set("aaa-auth-token", grpcToken)
         c.Next()
     }
-	}
+}
