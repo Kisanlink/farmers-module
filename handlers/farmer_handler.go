@@ -20,43 +20,60 @@ func NewFarmerHandler(farmerService services.FarmerServiceInterface) *FarmerHand
 }
 
 func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
+  
 	var req models.FarmerSignupRequest
-	
-	// Validate request
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.sendErrorResponse(c, http.StatusBadRequest, "Invalid request parameters", err.Error())
 		return
 	}
 
+	
 	// Handle Kisansathi User ID if present
-	if req.KisansathiUserID != nil {
-		// Verify Kisansathi user exists
-		userResp, err := services.GetUserByIdClient(c.Request.Context(), *req.KisansathiUserID)
-		if err != nil || userResp == nil || userResp.User == nil {
-			h.sendErrorResponse(c, http.StatusUnauthorized, "Kisansathi user not found", "user verification failed")
-			return
-		}
-
-		// Check permissions using CheckPermissionClient
-		permResp, err := services.CheckPermissionClient(
-			c.Request.Context(),
-			*req.KisansathiUserID,
-			[]string{"CREATE_FARMER"},
-			"", // token if needed
-		)
-		if err != nil {
-			h.sendErrorResponse(c, http.StatusInternalServerError, "Permission verification failed", err.Error())
-			return
-		}
-
-		// Check if CREATE_FARMER action is allowed
-		if permResp == nil || !permResp.Actions["CREATE_FARMER"] {
-			h.sendErrorResponse(c, http.StatusForbidden, 
-				"User doesn't have permission to create farmers", 
-				"missing required permission")
-			return
-		}
-	}
+if req.KisansathiUserID != nil {
+    // Verify Kisansathi user exists - using the existing GetUserByIdClient
+    userResp, err := services.GetUserByIdClient(c.Request.Context(), *req.KisansathiUserID)
+    if err != nil {
+        h.sendErrorResponse(c, http.StatusInternalServerError, 
+            "Failed to verify Kisansathi user", err.Error())
+        return
+    }
+    
+    // Check if user exists and response is valid
+    if userResp == nil || userResp.StatusCode != http.StatusOK || userResp.User == nil {
+        h.sendErrorResponse(c, http.StatusUnauthorized, 
+            "Kisansathi user not found", "invalid user response")
+        return
+    }
+    
+    // Check permissions and actions
+    if userResp.User.UsageRight == nil {
+        h.sendErrorResponse(c, http.StatusForbidden,
+            "Permission denied", "user has no usage rights defined")
+        return
+    }
+    
+    hasPermission := false
+    for _, perm := range userResp.User.UsageRight.Permissions {
+        if perm == "manage_farmers" {
+            hasPermission = true
+            break
+        }
+    }
+    
+    hasAction := false
+    for _, action := range userResp.User.UsageRight.Actions {
+        if action == "create" {
+            hasAction = true
+            break
+        }
+    }
+    
+    if !hasPermission || !hasAction {
+        h.sendErrorResponse(c, http.StatusForbidden,
+            "Permission denied", "missing required permissions or actions")
+        return
+    }
+}
 
 	// Handle User Creation
 	var userID string
@@ -91,7 +108,7 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 	if _, err := services.AssignRoleToUserClient(
 		c.Request.Context(), 
 		userID, 
-		[]string{"FARMER"},
+		req.Roles,
 	); err != nil {
 		h.sendErrorResponse(c, http.StatusInternalServerError,
 			"Farmer created but role assignment failed", err.Error())

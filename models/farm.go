@@ -6,19 +6,6 @@ import (
 	"fmt"
 )
 
-// FarmRequest - Request model for farm registration
-type FarmRequest struct {
-	KisansathiUserID *string `json:"kisansathi_user_id,omitempty"` // Remove UUID validation if not needed
-	FarmerID        string  `json:"farmer_id" validate:"required"` // Changed from UUID/numeric to simple string
-	Location        [][][]float64 `json:"location" validate:"required,min=4"`
-	Area            float64 `json:"area" validate:"required,gt=0"`
-	Locality        string  `json:"locality" validate:"required"`
-	CropType        string  `json:"crop_type" validate:"required"`
-	IsVerified      bool    `json:"is_verified"`
-	RequestedBy     string  `json:"-"`
-}
-
-// models/farm.go
 type Farm struct {
     Base
     FarmerId     string         `json:"farmer_id" gorm:"type:varchar(36);not null"`

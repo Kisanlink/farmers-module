@@ -29,6 +29,9 @@ func (s *FarmerService) CreateFarmer(
 	userID string,
 	req models.FarmerSignupRequest,
 ) (*models.Farmer, error) {
+
+
+
 	// Create farmer record
 	newFarmer := &models.Farmer{
 		UserID:           userID,

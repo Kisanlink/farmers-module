@@ -58,9 +58,6 @@ func (r *FarmRepository) CheckFarmOverlap( geoJSON models.GeoJSONPolygon) (bool,
     return count > 0, nil
 }
 
-// Alternative solution if you must use map[string]interface{}
-// repositories/farm_repository.go
-
 // repositories/farm_repository.go
 func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
     // Marshal the GeoJSONPolygon to a JSON string.

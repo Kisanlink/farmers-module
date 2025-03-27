@@ -11,7 +11,7 @@ import (
 type FarmServiceInterface interface {
 	CreateFarm(
 		farmerID string,
-		location models.GeoJSONPolygon,  // Changed from [][]float64 to GeoJSONPolygon
+		location models.GeoJSONPolygon,  
 		area float64,
 		locality string,
 		// cropType string,
@@ -40,16 +40,14 @@ func (s *FarmService) CreateFarm(
     if location.Type != "Polygon" {
         return nil, fmt.Errorf("invalid geometry type, expected Polygon")
     }
-    
-    if len(location.Coordinates) == 0 || len(location.Coordinates[0]) < 4 {
-        return nil, fmt.Errorf("polygon must have at least 4 points")
-    }
 
-    // Auto-close polygon if needed
-    ring := location.Coordinates[0]
-    first, last := ring[0], ring[len(ring)-1]
-    if first[0] != last[0] || first[1] != last[1] {
-        location.Coordinates[0] = append(ring, ring[0])
+    // Check for overlapping farms
+    overlap, err := s.repo.CheckFarmOverlap(location)
+    if err != nil {
+        return nil, fmt.Errorf("error checking farm overlap: %w", err)
+    }
+    if overlap {
+        return nil, fmt.Errorf("farm location overlaps with existing farm")
     }
 
     farm := &models.Farm{
@@ -57,12 +55,9 @@ func (s *FarmService) CreateFarm(
         Location:    location,
         Area:        area,
         Locality:    locality,
-        CurrentCycle: "Wheat", // Default value
-        OwnerId:     farmerID,
-        KisansathiId: nil,    // Explicitly set to nil
     }
 
-    err := s.repo.CreateFarmRecord(farm)
+    err = s.repo.CreateFarmRecord(farm)
     if err != nil {
         return nil, fmt.Errorf("failed to create farm record: %w", err)
     }

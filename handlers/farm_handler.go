@@ -25,10 +25,45 @@ func NewFarmHandler(
 	}
 }
 
-// handlers/farm_handler.go
+type FarmRequest struct {
+	KisansathiUserID *string `json:"kisansathi_user_id,omitempty"` 
+	FarmerID        string  `json:"farmer_id" validate:"required"` 
+	Location        [][][]float64 `json:"location" validate:"required,min=4"`
+	Area            float64 `json:"area" validate:"required,gt=0"`
+	Locality        string  `json:"locality" validate:"required"`
+	CropType        string  `json:"crop_type" validate:"required"`
+	IsVerified      bool    `json:"is_verified"`
+	RequestedBy     string  `json:"-"`
+}
 
 func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
-    var farmRequest models.FarmRequest
+    
+    // // Step 0: Header validation
+	// actorID := c.GetHeader("user-id")
+	// if actorID == "" {
+	// 	sendStandardError(c, http.StatusUnauthorized, 
+	// 		"Please include your user ID in headers",
+	// 		"missing user-id header")
+	// 	return
+	// }
+
+	// Step 1: User verification via service layer
+	// exists, isKisansathi, err := h.userService.VerifyUserAndType(actorID)
+	// if err != nil {
+	// 	sendStandardError(c, http.StatusInternalServerError,
+	// 		"Something went wrong on our end",
+	// 		"user verification failed: "+err.Error())
+	// 	return
+	// }
+	// if !exists {
+	// 	sendStandardError(c, http.StatusUnauthorized,
+	// 		"Your account isn't registered",
+	// 		"user not found in farmer/kisansathi records")
+	// 	return
+	// }
+
+    // Parse request body
+    var farmRequest FarmRequest
     if err := c.ShouldBindJSON(&farmRequest); err != nil {
         sendStandardError(c, http.StatusBadRequest,
             "Invalid farm details provided",
@@ -36,6 +71,24 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
         return
     }
 
+    // 	requiredAction := "CREATE_UNVERIFIED_FARM"
+	// if isKisansathi {
+	// 	requiredAction = "CREATE_VERIFIED_FARM"
+	// }
+
+	// isAllowed, err := services.ValidateActionClient(c.Request.Context(), actorID, requiredAction)
+	// if err != nil {
+	// 	sendStandardError(c, http.StatusInternalServerError,
+	// 		"Permission verification failed",
+	// 		fmt.Sprintf("AAA service error: %v", err))
+	// 	return
+	// }
+	// if !isAllowed {
+	// 	sendStandardError(c, http.StatusForbidden,
+	// 		"You don't have permission",
+	// 		fmt.Sprintf("action %s not allowed", requiredAction))
+	// 	return
+	// }
     // Convert to proper GeoJSON structure
     geoJSONPolygon := models.GeoJSONPolygon{
         Type:        "Polygon",
@@ -49,14 +102,8 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
             "insufficient polygon points")
         return
     }
-
-    // Auto-close polygon if not closed
-    ring := geoJSONPolygon.Coordinates[0]
-    first, last := ring[0], ring[len(ring)-1]
-    if first[0] != last[0] || first[1] != last[1] {
-        geoJSONPolygon.Coordinates[0] = append(ring, ring[0])
-    }
-
+    
+    //Call Service layer to create farm
     farm, err := h.farmService.CreateFarm(
         farmRequest.FarmerID,
         geoJSONPolygon,

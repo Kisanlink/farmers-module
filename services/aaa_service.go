@@ -51,7 +51,7 @@ func CreateUserClient(req models.FarmerSignupRequest, token string) (*pb.CreateU
 	defer cancel()
 
 	// Call gRPC service
-	response, err := userClient.CreateUser(ctx, userRequest)
+	response, err := userClient.RegisterUser(ctx, userRequest)
 	if err != nil {
 		log.Printf("Failed to create user via gRPC: %v", err)
 		return nil, err
@@ -74,7 +74,7 @@ func GetUserByIdClient(ctx context.Context, userID string) (*pb.GetUserByIdRespo
 	userClient := pb.NewUserServiceClient(conn)
 
 	// Prepare gRPC request
-	userReq := &pb.GetUserByIdRequest{Id: userID}
+	userReq := &pb.GetUserByIdRequest{Id:userID,}
 
 	// Set timeout for request
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -137,29 +137,29 @@ func CheckPermissionClient(ctx context.Context, userID string, actions []string,
 }
 
 // AssignRoleToUserClient assigns a role to a user via AAA service
-func AssignRoleToUserClient(ctx context.Context, userID string, roles []string ,) (*pb.AssignRoleToUserResponse, error) {
+func AssignRoleToUserClient(ctx context.Context, userID string, roles string ,) (*pb.AssignRoleToUserResponse, error) {
 	// Initialize gRPC connection with retry mechanism
 	conn, err := InitializeGrpcClient("", 3) // Assuming no auth token is needed
 	if err != nil {
 		return nil, fmt.Errorf("failed to establish gRPC connection: %v", err)
 	}
 	defer conn.Close()
-
+  
 		// Create Permission Service Client
 	userClient := pb.NewUserServiceClient(conn)
 
 	// Prepare gRPC request
 	roleReq := &pb.AssignRoleToUserRequest{
 		UserId: userID,
-		Roles:  roles,
+		Role:  roles,
 	}
-
+  log.Println("roleReq",roleReq)
 	// Set timeout for request
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	// Call gRPC service
-	resp, err := userClient.AssignRoleToUser(ctx, roleReq)
+	resp, err := userClient.AssignRole(ctx, roleReq)
 	if err != nil {
 		log.Printf("Failed to assign role to user %s: %v", userID, err)
 		return nil, err
@@ -171,18 +171,37 @@ func AssignRoleToUserClient(ctx context.Context, userID string, roles []string ,
 	return resp, nil
 }
 
-func ValidateActionClient(ctx context.Context, userID string, action string) (bool, error) {
-	// Initialize gRPC connection
-	conn, err := InitializeGrpcClient("", 3) // Reuse your existing connection logic
-	if err != nil {
-		return false, fmt.Errorf("gRPC connection failed: %v", err)
-	}
-	defer conn.Close()
+// func ValidateActionClient(ctx context.Context, userID string, action string) (bool, error) {
+// 	// Initialize gRPC connection
+// 	conn, err := InitializeGrpcClient("", 3) // Reuse your existing connection logic
+// 	if err != nil {
+// 		return false, fmt.Errorf("gRPC connection failed: %v", err)
+// 	}
+// 	defer conn.Close()
 
-	// Create Permission Service Client
+// 	// Create Permission Service Client
 	
-	return true,nil
-	}
+// 	permClient := pb.NewPermissionServiceClient(conn)
+
+// 	// Prepare gRPC request
+// 	req := &pb.ValidateActionRequest{
+// 		UserId: userID,
+// 		Action: action,
+// 	}
+
+// 	// Set timeout
+// 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+// 	defer cancel()
+
+// 	// Call AAA service
+// 	resp, err := permClient.ValidateAction(ctx, req)
+// 	if err != nil {
+// 		log.Printf("AAA service ValidateAction failed: %v", err)
+// 		return false, err
+// 	}
+
+// 	return resp.IsAllowed, nil
+// }
 
 	
 	
