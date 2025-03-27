@@ -38,7 +38,7 @@ type FarmRequest struct {
 
 func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
     
-    // // Step 0: Header validation
+  //   // Step 0: Header validation
 	// actorID := c.GetHeader("user-id")
 	// if actorID == "" {
 	// 	sendStandardError(c, http.StatusUnauthorized, 
@@ -47,7 +47,7 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	// 	return
 	// }
 
-	// Step 1: User verification via service layer
+	// //Step 1: User verification via service layer
 	// exists, isKisansathi, err := h.userService.VerifyUserAndType(actorID)
 	// if err != nil {
 	// 	sendStandardError(c, http.StatusInternalServerError,
@@ -71,7 +71,7 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
         return
     }
 
-    // 	requiredAction := "CREATE_UNVERIFIED_FARM"
+  //   	requiredAction := "CREATE_UNVERIFIED_FARM"
 	// if isKisansathi {
 	// 	requiredAction = "CREATE_VERIFIED_FARM"
 	// }

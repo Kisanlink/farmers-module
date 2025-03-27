@@ -48,7 +48,7 @@ var clientInterceptor grpc.UnaryClientInterceptor
     clientInterceptor = ClientInterceptor(token)
 
 
-conn, err := grpc.Dial("localhost:50052", grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(clientInterceptor))
+conn, err := grpc.Dial("", grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(clientInterceptor))
 if err != nil {
     log.Fatalf("failed to connect to gRPC server: %v", err)
 }
