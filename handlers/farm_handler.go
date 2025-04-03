@@ -89,10 +89,11 @@ if err != nil {
 }
 
 // Verify the required action exists in user's allowed actions
+// Verify the required action exists in user's allowed actions
 hasAction := false
-if userResp != nil && userResp.User != nil && userResp.User.UsageRight != nil {
-    for _, action := range userResp.User.UsageRight.Actions {
-        if action == requiredAction {
+if userResp != nil && userResp.Data != nil && userResp.Data.UsageRight != nil {
+    for _, permission := range userResp.Data.UsageRight.Permissions {
+        if permission != nil && permission.Action == requiredAction {
             hasAction = true
             break
         }

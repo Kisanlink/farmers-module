@@ -39,22 +39,22 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 			}
 			
 			// Check if user exists and response is valid
-			if userResp == nil || userResp.StatusCode != http.StatusOK || userResp.User == nil {
+			if userResp == nil || userResp.StatusCode != http.StatusOK || userResp.Data == nil {
 				h.sendErrorResponse(c, http.StatusUnauthorized, 
 					"Kisansathi user not found", "invalid user response")
 				return
 			}
 			
 			// Check permissions
-			if userResp.User.UsageRight == nil {
+			if userResp.Data.UsageRight == nil {
 				h.sendErrorResponse(c, http.StatusForbidden,
 					"Permission denied", "user has no usage rights defined")
 				return
 			}
 
 			hasPermission := false
-			for _, perm := range userResp.User.UsageRight.Permissions {
-				if perm == "manage_farmers" {
+			for _, perm := range userResp.Data.UsageRight.Permissions {
+				if perm.Name == "manage_farmers" {
 					hasPermission = true
 					break
 				}
@@ -108,22 +108,22 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 			}
 			
 			// Check if user exists and response is valid
-			if userResp == nil || userResp.StatusCode != http.StatusOK || userResp.User == nil {
+			if userResp == nil || userResp.StatusCode != http.StatusOK || userResp.Data == nil {
 				h.sendErrorResponse(c, http.StatusUnauthorized, 
 					"Kisansathi user not found", "invalid user response")
 				return
 			}
 			
 			// Check permissions
-			if userResp.User.UsageRight == nil {
+			if userResp.Data.UsageRight == nil {
 				h.sendErrorResponse(c, http.StatusForbidden,
 					"Permission denied", "user has no usage rights defined")
 				return
 			}
 
 			hasPermission := false
-			for _, perm := range userResp.User.UsageRight.Permissions {
-				if perm == "manage_farmers" {
+			for _, perm := range userResp.Data.UsageRight.Permissions {
+				if perm.Name == "manage_farmers" {
 					hasPermission = true
 					break
 				}
@@ -148,13 +148,13 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 			"Failed to create user in AAA service", err.Error())
 		return
 	}
-	if createUserResp == nil || createUserResp.User == nil || createUserResp.User.Id == "" {
+	if createUserResp == nil || createUserResp.Data == nil || createUserResp.Data.Id == "" {
 		h.sendErrorResponse(c, http.StatusInternalServerError,
 			"Invalid response from AAA service", 
 			"empty user ID in response")
 		return
 	}
-	userID := createUserResp.User.Id
+	userID := createUserResp.Data.Id
 
 	// Create Farmer Record
 	farmer, err := h.farmerService.CreateFarmer(userID, req)

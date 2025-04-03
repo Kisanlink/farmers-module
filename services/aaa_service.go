@@ -103,12 +103,12 @@ func GetUserByIdClient(ctx context.Context, userID string) (*pb.GetUserByIdRespo
 	}
 
 	// Check if the response contains user data
-	if resp.User == nil {
+	if resp.Data == nil {
 		log.Println("GetUserByIdClient: User not found in AAA service response")
 		return nil, fmt.Errorf("user not found")
 	}
 
-	log.Printf("GetUserByIdClient: Successfully fetched user: %+v", resp.User)
+	log.Printf("GetUserByIdClient: Successfully fetched user: %+v", resp.Data)
 	return resp, nil
 }
 
