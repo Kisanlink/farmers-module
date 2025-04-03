@@ -5,7 +5,7 @@ package models
 // FarmerSignupRequest defines the request structure for farmer registration
 type FarmerSignupRequest struct {
 	UserID          *string  `json:"user_id" validate:"omitempty,uuid"`
-	UserName            *string  `json:"user_name" validate:"omitempty,min=2,max=100"`
+	UserName        *string  `json:"username" validate:"omitempty,min=2,max=100"`
 	Email           *string  `json:"email" validate:"omitempty,email"`
 	CountryCode     string   `json:"country_code" validate:"required,numeric,len=3"` // Changed to numeric validation
 	MobileNumber    uint64   `json:"mobile_number" validate:"required,numeric,len=10"` // Indian mobile numbers
