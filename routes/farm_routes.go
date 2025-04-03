@@ -7,9 +7,10 @@ import (
 )
 
 func RegisterFarmRoutes(router *gin.RouterGroup, farmService services.FarmServiceInterface, userService services.UserServiceInterface) {
-	// Initialize handler with required services only
-	farmHandler := handlers.NewFarmHandler(farmService, userService)
-	
-	// Register farm endpoints
-	router.POST("/farms", farmHandler.CreateFarmHandler)
+    farmHandler := handlers.NewFarmHandler(farmService, userService)
+    
+    router.POST("/farms", farmHandler.CreateFarmHandler)
+    // Add GET endpoint
+    router.GET("/farms", farmHandler.GetFarmsHandler)
+    router.GET("/farms/:id", farmHandler.GetFarmByIDHandler)
 }

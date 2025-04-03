@@ -8,6 +8,7 @@ import (
 	"github.com/kisanlink/protobuf/pb-aaa"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"github.com/Kisanlink/farmers-module/config"
 	
 )
 
@@ -47,8 +48,16 @@ var clientInterceptor grpc.UnaryClientInterceptor
 
     clientInterceptor = ClientInterceptor(token)
 
+// Load environment variables
+		config.LoadEnv()
 
-conn, err := grpc.Dial("", grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(clientInterceptor))
+		// Get AAA GRPC connection details
+		aaaHost := config.GetEnv("AAA_HOST")
+		aaaGRPCPort := config.GetEnv("AAA_GRPC_PORT")
+
+	  connection := aaaHost + ":" + aaaGRPCPort
+		
+conn, err := grpc.Dial(connection, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(clientInterceptor))
 if err != nil {
     log.Fatalf("failed to connect to gRPC server: %v", err)
 }

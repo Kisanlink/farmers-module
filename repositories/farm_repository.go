@@ -22,7 +22,8 @@ func NewFarmRepository(db *gorm.DB) *FarmRepository {
 type FarmRepositoryInterface interface {
 	CheckFarmOverlap( geoJSON models.GeoJSONPolygon) (bool, error)
 	CreateFarmRecord(farm *models.Farm) error
-  
+    GetFarms(farmerID, locality string, verified *bool) ([]*models.Farm, error)
+    GetFarmByID(id string) (*models.Farm, error)
 }
 
 func (r *FarmRepository) CheckFarmOverlap( geoJSON models.GeoJSONPolygon) (bool, error) {
@@ -106,4 +107,39 @@ func convertGeoJSONToWKT(geoJSON models.GeoJSONPolygon) string {
     }
     
     return fmt.Sprintf("POLYGON((%s))", strings.Join(points, ", "))
+}
+
+// Implement the methods in FarmRepository
+func (r *FarmRepository) GetFarms(farmerID, locality string, verified *bool) ([]*models.Farm, error) {
+    var farms []*models.Farm
+    
+    query := r.db.Model(&models.Farm{})
+    
+    if farmerID != "" {
+        query = query.Where("farmer_id = ?", farmerID)
+    }
+    
+    if locality != "" {
+        query = query.Where("locality LIKE ?", "%"+locality+"%")
+    }
+    
+    if verified != nil {
+        query = query.Where("verified = ?", *verified)
+    }
+    
+    if err := query.Find(&farms).Error; err != nil {
+        return nil, fmt.Errorf("database error: %w", err)
+    }
+    
+    return farms, nil
+}
+
+func (r *FarmRepository) GetFarmByID(id string) (*models.Farm, error) {
+    var farm models.Farm
+    
+    if err := r.db.First(&farm, "id = ?", id).Error; err != nil {
+        return nil, fmt.Errorf("database error: %w", err)
+    }
+    
+    return &farm, nil
 }

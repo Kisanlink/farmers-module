@@ -17,7 +17,10 @@ type FarmServiceInterface interface {
 		// cropType string,
 		// isKisansathi bool,
 	) (*models.Farm, error)
+     GetFarms(farmerID, locality string, verified *bool) ([]*models.Farm, error)
+    GetFarmByID(id string) (*models.Farm, error)
 }
+
 
 type FarmService struct {
 	repo repositories.FarmRepositoryInterface
@@ -62,5 +65,22 @@ func (s *FarmService) CreateFarm(
         return nil, fmt.Errorf("failed to create farm record: %w", err)
     }
 
+    return farm, nil
+}
+
+// Implement the methods in FarmService
+func (s *FarmService) GetFarms(farmerID, locality string, verified *bool) ([]*models.Farm, error) {
+    farms, err := s.repo.GetFarms(farmerID, locality, verified)
+    if err != nil {
+        return nil, fmt.Errorf("failed to get farms: %w", err)
+    }
+    return farms, nil
+}
+
+func (s *FarmService) GetFarmByID(id string) (*models.Farm, error) {
+    farm, err := s.repo.GetFarmByID(id)
+    if err != nil {
+        return nil, fmt.Errorf("failed to get farm by id: %w", err)
+    }
     return farm, nil
 }

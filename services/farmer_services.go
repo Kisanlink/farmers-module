@@ -1,14 +1,13 @@
 package services
 
 import (
-
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/repositories"
 )
 
 // FarmerServiceInterface defines service methods for farmer operations
 type FarmerServiceInterface interface {
-	CreateFarmer( userID string, req models.FarmerSignupRequest) (*models.Farmer, error)
+	CreateFarmer(userID string, req models.FarmerSignupRequest) (*models.Farmer, error)
 	FetchFarmers() ([]models.Farmer, error)
 }
 
@@ -29,9 +28,6 @@ func (s *FarmerService) CreateFarmer(
 	userID string,
 	req models.FarmerSignupRequest,
 ) (*models.Farmer, error) {
-
-
-
 	// Create farmer record
 	newFarmer := &models.Farmer{
 		UserID:           userID,

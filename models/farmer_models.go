@@ -11,8 +11,6 @@ type FarmerSignupRequest struct {
 	MobileNumber    uint64   `json:"mobile_number" validate:"required,numeric,len=10"` // Indian mobile numbers
 	AadhaarNumber   *string  `json:"aadhaar_number" validate:"omitempty,numeric,len=12"`
 	KisansathiUserID *string `json:"kisansathi_user_id" validate:"omitempty,uuid"`
-	Roles           string `json:"roles" validate:"omitempty"`
-	Actions         *[]string `json:"actions" validate:"omitempty"`
 }
 
 

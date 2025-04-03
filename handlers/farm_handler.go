@@ -4,6 +4,9 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"strconv"
+	"fmt"
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 	"github.com/Kisanlink/farmers-module/models"
@@ -38,29 +41,29 @@ type FarmRequest struct {
 
 func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
     
-  //   // Step 0: Header validation
-	// actorID := c.GetHeader("user-id")
-	// if actorID == "" {
-	// 	sendStandardError(c, http.StatusUnauthorized, 
-	// 		"Please include your user ID in headers",
-	// 		"missing user-id header")
-	// 	return
-	// }
+    // Step 0: Header validation
+	actorID := c.GetHeader("user-id")
+	if actorID == "" {
+		sendStandardError(c, http.StatusUnauthorized, 
+			"Please include your user ID in headers",
+			"missing user-id header")
+		return
+	}
 
-	// //Step 1: User verification via service layer
-	// exists, isKisansathi, err := h.userService.VerifyUserAndType(actorID)
-	// if err != nil {
-	// 	sendStandardError(c, http.StatusInternalServerError,
-	// 		"Something went wrong on our end",
-	// 		"user verification failed: "+err.Error())
-	// 	return
-	// }
-	// if !exists {
-	// 	sendStandardError(c, http.StatusUnauthorized,
-	// 		"Your account isn't registered",
-	// 		"user not found in farmer/kisansathi records")
-	// 	return
-	// }
+	//Step 1: User verification via service layer
+	exists, isKisansathi, err := h.userService.VerifyUserAndType(actorID)
+	if err != nil {
+		sendStandardError(c, http.StatusInternalServerError,
+			"Something went wrong on our end",
+			"user verification failed: "+err.Error())
+		return
+	}
+	if !exists {
+		sendStandardError(c, http.StatusUnauthorized,
+			"Your account isn't registered",
+			"user not found in farmer/kisansathi records")
+		return
+	}
 
     // Parse request body
     var farmRequest FarmRequest
@@ -71,24 +74,37 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
         return
     }
 
-  //   	requiredAction := "CREATE_UNVERIFIED_FARM"
-	// if isKisansathi {
-	// 	requiredAction = "CREATE_VERIFIED_FARM"
-	// }
+  // Determine required action based on user type
+requiredAction := "CREATE_UNVERIFIED_FARM"
+if isKisansathi {
+    requiredAction = "CREATE_VERIFIED_FARM"
+}
 
-	// isAllowed, err := services.ValidateActionClient(c.Request.Context(), actorID, requiredAction)
-	// if err != nil {
-	// 	sendStandardError(c, http.StatusInternalServerError,
-	// 		"Permission verification failed",
-	// 		fmt.Sprintf("AAA service error: %v", err))
-	// 	return
-	// }
-	// if !isAllowed {
-	// 	sendStandardError(c, http.StatusForbidden,
-	// 		"You don't have permission",
-	// 		fmt.Sprintf("action %s not allowed", requiredAction))
-	// 	return
-	// }
+// Get user details to check actions
+userResp, err := services.GetUserByIdClient(c.Request.Context(), actorID)
+if err != nil {
+    sendStandardError(c, http.StatusInternalServerError, 
+        "Failed to verify user actions", err.Error())
+    return
+}
+
+// Verify the required action exists in user's allowed actions
+hasAction := false
+if userResp != nil && userResp.User != nil && userResp.User.UsageRight != nil {
+    for _, action := range userResp.User.UsageRight.Actions {
+        if action == requiredAction {
+            hasAction = true
+            break
+        }
+    }
+}
+
+if !hasAction {
+    sendStandardError(c, http.StatusForbidden,
+        "Action not permitted", 
+        fmt.Sprintf("missing required action: %s", requiredAction))
+    return
+}
     // Convert to proper GeoJSON structure
     geoJSONPolygon := models.GeoJSONPolygon{
         Type:        "Polygon",
@@ -151,4 +167,70 @@ func sendStandardError(c *gin.Context, status int, userMessage string, errorDeta
 		"data":      nil,
 		"success":   false,
 	})
+}
+
+// Add these methods to FarmHandler struct
+
+// GetFarmsHandler retrieves farms with optional filters
+func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
+    // Parse query parameters
+    farmerID := c.Query("farmer_id")
+    locality := c.Query("locality")
+    verifiedStr := c.Query("verified")
+    
+    var verified *bool
+    if verifiedStr != "" {
+        v, err := strconv.ParseBool(verifiedStr)
+        if err != nil {
+            sendStandardError(c, http.StatusBadRequest,
+                "Invalid verified parameter",
+                "verified must be true or false")
+            return
+        }
+        verified = &v
+    }
+
+    // Call service layer
+    farms, err := h.farmService.GetFarms(farmerID, locality, verified)
+    if err != nil {
+        sendStandardError(c, http.StatusInternalServerError,
+            "Failed to retrieve farms",
+            err.Error())
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "status":    http.StatusOK,
+        "message":   "Farms retrieved successfully",
+        "data":      farms,
+        "timestamp": time.Now().UTC(),
+        "success":   true,
+    })
+}
+
+// GetFarmByIDHandler retrieves a single farm by ID
+func (h *FarmHandler) GetFarmByIDHandler(c *gin.Context) {
+    farmID := c.Param("id")
+    
+    farm, err := h.farmService.GetFarmByID(farmID)
+    if err != nil {
+        if err == gorm.ErrRecordNotFound {
+            sendStandardError(c, http.StatusNotFound,
+                "Farm not found",
+                fmt.Sprintf("farm with id %s not found", farmID))
+        } else {
+            sendStandardError(c, http.StatusInternalServerError,
+                "Failed to retrieve farm",
+                err.Error())
+        }
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "status":    http.StatusOK,
+        "message":   "Farm retrieved successfully",
+        "data":      farm,
+        "timestamp": time.Now().UTC(),
+        "success":   true,
+    })
 }
