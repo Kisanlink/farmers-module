@@ -137,7 +137,7 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 		}
 
 	// Create new user via AAA service since UserID wasn't provided
-	if req.Name == nil || req.AadhaarNumber == nil {
+	if req.UserName == nil || req.AadhaarNumber == nil {
 		h.sendErrorResponse(c, http.StatusBadRequest, "Name and Aadhaar number are required", "missing required fields")
 		return
 	}
