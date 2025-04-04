@@ -22,7 +22,7 @@ func NewFarmRepository(db *gorm.DB) *FarmRepository {
 type FarmRepositoryInterface interface {
 	CheckFarmOverlap( geoJSON models.GeoJSONPolygon) (bool, error)
 	CreateFarmRecord(farm *models.Farm) error
-    GetFarms(farmerID, locality string, verified *bool) ([]*models.Farm, error)
+    GetAllFarms() ([]*models.Farm, error)
     GetFarmByID(id string) (*models.Farm, error)
 }
 
@@ -71,16 +71,15 @@ func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
 
     // Build a map for insertion so we can use a raw SQL expression for the location field.
     farmData := map[string]interface{}{
-        "id":            utils.Generate10DigitID(),
+        "id":            utils.Generate10DigitID(), 
         "farmer_id":     farm.FarmerId,
         "kisansathi_id": farm.KisansathiId,
-        "verified":      farm.Verified,
         "is_owner":      farm.IsOwner,
         "location":      gorm.Expr("ST_SetSRID(ST_GeomFromGeoJSON(?),4326)", geoJSONString),
         "area":          farm.Area,
         "locality":      farm.Locality,
-        "current_cycle": farm.CurrentCycle,
         "owner_id":      farm.OwnerId,
+        "pincode":       farm.Pincode,
     }
 
     err = r.db.Model(&models.Farm{}).Create(farmData).Error
@@ -110,30 +109,31 @@ func convertGeoJSONToWKT(geoJSON models.GeoJSONPolygon) string {
 }
 
 // Implement the methods in FarmRepository
-func (r *FarmRepository) GetFarms(farmerID, locality string, verified *bool) ([]*models.Farm, error) {
+func (r *FarmRepository) GetAllFarms() ([]*models.Farm, error) {
     var farms []*models.Farm
     
-    query := r.db.Model(&models.Farm{})
+    // Explicitly convert geometry to GeoJSON
+    err := r.db.Raw(`
+        SELECT 
+            id,
+            farmer_id,
+            kisansathi_id,
+            verified,
+            is_owner,
+            ST_AsGeoJSON(location)::jsonb as location,
+            area,
+            locality,
+            current_cycle,
+            owner_id
+        FROM farms
+    `).Scan(&farms).Error
     
-    if farmerID != "" {
-        query = query.Where("farmer_id = ?", farmerID)
-    }
-    
-    if locality != "" {
-        query = query.Where("locality LIKE ?", "%"+locality+"%")
-    }
-    
-    if verified != nil {
-        query = query.Where("verified = ?", *verified)
-    }
-    
-    if err := query.Find(&farms).Error; err != nil {
+    if err != nil {
         return nil, fmt.Errorf("database error: %w", err)
     }
     
     return farms, nil
 }
-
 func (r *FarmRepository) GetFarmByID(id string) (*models.Farm, error) {
     var farm models.Farm
     

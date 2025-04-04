@@ -14,10 +14,10 @@ type FarmServiceInterface interface {
 		location models.GeoJSONPolygon,  
 		area float64,
 		locality string,
-		// cropType string,
-		// isKisansathi bool,
+        pincode int,        
+		ownerID string,      
 	) (*models.Farm, error)
-     GetFarms(farmerID, locality string, verified *bool) ([]*models.Farm, error)
+     GetAllFarms() ([]*models.Farm, error)
     GetFarmByID(id string) (*models.Farm, error)
 }
 
@@ -38,6 +38,8 @@ func (s *FarmService) CreateFarm(
     location models.GeoJSONPolygon,
     area float64,
     locality string,
+    pincode int,          
+	ownerID string,      
 ) (*models.Farm, error) {
     // Validate polygon
     if location.Type != "Polygon" {
@@ -58,6 +60,9 @@ func (s *FarmService) CreateFarm(
         Location:    location,
         Area:        area,
         Locality:    locality,
+        OwnerId:     ownerID,
+        Pincode:     pincode,
+        IsOwner:     ownerID != "", // true if owner_id provided, else false        
     }
 
     err = s.repo.CreateFarmRecord(farm)
@@ -68,9 +73,8 @@ func (s *FarmService) CreateFarm(
     return farm, nil
 }
 
-// Implement the methods in FarmService
-func (s *FarmService) GetFarms(farmerID, locality string, verified *bool) ([]*models.Farm, error) {
-    farms, err := s.repo.GetFarms(farmerID, locality, verified)
+func (s *FarmService) GetAllFarms() ([]*models.Farm, error) {
+    farms, err := s.repo.GetAllFarms()
     if err != nil {
         return nil, fmt.Errorf("failed to get farms: %w", err)
     }

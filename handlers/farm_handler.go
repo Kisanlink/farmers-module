@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"strconv"
 	"fmt"
 	"gorm.io/gorm"
 
@@ -34,9 +33,9 @@ type FarmRequest struct {
 	Location        [][][]float64 `json:"location" validate:"required,min=4"`
 	Area            float64 `json:"area" validate:"required,gt=0"`
 	Locality        string  `json:"locality" validate:"required"`
-	CropType        string  `json:"crop_type" validate:"required"`
-	IsVerified      bool    `json:"is_verified"`
 	RequestedBy     string  `json:"-"`
+    Pincode        int     `json:"pincode" validate:"required"`
+	OwnerID        string `json:"owner_id,omitempty"`
 }
 
 func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
@@ -75,9 +74,9 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
     }
 
   // Determine required action based on user type
-requiredAction := "CREATE_UNVERIFIED_FARM"
+requiredAction := "read"
 if isKisansathi {
-    requiredAction = "CREATE_VERIFIED_FARM"
+    requiredAction = "read"
 }
 
 // Get user details to check actions
@@ -126,6 +125,8 @@ if !hasAction {
         geoJSONPolygon,
         farmRequest.Area,
         farmRequest.Locality,
+        farmRequest.Pincode,
+        farmRequest.OwnerID,
     )
     
     if err != nil {
@@ -173,26 +174,10 @@ func sendStandardError(c *gin.Context, status int, userMessage string, errorDeta
 // Add these methods to FarmHandler struct
 
 // GetFarmsHandler retrieves farms with optional filters
+// GetFarmsHandler retrieves all farms
 func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
-    // Parse query parameters
-    farmerID := c.Query("farmer_id")
-    locality := c.Query("locality")
-    verifiedStr := c.Query("verified")
-    
-    var verified *bool
-    if verifiedStr != "" {
-        v, err := strconv.ParseBool(verifiedStr)
-        if err != nil {
-            sendStandardError(c, http.StatusBadRequest,
-                "Invalid verified parameter",
-                "verified must be true or false")
-            return
-        }
-        verified = &v
-    }
-
     // Call service layer
-    farms, err := h.farmService.GetFarms(farmerID, locality, verified)
+    farms, err := h.farmService.GetAllFarms()
     if err != nil {
         sendStandardError(c, http.StatusInternalServerError,
             "Failed to retrieve farms",

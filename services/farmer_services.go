@@ -8,7 +8,7 @@ import (
 // FarmerServiceInterface defines service methods for farmer operations
 type FarmerServiceInterface interface {
 	CreateFarmer(userID string, req models.FarmerSignupRequest) (*models.Farmer, error)
-	FetchFarmers() ([]models.Farmer, error)
+	FetchFarmers(filter models.FarmerFilter) ([]models.Farmer,error)
 }
 
 // FarmerService handles business logic for farmers
@@ -39,6 +39,6 @@ func (s *FarmerService) CreateFarmer(
 }
 
 // FetchFarmers fetches all farmers from the database
-func (s *FarmerService) FetchFarmers() ([]models.Farmer, error) {
-	return s.repo.FetchFarmers()
+func (s *FarmerService) FetchFarmers(filter models.FarmerFilter) ([]models.Farmer, error) {
+	return s.repo.FetchFarmers(filter)
 }

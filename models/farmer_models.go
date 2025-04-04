@@ -1,5 +1,7 @@
 package models
 
+import ("time")
+
 
 
 // FarmerSignupRequest defines the request structure for farmer registration
@@ -20,4 +22,17 @@ type Farmer struct {
 	UserID           string  `gorm:"type:varchar(36);uniqueIndex" json:"user_id"`  // Added uniqueIndex
 	KisansathiUserID *string `gorm:"type:varchar(36)" json:"kisansathi_user_id,omitempty"`
 	IsActive         bool    `gorm:"default:true" json:"is_active"`
+}
+
+type FarmerFilter struct {
+	UserID           *string
+	UserName         *string
+	Email           *string
+	CountryCode     *string
+	MobileNumber    *uint64
+	AadhaarNumber   *string
+	KisansathiUserID *string
+	IsActive        *bool
+	CreatedAfter    *time.Time
+	CreatedBefore   *time.Time
 }

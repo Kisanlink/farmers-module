@@ -198,11 +198,3 @@ func (h *FarmerHandler) sendSuccessResponse(c *gin.Context, status int, message 
 	})
 }
 
-func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
-	farmers, err := h.farmerService.FetchFarmers()
-	if err != nil {
-		h.sendErrorResponse(c, http.StatusInternalServerError, "Failed to fetch farmers", err.Error())
-		return
-	}
-	h.sendSuccessResponse(c, http.StatusOK, "Farmers fetched successfully", farmers)
-}

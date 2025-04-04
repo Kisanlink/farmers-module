@@ -16,25 +16,44 @@ type Farm struct {
     Area         float64        `json:"area"`
     Locality     string         `json:"locality"`
     CurrentCycle string         `json:"current_cycle"`
-    OwnerId      string         `json:"owner_id" gorm:"type:varchar(36);not null"` // Changed from type:uuid to varchar(36)
+    OwnerId      string         `json:"owner_id" gorm:"type:varchar(36);;default:null"`
+    Pincode      int            `json:"pincode"`
 }
 
-// GeoJSONPolygon represents a GeoJSON Polygon.
 type GeoJSONPolygon struct {
-	Type        string          `json:"type"`       // should be "Polygon"
-	Coordinates [][][]float64   `json:"coordinates"` // array of linear rings
+    Type        string        `json:"type" default:"Polygon"`
+    Coordinates [][][]float64 `json:"coordinates"`
 }
 
-// Value marshals the GeoJSONPolygon into JSON for storage.
-func (g GeoJSONPolygon) Value() (driver.Value, error) {
-	return json.Marshal(g)
-}
-
-// Scan unmarshals a JSON-encoded value from the database into GeoJSONPolygon.
+// Implement a more robust Scan method
 func (g *GeoJSONPolygon) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("failed to convert value to []byte")
-	}
-	return json.Unmarshal(bytes, g)
+    if value == nil {
+        g.Type = "Polygon"
+        g.Coordinates = make([][][]float64, 0)
+        return nil
+    }
+
+    switch v := value.(type) {
+    case []byte:
+        // Try to unmarshal as GeoJSON first
+        if err := json.Unmarshal(v, g); err == nil {
+            return nil
+        }
+        // If not GeoJSON, try to parse as WKB (PostGIS binary format)
+        return parsePostGISBinary(v, g)
+    case string:
+        return json.Unmarshal([]byte(v), g)
+    default:
+        return fmt.Errorf("unsupported type for GeoJSONPolygon: %T", value)
+    }
+}
+
+func parsePostGISBinary(data []byte, g *GeoJSONPolygon) error {
+    // You'll need to implement WKB parsing here
+    // For now, we'll just return the raw data for debugging
+    return fmt.Errorf("received PostGIS binary data: %x", data)
+}
+
+func (g GeoJSONPolygon) Value() (driver.Value, error) {
+    return json.Marshal(g)
 }
