@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 	"fmt"
-	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 	"github.com/Kisanlink/farmers-module/models"
@@ -176,8 +175,11 @@ func sendStandardError(c *gin.Context, status int, userMessage string, errorDeta
 // GetFarmsHandler retrieves farms with optional filters
 // GetFarmsHandler retrieves all farms
 func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
+    // Extract query parameters
+    farmerID := c.Query("farmer_id")
+    pincode := c.Query("pincode")
     // Call service layer
-    farms, err := h.farmService.GetAllFarms()
+    farms, err := h.farmService.GetAllFarms(farmerID, pincode)
     if err != nil {
         sendStandardError(c, http.StatusInternalServerError,
             "Failed to retrieve farms",
@@ -194,29 +196,3 @@ func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
     })
 }
 
-// GetFarmByIDHandler retrieves a single farm by ID
-func (h *FarmHandler) GetFarmByIDHandler(c *gin.Context) {
-    farmID := c.Param("id")
-    
-    farm, err := h.farmService.GetFarmByID(farmID)
-    if err != nil {
-        if err == gorm.ErrRecordNotFound {
-            sendStandardError(c, http.StatusNotFound,
-                "Farm not found",
-                fmt.Sprintf("farm with id %s not found", farmID))
-        } else {
-            sendStandardError(c, http.StatusInternalServerError,
-                "Failed to retrieve farm",
-                err.Error())
-        }
-        return
-    }
-
-    c.JSON(http.StatusOK, gin.H{
-        "status":    http.StatusOK,
-        "message":   "Farm retrieved successfully",
-        "data":      farm,
-        "timestamp": time.Now().UTC(),
-        "success":   true,
-    })
-}

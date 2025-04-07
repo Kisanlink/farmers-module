@@ -12,5 +12,4 @@ func RegisterFarmRoutes(router *gin.RouterGroup, farmService services.FarmServic
     router.POST("/farms", farmHandler.CreateFarmHandler)
     // Add GET endpoint
     router.GET("/farms", farmHandler.GetFarmsHandler)
-    router.GET("/farms/:id", farmHandler.GetFarmByIDHandler)
 }
