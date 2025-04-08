@@ -178,8 +178,20 @@ func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
     // Extract query parameters
     farmerID := c.Query("farmer_id")
     pincode := c.Query("pincode")
-    // Call service layer
-    farms, err := h.farmService.GetAllFarms(farmerID, pincode)
+    date := c.Query("date") // New date parameter
+    
+    // Optional: Validate date format if provided
+    if date != "" {
+        if _, err := time.Parse("2006-01-02", date); err != nil {
+            sendStandardError(c, http.StatusBadRequest,
+                "Invalid date format",
+                "Date must be in YYYY-MM-DD format")
+            return
+        }
+    }
+
+    // Call service layer with the new date parameter
+    farms, err := h.farmService.GetAllFarms(farmerID, pincode, date)
     if err != nil {
         sendStandardError(c, http.StatusInternalServerError,
             "Failed to retrieve farms",
