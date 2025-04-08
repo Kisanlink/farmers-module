@@ -71,8 +71,8 @@ func CreateUserClient(req models.FarmerSignupRequest, token string) (*pb.CreateU
 	return response, nil
 }
 
-func GetUserByIdClient(ctx context.Context, userID string) (*pb.GetUserByIdResponse, error) {
-	log.Printf("GetUserByIdClient: Fetching user with ID: %s", userID)
+func GetUserByIdClient(ctx context.Context, userId string) (*pb.GetUserByIdResponse, error) {
+	log.Printf("GetUserByIdClient: Fetching user with Id: %s", userId)
 
 	// Initialize gRPC connection with retry mechanism
 	conn, err := InitializeGrpcClient("", 3) // Assuming no auth token is needed
@@ -87,7 +87,7 @@ func GetUserByIdClient(ctx context.Context, userID string) (*pb.GetUserByIdRespo
 	log.Println("GetUserByIdClient: UserServiceClient initialized")
 
 	// Prepare gRPC request
-	userReq := &pb.GetUserByIdRequest{Id: userID}
+	userReq := &pb.GetUserByIdRequest{Id: userId}
 	log.Printf("GetUserByIdClient: Prepared gRPC request: %+v", userReq)
 
 	// Set timeout for request
@@ -112,10 +112,9 @@ func GetUserByIdClient(ctx context.Context, userID string) (*pb.GetUserByIdRespo
 	return resp, nil
 }
 
-
 // AssignRoleToUserClient assigns a role to a user via AAA service
-func AssignRoleToUserClient(ctx context.Context, userID string, roles string) (*pb.AssignRoleToUserResponse, error) {
-	log.Printf("AssignRoleToUserClient: Assigning role '%s' to user ID: %s", roles, userID)
+func AssignRoleToUserClient(ctx context.Context, userId string, roles string) (*pb.AssignRoleToUserResponse, error) {
+	log.Printf("AssignRoleToUserClient: Assigning role '%s' to user Id: %s", roles, userId)
 
 	// Initialize gRPC connection with retry mechanism
 	conn, err := InitializeGrpcClient("", 3) // Assuming no auth token is needed
@@ -131,7 +130,7 @@ func AssignRoleToUserClient(ctx context.Context, userID string, roles string) (*
 
 	// Prepare gRPC request
 	roleReq := &pb.AssignRoleToUserRequest{
-		UserId: userID,
+		UserId: userId,
 		Role:   roles,
 	}
 	log.Printf("AssignRoleToUserClient: Prepared gRPC request: %+v", roleReq)
@@ -144,12 +143,10 @@ func AssignRoleToUserClient(ctx context.Context, userID string, roles string) (*
 	log.Println("AssignRoleToUserClient: Sending gRPC request to AssignRole")
 	resp, err := userClient.AssignRole(ctx, roleReq)
 	if err != nil {
-		log.Printf("AssignRoleToUserClient: Failed to assign role to user %s: %v", userID, err)
+		log.Printf("AssignRoleToUserClient: Failed to assign role to user %s: %v", userId, err)
 		return nil, err
 	}
 
-	log.Printf("AssignRoleToUserClient: Successfully assigned roles to user %s: %+v", userID, resp)
+	log.Printf("AssignRoleToUserClient: Successfully assigned roles to user %s: %+v", userId, resp)
 	return resp, nil
 }
-
-

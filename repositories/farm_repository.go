@@ -23,8 +23,8 @@ func NewFarmRepository(db *gorm.DB) *FarmRepository {
 type FarmRepositoryInterface interface {
 	CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, error)
 	CreateFarmRecord(farm *models.Farm) error
-	GetAllFarms(farmerID, pincode, date string) ([]*models.Farm, error)
-	GetFarmsWithFilters(farmerID, pincode string) ([]*models.Farm, error)
+	GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error)
+	GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error)
 }
 
 func (r *FarmRepository) CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, error) {
@@ -61,37 +61,37 @@ func (r *FarmRepository) CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, 
 }
 
 func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
-    // Set ID and timestamps on the model
-    farm.ID = utils.Generate10DigitID()
-    farm.CreatedAt = time.Now()
-    farm.UpdatedAt = time.Now()
-    
-    // Marshal location
-    geoJSONBytes, err := json.Marshal(farm.Location)
-    if err != nil {
-        return fmt.Errorf("failed to marshal location: %v", err)
-    }
-    
-    // Create with raw SQL for location only
-    err = r.db.Model(farm).
-        Create(map[string]interface{}{
-            "id":            farm.ID,
-            "farmer_id":     farm.FarmerId,
-            "kisansathi_id": farm.KisansathiId,
-            "is_owner":      farm.IsOwner,
-            "location":      gorm.Expr("ST_SetSRID(ST_GeomFromGeoJSON(?),4326)", string(geoJSONBytes)),
-            "area":          farm.Area,
-            "locality":      farm.Locality,
-            "owner_id":      farm.OwnerId,
-            "pincode":       farm.Pincode,
-            "created_at":    farm.CreatedAt,
-            "updated_at":    farm.UpdatedAt,
-        }).Error
-    
-    if err != nil {
-        return fmt.Errorf("failed to create farm: %v", err)
-    }
-    return nil
+	// Set Id and timestamps on the model
+	farm.Id = utils.Generate10DigitId()
+	farm.CreatedAt = time.Now()
+	farm.UpdatedAt = time.Now()
+
+	// Marshal location
+	geoJSONBytes, err := json.Marshal(farm.Location)
+	if err != nil {
+		return fmt.Errorf("failed to marshal location: %v", err)
+	}
+
+	// Create with raw SQL for location only
+	err = r.db.Model(farm).
+		Create(map[string]interface{}{
+			"id":            farm.Id,
+			"farmer_id":     farm.FarmerId,
+			"kisansathi_id": farm.KisansathiId,
+			"is_owner":      farm.IsOwner,
+			"location":      gorm.Expr("ST_SetSRId(ST_GeomFromGeoJSON(?),4326)", string(geoJSONBytes)),
+			"area":          farm.Area,
+			"locality":      farm.Locality,
+			"owner_id":      farm.OwnerId,
+			"pincode":       farm.Pincode,
+			"created_at":    farm.CreatedAt,
+			"updated_at":    farm.UpdatedAt,
+		}).Error
+
+	if err != nil {
+		return fmt.Errorf("failed to create farm: %v", err)
+	}
+	return nil
 }
 func convertGeoJSONToWKT(geoJSON models.GeoJSONPolygon) string {
 	if len(geoJSON.Coordinates) == 0 || len(geoJSON.Coordinates[0]) == 0 {
@@ -112,11 +112,11 @@ func convertGeoJSONToWKT(geoJSON models.GeoJSONPolygon) string {
 }
 
 // Implement the methods in FarmRepository
-func (r *FarmRepository) GetAllFarms(farmerID, pincode, date string) ([]*models.Farm, error) {
-    var farms []*models.Farm
+func (r *FarmRepository) GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error) {
+	var farms []*models.Farm
 
-    // Build the base query
-    query := `
+	// Build the base query
+	query := `
         SELECT 
             id,
             farmer_id,
@@ -129,42 +129,48 @@ func (r *FarmRepository) GetAllFarms(farmerID, pincode, date string) ([]*models.
             locality,
             current_cycle,
             owner_id,
-            created_at
+            created_at,
+            updated_at
         FROM farms
         WHERE 1=1
     `
 
-    // Add filters dynamically
-    var args []interface{}
-    if farmerID != "" {
-        query += " AND farmer_id = ?"
-        args = append(args, farmerID)
-    }
-    if pincode != "" {
-        query += " AND pincode = ?"
-        args = append(args, pincode)
-    }
-    if date != "" {
-        // Filter for a specific date (ignoring time portion)
-        query += " AND DATE(created_at) = ?"
-        args = append(args, date)
-    }
+	// Add filters dynamically
+	var args []interface{}
+	if farmerId != "" {
+		query += " AND farmer_id = ?"
+		args = append(args, farmerId)
+	}
+	if pincode != "" {
+		query += " AND pincode = ?"
+		args = append(args, pincode)
+	}
+	if date != "" {
+		// Filter for a specific date (ignoring time portion)
+		query += " AND DATE(created_at) >= ?"
+		args = append(args, date)
+	}
+	if id != "" {
+		// Filter for a specific Id
+		query += " AND id = ?"
+		args = append(args, id)
+	}
 
-    // Execute the query with filters
-    err := r.db.Raw(query, args...).Scan(&farms).Error
-    if err != nil {
-        return nil, fmt.Errorf("database error: %w", err)
-    }
+	// Execute the query with filters
+	err := r.db.Raw(query, args...).Scan(&farms).Error
+	if err != nil {
+		return nil, fmt.Errorf("database error: %w", err)
+	}
 
-    return farms, nil
+	return farms, nil
 }
-func (r *FarmRepository) GetFarmsWithFilters(farmerID, pincode string) ([]*models.Farm, error) {
+func (r *FarmRepository) GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error) {
 	var farms []*models.Farm
 	query := r.db.Model(&models.Farm{})
 
 	// Apply filters if query parameters are provided
-	if farmerID != "" {
-		query = query.Where("farmer_id = ?", farmerID)
+	if farmerId != "" {
+		query = query.Where("farmer_id = ?", farmerId)
 	}
 	if pincode != "" {
 		query = query.Where("pincode = ?", pincode)

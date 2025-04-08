@@ -9,15 +9,15 @@ import (
 
 type FarmServiceInterface interface {
 	CreateFarm(
-		farmerID string,
+		farmerId string,
 		location models.GeoJSONPolygon,
 		area float64,
 		locality string,
 		pincode int,
-		ownerID string,
+		ownerId string,
 	) (*models.Farm, error)
-	GetAllFarms(farmerID, pincode, date string) ([]*models.Farm, error)
-	GetFarmsWithFilters(farmerID, pincode string) ([]*models.Farm, error)
+	GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error)
+	GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error)
 }
 
 type FarmService struct {
@@ -32,12 +32,12 @@ func NewFarmService(repo repositories.FarmRepositoryInterface) *FarmService {
 
 // services/farm_service.go
 func (s *FarmService) CreateFarm(
-	farmerID string,
+	farmerId string,
 	location models.GeoJSONPolygon,
 	area float64,
 	locality string,
 	pincode int,
-	ownerID string,
+	ownerId string,
 ) (*models.Farm, error) {
 	// Validate polygon
 	if location.Type != "Polygon" {
@@ -54,13 +54,13 @@ func (s *FarmService) CreateFarm(
 	}
 
 	farm := &models.Farm{
-		FarmerId: farmerID,
+		FarmerId: farmerId,
 		Location: location,
 		Area:     area,
 		Locality: locality,
-		OwnerId:  ownerID,
+		OwnerId:  ownerId,
 		Pincode:  pincode,
-		IsOwner:  ownerID != "", // true if owner_id provided, else false
+		IsOwner:  ownerId != "", // true if owner_id provided, else false
 	}
 
 	err = s.repo.CreateFarmRecord(farm)
@@ -71,16 +71,14 @@ func (s *FarmService) CreateFarm(
 	return farm, nil
 }
 
-func (s *FarmService) GetAllFarms(farmerID, pincode, date string) ([]*models.Farm, error) {
-    farms, err := s.repo.GetAllFarms(farmerID, pincode, date)
-    if err != nil {
-        return nil, fmt.Errorf("failed to get farms: %w", err)
-    }
-    return farms, nil
+func (s *FarmService) GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error) {
+	farms, err := s.repo.GetAllFarms(farmerId, pincode, date, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get farms: %w", err)
+	}
+	return farms, nil
 }
 
-
-
-func (s *FarmService) GetFarmsWithFilters(farmerID, pincode string) ([]*models.Farm, error) {
-	return s.repo.GetFarmsWithFilters(farmerID, pincode)
+func (s *FarmService) GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error) {
+	return s.repo.GetFarmsWithFilters(farmerId, pincode)
 }

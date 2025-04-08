@@ -5,7 +5,7 @@ import (
 )
 
 type UserServiceInterface interface {
-	VerifyUserAndType(userID string) (exists bool, isKisansathi bool, err error)
+	VerifyUserAndType(userId string) (exists bool, isKisansathi bool, err error)
 }
 
 type UserService struct {
@@ -16,12 +16,12 @@ func NewUserService(repo repositories.UserRepositoryInterface) UserServiceInterf
 	return &UserService{userRepo: repo}
 }
 
-func (s *UserService) VerifyUserAndType(userID string) (bool, bool, error) {
-	exists, err := s.userRepo.UserExists(userID)
+func (s *UserService) VerifyUserAndType(userId string) (bool, bool, error) {
+	exists, err := s.userRepo.UserExists(userId)
 	if err != nil || !exists {
 		return exists, false, err
 	}
-	
-	isKisansathi := s.userRepo.IsKisansathi(userID)
+
+	isKisansathi := s.userRepo.IsKisansathi(userId)
 	return true, isKisansathi, nil
 }
