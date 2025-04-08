@@ -1,74 +1,55 @@
 package database
 
 import (
-	"context"
 	"fmt"
-	"sync"
-	"time"
-
 	"log"
+	"sync"
 
 	"github.com/Kisanlink/farmers-module/config"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var (
-	clientInstance    *mongo.Client
-	clientInstanceErr error
-	dbInstance        *mongo.Database
-	once              sync.Once
+	dbInstance *gorm.DB
+	once       sync.Once
 )
 
-// InitializeDatabase initializes the MongoDB connection and sets the global database instance.
+// InitializeDatabase initializes the PostgreSQL connection and sets the global database instance.
 func InitializeDatabase() {
 	once.Do(func() {
 		// Load environment variables
 		config.LoadEnv()
 
-		// Get MongoDB connection details
-		hostname := config.GetEnv("MONGO_HOSTNAME")
-		port := config.GetEnv("MONGO_PORT")
-		username := config.GetEnv("MONGO_USERNAME")
-		password := config.GetEnv("MONGO_PASSWORD")
-		dbName := config.GetEnv("MONGO_DB_NAME")
+		// Get PostgreSQL connection details
+		host := config.GetEnv("DB_HOST")
+		port := config.GetEnv("DB_PORT")
+		user := config.GetEnv("DB_USER")
+		password := config.GetEnv("DB_PASSWORD")
+		dbName := config.GetEnv("DB_NAME")
+		sslMode := config.GetEnv("DB_SSLMODE")
 
-		// MongoDB URI
-		mongoURI := fmt.Sprintf("mongodb://%s:%s@%s:%s/%s", username, password, hostname, port, dbName)
+		// PostgreSQL DSN
+		dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=%s", user, password, host, port, dbName, sslMode)
 
-		// Create MongoDB client
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
+		// // PostgreSQL DSN
+		// dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, port, user, password, dbName, sslMode)
 
-		clientInstance, clientInstanceErr = mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
-		if clientInstanceErr != nil {
-			log.Fatalf("Failed to connect to MongoDB: %v", clientInstanceErr)
+		// Connect to PostgreSQL
+		var err error
+		dbInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err != nil {
+			log.Fatalf("Failed to connect to PostgreSQL: %v", err)
 		}
-
-		// Ping the database
-		clientInstanceErr = clientInstance.Ping(ctx, nil)
-		if clientInstanceErr != nil {
-			log.Fatalf("Failed to ping MongoDB: %v", clientInstanceErr)
-		}
-
-		// Set the global database instance
-		dbInstance = clientInstance.Database(dbName)
-		log.Println("Connected to MongoDB successfully")
+		log.Println("Connected to PostgreSQL successfully")
+    RunMigrations()
 	})
 }
 
 // GetDatabase returns the global database instance.
-func GetDatabase() *mongo.Database {
+func GetDatabase() *gorm.DB {
 	if dbInstance == nil {
 		log.Fatal("Database connection is not initialized. Call InitializeDatabase first.")
 	}
 	return dbInstance
-}
-
-// GetClient returns the global MongoDB client instance.
-func GetClient() *mongo.Client {
-	if clientInstance == nil {
-		log.Fatal("MongoDB client is not initialized. Call InitializeDatabase first.")
-	}
-	return clientInstance
 }

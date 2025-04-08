@@ -1,77 +1,59 @@
 package models
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"database/sql/driver"
+	"encoding/json"
+	"fmt"
 )
 
 type Farm struct {
-	ID                  primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	FarmID              int                `bson:"farmId" json:"farmId"`
-	FarmerID            int                `bson:"farmerId" json:"farmerId"`
-	FarmerName          string             `bson:"farmerName" json:"farmerName"`
-	VariantID           string             `bson:"variantId" json:"variantId"`
-	Status              string             `bson:"status" json:"status"`
-	ExpectedYield       float64            `bson:"expectedYield" json:"expectedYield"`
-	Price               float64            `bson:"price" json:"price"`
-	CropCategory        string             `bson:"cropCategory" json:"cropCategory"`
-	Crop                string             `bson:"crop" json:"crop"`
-	CropID              string             `bson:"cropId" json:"cropId"`
-	CropImage           string             `bson:"cropImage" json:"cropImage"`
-	CropVariety         string             `bson:"cropVariety" json:"cropVariety"`
-	Acres               float64            `bson:"acres" json:"acres"`
-	Tons                float64            `bson:"tons" json:"tons"`
-	HarvestDate         Date               `bson:"harvestDate" json:"harvestDate"`
-	FarmerMobileNumber  int64              `bson:"farmerMobileNumber" json:"farmerMobileNumber"`
-	Address             string             `bson:"address" json:"address"`
-	Dimensions          []Dimension        `bson:"dimensions" json:"dimensions"`
-	Locality            string             `bson:"locality" json:"locality"`
-	Landmark            string             `bson:"landmark" json:"landmark"`
-	Pincode             string             `bson:"pincode" json:"pincode"`
-	City                string             `bson:"city" json:"city"`
-	State               string             `bson:"state" json:"state"`
-	District            string             `bson:"district" json:"district"`
-	Images              []string           `bson:"images" json:"images"`
-	KisansathiID        int                `bson:"kisansathiId" json:"kisansathiId"`
-	KisansathiName      string             `bson:"kisansathiName" json:"kisansathiName"`
-	Verified            bool               `bson:"verified" json:"verified"`
-	FarmerVerified      bool               `bson:"farmerVerified" json:"farmerVerified"`
-	IsActive            bool               `bson:"isActive" json:"isActive"`
-	Question1           string             `bson:"question1" json:"question1"`
-	Question2           string             `bson:"question2" json:"question2"`
-	Question3           string             `bson:"question3" json:"question3"`
-	Answer1             string             `bson:"answer1" json:"answer1"`
-	Answer2             string             `bson:"answer2" json:"answer2"`
-	Answer3             string             `bson:"answer3" json:"answer3"`
-	CommodityCategoryID string             `bson:"comodityCategoryId" json:"commodityCategoryId"`
-	AreaManagerID       string             `bson:"areaManagerId" json:"areaManagerId"`
-	AreaManagerName     string             `bson:"areaManagerName" json:"areaManagerName"`
-	CreatedBy           string             `bson:"createdBy" json:"createdBy"`
-	CreatedAt           Date               `bson:"createdAt"`
-	ModifiedBy          string             `bson:"modifiedBy" json:"modifiedBy"`
-	ModifiedAt          Date               `bson:"modifiedAt"`
-	IsDeleted           bool               `bson:"isDeleted" json:"isDeleted"`
-	Class               string             `bson:"_class" json:"_class"`
+    Base
+    FarmerId     string         `json:"farmer_id" gorm:"type:varchar(36);not null"`
+    KisansathiId *string        `json:"kisansathi_id,omitempty" gorm:"type:uuid;default:null"`
+    Verified     bool           `json:"verified"`
+    IsOwner      bool           `json:"is_owner"`
+    Location     GeoJSONPolygon `json:"location" gorm:"type:geometry(Polygon,4326);not null"`
+    Area         float64        `json:"area"`
+    Locality     string         `json:"locality"`
+    CurrentCycle string         `json:"current_cycle"`
+    OwnerId      string         `json:"owner_id" gorm:"type:varchar(36);;default:null"`
+    Pincode      int            `json:"pincode"`
 }
 
-type Dimension struct {
-	Longitude float64 `bson:"longitude" json:"longitude"`
-	Latitude  float64 `bson:"latitude" json:"latitude"`
+type GeoJSONPolygon struct {
+    Type        string        `json:"type" default:"Polygon"`
+    Coordinates [][][]float64 `json:"coordinates"`
 }
-type Date struct {
-	OrigYear         int    `bson:"orig_year" json:"orig_year"`
-	OrigMonth        int    `bson:"orig_month" json:"orig_month"`
-	OrigDay          int    `bson:"orig_day" json:"orig_day"`
-	OrigHour         int    `bson:"orig_hour" json:"orig_hour"`
-	OrigMinute       int    `bson:"orig_minute" json:"orig_minute"`
-	OrigSecond       int    `bson:"orig_second" json:"orig_second"`
-	OrigTimezone     int    `bson:"orig_timezone" json:"orig_timezone"`
-	Year             int    `bson:"year" json:"year"`
-	Month            int    `bson:"month" json:"month"`
-	Day              int    `bson:"day" json:"day"`
-	Timezone         int    `bson:"timezone" json:"timezone"`
-	Hour             int    `bson:"hour" json:"hour"`
-	Minute           int    `bson:"minute" json:"minute"`
-	Second           int    `bson:"second" json:"second"`
-	FractionalSecond string `bson:"fractionalSecond" json:"fractionalSecond"`
-	Class            string `bson:"_class" json:"class"`
+
+// Implement a more robust Scan method
+func (g *GeoJSONPolygon) Scan(value interface{}) error {
+    if value == nil {
+        g.Type = "Polygon"
+        g.Coordinates = make([][][]float64, 0)
+        return nil
+    }
+
+    switch v := value.(type) {
+    case []byte:
+        // Try to unmarshal as GeoJSON first
+        if err := json.Unmarshal(v, g); err == nil {
+            return nil
+        }
+        // If not GeoJSON, try to parse as WKB (PostGIS binary format)
+        return parsePostGISBinary(v, g)
+    case string:
+        return json.Unmarshal([]byte(v), g)
+    default:
+        return fmt.Errorf("unsupported type for GeoJSONPolygon: %T", value)
+    }
+}
+
+func parsePostGISBinary(data []byte, g *GeoJSONPolygon) error {
+    // You'll need to implement WKB parsing here
+    // For now, we'll just return the raw data for debugging
+    return fmt.Errorf("received PostGIS binary data: %x", data)
+}
+
+func (g GeoJSONPolygon) Value() (driver.Value, error) {
+    return json.Marshal(g)
 }
