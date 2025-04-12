@@ -18,6 +18,8 @@ type FarmServiceInterface interface {
 	) (*models.Farm, error)
 	GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error)
 	GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error)
+
+	GetFarmByID(farmId string) (*models.Farm, error)
 }
 
 type FarmService struct {
@@ -81,4 +83,12 @@ func (s *FarmService) GetAllFarms(farmerId, pincode, date, id string) ([]*models
 
 func (s *FarmService) GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error) {
 	return s.repo.GetFarmsWithFilters(farmerId, pincode)
+}
+
+func (s *FarmService) GetFarmByID(farmId string) (*models.Farm, error) {
+	farm, err := s.repo.GetFarmByID(farmId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve farm: %w", err)
+	}
+	return farm, nil
 }
