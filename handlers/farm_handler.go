@@ -149,6 +149,9 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 		return
 	}
 
+	// API call for divya drishti to create farm data
+	CreateFarmData(farm.Id)
+
 	c.JSON(http.StatusCreated, gin.H{
 		"status":    http.StatusCreated,
 		"message":   "Farm created successfully",
