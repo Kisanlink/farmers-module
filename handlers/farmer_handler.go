@@ -78,7 +78,7 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 			hasPermission := false
 			for _, rolePerm := range userResp.Data.RolePermissions {
 				for _, perm := range rolePerm.Permissions {
-					if perm.Name == config.GetEnv("PERMISSIONS") {
+					if perm.Name == config.PERMISSION_KISANSATHI {
 						hasPermission = true
 						break
 					}
@@ -108,7 +108,7 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 		if _, err := services.AssignRoleToUserClient(
 			c.Request.Context(),
 			*req.UserId,
-			config.GetEnv("ROLE"),
+			config.ROLE_FARMER,
 		); err != nil {
 			h.sendErrorResponse(c, http.StatusInternalServerError,
 				"Farmer created but role assignment failed", err.Error())
@@ -178,7 +178,7 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 		hasPermission := false
 		for _, rolePerm := range userResp.Data.RolePermissions {
 			for _, perm := range rolePerm.Permissions {
-				if perm.Name == config.GetEnv("PERMISSIONS") {
+				if perm.Name == config.PERMISSION_KISANSATHI {
 					hasPermission = true
 					break
 				}
