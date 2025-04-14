@@ -4,9 +4,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/Kisanlink/farmers-module/database"
 	"github.com/Kisanlink/farmers-module/routes"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -21,6 +22,13 @@ func main() {
 
 	// Initialize the router
 	router := routes.Setup()
+
+	// Add root route
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Welcome to Farmer Module Server",
+		})
+	})
 
 	// Get port from environment
 	port := os.Getenv("PORT")
