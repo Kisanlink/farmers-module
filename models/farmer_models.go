@@ -1,5 +1,9 @@
 package models
 
+import (
+	pb "github.com/kisanlink/protobuf/pb-aaa"
+)
+
 // FarmerSignupRequest defines the request structure for farmer registration
 type FarmerSignupRequest struct {
 	UserId           *string `json:"user_id" validate:"omitempty,uuid"`
@@ -17,4 +21,6 @@ type Farmer struct {
 	UserId           string  `gorm:"type:varchar(36);uniqueIndex" json:"user_id"` // Added uniqueIndex
 	KisansathiUserId *string `gorm:"type:varchar(36)" json:"kisansathi_user_id,omitempty"`
 	IsActive         bool    `gorm:"default:true" json:"is_active"`
+
+	UserDetails *pb.User `json:"user,omitempty" gorm:"-"`
 }
