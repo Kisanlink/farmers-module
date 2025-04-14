@@ -25,6 +25,8 @@ type FarmRepositoryInterface interface {
 	CreateFarmRecord(farm *models.Farm) error
 	GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error)
 	GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error)
+	// New method to get a farm by its ID
+	GetFarmByID(farmId string) (*models.Farm, error)
 }
 
 func (r *FarmRepository) CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, error) {
@@ -181,4 +183,38 @@ func (r *FarmRepository) GetFarmsWithFilters(farmerId, pincode string) ([]*model
 		return nil, err
 	}
 	return farms, nil
+}
+
+func (r *FarmRepository) GetFarmByID(farmId string) (*models.Farm, error) {
+	var farm models.Farm
+
+	query := `
+        SELECT 
+            id,
+            farmer_id,
+            kisansathi_id,
+            verified,
+            is_owner,
+            ST_AsGeoJSON(location)::jsonb as location,
+            area,
+            pincode,
+            locality,
+            current_cycle,
+            owner_id,
+            created_at,
+            updated_at
+        FROM farms
+        WHERE id = ?
+    `
+
+	if err := r.db.Raw(query, farmId).Scan(&farm).Error; err != nil {
+		return nil, fmt.Errorf("failed to retrieve farm: %w", err)
+	}
+
+	// 🚨 Check if the ID is still empty => no rows were found
+	if farm.Base.Id == "" {
+		return nil, fmt.Errorf("farm not found")
+	}
+
+	return &farm, nil
 }

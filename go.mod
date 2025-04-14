@@ -8,7 +8,7 @@ require (
 	github.com/gin-contrib/cors v1.7.3
 	github.com/gin-gonic/gin v1.10.0
 	github.com/joho/godotenv v1.5.1
-	github.com/kisanlink/protobuf v0.0.0-20250328103756-b449cb98ca5c
+	github.com/kisanlink/protobuf v0.0.0-20250413093600-5549e98792b2
 	google.golang.org/grpc v1.71.0
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12

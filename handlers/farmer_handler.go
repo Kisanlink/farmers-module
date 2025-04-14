@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/config"
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/services"
 	"github.com/gin-gonic/gin"
@@ -45,7 +46,7 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 				return
 			}
 
-			// Check permissions
+			/* // Check permissions
 			if userResp.Data.UsageRight == nil {
 				h.sendErrorResponse(c, http.StatusForbidden,
 					"Permission denied", "user has no usage rights defined")
@@ -65,6 +66,34 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 					"Permission denied", "missing required permissions or actions")
 				return
 			}
+			*/
+
+			// Check permissions using RolePermissions
+			if len(userResp.Data.RolePermissions) == 0 {
+				h.sendErrorResponse(c, http.StatusForbidden,
+					"Permission denied", "user has no role permissions defined")
+				return
+			}
+
+			hasPermission := false
+			for _, rolePerm := range userResp.Data.RolePermissions {
+				for _, perm := range rolePerm.Permissions {
+					if perm.Name == config.PERMISSION_KISANSATHI {
+						hasPermission = true
+						break
+					}
+				}
+				if hasPermission {
+					break
+				}
+			}
+
+			if !hasPermission {
+				h.sendErrorResponse(c, http.StatusForbidden,
+					"Permission denied", "missing required permissions or actions")
+				return
+			}
+
 		}
 
 		// Create Farmer Record with just the UserId and optional KisansathiUserId
@@ -79,7 +108,7 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 		if _, err := services.AssignRoleToUserClient(
 			c.Request.Context(),
 			*req.UserId,
-			"FARMER",
+			config.ROLE_FARMER,
 		); err != nil {
 			h.sendErrorResponse(c, http.StatusInternalServerError,
 				"Farmer created but role assignment failed", err.Error())
@@ -117,7 +146,7 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 			return
 		}
 
-		// Check permissions
+		/*// Check permissions
 		if userResp.Data.UsageRight == nil {
 			h.sendErrorResponse(c, http.StatusForbidden,
 				"Permission denied", "user has no usage rights defined")
@@ -137,6 +166,34 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 				"Permission denied", "missing required permissions or actions")
 			return
 		}
+		*/
+
+		// Check permissions using RolePermissions
+		if len(userResp.Data.RolePermissions) == 0 {
+			h.sendErrorResponse(c, http.StatusForbidden,
+				"Permission denied", "user has no role permissions defined")
+			return
+		}
+
+		hasPermission := false
+		for _, rolePerm := range userResp.Data.RolePermissions {
+			for _, perm := range rolePerm.Permissions {
+				if perm.Name == config.PERMISSION_KISANSATHI {
+					hasPermission = true
+					break
+				}
+			}
+			if hasPermission {
+				break
+			}
+		}
+
+		if !hasPermission {
+			h.sendErrorResponse(c, http.StatusForbidden,
+				"Permission denied", "missing required permissions or actions")
+			return
+		}
+
 	}
 
 	// Create new user via AAA service since UserId wasn't provided

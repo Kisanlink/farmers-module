@@ -42,9 +42,34 @@ func InitializeDatabase() {
 			log.Fatalf("Failed to connect to PostgreSQL: %v", err)
 		}
 		log.Println("Connected to PostgreSQL successfully")
-    RunMigrations()
+		RunMigrations()
 	})
 }
+
+/*
+func InitializeDatabase() {
+	once.Do(func() {
+		// Load environment variables
+		config.LoadEnv()
+
+		// ✅ Get the full connection string from .env
+		dsn := config.GetEnv("DATABASE_URL")
+		if dsn == "" {
+			log.Fatal("DATABASE_URL is not set in the environment")
+		}
+
+		// ✅ Connect using full connection string
+		var err error
+		dbInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err != nil {
+			log.Fatalf("Failed to connect to PostgreSQL: %v", err)
+		}
+		log.Println("Connected to PostgreSQL successfully")
+
+		RunMigrations()
+	})
+}
+*/
 
 // GetDatabase returns the global database instance.
 func GetDatabase() *gorm.DB {

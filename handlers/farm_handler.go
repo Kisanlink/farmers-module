@@ -89,10 +89,26 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	// Verify the required action exists in user's allowed actions
 	// Verify the required action exists in user's allowed actions
 	hasAction := false
+	/* //with usageRight
 	if userResp != nil && userResp.Data != nil && userResp.Data.UsageRight != nil {
 		for _, permission := range userResp.Data.UsageRight.Permissions {
 			if permission != nil && permission.Action == requiredAction {
 				hasAction = true
+				break
+			}
+		}
+	}
+	*/
+	// role permissions
+	if userResp != nil && userResp.Data != nil && userResp.Data.RolePermissions != nil {
+		for _, rolePerms := range userResp.Data.RolePermissions {
+			for _, permission := range rolePerms.Permissions {
+				if permission != nil && permission.Action == requiredAction {
+					hasAction = true
+					break
+				}
+			}
+			if hasAction {
 				break
 			}
 		}
@@ -132,6 +148,9 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 		handleFarmCreationError(c, err)
 		return
 	}
+
+	// API call for divya drishti to create farm data
+	CreateFarmData(farm.Id)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"status":    http.StatusCreated,
@@ -214,6 +233,44 @@ func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
 		"status":    http.StatusOK,
 		"message":   "Farms retrieved successfully",
 		"data":      farms,
+		"timestamp": time.Now().UTC(),
+		"success":   true,
+	})
+}
+
+func (h *FarmHandler) GetFarmByFarmID(c *gin.Context) {
+	// Retrieve farmId from URL parameters
+	farmId := c.Param("farmId")
+	if farmId == "" {
+		sendStandardError(c, http.StatusBadRequest,
+			"Farm ID is required",
+			"empty farm id parameter")
+		return
+	}
+
+	// Call the service layer method to retrieve the farm by ID
+	farm, err := h.farmService.GetFarmByID(farmId)
+	if err != nil {
+		// If farm not found, return a 404 error
+		if err.Error() == "farm not found" {
+			sendStandardError(c, http.StatusNotFound,
+				"Farm does not exist",
+				"Farm with the provided ID does not exist")
+			return
+		}
+
+		// Handle any other errors
+		sendStandardError(c, http.StatusInternalServerError,
+			"Internal server error",
+			err.Error())
+		return
+	}
+
+	// Respond with the farm data if found
+	c.JSON(http.StatusOK, gin.H{
+		"status":    http.StatusOK,
+		"message":   "Farm retrieved successfully",
+		"data":      farm,
 		"timestamp": time.Now().UTC(),
 		"success":   true,
 	})
