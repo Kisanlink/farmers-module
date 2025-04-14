@@ -89,10 +89,26 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	// Verify the required action exists in user's allowed actions
 	// Verify the required action exists in user's allowed actions
 	hasAction := false
+	/* //with usageRight
 	if userResp != nil && userResp.Data != nil && userResp.Data.UsageRight != nil {
 		for _, permission := range userResp.Data.UsageRight.Permissions {
 			if permission != nil && permission.Action == requiredAction {
 				hasAction = true
+				break
+			}
+		}
+	}
+	*/
+	// role permissions
+	if userResp != nil && userResp.Data != nil && userResp.Data.RolePermissions != nil {
+		for _, rolePerms := range userResp.Data.RolePermissions {
+			for _, permission := range rolePerms.Permissions {
+				if permission != nil && permission.Action == requiredAction {
+					hasAction = true
+					break
+				}
+			}
+			if hasAction {
 				break
 			}
 		}
