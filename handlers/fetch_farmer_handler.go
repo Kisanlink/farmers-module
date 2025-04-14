@@ -25,6 +25,13 @@ func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 			h.sendErrorResponse(c, http.StatusInternalServerError, "Failed to fetch farmers", err.Error())
 			return
 		}
+
+		if userDetails != nil && userDetails.Data != nil {
+			for i := range farmers {
+				farmers[i].UserDetails = userDetails.Data // Unwrap and set the inner user object.
+			}
+		}
+
 	} else {
 		// Fetch all farmers without user details
 		farmers, err = h.farmerService.FetchFarmersWithoutUserDetails(farmerId, kisansathiUserId)
@@ -34,13 +41,18 @@ func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 		}
 	}
 
-	// Return success response with farmers and user details (if available)
-	response := gin.H{
-		"farmers": farmers,
-	}
-	if userDetails != nil {
-		response["user"] = userDetails
-	}
+	response := farmers
+
+	/*
+		// Return success response with farmers and user details (if available)
+		response := gin.H{
+			"farmers": farmers,
+		}
+
+		if userDetails != nil {
+			response["user"] = userDetails
+		}
+	*/
 
 	h.sendSuccessResponse(c, http.StatusOK, "Farmers fetched successfully", response)
 }
