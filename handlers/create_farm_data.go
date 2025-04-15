@@ -20,7 +20,7 @@ func CreateFarmData(farmID string) {
 	}
 
 	// Prepare the API URL by substituting the farmID.
-	url := fmt.Sprintf("%s/api/v1/create-farm-data/%s", config.GetEnv("DIVYA_DRISHTI_ENDPOIN"), farmID)
+	url := fmt.Sprintf("%s/api/v1/create-farm-data/%s", config.GetEnv("DIVYA_DRISHTI_ENDPOINT"), farmID)
 
 	// Define the payload as an empty map or a struct if needed.
 	payload := map[string]interface{}{}
