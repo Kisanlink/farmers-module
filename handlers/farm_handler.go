@@ -150,7 +150,18 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	}
 
 	// API call for divya drishti to create farm data
-	CreateFarmData(farm.Id)
+	    // Start a goroutine to handle the CreateFarmData call asynchronously
+    go func(farmId string) {
+        // You might want to add some error handling or logging here
+        defer func() {
+            if r := recover(); r != nil {
+                // Log the panic if the goroutine panics
+                log.Printf("Recovered from panic in CreateFarmData goroutine: %v", r)
+            }
+        }()
+        
+        CreateFarmData(farmId)
+    }(farm.Id)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"status":    http.StatusCreated,
