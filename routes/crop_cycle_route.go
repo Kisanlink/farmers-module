@@ -11,7 +11,7 @@ func RegisterCropCycleRoutes(router *gin.RouterGroup, cropCycleService services.
 
 	cropCycleRoutes := router.Group("/crop-cycles")
 	{
-		cropCycleRoutes.POST("/", handler.CreateCropCycle)
-		cropCycleRoutes.GET("/", handler.GetCropCycles)
+		cropCycleRoutes.POST("", handler.CreateCropCycle)
+		cropCycleRoutes.GET("", handler.GetCropCycles)
 	}
 }
