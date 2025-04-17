@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/entities"
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/services"
 	"github.com/gin-gonic/gin"
@@ -21,12 +22,12 @@ func NewFarmActivityHandler(service services.FarmActivityServiceInterface) *Farm
 
 // CreateFarmActivityRequest represents the expected JSON body for creating a farm activity.
 type CreateFarmActivityRequest struct {
-	FarmID         string    `json:"farm_id" binding:"required"`
-	CropCycleID    string    `json:"crop_cycle_id" binding:"required"`
-	Activity       string    `json:"activity"` // Defaults to "sowing" via BeforeCreate if empty
-	StartDate      time.Time `json:"start_date" binding:"required"`
-	EndDate        time.Time `json:"end_date"`
-	ActivityReport string    `json:"activity_report"`
+	FarmID         string     `json:"farm_id" binding:"required"`
+	CropCycleID    string     `json:"crop_cycle_id" binding:"required"`
+	Activity       string     `json:"activity"` // Defaults to "sowing" via BeforeCreate if empty
+	StartDate      time.Time  `json:"start_date" binding:"required"`
+	EndDate        *time.Time `json:"end_date"`
+	ActivityReport string     `json:"activity_report"`
 }
 
 // CreateActivity handles POST /farm-activities
@@ -47,9 +48,9 @@ func (h *FarmActivityHandler) CreateActivity(c *gin.Context) {
 	activity := &models.FarmActivity{
 		FarmID:         req.FarmID,
 		CropCycleID:    req.CropCycleID,
-		Activity:       models.ActivityType(req.Activity),
+		Activity:       entities.ActivityType(req.Activity),
 		StartDate:      &req.StartDate,
-		EndDate:        &req.EndDate,
+		EndDate:        req.EndDate,
 		ActivityReport: req.ActivityReport,
 	}
 
@@ -220,7 +221,7 @@ func (h *FarmActivityHandler) UpdateActivity(c *gin.Context) {
 
 	// Update fields (only update if new values are provided).
 	if req.Activity != "" {
-		activity.Activity = models.ActivityType(req.Activity)
+		activity.Activity = entities.ActivityType(req.Activity)
 	}
 	activity.StartDate = &req.StartDate
 	activity.EndDate = &req.EndDate

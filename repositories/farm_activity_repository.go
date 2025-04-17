@@ -39,6 +39,7 @@ func (r *FarmActivityRepository) CreateActivity(activity *models.FarmActivity) e
 	if err := r.db.Create(activity).Error; err != nil {
 		return fmt.Errorf("failed to create activity: %w", err)
 	}
+
 	return nil
 }
 
@@ -46,7 +47,6 @@ func (r *FarmActivityRepository) CreateActivity(activity *models.FarmActivity) e
 func (r *FarmActivityRepository) GetActivitiesByFarmID(farmID string) ([]*models.FarmActivity, error) {
 	var activities []*models.FarmActivity
 	if err := r.db.
-		Preload("CropCycle").
 		Where("farm_id = ?", farmID).
 		Find(&activities).Error; err != nil {
 		return nil, fmt.Errorf("failed to get activities for farm_id %s: %w", farmID, err)
@@ -58,7 +58,6 @@ func (r *FarmActivityRepository) GetActivitiesByFarmID(farmID string) ([]*models
 func (r *FarmActivityRepository) GetActivitiesByCropCycle(cycleID string) ([]*models.FarmActivity, error) {
 	var activities []*models.FarmActivity
 	if err := r.db.
-		Preload("CropCycle").
 		Where("crop_cycle_id = ?", cycleID).
 		Find(&activities).Error; err != nil {
 		return nil, fmt.Errorf("failed to get activities for crop_cycle_id %s: %w", cycleID, err)
@@ -70,7 +69,6 @@ func (r *FarmActivityRepository) GetActivitiesByCropCycle(cycleID string) ([]*mo
 func (r *FarmActivityRepository) GetActivityByID(id string) (*models.FarmActivity, error) {
 	var activity models.FarmActivity
 	if err := r.db.
-		Preload("CropCycle").
 		Where("id = ?", id).
 		First(&activity).Error; err != nil {
 		return nil, fmt.Errorf("failed to get activity by id %s: %w", id, err)
@@ -88,7 +86,6 @@ func (r *FarmActivityRepository) GetActivitiesByDateRange(farmID string, start, 
 	endStr := end.Format("2006-01-02")
 
 	if err := r.db.
-		Preload("CropCycle").
 		Where("farm_id = ? AND DATE(created_at) BETWEEN ? AND ?", farmID, startStr, endStr).
 		Find(&activities).Error; err != nil {
 		return nil, fmt.Errorf("failed to get activities for farm_id %s in date range: %w", farmID, err)

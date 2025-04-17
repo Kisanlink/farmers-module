@@ -12,8 +12,9 @@ import (
 // FarmerServiceInterface defines service methods for farmer operations
 type FarmerServiceInterface interface {
 	CreateFarmer(userId string, req models.FarmerSignupRequest) (*models.Farmer, *pb.GetUserByIdResponse, error)
-	FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, *pb.GetUserByIdResponse, error) // Updated to include user details
-	FetchFarmersWithoutUserDetails(farmerId, kisansathiUserId string) ([]models.Farmer, error)                // New method
+	// FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, *pb.GetUserByIdResponse, error) // Updated to include user details
+	FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, error)           // Updated to include user details
+	FetchFarmersWithoutUserDetails(farmerId, kisansathiUserId string) ([]models.Farmer, error) // New method
 }
 
 // FarmerService handles business logic for farmers
@@ -55,31 +56,39 @@ func (s *FarmerService) CreateFarmer(
 	return createdFarmer, userDetails, nil
 }
 
-// FetchFarmersWithFilters fetches farmers with specific filters
-func (s *FarmerService) FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, *pb.GetUserByIdResponse, error) {
-	// Fetch user details using GetUserByIdClient
-	userDetails, err := GetUserByIdClient(context.Background(), userId)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to fetch user details: %w", err)
-	}
+// // FetchFarmersWithFilters fetches farmers with specific filters
+// func (s *FarmerService) FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, *pb.GetUserByIdResponse, error) {
+// 	// Fetch user details using GetUserByIdClient
+// 	userDetails, err := GetUserByIdClient(context.Background(), userId)
+// 	if err != nil {
+// 		return nil, nil, fmt.Errorf("failed to fetch user details: %w", err)
+// 	}
 
-	// Fetch farmers from the repository
-	farmers, err := s.repo.FetchFarmers(userId, farmerId, kisansathiUserId)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to fetch farmers: %w", err)
-	}
+// 	// Fetch farmers from the repository
+// 	farmers, err := s.repo.FetchFarmers(userId, farmerId, kisansathiUserId)
+// 	if err != nil {
+// 		return nil, nil, fmt.Errorf("failed to fetch farmers: %w", err)
+// 	}
 
-	// Return both user details and the list of farmers
-	return farmers, userDetails, nil
+// 	// Return both user details and the list of farmers
+// 	return farmers, userDetails, nil
+// }
+
+// // FetchFarmersWithoutUserDetails fetches farmers without user details
+// func (s *FarmerService) FetchFarmersWithoutUserDetails(farmerId, kisansathiUserId string) ([]models.Farmer, error) {
+// 	// Fetch farmers from the repository
+// 	farmers, err := s.repo.FetchFarmers("", farmerId, kisansathiUserId)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to fetch farmers: %w", err)
+// 	}
+
+// 	return farmers, nil
+// }
+
+func (s *FarmerService) FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, error) {
+	return s.repo.FetchFarmers(userId, farmerId, kisansathiUserId)
 }
 
-// FetchFarmersWithoutUserDetails fetches farmers without user details
 func (s *FarmerService) FetchFarmersWithoutUserDetails(farmerId, kisansathiUserId string) ([]models.Farmer, error) {
-	// Fetch farmers from the repository
-	farmers, err := s.repo.FetchFarmers("", farmerId, kisansathiUserId)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch farmers: %w", err)
-	}
-
-	return farmers, nil
+	return s.repo.FetchFarmers("", farmerId, kisansathiUserId)
 }

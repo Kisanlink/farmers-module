@@ -39,11 +39,11 @@ func (s *CropCycleService) CreateCropCycle(
 		Report:           report,
 	}
 
-	err := s.repo.CreateCropCycle(cycle)
+	res, err := s.repo.CreateCropCycle(cycle)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create crop cycle: %w", err)
 	}
-	return cycle, nil
+	return res, nil
 }
 
 func (s *CropCycleService) GetCropCyclesByFarmID(farmID string) ([]*models.CropCycle, error) {

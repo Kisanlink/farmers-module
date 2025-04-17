@@ -30,7 +30,9 @@ func NewFarmActivityService(repo repositories.FarmActivityRepositoryInterface) *
 
 // CreateActivity creates a new farm activity.
 func (s *FarmActivityService) CreateActivity(activity *models.FarmActivity) error {
+
 	return s.repo.CreateActivity(activity)
+
 }
 
 // GetActivitiesByFarmID retrieves activities for a given farm.

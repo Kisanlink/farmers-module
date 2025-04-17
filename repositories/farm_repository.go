@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
+
+	// "strings"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/models"
@@ -95,23 +96,24 @@ func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
 	}
 	return nil
 }
-func convertGeoJSONToWKT(geoJSON models.GeoJSONPolygon) string {
-	if len(geoJSON.Coordinates) == 0 || len(geoJSON.Coordinates[0]) == 0 {
-		return "POLYGON EMPTY"
-	}
 
-	var points []string
-	for _, coord := range geoJSON.Coordinates[0] {
-		points = append(points, fmt.Sprintf("%f %f", coord[0], coord[1]))
-	}
+// func convertGeoJSONToWKT(geoJSON models.GeoJSONPolygon) string {
+// 	if len(geoJSON.Coordinates) == 0 || len(geoJSON.Coordinates[0]) == 0 {
+// 		return "POLYGON EMPTY"
+// 	}
 
-	// Ensure polygon is closed
-	if len(points) > 0 && points[0] != points[len(points)-1] {
-		points = append(points, points[0])
-	}
+// 	var points []string
+// 	for _, coord := range geoJSON.Coordinates[0] {
+// 		points = append(points, fmt.Sprintf("%f %f", coord[0], coord[1]))
+// 	}
 
-	return fmt.Sprintf("POLYGON((%s))", strings.Join(points, ", "))
-}
+// 	// Ensure polygon is closed
+// 	if len(points) > 0 && points[0] != points[len(points)-1] {
+// 		points = append(points, points[0])
+// 	}
+
+// 	return fmt.Sprintf("POLYGON((%s))", strings.Join(points, ", "))
+// }
 
 // Implement the methods in FarmRepository
 func (r *FarmRepository) GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error) {

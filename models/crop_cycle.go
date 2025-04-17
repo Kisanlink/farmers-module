@@ -15,6 +15,6 @@ type CropCycle struct {
 	Quantity         float64    `json:"quantity" gorm:"type:numeric(10,2)"`
 	Report           string     `json:"report" gorm:"type:text"`
 
-	// Establish the relationship with Crop using the string ID.
-	Crop Crop `json:"crop" gorm:"foreignKey:CropID"`
+	// Fixed relationship configuration
+	Crop Crop `json:"crop" gorm:"foreignKey:CropID;references:Id"`
 }

@@ -18,14 +18,14 @@ func NewCropCycleHandler(service services.CropCycleServiceInterface) *CropCycleH
 }
 
 type CreateCropCycleRequest struct {
-	FarmId           string    `json:"farm_id" binding:"required"`
-	CropId           string    `json:"crop_id" binding:"required"`
-	StartDate        time.Time `json:"start_date" binding:"required"`
-	EndDate          time.Time `json:"end_date"`
-	Acreage          float64   `json:"acreage"`
-	ExpectedQuantity float64   `json:"expected_quantity"`
-	Quantity         float64   `json:"quantity"`
-	Report           string    `json:"report"`
+	FarmId           string     `json:"farm_id" binding:"required"`
+	CropId           string     `json:"crop_id" binding:"required"`
+	StartDate        time.Time  `json:"start_date" binding:"required"`
+	EndDate          *time.Time `json:"end_date"`
+	Acreage          float64    `json:"acreage"`
+	ExpectedQuantity *float64   `json:"expected_quantity"`
+	Quantity         *float64   `json:"quantity"`
+	Report           string     `json:"report"`
 }
 
 func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
@@ -45,10 +45,10 @@ func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
 		req.FarmId,
 		req.CropId,
 		req.StartDate,
-		req.EndDate,
+		*req.EndDate,
 		req.Acreage,
-		req.ExpectedQuantity,
-		req.Quantity,
+		*req.ExpectedQuantity,
+		*req.Quantity,
 		req.Report,
 	)
 	if err != nil {

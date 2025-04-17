@@ -18,9 +18,10 @@ type FarmerSignupRequest struct {
 // Farmer represents a farmer entity in the database
 type Farmer struct {
 	Base
-	UserId           string  `gorm:"type:varchar(36);uniqueIndex" json:"user_id"` // Added uniqueIndex
+	UserId           string  `gorm:"type:varchar(36);uniqueIndex" json:"user_id"`
 	KisansathiUserId *string `gorm:"type:varchar(36)" json:"kisansathi_user_id,omitempty"`
 	IsActive         bool    `gorm:"default:true" json:"is_active"`
 
-	UserDetails *pb.User `json:"user,omitempty" gorm:"-"`
+	// Changed from json:"user,omitempty" to json:"user_details,omitempty"
+	UserDetails *pb.User `json:"user_details,omitempty" gorm:"-"`
 }
