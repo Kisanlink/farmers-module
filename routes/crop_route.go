@@ -12,9 +12,9 @@ func RegisterCropRoutes(router *gin.RouterGroup, cropService services.CropServic
 	cropRoutes := router.Group("/crops")
 	{
 		cropRoutes.GET("", handler.GetAllCrops)
-		cropRoutes.POST("/create", handler.CreateCrop)
-		cropRoutes.GET("/fetch/:id", handler.GetCropByID)
-		cropRoutes.PUT("/update/:id", handler.UpdateCrop)
-		cropRoutes.DELETE("/delete/:id", handler.DeleteCrop)
+		cropRoutes.POST("", handler.CreateCrop)
+		cropRoutes.GET("/:id", handler.GetCropByID)
+		cropRoutes.PUT("/:id", handler.UpdateCrop)
+		cropRoutes.DELETE("/:id", handler.DeleteCrop)
 	}
 }

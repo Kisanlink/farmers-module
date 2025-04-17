@@ -1,5 +1,7 @@
+# Environment and config files
 .env
-farmers-module-beta-ec2.pem
 *.pem
-# Ignore temporary files and directories
+farmers-module-beta-ec2.pem
+
+# Temporary files and directories
 tmp/
