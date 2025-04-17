@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Kisanlink/farmers-module/models"
+	"github.com/Kisanlink/farmers-module/utils"
 	"gorm.io/gorm"
 )
 
@@ -29,6 +30,7 @@ type CropRepositoryInterface interface {
 
 // CreateCrop creates a new crop record.
 func (r *CropRepository) CreateCrop(crop *models.Crop) error {
+	crop.Id = utils.Generate10DigitId() // Generate a unique 10-digit ID.
 	crop.CreatedAt = time.Now()
 	crop.UpdatedAt = time.Now()
 

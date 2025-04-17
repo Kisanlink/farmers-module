@@ -11,8 +11,8 @@ func RegisterFarmActivityRoutes(router *gin.RouterGroup, activityService service
 
 	activityRoutes := router.Group("/farm-activities")
 	{
-		activityRoutes.POST("/", handler.CreateActivity)
-		activityRoutes.GET("/", handler.GetActivities)
+		activityRoutes.POST("", handler.CreateActivity)
+		activityRoutes.GET("", handler.GetActivities)
 		activityRoutes.PUT("/:id", handler.UpdateActivity)
 		activityRoutes.DELETE("/:id", handler.DeleteActivity)
 	}
