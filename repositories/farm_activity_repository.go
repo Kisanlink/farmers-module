@@ -39,7 +39,6 @@ func (r *FarmActivityRepository) CreateActivity(activity *models.FarmActivity) e
 	if err := r.db.Create(activity).Error; err != nil {
 		return fmt.Errorf("failed to create activity: %w", err)
 	}
-
 	return nil
 }
 
