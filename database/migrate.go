@@ -14,7 +14,7 @@ func RunMigrations() {
 	// Auto migrate all models
 	err := db.AutoMigrate(
 		&models.Farmer{},
-		&models.Farm{},
+		// &models.Farm{},
 		&models.FarmActivity{},
 		&models.CropCycle{},
 		&models.Crop{},

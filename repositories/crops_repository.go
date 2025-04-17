@@ -21,7 +21,7 @@ func NewCropRepository(db *gorm.DB) *CropRepository {
 // CropRepositoryInterface defines repository methods for Crop.
 type CropRepositoryInterface interface {
 	CreateCrop(crop *models.Crop) error
-	GetAllCrops() ([]*models.Crop, error)
+	GetAllCrops(name string, page, pageSize int) ([]*models.Crop, int64, error) // Updated signature
 	GetCropByID(id string) (*models.Crop, error)
 	UpdateCrop(crop *models.Crop) error
 	DeleteCrop(id string) error
@@ -38,13 +38,33 @@ func (r *CropRepository) CreateCrop(crop *models.Crop) error {
 	return nil
 }
 
-// GetAllCrops retrieves all crop records.
-func (r *CropRepository) GetAllCrops() ([]*models.Crop, error) {
+func (r *CropRepository) GetAllCrops(name string, page, pageSize int) ([]*models.Crop, int64, error) {
 	var crops []*models.Crop
-	if err := r.db.Find(&crops).Error; err != nil {
-		return nil, fmt.Errorf("failed to get all crops: %w", err)
+	var total int64
+
+	query := r.db.Model(&models.Crop{})
+
+	if name != "" {
+		// PostgreSQL case-insensitive search using ILIKE
+		query = query.Where("crop_name ILIKE ?", "%"+name+"%")
 	}
-	return crops, nil
+
+	// Count total records first
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to count crops: %w", err)
+	}
+
+	// Apply pagination
+	if page > 0 && pageSize > 0 {
+		offset := (page - 1) * pageSize
+		query = query.Offset(offset).Limit(pageSize)
+	}
+
+	if err := query.Find(&crops).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to get crops: %w", err)
+	}
+
+	return crops, total, nil
 }
 
 // GetCropByID retrieves a single crop record by its ID.

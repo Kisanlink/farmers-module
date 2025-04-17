@@ -16,6 +16,7 @@ type Dependencies struct {
 	FarmerService       services.FarmerServiceInterface
 	FarmActivityService services.FarmActivityServiceInterface
 	CropCycleService    services.CropCycleServiceInterface
+	CropService         services.CropServiceInterface
 }
 
 func Setup() *gin.Engine {
@@ -28,6 +29,7 @@ func Setup() *gin.Engine {
 	farmerRepo := repositories.NewFarmerRepository(db)
 	farmActivityRepo := repositories.NewFarmActivityRepository(db)
 	cropCycleRepo := repositories.NewCropCycleRepository(db)
+	cropRepo := repositories.NewCropRepository(db)
 
 	// Initialize services
 	farmService := services.NewFarmService(farmRepo)
@@ -35,6 +37,7 @@ func Setup() *gin.Engine {
 	farmerService := services.NewFarmerService(farmerRepo)
 	farmActivityService := services.NewFarmActivityService(farmActivityRepo)
 	cropCycleService := services.NewCropCycleService(cropCycleRepo)
+	cropService := services.NewCropService(cropRepo)
 
 	// Setup dependencies
 	deps := &Dependencies{
@@ -43,6 +46,7 @@ func Setup() *gin.Engine {
 		FarmerService:       farmerService,
 		FarmActivityService: farmActivityService,
 		CropCycleService:    cropCycleService,
+		CropService:         cropService,
 	}
 
 	// Setup router and middleware
@@ -58,7 +62,7 @@ func Setup() *gin.Engine {
 
 	InitializeRoutes(router, deps)
 
-	// Optional health check
+	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
@@ -67,9 +71,12 @@ func Setup() *gin.Engine {
 }
 
 func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
-	v1 := router.Group("/api/v1")
-	RegisterFarmRoutes(v1, deps.FarmService, deps.UserService)
-	RegisterFarmerRoutes(v1, deps.FarmerService)
-	RegisterFarmActivityRoutes(v1, deps.FarmActivityService)
-	RegisterCropCycleRoutes(v1, deps.CropCycleService)
+	api := router.Group("/api/v1")
+	{
+		RegisterFarmRoutes(api, deps.FarmService, deps.UserService)
+		RegisterFarmerRoutes(api, deps.FarmerService)
+		RegisterFarmActivityRoutes(api, deps.FarmActivityService)
+		RegisterCropCycleRoutes(api, deps.CropCycleService)
+		RegisterCropRoutes(api, deps.CropService)
+	}
 }

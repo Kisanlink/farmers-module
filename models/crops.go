@@ -1,7 +1,10 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/Kisanlink/farmers-module/entities"
+	"gorm.io/gorm"
 )
 
 type Crop struct {
@@ -13,4 +16,21 @@ type Crop struct {
 	Unit          entities.CropUnit     `json:"unit" gorm:"type:varchar(20);not null"`
 	Image         string                `json:"image" gorm:"type:text"`
 	DocumentID    string                `json:"document_id" gorm:"type:text"`
+}
+
+func (c *Crop) BeforeCreate(tx *gorm.DB) (err error) {
+
+	// Validate Category
+	if !entities.CROP_CATEGORIES.IsValid(string(c.Category)) {
+		return fmt.Errorf("invalid crop category: %s. Valid values are: %v",
+			c.Category, entities.CROP_CATEGORIES)
+	}
+
+	// Validate Unit
+	if !entities.CROP_UNITS.IsValid(string(c.Unit)) {
+		return fmt.Errorf("invalid crop unit: %s. Valid values are: %v",
+			c.Unit, entities.CROP_UNITS)
+	}
+
+	return nil
 }
