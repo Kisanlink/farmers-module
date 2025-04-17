@@ -108,7 +108,7 @@ func GetUserByIdClient(ctx context.Context, userId string) (*pb.GetUserByIdRespo
 		return nil, fmt.Errorf("user not found")
 	}
 
-	log.Printf("GetUserByIdClient: Successfully fetched user: %+v", resp.Data)
+	// log.Printf("GetUserByIdClient: Successfully fetched user: %+v", resp.Data)
 	return resp, nil
 }
 

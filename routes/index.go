@@ -11,9 +11,12 @@ import (
 )
 
 type Dependencies struct {
-	FarmService   services.FarmServiceInterface
-	UserService   services.UserServiceInterface
-	FarmerService services.FarmerServiceInterface
+	FarmService         services.FarmServiceInterface
+	UserService         services.UserServiceInterface
+	FarmerService       services.FarmerServiceInterface
+	FarmActivityService services.FarmActivityServiceInterface
+	CropCycleService    services.CropCycleServiceInterface
+	CropService         services.CropServiceInterface
 }
 
 func Setup() *gin.Engine {
@@ -24,19 +27,29 @@ func Setup() *gin.Engine {
 	farmRepo := repositories.NewFarmRepository(db)
 	userRepo := repositories.NewUserRepository(db)
 	farmerRepo := repositories.NewFarmerRepository(db)
+	farmActivityRepo := repositories.NewFarmActivityRepository(db)
+	cropCycleRepo := repositories.NewCropCycleRepository(db)
+	cropRepo := repositories.NewCropRepository(db)
 
 	// Initialize services
 	farmService := services.NewFarmService(farmRepo)
 	userService := services.NewUserService(userRepo)
 	farmerService := services.NewFarmerService(farmerRepo)
+	farmActivityService := services.NewFarmActivityService(farmActivityRepo)
+	cropCycleService := services.NewCropCycleService(cropCycleRepo)
+	cropService := services.NewCropService(cropRepo)
 
 	// Setup dependencies
 	deps := &Dependencies{
-		FarmService:   farmService,
-		UserService:   userService,
-		FarmerService: farmerService,
+		FarmService:         farmService,
+		UserService:         userService,
+		FarmerService:       farmerService,
+		FarmActivityService: farmActivityService,
+		CropCycleService:    cropCycleService,
+		CropService:         cropService,
 	}
 
+	// Setup router and middleware
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173", "https://farmers.kisanlink.in"},
@@ -48,11 +61,22 @@ func Setup() *gin.Engine {
 	}))
 
 	InitializeRoutes(router, deps)
+
+	// Health check endpoint
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
+
 	return router
 }
 
 func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
-	v1 := router.Group("/api/v1")
-	RegisterFarmRoutes(v1, deps.FarmService, deps.UserService)
-	RegisterFarmerRoutes(v1, deps.FarmerService)
+	api := router.Group("/api/v1")
+	{
+		RegisterFarmRoutes(api, deps.FarmService, deps.UserService)
+		RegisterFarmerRoutes(api, deps.FarmerService)
+		RegisterFarmActivityRoutes(api, deps.FarmActivityService)
+		RegisterCropCycleRoutes(api, deps.CropCycleService)
+		RegisterCropRoutes(api, deps.CropService)
+	}
 }

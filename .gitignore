@@ -1,2 +1,5 @@
 .env
 farmers-module-beta-ec2.pem
+*.pem
+# Ignore temporary files and directories
+tmp/

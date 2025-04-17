@@ -5,11 +5,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/config"
 	"github.com/kisanlink/protobuf/pb-aaa"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"github.com/Kisanlink/farmers-module/config"
-	
 )
 
 var UserClient pb.UserServiceClient
@@ -24,7 +23,7 @@ func ClientInterceptor(token string) grpc.UnaryClientInterceptor {
 		invoker grpc.UnaryInvoker,
 		opts ...grpc.CallOption,
 	) error {
-			if token != "" {
+		if token != "" {
 			md := metadata.Pairs("aaa-auth-token", token)
 			ctx = metadata.NewOutgoingContext(ctx, md)
 		}
@@ -42,27 +41,25 @@ func ClientInterceptor(token string) grpc.UnaryClientInterceptor {
 	}
 }
 
-
 func GrpcClient(token string) (*grpc.ClientConn, error) {
-var clientInterceptor grpc.UnaryClientInterceptor
+	var clientInterceptor grpc.UnaryClientInterceptor
 
-    clientInterceptor = ClientInterceptor(token)
+	clientInterceptor = ClientInterceptor(token)
 
-// Load environment variables
-		config.LoadEnv()
+	// Load environment variables
+	config.LoadEnv()
 
-		// Get AAA GRPC connection details
-		aaaHost := config.GetEnv("AAA_HOST")
-		aaaGRPCPort := config.GetEnv("AAA_GRPC_PORT")
+	// Get AAA GRPC connection details
+	aaaHost := config.GetEnv("AAA_HOST")
+	aaaGRPCPort := config.GetEnv("AAA_GRPC_PORT")
 
-	  connection := aaaHost + ":" + aaaGRPCPort
-		
-conn, err := grpc.Dial(connection, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(clientInterceptor))
-if err != nil {
-    log.Fatalf("failed to connect to gRPC server: %v", err)
-}
+	connection := aaaHost + ":" + aaaGRPCPort
 
-	
+	conn, err := grpc.Dial(connection, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(clientInterceptor))
+	if err != nil {
+		log.Fatalf("failed to connect to gRPC server: %v", err)
+	}
+
 	UserClient = pb.NewUserServiceClient(conn)
 	client := pb.NewGreeterClient(conn)
 
