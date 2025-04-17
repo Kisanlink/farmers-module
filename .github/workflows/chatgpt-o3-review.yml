@@ -1,0 +1,84 @@
+name: o3-mini-high Project Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    env:
+      TARGET_DIR: src  # 🔧 Change to desired directory
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install jq & curl
+        run: sudo apt-get update && sudo apt-get install -y jq curl
+
+      - name: Collect Files for Review
+        run: |
+          FILES=$(find $TARGET_DIR -type f \( -name '*.go' -o -name '*.ts' -o -name '*.js' -o -name '*.py' \) | tr '\n' ' ')
+          echo "FILES=$FILES" >> $GITHUB_ENV
+
+      - name: Run File-by-File Review
+        run: |
+          REVIEW_SUMMARY=""
+          for file in $FILES; do
+            echo "Reviewing $file..."
+            CONTENT=$(head -c 5000 "$file" | jq -Rs .)
+            PROMPT=$(jq -Rs <<<"You are a helpful senior developer. Review the following code for clarity, structure, and improvements:\n\n$CONTENT")
+
+            RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
+              -H "Authorization: Bearer $OPENAI_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"model\": \"o3-mini-high\",
+                \"messages\": [{\"role\": \"user\", \"content\": $PROMPT}],
+                \"temperature\": 0.4
+              }")
+
+            REVIEW=$(echo "$RESPONSE" | jq -r '.choices[0].message.content')
+            REVIEW_SUMMARY+="\n### Review for \`$file\`:\n$REVIEW\n"
+          done
+
+          echo "$REVIEW_SUMMARY" > review.md
+
+      - name: Run Architecture Smell Detection
+        run: |
+          ARCH_INPUT=""
+          for file in $FILES; do
+            FILE_HEAD=$(head -c 2000 "$file")
+            ARCH_INPUT+="\n--- FILE: $file ---\n$FILE_HEAD\n"
+          done
+
+          PROMPT=$(jq -Rs <<<"You are a senior architect. Detect architectural smells, tight coupling, missing layers, or bad modularity in the following code:\n$ARCH_INPUT")
+
+          RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
+            -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"model\": \"o3-mini-high\",
+              \"messages\": [{\"role\": \"user\", \"content\": $PROMPT}],
+              \"temperature\": 0.2
+            }")
+
+          ARCH_REVIEW=$(echo "$RESPONSE" | jq -r '.choices[0].message.content')
+          echo "$ARCH_REVIEW" > architecture_review.md
+
+      - name: Post Code Review Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: review.md
+          header: filewise-review
+
+      - name: Post Architecture Review Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: architecture_review.md
+          header: architecture-review
