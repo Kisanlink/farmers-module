@@ -6,12 +6,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterCropCycleRoutes(router *gin.RouterGroup, cropCycleService services.CropCycleServiceInterface) {
-	handler := handlers.NewCropCycleHandler(cropCycleService)
+// RegisterCropCycleRoutes sets up the routes for crop cycle operations.
+func RegisterCropCycleRoutes(router *gin.RouterGroup, svc services.CropCycleServiceInterface) {
+	// Initialize the handler with the given service
+	h := handlers.NewCropCycleHandler(svc)
 
-	cropCycleRoutes := router.Group("/crop-cycles")
+	// Route for creating a new crop cycle
+	router.POST("/crop-cycles", h.CreateCropCycle)
+
+	// Group of routes for farm-based crop cycles
+	farmGroup := router.Group("/farms/:farmId")
 	{
-		cropCycleRoutes.POST("", handler.CreateCropCycle)
-		cropCycleRoutes.GET("", handler.GetCropCycles)
+		// Route for fetching crop cycles by farm
+		farmGroup.GET("/crop-cycles", h.GetCropCycles)
+
+		// Route for updating a specific crop cycle by farm ID and cycle ID
+		farmGroup.PUT("/crop-cycles/:cycleId", h.UpdateCropCycle)
 	}
 }

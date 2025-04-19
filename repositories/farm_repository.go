@@ -28,6 +28,8 @@ type FarmRepositoryInterface interface {
 	GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error)
 	// New method to get a farm by its ID
 	GetFarmByID(farmId string) (*models.Farm, error)
+
+	GetFarmAreaByID(farmID string) (float64, error)
 }
 
 func (r *FarmRepository) CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, error) {
@@ -219,4 +221,18 @@ func (r *FarmRepository) GetFarmByID(farmId string) (*models.Farm, error) {
 	}
 
 	return &farm, nil
+}
+
+func (r *FarmRepository) GetFarmAreaByID(farmID string) (float64, error) {
+	var area float64
+	err := r.db.
+		Model(&models.Farm{}).
+		Select("area").
+		Where("id = ?", farmID).
+		Scan(&area).Error
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to get farm area: %w", err)
+	}
+	return area, nil
 }

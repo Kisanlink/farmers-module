@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
@@ -19,4 +20,9 @@ func Generate10DigitId() string {
 // LogError logs an error message
 func LogError(message string) {
 	log.Println(message)
+}
+
+func GenerateCycleId() string {
+	uniqueNumber := rand.Intn(90000) + 10000 // always 5 digits
+	return "CYCLE" + strconv.Itoa(uniqueNumber)
 }

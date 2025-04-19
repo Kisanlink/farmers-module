@@ -36,7 +36,7 @@ func Setup() *gin.Engine {
 	userService := services.NewUserService(userRepo)
 	farmerService := services.NewFarmerService(farmerRepo)
 	farmActivityService := services.NewFarmActivityService(farmActivityRepo)
-	cropCycleService := services.NewCropCycleService(cropCycleRepo)
+	cropCycleService := services.NewCropCycleService(cropCycleRepo, farmRepo)
 	cropService := services.NewCropService(cropRepo)
 
 	// Setup dependencies
