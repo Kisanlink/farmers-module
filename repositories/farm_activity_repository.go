@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -30,9 +31,25 @@ type FarmActivityRepositoryInterface interface {
 	DeleteActivity(id string) error
 }
 
+var ErrStartBeforeCycle = errors.New("activity start date is before crop cycle start date")
+
 // CreateActivity creates a new farm activity record.
 func (r *FarmActivityRepository) CreateActivity(activity *models.FarmActivity) error {
-	activity.Id = utils.Generate10DigitId() // Generate a unique 10-digit ID.
+	// 1) load the parent crop cycle to read its StartDate
+	var cycle models.CropCycle
+	if err := r.db.
+		Where("id = ?", activity.CropCycleID).
+		First(&cycle).Error; err != nil {
+		return fmt.Errorf("failed to fetch crop cycle %q: %w", activity.CropCycleID, err)
+	}
+
+	// 2) enforce the business rule
+	if activity.StartDate.Before(cycle.StartDate) {
+		return ErrStartBeforeCycle
+	}
+
+	// 3) metadata + insert
+	activity.Id = utils.GenerateActId()
 	activity.CreatedAt = time.Now()
 	activity.UpdatedAt = time.Now()
 
