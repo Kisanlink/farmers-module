@@ -28,6 +28,6 @@ func GenerateCycleId() string {
 }
 
 func GenerateActId() string {
-	uniqueNumber := rand.Intn(9000000) + 1000000 // always 5 digits
+	uniqueNumber := rand.Intn(9000000) + 1000000 // always 7 digits
 	return "ACT" + strconv.Itoa(uniqueNumber)
 }
