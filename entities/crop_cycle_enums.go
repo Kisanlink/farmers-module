@@ -205,3 +205,69 @@ func (cu cropUnits) Parse(unit string) (CropUnit, error) {
 	}
 	return "", errors.New("invalid crop unit: " + unit)
 }
+
+type CropCycleStatus string
+
+type cropCycleStatuses struct {
+	ONGOING   CropCycleStatus
+	COMPLETED CropCycleStatus
+}
+
+var CROP_CYCLE_STATUSES = cropCycleStatuses{
+	ONGOING:   "ONGOING",
+	COMPLETED: "COMPLETED",
+}
+
+func (s *CropCycleStatus) Scan(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("invalid data for CropCycleStatus: %v", value)
+	}
+	status, err := CROP_CYCLE_STATUSES.Parse(str)
+	if err != nil {
+		return err
+	}
+	*s = status
+	return nil
+}
+
+func (s CropCycleStatus) Value() (driver.Value, error) {
+	return string(s), nil
+}
+
+func (css cropCycleStatuses) All() []CropCycleStatus {
+	v := reflect.ValueOf(css)
+	values := make([]CropCycleStatus, 0, v.NumField())
+	for i := 0; i < v.NumField(); i++ {
+		values = append(values, v.Field(i).Interface().(CropCycleStatus))
+	}
+	return values
+}
+
+func (css cropCycleStatuses) IsValid(status string) bool {
+	for _, st := range css.All() {
+		if string(st) == status {
+			return true
+		}
+	}
+	return false
+}
+
+func (css cropCycleStatuses) Parse(status string) (CropCycleStatus, error) {
+	if css.IsValid(status) {
+		return CropCycleStatus(status), nil
+	}
+	return "", fmt.Errorf(
+		"invalid crop cycle status: %s; valid values are: %s",
+		status,
+		strings.Join(css.StringValues(), ", "),
+	)
+}
+
+func (css cropCycleStatuses) StringValues() []string {
+	vals := make([]string, len(css.All()))
+	for i, st := range css.All() {
+		vals[i] = string(st)
+	}
+	return vals
+}

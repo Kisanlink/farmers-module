@@ -8,56 +8,157 @@ import (
 	"github.com/Kisanlink/farmers-module/repositories"
 )
 
-type CropCycleServiceInterface interface {
-	CreateCropCycle(farmId, cropId string, startDate, endDate time.Time, acreage, expectedQuantity, quantity float64, report string) (*models.CropCycle, error)
-	GetCropCyclesByFarmID(farmID string) ([]*models.CropCycle, error)
-	GetCropCyclesByCropID(cropID string) ([]*models.CropCycle, error)
-	GetCropCycleByID(id string) (*models.CropCycle, error)
-	GetCropCyclesByFarmAndCropID(farmID, cropID string) ([]*models.CropCycle, error)
-}
-
 type CropCycleService struct {
-	repo repositories.CropCycleRepositoryInterface
+	repo     repositories.CropCycleRepositoryInterface
+	farmRepo repositories.FarmRepositoryInterface
 }
 
-func NewCropCycleService(repo repositories.CropCycleRepositoryInterface) *CropCycleService {
-	return &CropCycleService{repo: repo}
+func NewCropCycleService(
+	repo repositories.CropCycleRepositoryInterface,
+	farmRepo repositories.FarmRepositoryInterface,
+) *CropCycleService {
+	return &CropCycleService{repo: repo, farmRepo: farmRepo}
+}
+
+type CropCycleServiceInterface interface {
+	CreateCropCycle(
+		farmID, cropID string,
+		startDate time.Time,
+		endDate *time.Time,
+		acreage float64,
+		expectedQuantity float64,
+		quantity *float64,
+		report string,
+	) (*models.CropCycle, error)
+
+	GetCropCycleByID(id string) (*models.CropCycle, error)
+	GetCropCycles(farmID string, cropID *string, status *string) ([]*models.CropCycle, error)
+	UpdateCropCycleByID(id string, endDate *time.Time, quantity *float64, report *string) (*models.CropCycle, error)
+	ValidateCropCycleBelongsToFarm(cycleID, farmID string) (*models.CropCycle, error)
 }
 
 func (s *CropCycleService) CreateCropCycle(
-	farmId, cropId string,
-	startDate, endDate time.Time, acreage, expectedQuantity, quantity float64, report string,
+	farmID, cropID string,
+	startDate time.Time,
+	endDate *time.Time,
+	acreage float64,
+	expectedQuantity float64,
+	quantity *float64,
+	report string,
 ) (*models.CropCycle, error) {
+	// Step 1: Validate required fields
+	if farmID == "" {
+		return nil, fmt.Errorf("farm ID is required")
+	}
+	if cropID == "" {
+		return nil, fmt.Errorf("crop ID is required")
+	}
+	if startDate.IsZero() {
+		return nil, fmt.Errorf("start date is required")
+	}
+	if acreage <= 0 {
+		return nil, fmt.Errorf("acreage must be positive")
+	}
+
+	// Step 2: Fetch farm by farm_id
+	farm, err := s.farmRepo.GetFarmByID(farmID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch farm: %w", err)
+	}
+
+	// Step 3: Calculate total existing acreage for farm's crop cycles
+	usedAcreage, err := s.repo.GetTotalAcreageByFarmID(farmID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch used acreage: %w", err)
+	}
+
+	// Step 4: Check if new acreage exceeds farm's area
+	if usedAcreage+acreage > farm.Area {
+		return nil, fmt.Errorf("acreage exceeds available area on farm")
+	}
+
+	// Step 5: Create CropCycle record
 	cycle := &models.CropCycle{
-		FarmID:           farmId,
-		CropID:           cropId,
-		StartDate:        &startDate,
-		EndDate:          &endDate,
+		FarmID:           farmID,
+		CropID:           cropID,
+		StartDate:        startDate,
+		EndDate:          endDate,
 		Acreage:          acreage,
-		ExpectedQuantity: expectedQuantity,
-		Quantity:         quantity,
+		ExpectedQuantity: &expectedQuantity,
 		Report:           report,
 	}
 
-	res, err := s.repo.CreateCropCycle(cycle)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create crop cycle: %w", err)
+	if quantity != nil {
+		cycle.Quantity = *quantity
 	}
-	return res, nil
-}
 
-func (s *CropCycleService) GetCropCyclesByFarmID(farmID string) ([]*models.CropCycle, error) {
-	return s.repo.GetCropCyclesByFarmID(farmID)
-}
+	// Status will be set in the repository layer based on whether EndDate is provided
 
-func (s *CropCycleService) GetCropCyclesByCropID(cropID string) ([]*models.CropCycle, error) {
-	return s.repo.GetCropCyclesByCropID(cropID)
+	return s.repo.Create(cycle)
 }
 
 func (s *CropCycleService) GetCropCycleByID(id string) (*models.CropCycle, error) {
-	return s.repo.GetCropCycleByID(id)
+	return s.repo.FindByID(id)
 }
 
-func (s *CropCycleService) GetCropCyclesByFarmAndCropID(farmID, cropID string) ([]*models.CropCycle, error) {
-	return s.repo.GetCropCyclesByFarmAndCropID(farmID, cropID)
+func (s *CropCycleService) GetCropCycles(farmID string, cropID *string, status *string) ([]*models.CropCycle, error) {
+	// Validate farmID
+	if farmID == "" {
+		return nil, fmt.Errorf("farm ID is required")
+	}
+
+	// Validate status if provided
+	if status != nil && *status != "" {
+		if *status != models.CycleStatusOngoing && *status != models.CycleStatusCompleted {
+			return nil, fmt.Errorf("invalid status: must be either ONGOING or COMPLETED")
+		}
+	}
+
+	return s.repo.FindByFarm(farmID, cropID, status)
+}
+
+func (s *CropCycleService) UpdateCropCycleByID(
+	id string,
+	endDate *time.Time,
+	quantity *float64,
+	report *string,
+) (*models.CropCycle, error) {
+	// Step 1: Fetch crop cycle by id
+	cycle, err := s.repo.FindByID(id)
+	if err != nil {
+		return nil, fmt.Errorf("crop cycle not found: %w", err)
+	}
+
+	// Step 2: Validate inputs
+	if endDate != nil {
+		// Validate that end date is after start date
+		if endDate.Before(cycle.StartDate) {
+			return nil, fmt.Errorf("end date must be after start date")
+		}
+	}
+
+	// Prepare report string
+	var reportStr string
+	if report != nil {
+		reportStr = *report
+	} else {
+		reportStr = cycle.Report
+	}
+
+	// Step 3 & 4: Update cycle and save to DB
+	return s.repo.UpdateCropCycleByID(id, endDate, quantity, reportStr)
+}
+
+// ValidateCropCycleBelongsToFarm checks if a cycle belongs to the specified farm
+func (s *CropCycleService) ValidateCropCycleBelongsToFarm(cycleID, farmID string) (*models.CropCycle, error) {
+	cycle, err := s.repo.FindByID(cycleID)
+	if err != nil {
+		return nil, fmt.Errorf("crop cycle not found: %w", err)
+	}
+
+	if cycle.FarmID != farmID {
+		return nil, fmt.Errorf("crop cycle does not belong to the specified farm")
+	}
+
+	return cycle, nil
 }
