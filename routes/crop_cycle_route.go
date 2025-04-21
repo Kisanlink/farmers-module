@@ -12,7 +12,7 @@ func RegisterCropCycleRoutes(router *gin.RouterGroup, svc services.CropCycleServ
 	h := handlers.NewCropCycleHandler(svc)
 
 	// Route for creating a new crop cycle
-	router.POST("/crop-cycles", h.CreateCropCycle)
+	router.POST("/farms/:farmId/crop-cycles", h.CreateCropCycle)
 
 	// Group of routes for farm-based crop cycles
 	farmGroup := router.Group("/farms/:farmId")

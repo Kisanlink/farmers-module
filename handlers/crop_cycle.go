@@ -17,10 +17,10 @@ func NewCropCycleHandler(service services.CropCycleServiceInterface) *CropCycleH
 	return &CropCycleHandler{service: service}
 }
 
-// CreateCropCycle handles POST /api/v1/crop-cycles
 func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
+	farmID := c.Param("farmId") // Extract farm ID from the path
+
 	var req struct {
-		FarmID           string    `json:"farm_id" binding:"required"`
 		CropID           string    `json:"crop_id" binding:"required"`
 		StartDate        time.Time `json:"start_date" binding:"required"`
 		Acreage          float64   `json:"acreage" binding:"required"`
@@ -39,12 +39,11 @@ func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
 		return
 	}
 
-	// Create the crop cycle
 	cycle, err := h.service.CreateCropCycle(
-		req.FarmID, req.CropID,
-		req.StartDate, nil, // No end date for new cycles
+		farmID, req.CropID,
+		req.StartDate, nil,
 		req.Acreage, req.ExpectedQuantity,
-		nil, // No quantity for new cycles
+		nil,
 		req.Report,
 	)
 
@@ -52,7 +51,6 @@ func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
 		statusCode := http.StatusInternalServerError
 		message := "Could not create crop cycle"
 
-		// Handle specific error cases
 		if err.Error() == "farm not found" {
 			statusCode = http.StatusNotFound
 			message = "Farm not found"
