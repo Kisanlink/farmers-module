@@ -5,23 +5,23 @@ import (
 )
 
 type UserServiceInterface interface {
-	VerifyUserAndType(userId string) (exists bool, isKisansathi bool, err error)
+	VerifyUserAndType(user_id string) (exists bool, is_kisansathi bool, err error)
 }
 
 type UserService struct {
-	userRepo repositories.UserRepositoryInterface
+	UserRepo repositories.UserRepositoryInterface
 }
 
 func NewUserService(repo repositories.UserRepositoryInterface) UserServiceInterface {
-	return &UserService{userRepo: repo}
+	return &UserService{UserRepo: repo}
 }
 
-func (s *UserService) VerifyUserAndType(userId string) (bool, bool, error) {
-	exists, err := s.userRepo.UserExists(userId)
+func (s *UserService) VerifyUserAndType(user_id string) (bool, bool, error) {
+	exists, err := s.UserRepo.UserExists(user_id)
 	if err != nil || !exists {
 		return exists, false, err
 	}
 
-	isKisansathi := s.userRepo.IsKisansathi(userId)
-	return true, isKisansathi, nil
+	is_kisansathi := s.UserRepo.IsKisansathi(user_id)
+	return true, is_kisansathi, nil
 }

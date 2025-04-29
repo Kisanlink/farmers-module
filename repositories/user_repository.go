@@ -8,25 +8,25 @@ import (
 )
 
 type UserRepository struct {
-	db *gorm.DB
+	DB *gorm.DB
 }
 
 func NewUserRepository(db *gorm.DB) *UserRepository {
-	return &UserRepository{db: db}
+	return &UserRepository{DB: db}
 }
 
 type UserRepositoryInterface interface {
-	UserExists(userId string) (bool, error)
-	IsKisansathi(userId string) bool
+	UserExists(user_id string) (bool, error)
+	IsKisansathi(user_id string) bool
 }
 
-func (r *UserRepository) UserExists(userId string) (bool, error) {
+func (r *UserRepository) UserExists(user_id string) (bool, error) {
 	var exists bool
 
 	// Using Table() similar to IsKisansathi
-	err := r.db.Table("farmers").
+	err := r.DB.Table("farmers").
 		Select("1").
-		Where("user_id = ? OR kisansathi_user_id = ?", userId, userId).
+		Where("user_id = ? OR kisansathi_user_id = ?", user_id, user_id).
 		Limit(1).
 		Scan(&exists).Error
 
@@ -37,11 +37,11 @@ func (r *UserRepository) UserExists(userId string) (bool, error) {
 	return exists, nil
 }
 
-func (r *UserRepository) IsKisansathi(userId string) bool {
+func (r *UserRepository) IsKisansathi(user_id string) bool {
 	var exists bool
-	err := r.db.Table("farmers").
+	err := r.DB.Table("farmers").
 		Select("1").
-		Where("kisansathi_user_id = ?", userId).
+		Where("kisansathi_user_id = ?", user_id).
 		Scan(&exists).Error
 
 	if err != nil {

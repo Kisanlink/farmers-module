@@ -7,54 +7,54 @@ import (
 
 type CropServiceInterface interface {
 	CreateCrop(crop *models.Crop) error
-	GetAllCrops(name string, page, pageSize int) ([]*models.Crop, int64, error) // Updated signature
-	GetCropByID(id string) (*models.Crop, error)
+	GetAllCrops(name string, page, page_size int) ([]*models.Crop, int64, error) // Updated signature
+	GetCropById(id string) (*models.Crop, error)
 	UpdateCrop(crop *models.Crop) error
 	DeleteCrop(id string) error
 }
 
 type CropService struct {
-	repo repositories.CropRepositoryInterface
+	Repo repositories.CropRepositoryInterface
 }
 
 // NewCropService creates a new instance of CropService
 func NewCropService(repo repositories.CropRepositoryInterface) *CropService {
-	return &CropService{repo: repo}
+	return &CropService{Repo: repo}
 }
 
 // CreateCrop handles crop creation business logic
 func (s *CropService) CreateCrop(crop *models.Crop) error {
 	// Add any business logic/validation here before creating
-	return s.repo.CreateCrop(crop)
+	return s.Repo.CreateCrop(crop)
 }
 
 // GetAllCrops handles retrieving crops with optional filtering and pagination
-func (s *CropService) GetAllCrops(name string, page, pageSize int) ([]*models.Crop, int64, error) {
+func (s *CropService) GetAllCrops(name string, page, page_size int) ([]*models.Crop, int64, error) {
 	// Add any business logic here (e.g., validate pagination params)
 	if page < 1 {
 		page = 1
 	}
-	if pageSize < 1 || pageSize > 100 {
-		pageSize = 10
+	if page_size < 1 || page_size > 100 {
+		page_size = 10
 	}
 
-	return s.repo.GetAllCrops(name, page, pageSize)
+	return s.Repo.GetAllCrops(name, page, page_size)
 }
 
-// GetCropByID handles retrieving a single crop by ID
-func (s *CropService) GetCropByID(id string) (*models.Crop, error) {
+// GetCropById handles retrieving a single crop by ID
+func (s *CropService) GetCropById(id string) (*models.Crop, error) {
 	// Add any business logic here (e.g., validate ID format)
-	return s.repo.GetCropByID(id)
+	return s.Repo.GetCropById(id)
 }
 
 // UpdateCrop handles crop update business logic
 func (s *CropService) UpdateCrop(crop *models.Crop) error {
 	// Add any business logic/validation here before updating
-	return s.repo.UpdateCrop(crop)
+	return s.Repo.UpdateCrop(crop)
 }
 
 // DeleteCrop handles crop deletion business logic
 func (s *CropService) DeleteCrop(id string) error {
 	// Add any business logic here (e.g., check if crop can be deleted)
-	return s.repo.DeleteCrop(id)
+	return s.Repo.DeleteCrop(id)
 }

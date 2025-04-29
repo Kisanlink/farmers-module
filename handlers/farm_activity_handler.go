@@ -12,18 +12,18 @@ import (
 
 // FarmActivityHandler handles HTTP requests for farm activities.
 type FarmActivityHandler struct {
-	service services.FarmActivityServiceInterface
+	Service services.FarmActivityServiceInterface
 }
 
 // NewFarmActivityHandler creates an instance of FarmActivityHandler.
 func NewFarmActivityHandler(service services.FarmActivityServiceInterface) *FarmActivityHandler {
-	return &FarmActivityHandler{service: service}
+	return &FarmActivityHandler{Service: service}
 }
 
 // CreateFarmActivityRequest represents the expected JSON body for creating a farm activity.
 type CreateFarmActivityRequest struct {
-	FarmID         string     `json:"farm_id" binding:"required"`
-	CropCycleID    string     `json:"crop_cycle_id" binding:"required"`
+	FarmId         string     `json:"farm_id" binding:"required"`
+	CropCycleId    string     `json:"crop_cycle_id" binding:"required"`
 	Activity       string     `json:"activity"` // Defaults to "sowing" via BeforeCreate if empty
 	StartDate      time.Time  `json:"start_date" binding:"required"`
 	EndDate        *time.Time `json:"end_date"`
@@ -46,15 +46,15 @@ func (h *FarmActivityHandler) CreateActivity(c *gin.Context) {
 	}
 
 	activity := &models.FarmActivity{
-		FarmID:         req.FarmID,
-		CropCycleID:    req.CropCycleID,
+		FarmId:         req.FarmId,
+		CropCycleId:    req.CropCycleId,
 		Activity:       entities.ActivityType(req.Activity),
 		StartDate:      &req.StartDate,
 		EndDate:        req.EndDate,
 		ActivityReport: req.ActivityReport,
 	}
 
-	if err := h.service.CreateActivity(activity); err != nil {
+	if err := h.Service.CreateActivity(activity); err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			StatusCode: http.StatusInternalServerError,
 			Success:    false,
@@ -86,10 +86,10 @@ func (h *FarmActivityHandler) CreateActivity(c *gin.Context) {
 // If both farm_id and cycle_id are provided with a date range, the results are filtered by cycle.
 func (h *FarmActivityHandler) GetActivities(c *gin.Context) {
 	id := c.Query("id")
-	farmID := c.Query("farm_id")
-	cycleID := c.Query("crop_cycle_id")
-	startDateStr := c.Query("start_date")
-	endDateStr := c.Query("end_date")
+	farm_id := c.Query("farm_id")
+	cycle_id := c.Query("crop_cycle_id")
+	start_date_str := c.Query("start_date")
+	end_date_str := c.Query("end_date")
 
 	var (
 		data interface{}
@@ -97,10 +97,10 @@ func (h *FarmActivityHandler) GetActivities(c *gin.Context) {
 	)
 
 	if id != "" {
-		data, err = h.service.GetActivityByID(id)
-	} else if (farmID != "" || cycleID != "") && startDateStr != "" && endDateStr != "" {
-		startDate, err1 := time.Parse(time.RFC3339, startDateStr)
-		endDate, err2 := time.Parse(time.RFC3339, endDateStr)
+		data, err = h.Service.GetActivityById(id)
+	} else if (farm_id != "" || cycle_id != "") && start_date_str != "" && end_date_str != "" {
+		start_date, err1 := time.Parse(time.RFC3339, start_date_str)
+		end_date, err2 := time.Parse(time.RFC3339, end_date_str)
 		if err1 != nil || err2 != nil {
 			c.JSON(http.StatusBadRequest, models.Response{
 				StatusCode: http.StatusBadRequest,
@@ -116,15 +116,15 @@ func (h *FarmActivityHandler) GetActivities(c *gin.Context) {
 		var activities []*models.FarmActivity
 
 		// Get by farm if provided
-		if farmID != "" {
-			activities, err = h.service.GetActivitiesByDateRange(farmID, startDate, endDate)
+		if farm_id != "" {
+			activities, err = h.Service.GetActivitiesByDateRange(farm_id, start_date, end_date)
 		}
 
-		// Filter by cycleID if also provided
-		if err == nil && cycleID != "" {
+		// Filter by cycle_id if also provided
+		if err == nil && cycle_id != "" {
 			var filtered []*models.FarmActivity
 			for _, a := range activities {
-				if a.CropCycleID == cycleID {
+				if a.CropCycleId == cycle_id {
 					filtered = append(filtered, a)
 				}
 			}
@@ -132,21 +132,21 @@ func (h *FarmActivityHandler) GetActivities(c *gin.Context) {
 		} else {
 			data = activities
 		}
-	} else if farmID != "" && cycleID != "" {
-		activities, err := h.service.GetActivitiesByFarmID(farmID)
+	} else if farm_id != "" && cycle_id != "" {
+		activities, err := h.Service.GetActivitiesByFarmId(farm_id)
 		if err == nil {
 			var filtered []*models.FarmActivity
 			for _, a := range activities {
-				if a.CropCycleID == cycleID {
+				if a.CropCycleId == cycle_id {
 					filtered = append(filtered, a)
 				}
 			}
 			data = filtered
 		}
-	} else if cycleID != "" {
-		data, err = h.service.GetActivitiesByCropCycle(cycleID)
-	} else if farmID != "" {
-		data, err = h.service.GetActivitiesByFarmID(farmID)
+	} else if cycle_id != "" {
+		data, err = h.Service.GetActivitiesByCropCycle(cycle_id)
+	} else if farm_id != "" {
+		data, err = h.Service.GetActivitiesByFarmId(farm_id)
 	} else {
 		c.JSON(http.StatusBadRequest, models.Response{
 			StatusCode: http.StatusBadRequest,
@@ -206,7 +206,7 @@ func (h *FarmActivityHandler) UpdateActivity(c *gin.Context) {
 	}
 
 	// Retrieve the current activity.
-	activity, err := h.service.GetActivityByID(id)
+	activity, err := h.Service.GetActivityById(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			StatusCode: http.StatusInternalServerError,
@@ -227,7 +227,7 @@ func (h *FarmActivityHandler) UpdateActivity(c *gin.Context) {
 	activity.EndDate = &req.EndDate
 	activity.ActivityReport = req.ActivityReport
 
-	if err := h.service.UpdateActivity(activity); err != nil {
+	if err := h.Service.UpdateActivity(activity); err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			StatusCode: http.StatusInternalServerError,
 			Success:    false,
@@ -253,7 +253,7 @@ func (h *FarmActivityHandler) UpdateActivity(c *gin.Context) {
 func (h *FarmActivityHandler) DeleteActivity(c *gin.Context) {
 	id := c.Param("id")
 
-	if err := h.service.DeleteActivity(id); err != nil {
+	if err := h.Service.DeleteActivity(id); err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			StatusCode: http.StatusInternalServerError,
 			Success:    false,

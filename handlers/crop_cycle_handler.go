@@ -10,18 +10,18 @@ import (
 )
 
 type CropCycleHandler struct {
-	service services.CropCycleServiceInterface
+	Service services.CropCycleServiceInterface
 }
 
 func NewCropCycleHandler(service services.CropCycleServiceInterface) *CropCycleHandler {
-	return &CropCycleHandler{service: service}
+	return &CropCycleHandler{Service: service}
 }
 
 func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
-	farmID := c.Param("farmId") // Extract farm ID from the path
+	farm_id := c.Param("farmId") // Extract farm ID from the path
 
 	var req struct {
-		CropID           string    `json:"crop_id" binding:"required"`
+		CropId           string    `json:"crop_id" binding:"required"`
 		StartDate        time.Time `json:"start_date" binding:"required"`
 		Acreage          float64   `json:"acreage" binding:"required"`
 		ExpectedQuantity float64   `json:"expected_quantity" binding:"required"`
@@ -39,8 +39,8 @@ func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
 		return
 	}
 
-	cycle, err := h.service.CreateCropCycle(
-		farmID, req.CropID,
+	cycle, err := h.Service.CreateCropCycle(
+		farm_id, req.CropId,
 		req.StartDate, nil,
 		req.Acreage, req.ExpectedQuantity,
 		nil,
@@ -48,19 +48,19 @@ func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
 	)
 
 	if err != nil {
-		statusCode := http.StatusInternalServerError
+		status_code := http.StatusInternalServerError
 		message := "Could not create crop cycle"
 
 		if err.Error() == "farm not found" {
-			statusCode = http.StatusNotFound
+			status_code = http.StatusNotFound
 			message = "Farm not found"
 		} else if err.Error() == "acreage exceeds available area on farm" {
-			statusCode = http.StatusBadRequest
+			status_code = http.StatusBadRequest
 			message = "Acreage exceeds available area on farm"
 		}
 
-		c.JSON(statusCode, models.Response{
-			StatusCode: statusCode,
+		c.JSON(status_code, models.Response{
+			StatusCode: status_code,
 			Success:    false,
 			Message:    message,
 			Error:      err.Error(),
@@ -80,34 +80,34 @@ func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
 
 // GetCropCycles handles GET /api/v1/farms/{farmId}/crop-cycles
 func (h *CropCycleHandler) GetCropCycles(c *gin.Context) {
-	farmID := c.Param("farmId")
-	cropID := c.Query("cropID")
+	farm_id := c.Param("farmId")
+	crop_id := c.Query("crop_id")
 	status := c.Query("status")
 
-	var cropIDPtr, statusPtr *string
-	if cropID != "" {
-		cropIDPtr = &cropID
+	var crop_id_ptr, status_ptr *string
+	if crop_id != "" {
+		crop_id_ptr = &crop_id
 	}
 	if status != "" {
-		statusPtr = &status
+		status_ptr = &status
 	}
 
-	cycles, err := h.service.GetCropCycles(farmID, cropIDPtr, statusPtr)
+	cycles, err := h.Service.GetCropCycles(farm_id, crop_id_ptr, status_ptr)
 	if err != nil {
-		statusCode := http.StatusInternalServerError
+		status_code := http.StatusInternalServerError
 		message := "Could not fetch crop cycles"
 
 		// Check for specific error types
 		if err.Error() == "farm ID is required" {
-			statusCode = http.StatusBadRequest
+			status_code = http.StatusBadRequest
 			message = "Farm ID is required"
 		} else if err.Error() == "invalid status: must be either ONGOING or COMPLETED" {
-			statusCode = http.StatusBadRequest
+			status_code = http.StatusBadRequest
 			message = "Invalid status parameter"
 		}
 
-		c.JSON(statusCode, models.Response{
-			StatusCode: statusCode,
+		c.JSON(status_code, models.Response{
+			StatusCode: status_code,
 			Success:    false,
 			Message:    message,
 			Error:      err.Error(),
@@ -127,8 +127,8 @@ func (h *CropCycleHandler) GetCropCycles(c *gin.Context) {
 
 // UpdateCropCycle handles PUT /api/v1/farms/{farmId}/crop-cycles/{cycleId}
 func (h *CropCycleHandler) UpdateCropCycle(c *gin.Context) {
-	farmID := c.Param("farmId")
-	cycleID := c.Param("cycleId")
+	farm_id := c.Param("farmId")
+	cycle_id := c.Param("cycleId")
 
 	var req struct {
 		EndDate  *time.Time `json:"end_date"`
@@ -148,18 +148,18 @@ func (h *CropCycleHandler) UpdateCropCycle(c *gin.Context) {
 	}
 
 	// Validate that cycle belongs to the specified farm
-	_, err := h.service.ValidateCropCycleBelongsToFarm(cycleID, farmID)
+	_, err := h.Service.ValidateCropCycleBelongsToFarm(cycle_id, farm_id)
 	if err != nil {
-		statusCode := http.StatusNotFound
+		status_code := http.StatusNotFound
 		message := "Crop cycle not found"
 
 		if err.Error() == "crop cycle does not belong to the specified farm" {
-			statusCode = http.StatusForbidden
+			status_code = http.StatusForbidden
 			message = "Crop cycle does not belong to the specified farm"
 		}
 
-		c.JSON(statusCode, models.Response{
-			StatusCode: statusCode,
+		c.JSON(status_code, models.Response{
+			StatusCode: status_code,
 			Success:    false,
 			Message:    message,
 			Error:      err.Error(),
@@ -186,18 +186,18 @@ func (h *CropCycleHandler) UpdateCropCycle(c *gin.Context) {
 	}
 
 	// Update the crop cycle
-	updatedCycle, err := h.service.UpdateCropCycleByID(cycleID, req.EndDate, req.Quantity, req.Report)
+	updated_cycle, err := h.Service.UpdateCropCycleById(cycle_id, req.EndDate, req.Quantity, req.Report)
 	if err != nil {
-		statusCode := http.StatusInternalServerError
+		status_code := http.StatusInternalServerError
 		message := "Could not update crop cycle"
 
 		if err.Error() == "end date must be after start date" {
-			statusCode = http.StatusBadRequest
+			status_code = http.StatusBadRequest
 			message = "End date must be after start date"
 		}
 
-		c.JSON(statusCode, models.Response{
-			StatusCode: statusCode,
+		c.JSON(status_code, models.Response{
+			StatusCode: status_code,
 			Success:    false,
 			Message:    message,
 			Error:      err.Error(),
@@ -210,7 +210,7 @@ func (h *CropCycleHandler) UpdateCropCycle(c *gin.Context) {
 		StatusCode: http.StatusOK,
 		Success:    true,
 		Message:    "Crop cycle updated successfully",
-		Data:       updatedCycle,
+		Data:       updated_cycle,
 		TimeStamp:  time.Now().Format(time.RFC3339),
 	})
 }

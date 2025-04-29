@@ -2,28 +2,28 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
-        "log"
-	
+
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/services"
 	"github.com/gin-gonic/gin"
 )
 
 type FarmHandler struct {
-	farmService services.FarmServiceInterface
-	userService services.UserServiceInterface
+	FarmService services.FarmServiceInterface
+	UserService services.UserServiceInterface
 }
 
 func NewFarmHandler(
-	farmService services.FarmServiceInterface,
-	userService services.UserServiceInterface,
+	farm_service services.FarmServiceInterface,
+	user_service services.UserServiceInterface,
 ) *FarmHandler {
 	return &FarmHandler{
-		farmService: farmService,
-		userService: userService,
+		FarmService: farm_service,
+		UserService: user_service,
 	}
 }
 
@@ -41,16 +41,16 @@ type FarmRequest struct {
 func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 
 	// Step 0: Header validation
-	actorId := c.GetHeader("user-id")
-	if actorId == "" {
+	actor_id := c.GetHeader("user-id")
+	if actor_id == "" {
 		sendStandardError(c, http.StatusUnauthorized,
 			"Please include your user ID in headers",
 			"missing user-id header")
 		return
 	}
 
-	//Step 1: User verification via service layer
-	exists, isKisansathi, err := h.userService.VerifyUserAndType(actorId)
+	// Step 1: User verification via service layer
+	exists, is_kisansathi, err := h.UserService.VerifyUserAndType(actor_id)
 	if err != nil {
 		sendStandardError(c, http.StatusInternalServerError,
 			"Something went wrong on our end",
@@ -74,13 +74,13 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	}
 
 	// Determine required action based on user type
-	requiredAction := "read"
-	if isKisansathi {
-		requiredAction = "read"
+	required_action := "read"
+	if is_kisansathi {
+		required_action = "read"
 	}
 
 	// Get user details to check actions
-	userResp, err := services.GetUserByIdClient(c.Request.Context(), actorId)
+	user_resp, err := services.GetUserByIdClient(c.Request.Context(), actor_id)
 	if err != nil {
 		sendStandardError(c, http.StatusInternalServerError,
 			"Failed to verify user actions", err.Error())
@@ -88,37 +88,25 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	}
 
 	// Verify the required action exists in user's allowed actions
-	// Verify the required action exists in user's allowed actions
-	hasAction := false
-	/* //with usageRight
-	if userResp != nil && userResp.Data != nil && userResp.Data.UsageRight != nil {
-		for _, permission := range userResp.Data.UsageRight.Permissions {
-			if permission != nil && permission.Action == requiredAction {
-				hasAction = true
-				break
-			}
-		}
-	}
-	*/
-	// role permissions
-	if userResp != nil && userResp.Data != nil && userResp.Data.RolePermissions != nil {
-		for _, rolePerms := range userResp.Data.RolePermissions {
-			for _, permission := range rolePerms.Permissions {
-				if permission != nil && permission.Action == requiredAction {
-					hasAction = true
+	has_action := false
+	if user_resp != nil && user_resp.Data != nil && user_resp.Data.RolePermissions != nil {
+		for _, role_perms := range user_resp.Data.RolePermissions {
+			for _, permission := range role_perms.Permissions {
+				if permission != nil && permission.Action == required_action {
+					has_action = true
 					break
 				}
 			}
-			if hasAction {
+			if has_action {
 				break
 			}
 		}
 	}
 
-	if !hasAction {
+	if !has_action {
 		sendStandardError(c, http.StatusForbidden,
 			"Action not permitted",
-			fmt.Sprintf("missing required action: %s", requiredAction))
+			fmt.Sprintf("missing required action: %s", required_action))
 		return
 	}
 	// Convert to proper GeoJSON structure
@@ -136,7 +124,7 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	}
 
 	//Call Service layer to create farm
-	farm, err := h.farmService.CreateFarm(
+	farm, err := h.FarmService.CreateFarm(
 		farmRequest.FarmerId,
 		geoJSONPolygon,
 		farmRequest.Area,
@@ -151,18 +139,18 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	}
 
 	// API call for divya drishti to create farm data
-	    // Start a goroutine to handle the CreateFarmData call asynchronously
-    go func(farmId string) {
-        // You might want to add some error handling or logging here
-        defer func() {
-            if r := recover(); r != nil {
-                // Log the panic if the goroutine panics
-                log.Printf("Recovered from panic in CreateFarmData goroutine: %v", r)
-            }
-        }()
-        
-        CreateFarmData(farmId)
-    }(farm.Id)
+	// Start a goroutine to handle the CreateFarmData call asynchronously
+	go func(farm_id string) {
+		// You might want to add some error handling or logging here
+		defer func() {
+			if r := recover(); r != nil {
+				// Log the panic if the goroutine panics
+				log.Printf("Recovered from panic in CreateFarmData goroutine: %v", r)
+			}
+		}()
+
+		CreateFarmData(farm_id)
+	}(farm.Id)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"status":    http.StatusCreated,
@@ -190,11 +178,11 @@ func handleFarmCreationError(c *gin.Context, err error) {
 	}
 }
 
-func sendStandardError(c *gin.Context, status int, userMessage string, errorDetail string) {
+func sendStandardError(c *gin.Context, status int, user_message string, error_detail string) {
 	c.JSON(status, gin.H{
 		"status":    status,
-		"message":   userMessage,
-		"error":     errorDetail,
+		"message":   user_message,
+		"error":     error_detail,
 		"timestamp": time.Now().UTC().Format(time.RFC3339),
 		"data":      nil,
 		"success":   false,
@@ -207,22 +195,22 @@ func sendStandardError(c *gin.Context, status int, userMessage string, errorDeta
 // GetFarmsHandler retrieves all farms
 func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
 	// Extract query parameters
-	farmerId := c.Query("farmer_id")
+	farmer_id := c.Query("farmer_id")
 	pincode := c.Query("pincode")
-	createdAtFrom := c.Query("created_at_from")
+	created_at_from := c.Query("created_at_from")
 	id := c.Query("id") // New ID parameter
 	//createdAtTo := c.Query("created_at_from")
 	//updatedAtFrom := c.Query("created_at_from")
 	//updateAtTo:= c.Query("created_at_from") // New date parameter
 
-	var parsedDate time.Time
-	if createdAtFrom != "" {
+	var parsed_date time.Time
+	if created_at_from != "" {
 		var err error
 		// Try parsing with time and time zone
-		parsedDate, err = time.Parse(time.RFC3339, createdAtFrom)
+		parsed_date, err = time.Parse(time.RFC3339, created_at_from)
 		if err != nil {
 			// If parsing fails, try parsing as date only and default time to 12:00 AM
-			parsedDate, err = time.Parse("2006-01-02", createdAtFrom)
+			parsed_date, err = time.Parse("2006-01-02", created_at_from)
 			if err != nil {
 				sendStandardError(c, http.StatusBadRequest,
 					"Invalid date format",
@@ -233,7 +221,7 @@ func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
 	}
 
 	// Call service layer with the new date parameter
-	farms, err := h.farmService.GetAllFarms(farmerId, pincode, parsedDate.Format(time.RFC3339), id)
+	farms, err := h.FarmService.GetAllFarms(farmer_id, pincode, parsed_date.Format(time.RFC3339), id)
 	if err != nil {
 		sendStandardError(c, http.StatusInternalServerError,
 			"Failed to retrieve farms",
@@ -251,9 +239,9 @@ func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
 }
 
 func (h *FarmHandler) GetFarmByFarmID(c *gin.Context) {
-	// Retrieve farmId from URL parameters
-	farmId := c.Param("farmId")
-	if farmId == "" {
+	// Retrieve farm_id from URL parameters
+	farm_id := c.Param("farm_id")
+	if farm_id == "" {
 		sendStandardError(c, http.StatusBadRequest,
 			"Farm ID is required",
 			"empty farm id parameter")
@@ -261,7 +249,7 @@ func (h *FarmHandler) GetFarmByFarmID(c *gin.Context) {
 	}
 
 	// Call the service layer method to retrieve the farm by ID
-	farm, err := h.farmService.GetFarmByID(farmId)
+	farm, err := h.FarmService.GetFarmByID(farm_id)
 	if err != nil {
 		// If farm not found, return a 404 error
 		if err.Error() == "farm not found" {

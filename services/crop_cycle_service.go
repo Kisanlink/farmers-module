@@ -9,51 +9,51 @@ import (
 )
 
 type CropCycleService struct {
-	repo     repositories.CropCycleRepositoryInterface
-	farmRepo repositories.FarmRepositoryInterface
+	Repo     repositories.CropCycleRepositoryInterface
+	FarmRepo repositories.FarmRepositoryInterface
 }
 
 func NewCropCycleService(
 	repo repositories.CropCycleRepositoryInterface,
 	farmRepo repositories.FarmRepositoryInterface,
 ) *CropCycleService {
-	return &CropCycleService{repo: repo, farmRepo: farmRepo}
+	return &CropCycleService{Repo: repo, FarmRepo: farmRepo}
 }
 
 type CropCycleServiceInterface interface {
 	CreateCropCycle(
-		farmID, cropID string,
-		startDate time.Time,
-		endDate *time.Time,
+		farm_id, crop_id string,
+		start_date time.Time,
+		end_date *time.Time,
 		acreage float64,
-		expectedQuantity float64,
+		expected_quantity float64,
 		quantity *float64,
 		report string,
 	) (*models.CropCycle, error)
 
-	GetCropCycleByID(id string) (*models.CropCycle, error)
-	GetCropCycles(farmID string, cropID *string, status *string) ([]*models.CropCycle, error)
-	UpdateCropCycleByID(id string, endDate *time.Time, quantity *float64, report *string) (*models.CropCycle, error)
-	ValidateCropCycleBelongsToFarm(cycleID, farmID string) (*models.CropCycle, error)
+	GetCropCycleById(id string) (*models.CropCycle, error)
+	GetCropCycles(farm_id string, crop_id *string, status *string) ([]*models.CropCycle, error)
+	UpdateCropCycleById(id string, end_date *time.Time, quantity *float64, report *string) (*models.CropCycle, error)
+	ValidateCropCycleBelongsToFarm(cycle_id, farm_id string) (*models.CropCycle, error)
 }
 
 func (s *CropCycleService) CreateCropCycle(
-	farmID, cropID string,
-	startDate time.Time,
-	endDate *time.Time,
+	farm_id, crop_id string,
+	start_date time.Time,
+	end_date *time.Time,
 	acreage float64,
-	expectedQuantity float64,
+	expected_quantity float64,
 	quantity *float64,
 	report string,
 ) (*models.CropCycle, error) {
 	// Step 1: Validate required fields
-	if farmID == "" {
+	if farm_id == "" {
 		return nil, fmt.Errorf("farm ID is required")
 	}
-	if cropID == "" {
+	if crop_id == "" {
 		return nil, fmt.Errorf("crop ID is required")
 	}
-	if startDate.IsZero() {
+	if start_date.IsZero() {
 		return nil, fmt.Errorf("start date is required")
 	}
 	if acreage <= 0 {
@@ -61,30 +61,30 @@ func (s *CropCycleService) CreateCropCycle(
 	}
 
 	// Step 2: Fetch farm by farm_id
-	farm, err := s.farmRepo.GetFarmByID(farmID)
+	farm, err := s.FarmRepo.GetFarmByID(farm_id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch farm: %w", err)
 	}
 
 	// Step 3: Calculate total existing acreage for farm's crop cycles
-	usedAcreage, err := s.repo.GetTotalAcreageByFarmID(farmID)
+	used_acreage, err := s.Repo.GetTotalAcreageByFarmID(farm_id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch used acreage: %w", err)
 	}
 
 	// Step 4: Check if new acreage exceeds farm's area
-	if usedAcreage+acreage > farm.Area {
+	if used_acreage+acreage > farm.Area {
 		return nil, fmt.Errorf("acreage exceeds available area on farm")
 	}
 
 	// Step 5: Create CropCycle record
 	cycle := &models.CropCycle{
-		FarmID:           farmID,
-		CropID:           cropID,
-		StartDate:        startDate,
-		EndDate:          endDate,
+		FarmId:           farm_id,
+		CropId:           crop_id,
+		StartDate:        start_date,
+		EndDate:          end_date,
 		Acreage:          acreage,
-		ExpectedQuantity: &expectedQuantity,
+		ExpectedQuantity: &expected_quantity,
 		Report:           report,
 	}
 
@@ -94,16 +94,16 @@ func (s *CropCycleService) CreateCropCycle(
 
 	// Status will be set in the repository layer based on whether EndDate is provided
 
-	return s.repo.Create(cycle)
+	return s.Repo.Create(cycle)
 }
 
-func (s *CropCycleService) GetCropCycleByID(id string) (*models.CropCycle, error) {
-	return s.repo.FindByID(id)
+func (s *CropCycleService) GetCropCycleById(id string) (*models.CropCycle, error) {
+	return s.Repo.FindByID(id)
 }
 
-func (s *CropCycleService) GetCropCycles(farmID string, cropID *string, status *string) ([]*models.CropCycle, error) {
-	// Validate farmID
-	if farmID == "" {
+func (s *CropCycleService) GetCropCycles(farm_id string, crop_id *string, status *string) ([]*models.CropCycle, error) {
+	// Validate farm_id
+	if farm_id == "" {
 		return nil, fmt.Errorf("farm ID is required")
 	}
 
@@ -114,49 +114,49 @@ func (s *CropCycleService) GetCropCycles(farmID string, cropID *string, status *
 		}
 	}
 
-	return s.repo.FindByFarm(farmID, cropID, status)
+	return s.Repo.FindByFarm(farm_id, crop_id, status)
 }
 
-func (s *CropCycleService) UpdateCropCycleByID(
+func (s *CropCycleService) UpdateCropCycleById(
 	id string,
-	endDate *time.Time,
+	end_date *time.Time,
 	quantity *float64,
 	report *string,
 ) (*models.CropCycle, error) {
 	// Step 1: Fetch crop cycle by id
-	cycle, err := s.repo.FindByID(id)
+	cycle, err := s.Repo.FindByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("crop cycle not found: %w", err)
 	}
 
 	// Step 2: Validate inputs
-	if endDate != nil {
+	if end_date != nil {
 		// Validate that end date is after start date
-		if endDate.Before(cycle.StartDate) {
+		if end_date.Before(cycle.StartDate) {
 			return nil, fmt.Errorf("end date must be after start date")
 		}
 	}
 
 	// Prepare report string
-	var reportStr string
+	var report_str string
 	if report != nil {
-		reportStr = *report
+		report_str = *report
 	} else {
-		reportStr = cycle.Report
+		report_str = cycle.Report
 	}
 
 	// Step 3 & 4: Update cycle and save to DB
-	return s.repo.UpdateCropCycleByID(id, endDate, quantity, reportStr)
+	return s.Repo.UpdateCropCycleById(id, end_date, quantity, report_str)
 }
 
 // ValidateCropCycleBelongsToFarm checks if a cycle belongs to the specified farm
-func (s *CropCycleService) ValidateCropCycleBelongsToFarm(cycleID, farmID string) (*models.CropCycle, error) {
-	cycle, err := s.repo.FindByID(cycleID)
+func (s *CropCycleService) ValidateCropCycleBelongsToFarm(cycle_id, farm_id string) (*models.CropCycle, error) {
+	cycle, err := s.Repo.FindByID(cycle_id)
 	if err != nil {
 		return nil, fmt.Errorf("crop cycle not found: %w", err)
 	}
 
-	if cycle.FarmID != farmID {
+	if cycle.FarmId != farm_id {
 		return nil, fmt.Errorf("crop cycle does not belong to the specified farm")
 	}
 

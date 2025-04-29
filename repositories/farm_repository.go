@@ -14,22 +14,22 @@ import (
 )
 
 type FarmRepository struct {
-	db *gorm.DB
+	DB *gorm.DB
 }
 
 func NewFarmRepository(db *gorm.DB) *FarmRepository {
-	return &FarmRepository{db: db}
+	return &FarmRepository{DB: db}
 }
 
 type FarmRepositoryInterface interface {
 	CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, error)
 	CreateFarmRecord(farm *models.Farm) error
-	GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error)
-	GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error)
+	GetAllFarms(farmer_id, pincode, date, id string) ([]*models.Farm, error)
+	GetFarmsWithFilters(farmer_id, pincode string) ([]*models.Farm, error)
 	// New method to get a farm by its ID
-	GetFarmByID(farmId string) (*models.Farm, error)
+	GetFarmByID(farm_id string) (*models.Farm, error)
 
-	GetFarmAreaByID(farmID string) (float64, error)
+	GetFarmAreaByID(farm_id string) (float64, error)
 }
 
 func (r *FarmRepository) CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, error) {
@@ -48,7 +48,7 @@ func (r *FarmRepository) CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, 
 	}
 
 	// Build the query using GORM's expression builder
-	query := r.db.
+	query := r.DB.
 		Model(&models.Farm{}).
 		Where(
 			"ST_Intersects(location, ST_GeomFromGeoJSON(?))",
@@ -78,7 +78,7 @@ func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
 	}
 
 	// Create with raw SQL for location only
-	err = r.db.Model(farm).
+	err = r.DB.Model(farm).
 		Create(map[string]interface{}{
 			"id":            farm.Id,
 			"farmer_id":     farm.FarmerId,
@@ -118,7 +118,7 @@ func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
 // }
 
 // Implement the methods in FarmRepository
-func (r *FarmRepository) GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error) {
+func (r *FarmRepository) GetAllFarms(farmer_id, pincode, date, id string) ([]*models.Farm, error) {
 	var farms []*models.Farm
 
 	// Build the base query
@@ -143,9 +143,9 @@ func (r *FarmRepository) GetAllFarms(farmerId, pincode, date, id string) ([]*mod
 
 	// Add filters dynamically
 	var args []interface{}
-	if farmerId != "" {
+	if farmer_id != "" {
 		query += " AND farmer_id = ?"
-		args = append(args, farmerId)
+		args = append(args, farmer_id)
 	}
 	if pincode != "" {
 		query += " AND pincode = ?"
@@ -163,20 +163,20 @@ func (r *FarmRepository) GetAllFarms(farmerId, pincode, date, id string) ([]*mod
 	}
 
 	// Execute the query with filters
-	err := r.db.Raw(query, args...).Scan(&farms).Error
+	err := r.DB.Raw(query, args...).Scan(&farms).Error
 	if err != nil {
 		return nil, fmt.Errorf("database error: %w", err)
 	}
 
 	return farms, nil
 }
-func (r *FarmRepository) GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error) {
+func (r *FarmRepository) GetFarmsWithFilters(farmer_id, pincode string) ([]*models.Farm, error) {
 	var farms []*models.Farm
-	query := r.db.Model(&models.Farm{})
+	query := r.DB.Model(&models.Farm{})
 
 	// Apply filters if query parameters are provided
-	if farmerId != "" {
-		query = query.Where("farmer_id = ?", farmerId)
+	if farmer_id != "" {
+		query = query.Where("farmer_id = ?", farmer_id)
 	}
 	if pincode != "" {
 		query = query.Where("pincode = ?", pincode)
@@ -189,7 +189,7 @@ func (r *FarmRepository) GetFarmsWithFilters(farmerId, pincode string) ([]*model
 	return farms, nil
 }
 
-func (r *FarmRepository) GetFarmByID(farmId string) (*models.Farm, error) {
+func (r *FarmRepository) GetFarmByID(farm_id string) (*models.Farm, error) {
 	var farm models.Farm
 
 	query := `
@@ -211,7 +211,7 @@ func (r *FarmRepository) GetFarmByID(farmId string) (*models.Farm, error) {
         WHERE id = ?
     `
 
-	if err := r.db.Raw(query, farmId).Scan(&farm).Error; err != nil {
+	if err := r.DB.Raw(query, farm_id).Scan(&farm).Error; err != nil {
 		return nil, fmt.Errorf("failed to retrieve farm: %w", err)
 	}
 
@@ -223,12 +223,12 @@ func (r *FarmRepository) GetFarmByID(farmId string) (*models.Farm, error) {
 	return &farm, nil
 }
 
-func (r *FarmRepository) GetFarmAreaByID(farmID string) (float64, error) {
+func (r *FarmRepository) GetFarmAreaByID(farm_id string) (float64, error) {
 	var area float64
-	err := r.db.
+	err := r.DB.
 		Model(&models.Farm{}).
 		Select("area").
-		Where("id = ?", farmID).
+		Where("id = ?", farm_id).
 		Scan(&area).Error
 
 	if err != nil {

@@ -14,11 +14,11 @@ import (
 )
 
 type CropHandler struct {
-	service services.CropServiceInterface
+	Service services.CropServiceInterface
 }
 
 func NewCropHandler(service services.CropServiceInterface) *CropHandler {
-	return &CropHandler{service: service}
+	return &CropHandler{Service: service}
 }
 
 // CreateCrop handles POST /crops
@@ -36,7 +36,7 @@ func (h *CropHandler) CreateCrop(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.CreateCrop(&crop); err != nil {
+	if err := h.Service.CreateCrop(&crop); err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			StatusCode: http.StatusInternalServerError,
 			Success:    false,
@@ -63,17 +63,17 @@ func (h *CropHandler) GetAllCrops(c *gin.Context) {
 	// Get query parameters
 	name := c.Query("name")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("size", "10"))
+	page_size, _ := strconv.Atoi(c.DefaultQuery("size", "10"))
 
 	// Validate pagination parameters
 	if page < 1 {
 		page = 1
 	}
-	if pageSize < 1 || pageSize > 100 {
-		pageSize = 10
+	if page_size < 1 || page_size > 100 {
+		page_size = 10
 	}
 
-	crops, total, err := h.service.GetAllCrops(name, page, pageSize)
+	crops, total, err := h.Service.GetAllCrops(name, page, page_size)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			StatusCode: http.StatusInternalServerError,
@@ -89,9 +89,9 @@ func (h *CropHandler) GetAllCrops(c *gin.Context) {
 	// Create pagination response
 	pagination := map[string]interface{}{
 		"current_page": page,
-		"page_size":    pageSize,
+		"page_size":    page_size,
 		"total_items":  total,
-		"total_pages":  int(math.Ceil(float64(total) / float64(pageSize))),
+		"total_pages":  int(math.Ceil(float64(total) / float64(page_size))),
 	}
 
 	c.JSON(http.StatusOK, models.Response{
@@ -107,11 +107,11 @@ func (h *CropHandler) GetAllCrops(c *gin.Context) {
 	})
 }
 
-// GetCropByID handles GET /crops/:id
-func (h *CropHandler) GetCropByID(c *gin.Context) {
+// GetCropById handles GET /crops/:id
+func (h *CropHandler) GetCropById(c *gin.Context) {
 	id := c.Param("id")
 
-	crop, err := h.service.GetCropByID(id)
+	crop, err := h.Service.GetCropById(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, models.Response{
 			StatusCode: http.StatusNotFound,
@@ -186,7 +186,7 @@ func (h *CropHandler) UpdateCrop(c *gin.Context) {
 	// Ensure the ID in the path matches the ID in the body
 	crop.Id = id
 
-	if err := h.service.UpdateCrop(&crop); err != nil {
+	if err := h.Service.UpdateCrop(&crop); err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			StatusCode: http.StatusInternalServerError,
 			Success:    false,
@@ -212,7 +212,7 @@ func (h *CropHandler) UpdateCrop(c *gin.Context) {
 func (h *CropHandler) DeleteCrop(c *gin.Context) {
 	id := c.Param("id")
 
-	if err := h.service.DeleteCrop(id); err != nil {
+	if err := h.Service.DeleteCrop(id); err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			StatusCode: http.StatusInternalServerError,
 			Success:    false,

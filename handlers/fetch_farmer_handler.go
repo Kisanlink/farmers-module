@@ -13,47 +13,47 @@ import (
 
 func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 	// Extract query parameters
-	userId := c.Query("user_id")
-	farmerId := c.Query("farmer_id")
-	kisansathiUserId := c.Query("kisansathi_user_id")
-	includeUserDetails := c.Query("user_details") == "true"
+	user_id := c.Query("user_id")
+	farmer_id := c.Query("farmer_id")
+	kisansathi_user_id := c.Query("kisansathi_user_id")
+	include_user_details := c.Query("user_details") == "true"
 
 	var farmers []models.Farmer
 	var err error
 
 	// Always fetch farmers first
-	farmers, err = h.farmerService.FetchFarmers(userId, farmerId, kisansathiUserId)
+	farmers, err = h.FarmerService.FetchFarmers(user_id, farmer_id, kisansathi_user_id)
 	if err != nil {
 		h.sendErrorResponse(c, http.StatusInternalServerError, "Failed to fetch farmers", err.Error())
 		return
 	}
 
 	// If user details are requested and we have farmers with user_ids
-	if includeUserDetails && len(farmers) > 0 {
+	if include_user_details && len(farmers) > 0 {
 		// Collect all unique user IDs from farmers
-		userIds := make([]string, 0, len(farmers))
+		user_ids := make([]string, 0, len(farmers))
 		for _, farmer := range farmers {
 			if farmer.UserId != "" {
-				userIds = append(userIds, farmer.UserId)
+				user_ids = append(user_ids, farmer.UserId)
 			}
 		}
 
 		// Fetch user details for all user_ids
-		userDetailsMap := make(map[string]*pb.User)
-		for _, uid := range userIds {
-			userDetails, err := services.GetUserByIdClient(context.Background(), uid)
+		user_details_map := make(map[string]*pb.User)
+		for _, uid := range user_ids {
+			user_details, err := services.GetUserByIdClient(context.Background(), uid)
 			if err != nil {
 				log.Printf("Error fetching user details for %s: %v", uid, err)
 				continue
 			}
-			if userDetails != nil && userDetails.Data != nil {
-				userDetailsMap[uid] = userDetails.Data
+			if user_details != nil && user_details.Data != nil {
+				user_details_map[uid] = user_details.Data
 			}
 		}
 
 		// Assign user details to farmers
 		for i := range farmers {
-			if details, exists := userDetailsMap[farmers[i].UserId]; exists {
+			if details, exists := user_details_map[farmers[i].UserId]; exists {
 				farmers[i].UserDetails = details
 			}
 		}

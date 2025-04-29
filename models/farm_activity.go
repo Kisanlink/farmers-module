@@ -10,14 +10,14 @@ import (
 
 type FarmActivity struct {
 	Base
-	FarmID         string                `json:"farm_id" gorm:"type:varchar(10);not null"`
-	CropCycleID    string                `json:"crop_cycle_id" gorm:"type:varchar(10);not null"`
+	FarmId         string                `json:"farm_id" gorm:"type:varchar(10);not null"`
+	CropCycleId    string                `json:"crop_cycle_id" gorm:"type:varchar(10);not null"`
 	Activity       entities.ActivityType `json:"activity" gorm:"type:varchar(150);not null"`
 	StartDate      *time.Time            `json:"start_date"`
 	EndDate        *time.Time            `json:"end_date"`
 	ActivityReport string                `json:"activity_report" gorm:"type:text"`
 
-	CropCycle *CropCycle `json:"crop_cycle,omitempty" gorm:"foreignKey:CropCycleID"`
+	CropCycle *CropCycle `json:"crop_cycle,omitempty" gorm:"foreignKey:CropCycleId"`
 }
 
 func (f *FarmActivity) BeforeCreate(tx *gorm.DB) (err error) {

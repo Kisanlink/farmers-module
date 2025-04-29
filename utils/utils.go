@@ -23,11 +23,11 @@ func LogError(message string) {
 }
 
 func GenerateCycleId() string {
-	uniqueNumber := rand.Intn(90000) + 10000 // always 5 digits
-	return "CYCLE" + strconv.Itoa(uniqueNumber)
+	unique_number := rand.Intn(90000) + 10000 // always 5 digits
+	return "CYCLE" + strconv.Itoa(unique_number)
 }
 
 func GenerateActId() string {
-	uniqueNumber := rand.Intn(9000000) + 1000000 // always 7 digits
-	return "ACT" + strconv.Itoa(uniqueNumber)
+	unique_number := rand.Intn(9000000) + 1000000 // always 7 digits
+	return "ACT" + strconv.Itoa(unique_number)
 }

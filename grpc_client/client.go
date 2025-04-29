@@ -42,20 +42,19 @@ func ClientInterceptor(token string) grpc.UnaryClientInterceptor {
 }
 
 func GrpcClient(token string) (*grpc.ClientConn, error) {
-	var clientInterceptor grpc.UnaryClientInterceptor
 
-	clientInterceptor = ClientInterceptor(token)
+	client_interceptor := ClientInterceptor(token)
 
 	// Load environment variables
 	config.LoadEnv()
 
 	// Get AAA GRPC connection details
-	aaaHost := config.GetEnv("AAA_HOST")
-	aaaGRPCPort := config.GetEnv("AAA_GRPC_PORT")
+	aaa_host := config.GetEnv("AAA_HOST")
+	aaa_grpc_port := config.GetEnv("AAA_GRPC_PORT")
 
-	connection := aaaHost + ":" + aaaGRPCPort
+	connection := aaa_host + ":" + aaa_grpc_port
 
-	conn, err := grpc.Dial(connection, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(clientInterceptor))
+	conn, err := grpc.Dial(connection, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(client_interceptor))
 	if err != nil {
 		log.Fatalf("failed to connect to gRPC server: %v", err)
 	}

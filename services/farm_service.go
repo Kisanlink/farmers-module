@@ -9,37 +9,33 @@ import (
 
 type FarmServiceInterface interface {
 	CreateFarm(
-		farmerId string,
+		farmer_id string,
 		location models.GeoJSONPolygon,
 		area float64,
 		locality string,
 		pincode int,
-		ownerId string,
+		owner_id string,
 	) (*models.Farm, error)
-	GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error)
-	GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error)
-
-	GetFarmByID(farmId string) (*models.Farm, error)
+	GetAllFarms(farmer_id, pincode, date, id string) ([]*models.Farm, error)
+	GetFarmsWithFilters(farmer_id, pincode string) ([]*models.Farm, error)
+	GetFarmByID(farm_id string) (*models.Farm, error)
 }
 
 type FarmService struct {
-	repo repositories.FarmRepositoryInterface
+	Repo repositories.FarmRepositoryInterface
 }
 
 func NewFarmService(repo repositories.FarmRepositoryInterface) *FarmService {
-	return &FarmService{repo: repo}
+	return &FarmService{Repo: repo}
 }
 
-// services/farm_service.go
-
-// services/farm_service.go
 func (s *FarmService) CreateFarm(
-	farmerId string,
+	farmer_id string,
 	location models.GeoJSONPolygon,
 	area float64,
 	locality string,
 	pincode int,
-	ownerId string,
+	owner_id string,
 ) (*models.Farm, error) {
 	// Validate polygon
 	if location.Type != "Polygon" {
@@ -47,7 +43,7 @@ func (s *FarmService) CreateFarm(
 	}
 
 	// Check for overlapping farms
-	overlap, err := s.repo.CheckFarmOverlap(location)
+	overlap, err := s.Repo.CheckFarmOverlap(location)
 	if err != nil {
 		return nil, fmt.Errorf("error checking farm overlap: %w", err)
 	}
@@ -56,16 +52,16 @@ func (s *FarmService) CreateFarm(
 	}
 
 	farm := &models.Farm{
-		FarmerId: farmerId,
+		FarmerId: farmer_id,
 		Location: location,
 		Area:     area,
 		Locality: locality,
-		OwnerId:  ownerId,
+		OwnerId:  owner_id,
 		Pincode:  pincode,
-		IsOwner:  ownerId != "", // true if owner_id provided, else false
+		IsOwner:  owner_id != "", // true if owner_id provided, else false
 	}
 
-	err = s.repo.CreateFarmRecord(farm)
+	err = s.Repo.CreateFarmRecord(farm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create farm record: %w", err)
 	}
@@ -73,20 +69,20 @@ func (s *FarmService) CreateFarm(
 	return farm, nil
 }
 
-func (s *FarmService) GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error) {
-	farms, err := s.repo.GetAllFarms(farmerId, pincode, date, id)
+func (s *FarmService) GetAllFarms(farmer_id, pincode, date, id string) ([]*models.Farm, error) {
+	farms, err := s.Repo.GetAllFarms(farmer_id, pincode, date, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get farms: %w", err)
 	}
 	return farms, nil
 }
 
-func (s *FarmService) GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error) {
-	return s.repo.GetFarmsWithFilters(farmerId, pincode)
+func (s *FarmService) GetFarmsWithFilters(farmer_id, pincode string) ([]*models.Farm, error) {
+	return s.Repo.GetFarmsWithFilters(farmer_id, pincode)
 }
 
-func (s *FarmService) GetFarmByID(farmId string) (*models.Farm, error) {
-	farm, err := s.repo.GetFarmByID(farmId)
+func (s *FarmService) GetFarmByID(farm_id string) (*models.Farm, error) {
+	farm, err := s.Repo.GetFarmByID(farm_id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve farm: %w", err)
 	}

@@ -15,7 +15,7 @@ type Crop struct {
 	Category      entities.CropCategory `json:"category" gorm:"type:varchar(100);not null"`
 	Unit          entities.CropUnit     `json:"unit" gorm:"type:varchar(20);not null"`
 	Image         string                `json:"image" gorm:"type:text"`
-	DocumentID    string                `json:"document_id" gorm:"type:text"`
+	DocumentId    string                `json:"document_id" gorm:"type:text"`
 }
 
 func (c *Crop) BeforeCreate(tx *gorm.DB) (err error) {

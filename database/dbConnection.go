@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	dbInstance *gorm.DB
-	once       sync.Once
+	db_instance *gorm.DB
+	once        sync.Once
 )
 
 // InitializeDatabase initializes the PostgreSQL connection and sets the global database instance.
@@ -27,18 +27,18 @@ func InitializeDatabase() {
 		port := config.GetEnv("DB_PORT")
 		user := config.GetEnv("DB_USER")
 		password := config.GetEnv("DB_PASSWORD")
-		dbName := config.GetEnv("DB_NAME")
-		sslMode := config.GetEnv("DB_SSLMODE")
+		db_name := config.GetEnv("DB_NAME")
+		ssl_mode := config.GetEnv("DB_SSLMODE")
 
 		// PostgreSQL DSN
-		dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=%s", user, password, host, port, dbName, sslMode)
+		dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?ssl_mode=%s", user, password, host, port, db_name, ssl_mode)
 
 		// // PostgreSQL DSN
-		// dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, port, user, password, dbName, sslMode)
+		// dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s db_name=%s ssl_mode=%s", host, port, user, password, db_name, ssl_mode)
 
 		// Connect to PostgreSQL
 		var err error
-		dbInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		db_instance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
 			log.Fatalf("Failed to connect to PostgreSQL: %v", err)
 		}
@@ -61,7 +61,7 @@ func InitializeDatabase() {
 
 		// ✅ Connect using full connection string
 		var err error
-		dbInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		db_instance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
 			log.Fatalf("Failed to connect to PostgreSQL: %v", err)
 		}
@@ -74,8 +74,8 @@ func InitializeDatabase() {
 
 // GetDatabase returns the global database instance.
 func GetDatabase() *gorm.DB {
-	if dbInstance == nil {
+	if db_instance == nil {
 		log.Fatal("Database connection is not initialized. Call InitializeDatabase first.")
 	}
-	return dbInstance
+	return db_instance
 }

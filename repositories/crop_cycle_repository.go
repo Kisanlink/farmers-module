@@ -10,24 +10,24 @@ import (
 )
 
 type CropCycleRepository struct {
-	db *gorm.DB
+	DB *gorm.DB
 }
 
 func NewCropCycleRepository(db *gorm.DB) *CropCycleRepository {
-	return &CropCycleRepository{db: db}
+	return &CropCycleRepository{DB: db}
 }
 
 type CropCycleRepositoryInterface interface {
 	Create(cycle *models.CropCycle) (*models.CropCycle, error)
-	GetTotalAcreageByFarmID(farmID string) (float64, error)
+	GetTotalAcreageByFarmID(farm_id string) (float64, error)
 
 	FindByID(id string) (*models.CropCycle, error)
 	Update(cycle *models.CropCycle) (*models.CropCycle, error)
 	Delete(id string) error
 
-	FindByFarm(farmID string, cropID *string, status *string) ([]*models.CropCycle, error)
-	GetCropCyclesByFarmIDAndStatus(farmID, status string) ([]*models.CropCycle, error)
-	UpdateCropCycleByID(id string, endDate *time.Time, quantity *float64, report string) (*models.CropCycle, error)
+	FindByFarm(farm_id string, crop_id *string, status *string) ([]*models.CropCycle, error)
+	GetCropCyclesByFarmIDAndStatus(farm_id, status string) ([]*models.CropCycle, error)
+	UpdateCropCycleById(id string, end_date *time.Time, quantity *float64, report string) (*models.CropCycle, error)
 }
 
 func (r *CropCycleRepository) Create(cycle *models.CropCycle) (*models.CropCycle, error) {
@@ -42,22 +42,22 @@ func (r *CropCycleRepository) Create(cycle *models.CropCycle) (*models.CropCycle
 		cycle.Status = models.CycleStatusCompleted
 	}
 
-	if err := r.db.Omit("Crop").Create(cycle).Error; err != nil {
+	if err := r.DB.Omit("Crop").Create(cycle).Error; err != nil {
 		return nil, fmt.Errorf("failed to create crop cycle: %w", err)
 	}
 
 	var full models.CropCycle
-	if err := r.db.Preload("Crop").First(&full, "id = ?", cycle.Id).Error; err != nil {
+	if err := r.DB.Preload("Crop").First(&full, "id = ?", cycle.Id).Error; err != nil {
 		return nil, fmt.Errorf("failed to load created crop cycle: %w", err)
 	}
 
 	return &full, nil
 }
 
-func (r *CropCycleRepository) GetTotalAcreageByFarmID(farmID string) (float64, error) {
+func (r *CropCycleRepository) GetTotalAcreageByFarmID(farm_id string) (float64, error) {
 	var total float64
-	err := r.db.Model(&models.CropCycle{}).
-		Where("farm_id = ?", farmID).
+	err := r.DB.Model(&models.CropCycle{}).
+		Where("farm_id = ?", farm_id).
 		Select("COALESCE(SUM(acreage), 0)").
 		Scan(&total).Error
 
@@ -69,19 +69,19 @@ func (r *CropCycleRepository) GetTotalAcreageByFarmID(farmID string) (float64, e
 
 func (r *CropCycleRepository) FindByID(id string) (*models.CropCycle, error) {
 	var cycle models.CropCycle
-	if err := r.db.Preload("Crop").
+	if err := r.DB.Preload("Crop").
 		First(&cycle, "id = ?", id).Error; err != nil {
 		return nil, fmt.Errorf("crop cycle not found: %w", err)
 	}
 	return &cycle, nil
 }
 
-func (r *CropCycleRepository) FindByFarm(farmID string, cropID *string, status *string) ([]*models.CropCycle, error) {
+func (r *CropCycleRepository) FindByFarm(farm_id string, crop_id *string, status *string) ([]*models.CropCycle, error) {
 	var cycles []*models.CropCycle
-	query := r.db.Preload("Crop").Where("farm_id = ?", farmID)
+	query := r.DB.Preload("Crop").Where("farm_id = ?", farm_id)
 
-	if cropID != nil {
-		query = query.Where("crop_id = ?", *cropID)
+	if crop_id != nil {
+		query = query.Where("crop_id = ?", *crop_id)
 	}
 	if status != nil {
 		query = query.Where("status = ?", *status)
@@ -93,18 +93,18 @@ func (r *CropCycleRepository) FindByFarm(farmID string, cropID *string, status *
 	return cycles, nil
 }
 
-func (r *CropCycleRepository) GetCropCyclesByFarmIDAndStatus(farmID, status string) ([]*models.CropCycle, error) {
-	return r.FindByFarm(farmID, nil, &status)
+func (r *CropCycleRepository) GetCropCyclesByFarmIDAndStatus(farm_id, status string) ([]*models.CropCycle, error) {
+	return r.FindByFarm(farm_id, nil, &status)
 }
 
-func (r *CropCycleRepository) UpdateCropCycleByID(id string, endDate *time.Time, quantity *float64, report string) (*models.CropCycle, error) {
+func (r *CropCycleRepository) UpdateCropCycleById(id string, end_date *time.Time, quantity *float64, report string) (*models.CropCycle, error) {
 	var cycle models.CropCycle
-	if err := r.db.First(&cycle, "id = ?", id).Error; err != nil {
+	if err := r.DB.First(&cycle, "id = ?", id).Error; err != nil {
 		return nil, fmt.Errorf("crop cycle not found: %w", err)
 	}
 
-	if endDate != nil {
-		cycle.EndDate = endDate
+	if end_date != nil {
+		cycle.EndDate = end_date
 		cycle.Status = models.CycleStatusCompleted
 	}
 
@@ -115,12 +115,12 @@ func (r *CropCycleRepository) UpdateCropCycleByID(id string, endDate *time.Time,
 	cycle.Report = report
 	cycle.UpdatedAt = time.Now()
 
-	if err := r.db.Save(&cycle).Error; err != nil {
+	if err := r.DB.Save(&cycle).Error; err != nil {
 		return nil, fmt.Errorf("failed to update crop cycle: %w", err)
 	}
 
 	var full models.CropCycle
-	if err := r.db.Preload("Crop").First(&full, "id = ?", cycle.Id).Error; err != nil {
+	if err := r.DB.Preload("Crop").First(&full, "id = ?", cycle.Id).Error; err != nil {
 		return nil, fmt.Errorf("failed to reload updated crop cycle: %w", err)
 	}
 
@@ -129,12 +129,12 @@ func (r *CropCycleRepository) UpdateCropCycleByID(id string, endDate *time.Time,
 
 func (r *CropCycleRepository) Update(cycle *models.CropCycle) (*models.CropCycle, error) {
 	cycle.UpdatedAt = time.Now()
-	if err := r.db.Save(cycle).Error; err != nil {
+	if err := r.DB.Save(cycle).Error; err != nil {
 		return nil, fmt.Errorf("failed to update crop cycle: %w", err)
 	}
 
 	var full models.CropCycle
-	if err := r.db.Preload("Crop").
+	if err := r.DB.Preload("Crop").
 		First(&full, "id = ?", cycle.Id).Error; err != nil {
 		return nil, fmt.Errorf("failed to reload updated crop cycle: %w", err)
 	}
@@ -143,7 +143,7 @@ func (r *CropCycleRepository) Update(cycle *models.CropCycle) (*models.CropCycle
 }
 
 func (r *CropCycleRepository) Delete(id string) error {
-	if err := r.db.Delete(&models.CropCycle{}, "id = ?", id).Error; err != nil {
+	if err := r.DB.Delete(&models.CropCycle{}, "id = ?", id).Error; err != nil {
 		return fmt.Errorf("failed to delete crop cycle: %w", err)
 	}
 	return nil
