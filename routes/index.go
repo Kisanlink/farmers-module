@@ -1,11 +1,10 @@
 package routes
 
 import (
-	"log"
-
 	"github.com/Kisanlink/farmers-module/database"
 	"github.com/Kisanlink/farmers-module/repositories"
 	"github.com/Kisanlink/farmers-module/services"
+	"github.com/Kisanlink/farmers-module/utils"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +19,7 @@ type Dependencies struct {
 }
 
 func Setup() *gin.Engine {
-	log.Println("Initializing database connection...")
+	utils.Log.Info("Initializing database connection...")
 	db := database.GetDatabase()
 
 	// Initialize repositories

@@ -3,10 +3,10 @@ package database
 import (
 	// "fmt"
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/Kisanlink/farmers-module/config"
+	"github.com/Kisanlink/farmers-module/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -40,16 +40,16 @@ func InitializeDatabase() {
 		var err error
 		db_instance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
-			log.Fatalf("Failed to connect to PostgreSQL: %v", err)
+			utils.Log.Fatal("Failed to connect to PostgreSQL:", err)
 		}
-		log.Println("Connected to PostgreSQL successfully")
+		utils.Log.Info("Connected to PostgreSQL successfully")
 	})
 }
 
 // GetDatabase returns the global database instance.
 func GetDatabase() *gorm.DB {
 	if db_instance == nil {
-		log.Fatal("Database connection is not initialized. Call InitializeDatabase first.")
+		utils.Log.Fatal("Database connection is not initialized. Call InitializeDatabase first.")
 	}
 	return db_instance
 }

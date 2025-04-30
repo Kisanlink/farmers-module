@@ -1,16 +1,16 @@
 package config
 
 import (
-	"log"
-	"os"
-
+	"github.com/Kisanlink/farmers-module/utils"
 	"github.com/joho/godotenv"
+	"os"
 )
 
 func LoadEnv() {
+
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("No .env file found, using system environment variables")
+		utils.Log.Warn("⚠️ No .env file found, using system environment variables")
 	}
 }
 

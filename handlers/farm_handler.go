@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/services"
+	"github.com/Kisanlink/farmers-module/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,6 +43,7 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	// Step 0: Header validation
 	actor_id := c.GetHeader("user-id")
 	if actor_id == "" {
+		utils.Log.Warn("Missing user-id header")
 		sendStandardError(c, http.StatusUnauthorized,
 			"Please include your user ID in headers",
 			"missing user-id header")
@@ -52,12 +53,14 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	// Step 1: User verification via service layer
 	exists, is_kisansathi, err := h.UserService.VerifyUserAndType(actor_id)
 	if err != nil {
+		utils.Log.Errorf("User verification failed: %v", err)
 		sendStandardError(c, http.StatusInternalServerError,
 			"Something went wrong on our end",
 			"user verification failed: "+err.Error())
 		return
 	}
 	if !exists {
+		utils.Log.Warnf("User not found: %s", actor_id)
 		sendStandardError(c, http.StatusUnauthorized,
 			"Your account isn't registered",
 			"user not found in farmer/kisansathi records")
@@ -67,6 +70,7 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	// Parse request body
 	var farmRequest FarmRequest
 	if err := c.ShouldBindJSON(&farmRequest); err != nil {
+		utils.Log.Errorf("Failed to parse request body: %v", err)
 		sendStandardError(c, http.StatusBadRequest,
 			"Invalid farm details provided",
 			"request body parsing failed: "+err.Error())
@@ -82,6 +86,8 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	// Get user details to check actions
 	user_resp, err := services.GetUserByIdClient(c.Request.Context(), actor_id)
 	if err != nil {
+		utils.Log.Errorf("GetUserByIdClient failed for user: %s, error: %v", actor_id, err)
+
 		sendStandardError(c, http.StatusInternalServerError,
 			"Failed to verify user actions", err.Error())
 		return
@@ -104,6 +110,8 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	}
 
 	if !has_action {
+		utils.Log.Warnf("User %s does not have permission: %s", actor_id, required_action)
+
 		sendStandardError(c, http.StatusForbidden,
 			"Action not permitted",
 			fmt.Sprintf("missing required action: %s", required_action))
@@ -117,6 +125,8 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 
 	// Validate coordinates
 	if len(geoJSONPolygon.Coordinates) == 0 || len(geoJSONPolygon.Coordinates[0]) < 4 {
+		utils.Log.Warnf("Invalid polygon coordinates: %+v", geoJSONPolygon.Coordinates)
+
 		sendStandardError(c, http.StatusBadRequest,
 			"A polygon requires at least 4 points",
 			"insufficient polygon points")
@@ -134,6 +144,8 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	)
 
 	if err != nil {
+		utils.Log.Errorf("Farm creation failed: %v", err)
+
 		handleFarmCreationError(c, err)
 		return
 	}
@@ -144,8 +156,7 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 		// You might want to add some error handling or logging here
 		defer func() {
 			if r := recover(); r != nil {
-				// Log the panic if the goroutine panics
-				log.Printf("Recovered from panic in CreateFarmData goroutine: %v", r)
+				utils.Log.Errorf("Recovered from panic in CreateFarmData goroutine: %v", r)
 			}
 		}()
 
@@ -164,14 +175,20 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 func handleFarmCreationError(c *gin.Context, err error) {
 	switch {
 	case strings.Contains(err.Error(), "invalid location"):
+		utils.Log.Warn("Invalid farm location format")
+
 		sendStandardError(c, http.StatusBadRequest,
 			"Please provide a valid farm boundary",
 			"Invalid farm location format")
 	case strings.Contains(err.Error(), "overlap"):
+		utils.Log.Warn("Farm location overlaps with existing farm")
+
 		sendStandardError(c, http.StatusConflict,
 			"This farm overlaps with an existing farm",
 			"Farm location overlaps")
 	default:
+		utils.Log.Error("Unhandled farm creation error: ", err)
+
 		sendStandardError(c, http.StatusInternalServerError,
 			"Something went wrong while creating your farm",
 			err.Error())
@@ -212,6 +229,7 @@ func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
 			// If parsing fails, try parsing as date only and default time to 12:00 AM
 			parsed_date, err = time.Parse("2006-01-02", created_at_from)
 			if err != nil {
+				utils.Log.Warnf("Invalid date format: %s", created_at_from)
 				sendStandardError(c, http.StatusBadRequest,
 					"Invalid date format",
 					"Date must be in YYYY-MM-DD or RFC3339 format (e.g., 2025-04-08T00:00:00Z)")
@@ -223,11 +241,14 @@ func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
 	// Call service layer with the new date parameter
 	farms, err := h.FarmService.GetAllFarms(farmer_id, pincode, parsed_date.Format(time.RFC3339), id)
 	if err != nil {
+		utils.Log.Errorf("Failed to retrieve farms: %v", err)
 		sendStandardError(c, http.StatusInternalServerError,
 			"Failed to retrieve farms",
 			err.Error())
 		return
 	}
+
+	utils.Log.Infof("Farms retrieved successfully for farmer: %s", farmer_id)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":    http.StatusOK,
@@ -242,6 +263,8 @@ func (h *FarmHandler) GetFarmByFarmID(c *gin.Context) {
 	// Retrieve farm_id from URL parameters
 	farm_id := c.Param("farm_id")
 	if farm_id == "" {
+		utils.Log.Warn("Empty farm_id parameter")
+
 		sendStandardError(c, http.StatusBadRequest,
 			"Farm ID is required",
 			"empty farm id parameter")
@@ -253,6 +276,8 @@ func (h *FarmHandler) GetFarmByFarmID(c *gin.Context) {
 	if err != nil {
 		// If farm not found, return a 404 error
 		if err.Error() == "farm not found" {
+			utils.Log.Warnf("Farm not found: %s", farm_id)
+
 			sendStandardError(c, http.StatusNotFound,
 				"Farm does not exist",
 				"Farm with the provided ID does not exist")
@@ -260,11 +285,14 @@ func (h *FarmHandler) GetFarmByFarmID(c *gin.Context) {
 		}
 
 		// Handle any other errors
+		utils.Log.Errorf("Error retrieving farm: %v", err)
+
 		sendStandardError(c, http.StatusInternalServerError,
 			"Internal server error",
 			err.Error())
 		return
 	}
+	utils.Log.Infof("Farm retrieved successfully: %s", farm_id)
 
 	// Respond with the farm data if found
 	c.JSON(http.StatusOK, gin.H{

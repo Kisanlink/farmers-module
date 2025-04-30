@@ -2,10 +2,10 @@ package grpc_client
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/config"
+	"github.com/Kisanlink/farmers-module/utils"
 	"github.com/kisanlink/protobuf/pb-aaa"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -29,14 +29,14 @@ func ClientInterceptor(token string) grpc.UnaryClientInterceptor {
 		}
 
 		// Log the request
-		log.Printf("Sending request to method: %s", method)
+		utils.Log.Infof("Sending request to method: %s", method)
 		start := time.Now()
 		err := invoker(ctx, method, req, reply, cc, opts...)
 		if err != nil {
-			log.Printf("Request failed: %v (duration: %s)", err, time.Since(start))
+			utils.Log.Errorf("Request failed: %v (duration: %s)", err, time.Since(start))
 			return err
 		}
-		log.Printf("Request succeeded to method: %s (duration: %s)", method, time.Since(start))
+		utils.Log.Infof("Request succeeded to method: %s (duration: %s)", method, time.Since(start))
 		return nil
 	}
 }
@@ -56,7 +56,7 @@ func GrpcClient(token string) (*grpc.ClientConn, error) {
 
 	conn, err := grpc.Dial(connection, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(client_interceptor))
 	if err != nil {
-		log.Fatalf("failed to connect to gRPC server: %v", err)
+		utils.Log.Fatalf("Failed to connect to gRPC server: %v", err)
 	}
 
 	UserClient = pb.NewUserServiceClient(conn)
@@ -71,9 +71,8 @@ func GrpcClient(token string) (*grpc.ClientConn, error) {
 
 	response, err := client.SayHello(ctx, request)
 	if err != nil {
-		log.Fatalf("Failed to call SayHello: %v", err)
+		utils.Log.Fatalf("Failed to call SayHello: %v", err)
 	}
-	log.Printf("Response from Greeter service: %s", response.GetMessage())
-
+	utils.Log.Infof("Response from Greeter service: %s", response.GetMessage())
 	return conn, nil
 }

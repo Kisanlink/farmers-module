@@ -3,9 +3,6 @@ package repositories
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-
-	// "strings"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/models"
@@ -38,12 +35,14 @@ func (r *FarmRepository) CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, 
 	// Convert GeoJSON to JSON using the Value() method
 	val, err := geoJSON.Value()
 	if err != nil {
+		utils.Log.Error("Failed to get GeoJSON value", "error", err.Error()) // Replaced log with utils.Log
 		return false, fmt.Errorf("failed to get GeoJSON value: %w", err)
 	}
 
 	// Type assert the driver.Value to []byte
 	geoJSONBytes, ok := val.([]byte)
 	if !ok {
+		utils.Log.Error("Expected []byte from GeoJSON value, got unexpected type", "expected_type", "[]byte", "actual_type", fmt.Sprintf("%T", val)) // Replaced log with utils.Log
 		return false, fmt.Errorf("expected []byte from GeoJSON value, got %T", val)
 	}
 
@@ -58,7 +57,7 @@ func (r *FarmRepository) CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, 
 	// Count overlapping farms
 	err = query.Count(&count).Error
 	if err != nil {
-		log.Printf("CheckFarmOverlap query failed: %v", err)
+		utils.Log.Error("CheckFarmOverlap query failed", "error", err.Error()) // Replaced log with utils.Log
 		return false, fmt.Errorf("error checking farm overlap: %w", err)
 	}
 
@@ -74,6 +73,7 @@ func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
 	// Marshal location
 	geoJSONBytes, err := json.Marshal(farm.Location)
 	if err != nil {
+		utils.Log.Error("Failed to marshal farm location", "error", err.Error()) // Replaced log with utils.Log
 		return fmt.Errorf("failed to marshal location: %v", err)
 	}
 
@@ -94,28 +94,11 @@ func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
 		}).Error
 
 	if err != nil {
+		utils.Log.Error("Failed to create farm record", "error", err.Error()) // Replaced log with utils.Log
 		return fmt.Errorf("failed to create farm: %v", err)
 	}
 	return nil
 }
-
-// func convertGeoJSONToWKT(geoJSON models.GeoJSONPolygon) string {
-// 	if len(geoJSON.Coordinates) == 0 || len(geoJSON.Coordinates[0]) == 0 {
-// 		return "POLYGON EMPTY"
-// 	}
-
-// 	var points []string
-// 	for _, coord := range geoJSON.Coordinates[0] {
-// 		points = append(points, fmt.Sprintf("%f %f", coord[0], coord[1]))
-// 	}
-
-// 	// Ensure polygon is closed
-// 	if len(points) > 0 && points[0] != points[len(points)-1] {
-// 		points = append(points, points[0])
-// 	}
-
-// 	return fmt.Sprintf("POLYGON((%s))", strings.Join(points, ", "))
-// }
 
 // Implement the methods in FarmRepository
 func (r *FarmRepository) GetAllFarms(farmer_id, pincode, date, id string) ([]*models.Farm, error) {
@@ -165,11 +148,13 @@ func (r *FarmRepository) GetAllFarms(farmer_id, pincode, date, id string) ([]*mo
 	// Execute the query with filters
 	err := r.DB.Raw(query, args...).Scan(&farms).Error
 	if err != nil {
+		utils.Log.Error("Database error when retrieving all farms", "error", err.Error()) // Replaced log with utils.Log
 		return nil, fmt.Errorf("database error: %w", err)
 	}
 
 	return farms, nil
 }
+
 func (r *FarmRepository) GetFarmsWithFilters(farmer_id, pincode string) ([]*models.Farm, error) {
 	var farms []*models.Farm
 	query := r.DB.Model(&models.Farm{})
@@ -184,6 +169,7 @@ func (r *FarmRepository) GetFarmsWithFilters(farmer_id, pincode string) ([]*mode
 
 	// Execute the query
 	if err := query.Find(&farms).Error; err != nil {
+		utils.Log.Error("Error fetching farms with filters", "farmer_id", farmer_id, "pincode", pincode, "error", err.Error()) // Replaced log with utils.Log
 		return nil, err
 	}
 	return farms, nil
@@ -208,15 +194,17 @@ func (r *FarmRepository) GetFarmByID(farm_id string) (*models.Farm, error) {
             created_at,
             updated_at
         FROM farms
-        WHERE id = ?
+        WHERE id = ? 
     `
 
 	if err := r.DB.Raw(query, farm_id).Scan(&farm).Error; err != nil {
+		utils.Log.Error("Failed to retrieve farm by ID", "farm_id", farm_id, "error", err.Error()) // Replaced log with utils.Log
 		return nil, fmt.Errorf("failed to retrieve farm: %w", err)
 	}
 
 	// 🚨 Check if the ID is still empty => no rows were found
 	if farm.Base.Id == "" {
+		utils.Log.Warn("Farm not found", "farm_id", farm_id) // Added a warning log
 		return nil, fmt.Errorf("farm not found")
 	}
 
@@ -232,6 +220,7 @@ func (r *FarmRepository) GetFarmAreaByID(farm_id string) (float64, error) {
 		Scan(&area).Error
 
 	if err != nil {
+		utils.Log.Error("Failed to get farm area by ID", "farm_id", farm_id, "error", err.Error()) // Replaced log with utils.Log
 		return 0, fmt.Errorf("failed to get farm area: %w", err)
 	}
 	return area, nil

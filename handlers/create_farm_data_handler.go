@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/config"
+	"github.com/Kisanlink/farmers-module/utils"
 )
 
 // CreateFarmData calls the API endpoint to create farm data for the given farm_id.
@@ -26,14 +26,14 @@ func CreateFarmData(farm_id string) {
 	payload := map[string]interface{}{}
 	json_data, err := json.Marshal(payload)
 	if err != nil {
-		log.Printf("Failed to marshal farm data request: %v", err)
+		utils.Log.Errorf("Failed to marshal farm data request: %v", err)
 		return
 	}
 
 	// Send the HTTP POST request.
 	resp, err := client.Post(url, "application/json", bytes.NewBuffer(json_data))
 	if err != nil {
-		log.Printf("Failed to call create farm data API: %v", err)
+		utils.Log.Errorf("Failed to call create farm data API: %v", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -41,9 +41,9 @@ func CreateFarmData(farm_id string) {
 	// Read and log the response.
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("Failed to read create farm data response: %v", err)
+		utils.Log.Errorf("Failed to read create farm data response: %v", err)
 		return
 	}
 
-	log.Printf("Create farm data API called successfully. Response: %s", string(body))
+	utils.Log.Infof("Create farm data API called successfully. Response: %s", string(body))
 }

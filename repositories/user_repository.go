@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"fmt"
-	"log"
 
 	"gorm.io/gorm"
 )
@@ -31,7 +30,6 @@ func (r *UserRepository) UserExists(user_id string) (bool, error) {
 		Scan(&exists).Error
 
 	if err != nil {
-		log.Printf("UserExists query failed: %v", err)
 		return false, fmt.Errorf("database verification failed")
 	}
 	return exists, nil
@@ -45,7 +43,6 @@ func (r *UserRepository) IsKisansathi(user_id string) bool {
 		Scan(&exists).Error
 
 	if err != nil {
-		log.Printf("IsKisansathi query failed: %v", err)
 		return false
 	}
 	return exists
