@@ -1,12 +1,13 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/config"
 	"github.com/Kisanlink/farmers-module/models"
+	"github.com/Kisanlink/farmers-module/permission"
 	"github.com/Kisanlink/farmers-module/services"
 	"github.com/Kisanlink/farmers-module/utils"
 	"github.com/gin-gonic/gin"
@@ -77,46 +78,19 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 		return
 	}
 
-	// Determine required action based on user type
-	required_action := "read"
+	var requiredPermission string
 	if is_kisansathi {
-		required_action = "read"
+		requiredPermission = config.PERMISSION_KISANSATHI
+	} else {
+		requiredPermission = config.PERMISSION_FARMER
 	}
 
-	// Get user details to check actions
-	user_resp, err := services.GetUserByIdClient(c.Request.Context(), actor_id)
-	if err != nil {
-		utils.Log.Errorf("GetUserByIdClient failed for user: %s, error: %v", actor_id, err)
-
-		sendStandardError(c, http.StatusInternalServerError,
-			"Failed to verify user actions", err.Error())
+	hasPerm, statusCode, userMsg, errDetail := permission.CheckUserPermission(c.Request.Context(), actor_id, requiredPermission)
+	if !hasPerm {
+		utils.SendErrorResponse(c, statusCode, userMsg, errDetail)
 		return
 	}
 
-	// Verify the required action exists in user's allowed actions
-	has_action := false
-	if user_resp != nil && user_resp.Data != nil && user_resp.Data.RolePermissions != nil {
-		for _, role_perms := range user_resp.Data.RolePermissions {
-			for _, permission := range role_perms.Permissions {
-				if permission != nil && permission.Action == required_action {
-					has_action = true
-					break
-				}
-			}
-			if has_action {
-				break
-			}
-		}
-	}
-
-	if !has_action {
-		utils.Log.Warnf("User %s does not have permission: %s", actor_id, required_action)
-
-		sendStandardError(c, http.StatusForbidden,
-			"Action not permitted",
-			fmt.Sprintf("missing required action: %s", required_action))
-		return
-	}
 	// Convert to proper GeoJSON structure
 	geoJSONPolygon := models.GeoJSONPolygon{
 		Type:        "Polygon",

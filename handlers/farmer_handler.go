@@ -6,6 +6,7 @@ import (
 
 	"github.com/Kisanlink/farmers-module/config"
 	"github.com/Kisanlink/farmers-module/models"
+	"github.com/Kisanlink/farmers-module/permission"
 	"github.com/Kisanlink/farmers-module/services"
 	"github.com/Kisanlink/farmers-module/utils"
 	"github.com/gin-gonic/gin"
@@ -31,43 +32,13 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 
 	if req.UserId != nil {
 		if req.KisansathiUserId != nil {
-			user_resp, err := services.GetUserByIdClient(c.Request.Context(), *req.KisansathiUserId)
-			if err != nil {
-				utils.Log.Errorf("Error verifying Kisansathi user (%s): %v", *req.KisansathiUserId, err)
-				h.sendErrorResponse(c, http.StatusInternalServerError, "Failed to verify Kisansathi user", err.Error())
+			requiredPermission := config.PERMISSION_KISANSATHI
+			hasPerm, statusCode, userMsg, errDetail := permission.CheckUserPermission(c.Request.Context(), *req.KisansathiUserId, requiredPermission)
+			if !hasPerm {
+				utils.SendErrorResponse(c, statusCode, userMsg, errDetail)
 				return
 			}
 
-			if user_resp == nil || user_resp.StatusCode != http.StatusOK || user_resp.Data == nil {
-				utils.Log.Warnf("Kisansathi user not found or invalid response: %+v", user_resp)
-				h.sendErrorResponse(c, http.StatusUnauthorized, "Kisansathi user not found", "invalid user response")
-				return
-			}
-
-			if len(user_resp.Data.RolePermissions) == 0 {
-				utils.Log.Warnf("Kisansathi user %s has no role permissions", *req.KisansathiUserId)
-				h.sendErrorResponse(c, http.StatusForbidden, "Permission denied", "user has no role permissions defined")
-				return
-			}
-
-			has_permission := false
-			for _, role_perm := range user_resp.Data.RolePermissions {
-				for _, perm := range role_perm.Permissions {
-					if perm.Name == config.PERMISSION_KISANSATHI {
-						has_permission = true
-						break
-					}
-				}
-				if has_permission {
-					break
-				}
-			}
-
-			if !has_permission {
-				utils.Log.Warnf("Kisansathi user %s lacks permission: %s", *req.KisansathiUserId, config.PERMISSION_KISANSATHI)
-				h.sendErrorResponse(c, http.StatusForbidden, "Permission denied", "missing required permissions or actions")
-				return
-			}
 		}
 
 		farmer, user_details, err := h.FarmerService.CreateFarmer(*req.UserId, req)
@@ -98,43 +69,13 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 	}
 
 	if req.KisansathiUserId != nil {
-		user_resp, err := services.GetUserByIdClient(c.Request.Context(), *req.KisansathiUserId)
-		if err != nil {
-			utils.Log.Errorf("Error verifying Kisansathi user (%s): %v", *req.KisansathiUserId, err)
-			h.sendErrorResponse(c, http.StatusInternalServerError, "Failed to verify Kisansathi user", err.Error())
+		requiredPermission := config.PERMISSION_KISANSATHI
+		hasPerm, statusCode, userMsg, errDetail := permission.CheckUserPermission(c.Request.Context(), *req.KisansathiUserId, requiredPermission)
+		if !hasPerm {
+			utils.SendErrorResponse(c, statusCode, userMsg, errDetail)
 			return
 		}
 
-		if user_resp == nil || user_resp.StatusCode != http.StatusOK || user_resp.Data == nil {
-			utils.Log.Warnf("Kisansathi user not found or invalid response: %+v", user_resp)
-			h.sendErrorResponse(c, http.StatusUnauthorized, "Kisansathi user not found", "invalid user response")
-			return
-		}
-
-		if len(user_resp.Data.RolePermissions) == 0 {
-			utils.Log.Warnf("Kisansathi user %s has no role permissions", *req.KisansathiUserId)
-			h.sendErrorResponse(c, http.StatusForbidden, "Permission denied", "user has no role permissions defined")
-			return
-		}
-
-		has_permission := false
-		for _, role_perm := range user_resp.Data.RolePermissions {
-			for _, perm := range role_perm.Permissions {
-				if perm.Name == config.PERMISSION_KISANSATHI {
-					has_permission = true
-					break
-				}
-			}
-			if has_permission {
-				break
-			}
-		}
-
-		if !has_permission {
-			utils.Log.Warnf("Kisansathi user %s lacks permission: %s", *req.KisansathiUserId, config.PERMISSION_KISANSATHI)
-			h.sendErrorResponse(c, http.StatusForbidden, "Permission denied", "missing required permissions or actions")
-			return
-		}
 	}
 
 	if req.UserName == nil || req.AadhaarNumber == nil {
