@@ -10,59 +10,33 @@ import (
 	"github.com/Kisanlink/farmers-module/utils"
 
 	"github.com/kisanlink/protobuf/pb-aaa"
-	"google.golang.org/grpc"
 )
-
-func InitializeGrpcClient(token string, retries int) (*grpc.ClientConn, error) {
-	var conn *grpc.ClientConn
-	var err error
-
-	for i := 0; i < retries; i++ {
-		utils.Log.Infof("InitializeGrpcClient: Attempt %d to establish gRPC connection", i+1)
-		conn, err = grpcclient.GrpcClient(token)
-		if err == nil {
-			utils.Log.Info("InitializeGrpcClient: Successfully established gRPC connection")
-			return conn, nil
-		}
-		utils.Log.Errorf("InitializeGrpcClient: Failed to establish gRPC connection (attempt %d): %v", i+1, err)
-		time.Sleep(10 * time.Second)
-	}
-
-	utils.Log.Errorf("InitializeGrpcClient: Exhausted retries, failed to establish gRPC connection: %v", err)
-	return nil, fmt.Errorf("failed to initialize gRPC client after %d retries: %v", retries, err)
-}
 
 func CreateUserClient(req models.FarmerSignupRequest, token string) (*pb.CreateUserResponse, error) {
 	utils.Log.Info("CreateUserClient: Starting user creation process")
 
-	// Initialize gRPC connection with retry mechanism
-	conn, err := InitializeGrpcClient(token, 3)
+	// Initialize the client only if not already initialized
+	userClient, err := grpcclient.InitGrpcClient(token)
 	if err != nil {
-		utils.Log.Errorf("CreateUserClient: Failed to establish gRPC connection: %v", err)
-		return nil, fmt.Errorf("failed to establish gRPC connection: %v", err)
+		utils.Log.Errorf("CreateUserClient: Failed to initialize UserServiceClient: %v", err)
+		return nil, fmt.Errorf("failed to initialize UserServiceClient: %v", err)
 	}
-	defer conn.Close()
-
-	// Create User Service Client
-	user_client := pb.NewUserServiceClient(conn)
 	utils.Log.Info("CreateUserClient: UserServiceClient initialized")
 
-	// Prepare gRPC request
-	user_request := &pb.CreateUserRequest{
+	userRequest := &pb.CreateUserRequest{
 		Username:      *req.UserName,
 		MobileNumber:  req.MobileNumber,
 		AadhaarNumber: *req.AadhaarNumber,
 		Password:      "Default@123",
 		CountryCode:   "+91",
 	}
-	utils.Log.Infof("CreateUserClient: Prepared gRPC request: %+v", user_request)
+	utils.Log.Infof("CreateUserClient: Prepared gRPC request: %+v", userRequest)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	// Call gRPC service
 	utils.Log.Info("CreateUserClient: Sending gRPC request to RegisterUser")
-	response, err := user_client.RegisterUser(ctx, user_request)
+	response, err := userClient.RegisterUser(ctx, userRequest)
 	if err != nil {
 		utils.Log.Errorf("CreateUserClient: Failed to create user via gRPC: %v", err)
 		return nil, err
@@ -73,81 +47,65 @@ func CreateUserClient(req models.FarmerSignupRequest, token string) (*pb.CreateU
 }
 
 func GetUserByIdClient(ctx context.Context, user_id string) (*pb.GetUserByIdResponse, error) {
-	utils.Log.Infof("GetUserByIdClient: Fetching user with Id: %s", user_id)
+	utils.Log.Info("GetUserByIdClient: Starting process to fetch user by ID")
 
-	// Initialize gRPC connection with retry mechanism
-	conn, err := InitializeGrpcClient("", 3) // Assuming no auth token is needed
+	// Initialize the client only if not already initialized
+	userClient, err := grpcclient.InitGrpcClient("")
 	if err != nil {
-		utils.Log.Errorf("GetUserByIdClient: Failed to establish gRPC connection: %v", err)
-		return nil, fmt.Errorf("failed to establish gRPC connection: %v", err)
+		utils.Log.Errorf("GetUserByIdClient: Failed to initialize UserServiceClient: %v", err)
+		return nil, fmt.Errorf("failed to initialize UserServiceClient: %v", err)
 	}
-	defer conn.Close()
-
-	// Create User Service Client
-	user_client := pb.NewUserServiceClient(conn)
 	utils.Log.Info("GetUserByIdClient: UserServiceClient initialized")
 
-	// Prepare gRPC request
-	user_req := &pb.GetUserByIdRequest{Id: user_id}
-	utils.Log.Infof("GetUserByIdClient: Prepared gRPC request: %+v", user_req)
+	userRequest := &pb.GetUserByIdRequest{
+		Id: user_id,
+	}
+	utils.Log.Infof("GetUserByIdClient: Prepared gRPC request: %+v", userRequest)
 
-	// Set timeout for request
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	// Rename ctx to newCtx to avoid conflict
+	newCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	// Call gRPC service
 	utils.Log.Info("GetUserByIdClient: Sending gRPC request to GetUserById")
-	resp, err := user_client.GetUserById(ctx, user_req)
+	response, err := userClient.GetUserById(newCtx, userRequest)
 	if err != nil {
-		utils.Log.Errorf("GetUserByIdClient: Failed to fetch user from AAA service: %v", err)
+		utils.Log.Errorf("GetUserByIdClient: Failed to fetch user by ID via gRPC: %v", err)
 		return nil, err
 	}
 
-	// Check if the response contains user data
-	if resp.Data == nil {
-		utils.Log.Warn("GetUserByIdClient: User not found in AAA service response")
-		return nil, fmt.Errorf("user not found")
-	}
-
-	// utils.Log.Infof("GetUserByIdClient: Successfully fetched user: %+v", resp.Data)
-	return resp, nil
+	utils.Log.Infof("GetUserByIdClient: Successfully fetched user by ID: %+v", response)
+	return response, nil
 }
 
 // AssignRoleToUserClient assigns a role to a user via AAA service
 func AssignRoleToUserClient(ctx context.Context, user_id string, roles string) (*pb.AssignRoleToUserResponse, error) {
-	utils.Log.Infof("AssignRoleToUserClient: Assigning role '%s' to user Id: %s", roles, user_id)
+	utils.Log.Info("AssignRoleToUserClient: Starting process to assign role to user")
 
-	// Initialize gRPC connection with retry mechanism
-	conn, err := InitializeGrpcClient("", 3) // Assuming no auth token is needed
+	// Initialize the client only if not already initialized
+	userClient, err := grpcclient.InitGrpcClient("")
 	if err != nil {
-		utils.Log.Errorf("AssignRoleToUserClient: Failed to establish gRPC connection: %v", err)
-		return nil, fmt.Errorf("failed to establish gRPC connection: %v", err)
+		utils.Log.Errorf("AssignRoleToUserClient: Failed to initialize UserServiceClient: %v", err)
+		return nil, fmt.Errorf("failed to initialize UserServiceClient: %v", err)
 	}
-	defer conn.Close()
-
-	// Create Permission Service Client
-	user_client := pb.NewUserServiceClient(conn)
 	utils.Log.Info("AssignRoleToUserClient: UserServiceClient initialized")
 
-	// Prepare gRPC request
-	role_req := &pb.AssignRoleToUserRequest{
+	roleRequest := &pb.AssignRoleToUserRequest{
 		UserId: user_id,
 		Role:   roles,
 	}
-	utils.Log.Infof("AssignRoleToUserClient: Prepared gRPC request: %+v", role_req)
+	utils.Log.Infof("AssignRoleToUserClient: Prepared gRPC request: %+v", roleRequest)
 
-	// Set timeout for request
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	// Use a different name for the new context to avoid overwriting the function parameter
+	newCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	// Call gRPC service
-	utils.Log.Info("AssignRoleToUserClient: Sending gRPC request to AssignRole")
-	resp, err := user_client.AssignRole(ctx, role_req)
+	utils.Log.Info("AssignRoleToUserClient: Sending gRPC request to AssignRoleToUser")
+	response, err := userClient.AssignRole(newCtx, roleRequest)
 	if err != nil {
-		utils.Log.Errorf("AssignRoleToUserClient: Failed to assign role to user %s: %v", user_id, err)
+		utils.Log.Errorf("AssignRoleToUserClient: Failed to assign role to user via gRPC: %v", err)
 		return nil, err
 	}
 
-	utils.Log.Infof("AssignRoleToUserClient: Successfully assigned roles to user %s: %+v", user_id, resp)
-	return resp, nil
+	utils.Log.Infof("AssignRoleToUserClient: Successfully assigned role to user: %+v", response)
+	return response, nil
 }

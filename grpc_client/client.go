@@ -2,6 +2,7 @@ package grpc_client
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/config"
@@ -11,7 +12,11 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-var UserClient pb.UserServiceClient
+var (
+	UserClient pb.UserServiceClient
+	conn       *grpc.ClientConn
+	once       sync.Once
+)
 
 func ClientInterceptor(token string) grpc.UnaryClientInterceptor {
 	return func(
@@ -28,7 +33,6 @@ func ClientInterceptor(token string) grpc.UnaryClientInterceptor {
 			ctx = metadata.NewOutgoingContext(ctx, md)
 		}
 
-		// Log the request
 		utils.Log.Infof("Sending request to method: %s", method)
 		start := time.Now()
 		err := invoker(ctx, method, req, reply, cc, opts...)
@@ -41,38 +45,22 @@ func ClientInterceptor(token string) grpc.UnaryClientInterceptor {
 	}
 }
 
-func GrpcClient(token string) (*grpc.ClientConn, error) {
+func InitGrpcClient(token string) (pb.UserServiceClient, error) {
+	var err error
+	once.Do(func() {
+		config.LoadEnv()
+		aaa_host := config.GetEnv("AAA_HOST")
+		aaa_grpc_port := config.GetEnv("AAA_GRPC_PORT")
+		connection := aaa_host + ":" + aaa_grpc_port
 
-	client_interceptor := ClientInterceptor(token)
-
-	// Load environment variables
-	config.LoadEnv()
-
-	// Get AAA GRPC connection details
-	aaa_host := config.GetEnv("AAA_HOST")
-	aaa_grpc_port := config.GetEnv("AAA_GRPC_PORT")
-
-	connection := aaa_host + ":" + aaa_grpc_port
-
-	conn, err := grpc.Dial(connection, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(client_interceptor))
-	if err != nil {
-		utils.Log.Fatalf("Failed to connect to gRPC server: %v", err)
-	}
-
-	UserClient = pb.NewUserServiceClient(conn)
-	client := pb.NewGreeterClient(conn)
-
-	request := &pb.HelloRequest{
-		Name: "World",
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
-	response, err := client.SayHello(ctx, request)
-	if err != nil {
-		utils.Log.Fatalf("Failed to call SayHello: %v", err)
-	}
-	utils.Log.Infof("Response from Greeter service: %s", response.GetMessage())
-	return conn, nil
+		clientInterceptor := ClientInterceptor(token)
+		conn, err = grpc.Dial(connection, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(clientInterceptor))
+		if err != nil {
+			utils.Log.Errorf("Failed to connect to gRPC server: %v", err)
+			return
+		}
+		utils.Log.Infof("Connected to gRPC server at %s", connection)
+		UserClient = pb.NewUserServiceClient(conn)
+	})
+	return UserClient, err
 }
