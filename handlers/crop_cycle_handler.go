@@ -21,7 +21,7 @@ func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
 	farm_id := c.Param("farmId") // Extract farm ID from the path
 
 	var req struct {
-		CropId           string    `json:"crop_id" binding:"required"`
+		crop_id          string    `json:"crop_id" binding:"required"`
 		StartDate        time.Time `json:"start_date" binding:"required"`
 		Acreage          float64   `json:"acreage" binding:"required"`
 		ExpectedQuantity float64   `json:"expected_quantity" binding:"required"`
@@ -40,7 +40,7 @@ func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
 	}
 
 	cycle, err := h.Service.CreateCropCycle(
-		farm_id, req.CropId,
+		farm_id, req.crop_id,
 		req.StartDate, nil,
 		req.Acreage, req.ExpectedQuantity,
 		nil,
