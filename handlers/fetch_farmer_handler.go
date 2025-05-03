@@ -4,11 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/Kisanlink/farmers-module/models"
-	"github.com/Kisanlink/farmers-module/services"
-	"github.com/Kisanlink/farmers-module/utils" // Adjust the import path based on your project structure
 	"github.com/gin-gonic/gin"
 	"github.com/kisanlink/protobuf/pb-aaa"
+
+	"github.com/Kisanlink/farmers-module/models"
+	"github.com/Kisanlink/farmers-module/services"
+	"github.com/Kisanlink/farmers-module/utils"
 )
 
 func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
@@ -25,7 +26,7 @@ func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 	farmers, err = h.FarmerService.FetchFarmers(user_id, farmer_id, kisansathi_user_id)
 	if err != nil {
 		utils.Log.Error("Failed to fetch farmers", "error", err.Error()) // Replaced log with utils.logger
-		h.sendErrorResponse(c, http.StatusInternalServerError, "Failed to fetch farmers", err.Error())
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to fetch farmers", err.Error())
 		return
 	}
 
@@ -61,5 +62,5 @@ func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 	}
 
 	utils.Log.Info("Farmers fetched successfully", "farmer_count", len(farmers)) // Replaced log with utils.logger
-	h.sendSuccessResponse(c, http.StatusOK, "Farmers fetched successfully", farmers)
+	utils.SendSuccessResponse(c, http.StatusOK, "Farmers fetched successfully", farmers)
 }

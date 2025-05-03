@@ -1,12 +1,13 @@
 package routes
 
 import (
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+
 	"github.com/Kisanlink/farmers-module/database"
 	"github.com/Kisanlink/farmers-module/repositories"
 	"github.com/Kisanlink/farmers-module/services"
 	"github.com/Kisanlink/farmers-module/utils"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 )
 
 type Dependencies struct {

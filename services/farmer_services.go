@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/kisanlink/protobuf/pb-aaa"
+
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/repositories"
-	"github.com/kisanlink/protobuf/pb-aaa"
 )
 
 // FarmerServiceInterface defines service methods for farmer operations
@@ -55,35 +56,6 @@ func (s *FarmerService) CreateFarmer(
 	// Return both user details and the created farmer
 	return created_farmer, user_details, nil
 }
-
-// // FetchFarmersWithFilters fetches farmers with specific filters
-// func (s *FarmerService) FetchFarmers(user_id, farmer_id, kisansathi_user_id string) ([]models.Farmer, *pb.GetUserByIdResponse, error) {
-// 	// Fetch user details using GetUserByIdClient
-// 	user_details, err := GetUserByIdClient(context.Background(), user_id)
-// 	if err != nil {
-// 		return nil, nil, fmt.Errorf("failed to fetch user details: %w", err)
-// 	}
-
-// 	// Fetch farmers from the repository
-// 	farmers, err := s.repo.FetchFarmers(user_id, farmer_id, kisansathi_user_id)
-// 	if err != nil {
-// 		return nil, nil, fmt.Errorf("failed to fetch farmers: %w", err)
-// 	}
-
-// 	// Return both user details and the list of farmers
-// 	return farmers, user_details, nil
-// }
-
-// // FetchFarmersWithoutUserDetails fetches farmers without user details
-// func (s *FarmerService) FetchFarmersWithoutUserDetails(farmer_id, kisansathi_user_id string) ([]models.Farmer, error) {
-// 	// Fetch farmers from the repository
-// 	farmers, err := s.repo.FetchFarmers("", farmer_id, kisansathi_user_id)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to fetch farmers: %w", err)
-// 	}
-
-// 	return farmers, nil
-// }
 
 func (s *FarmerService) FetchFarmers(user_id, farmer_id, kisansathi_user_id string) ([]models.Farmer, error) {
 	return s.Repo.FetchFarmers(user_id, farmer_id, kisansathi_user_id)

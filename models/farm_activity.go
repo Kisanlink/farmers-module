@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Kisanlink/farmers-module/entities"
 	"gorm.io/gorm"
+
+	"github.com/Kisanlink/farmers-module/entities"
 )
 
 type FarmActivity struct {

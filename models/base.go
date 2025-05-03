@@ -3,8 +3,9 @@ package models
 import (
 	"time"
 
-	"github.com/Kisanlink/farmers-module/utils"
 	"gorm.io/gorm"
+
+	"github.com/Kisanlink/farmers-module/utils"
 )
 
 // Base model for common fields

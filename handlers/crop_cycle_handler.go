@@ -4,9 +4,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/services"
-	"github.com/gin-gonic/gin"
 )
 
 type CropCycleHandler struct {
@@ -21,7 +22,7 @@ func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
 	farm_id := c.Param("farmId") // Extract farm ID from the path
 
 	var req struct {
-		crop_id          string    `json:"crop_id" binding:"required"`
+		CropId           string    `json:"crop_id" binding:"required"`
 		StartDate        time.Time `json:"start_date" binding:"required"`
 		Acreage          float64   `json:"acreage" binding:"required"`
 		ExpectedQuantity float64   `json:"expected_quantity" binding:"required"`
@@ -40,7 +41,7 @@ func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
 	}
 
 	cycle, err := h.Service.CreateCropCycle(
-		farm_id, req.crop_id,
+		farm_id, req.CropId,
 		req.StartDate, nil,
 		req.Acreage, req.ExpectedQuantity,
 		nil,

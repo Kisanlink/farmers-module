@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kisanlink/protobuf/pb-aaa"
+
 	grpcclient "github.com/Kisanlink/farmers-module/grpc_client"
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/utils"
-
-	"github.com/kisanlink/protobuf/pb-aaa"
 )
 
 func CreateUserClient(req models.FarmerSignupRequest, token string) (*pb.CreateUserResponse, error) {

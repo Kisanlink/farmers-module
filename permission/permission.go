@@ -2,9 +2,10 @@ package permission
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Kisanlink/farmers-module/services"
 	"github.com/Kisanlink/farmers-module/utils"
-	"net/http"
 )
 
 // CheckUserPermission returns true if permission granted, else returns statusCode, userMessage, errorDetail
