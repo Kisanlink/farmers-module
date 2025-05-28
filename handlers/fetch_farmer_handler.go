@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/services"
@@ -12,52 +14,118 @@ import (
 )
 
 func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
-	// Extract query parameters
-	userId := c.Query("user_id")
-	farmerId := c.Query("farmer_id")
-	kisansathiUserId := c.Query("kisansathi_user_id")
+	userID := c.Query("user_id")
+	farmerID := c.Query("farmer_id")
+	kisanID := c.Query("kisansathi_user_id")
 	includeUserDetails := c.Query("user_details") == "true"
 
-	var farmers []models.Farmer
-	var err error
-
-	// Always fetch farmers first
-	farmers, err = h.farmerService.FetchFarmers(userId, farmerId, kisansathiUserId)
+	// 1) base fetch
+	farmers, err := h.farmerService.FetchFarmers(userID, farmerID, kisanID)
 	if err != nil {
-		h.sendErrorResponse(c, http.StatusInternalServerError, "Failed to fetch farmers", err.Error())
+		c.JSON(http.StatusInternalServerError, models.Response{
+			StatusCode: http.StatusInternalServerError,
+			Success:    false,
+			Message:    "Failed to fetch farmers",
+			Error:      err.Error(),
+			TimeStamp:  time.Now().UTC().Format(time.RFC3339),
+		})
 		return
 	}
 
-	// If user details are requested and we have farmers with user_ids
-	if includeUserDetails && len(farmers) > 0 {
-		// Collect all unique user IDs from farmers
-		userIds := make([]string, 0, len(farmers))
-		for _, farmer := range farmers {
-			if farmer.UserId != "" {
-				userIds = append(userIds, farmer.UserId)
+	// 2) filter on is_subscribed if requested
+	if subQ := c.Query("is_subscribed"); subQ != "" {
+		wantSub, perr := strconv.ParseBool(subQ)
+		if perr != nil {
+			c.JSON(http.StatusBadRequest, models.Response{
+				StatusCode: http.StatusBadRequest,
+				Success:    false,
+				Message:    "Invalid is_subscribed flag",
+				Error:      perr.Error(),
+				TimeStamp:  time.Now().UTC().Format(time.RFC3339),
+			})
+			return
+		}
+		filtered := farmers[:0]
+		for _, f := range farmers {
+			if f.IsSubscribed == wantSub {
+				filtered = append(filtered, f)
 			}
 		}
+		farmers = filtered
+	}
 
-		// Fetch user details for all user_ids
-		userDetailsMap := make(map[string]*pb.User)
-		for _, uid := range userIds {
-			userDetails, err := services.GetUserByIdClient(context.Background(), uid)
-			if err != nil {
-				log.Printf("Error fetching user details for %s: %v", uid, err)
+	// 3) enrich with user details if requested
+	if includeUserDetails && len(farmers) > 0 {
+		userMap := make(map[string]*pb.User, len(farmers))
+		for _, f := range farmers {
+			if f.UserId == "" {
 				continue
 			}
-			if userDetails != nil && userDetails.Data != nil {
-				userDetailsMap[uid] = userDetails.Data
+			resp, err := services.GetUserByIdClient(context.Background(), f.UserId)
+			if err != nil {
+				log.Printf("Error fetching user %s: %v", f.UserId, err)
+				continue
+			}
+			if resp != nil && resp.Data != nil {
+				userMap[f.UserId] = resp.Data
 			}
 		}
-
-		// Assign user details to farmers
 		for i := range farmers {
-			if details, exists := userDetailsMap[farmers[i].UserId]; exists {
-				farmers[i].UserDetails = details
+			if ud := userMap[farmers[i].UserId]; ud != nil {
+				farmers[i].UserDetails = ud
 			}
 		}
 	}
 
-	h.sendSuccessResponse(c, http.StatusOK, "Farmers fetched successfully", farmers)
+	c.JSON(http.StatusOK, models.Response{
+		StatusCode: http.StatusOK,
+		Success:    true,
+		Message:    "Farmers fetched successfully",
+		Data:       farmers,
+		TimeStamp:  time.Now().UTC().Format(time.RFC3339),
+	})
+}
+
+// -----------------------------------------
+// 3) SUBSCRIBE / UNSUBSCRIBE
+// -----------------------------------------
+type subscribeRequest struct {
+	IsSubscribed bool `json:"is_subscribed" binding:"required"`
+}
+
+func (h *FarmerHandler) SubscribeHandler(c *gin.Context) {
+	farmerID := c.Param("id")
+	var req subscribeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{
+			StatusCode: http.StatusBadRequest,
+			Success:    false,
+			Message:    "Invalid request body",
+			Error:      err.Error(),
+			TimeStamp:  time.Now().UTC().Format(time.RFC3339),
+		})
+		return
+	}
+
+	if err := h.farmerService.SetSubscriptionStatus(farmerID, req.IsSubscribed); err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{
+			StatusCode: http.StatusInternalServerError,
+			Success:    false,
+			Message:    "Could not update subscription",
+			Error:      err.Error(),
+			TimeStamp:  time.Now().UTC().Format(time.RFC3339),
+		})
+		return
+	}
+
+	msg := "unsubscribed"
+	if req.IsSubscribed {
+		msg = "subscribed"
+	}
+	c.JSON(http.StatusOK, models.Response{
+		StatusCode: http.StatusOK,
+		Success:    true,
+		Message:    "Farmer " + msg + " successfully",
+		TimeStamp:  time.Now().UTC().Format(time.RFC3339),
+	})
 }
