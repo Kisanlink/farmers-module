@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/config"
@@ -123,12 +124,30 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 		return
 	}
 
-	// If UserId is not provided, we need all personal information
-	// Check if phone number is present
-	if req.MobileNumber == 0 {
-		h.sendErrorResponse(c, http.StatusBadRequest, "Mobile number is required", "mobile_number field is missing or invalid")
+	// 1) length check
+	if len(req.MobileNumberString) != 10 {
+		h.sendErrorResponse(c, http.StatusBadRequest,
+			"Invalid mobile number", "must be exactly 10 digits")
 		return
 	}
+
+	// 2) leading-zero check
+	if req.MobileNumberString[0] == '0' {
+		h.sendErrorResponse(c, http.StatusBadRequest,
+			"Invalid mobile number", "should not start with 0")
+		return
+	}
+
+	// 3) parse into uint64
+	mobileUint, err := strconv.ParseUint(req.MobileNumberString, 10, 64)
+	if err != nil {
+		h.sendErrorResponse(c, http.StatusBadRequest,
+			"Invalid mobile number", "must contain only digits")
+		return
+	}
+
+	// 4) stash
+	req.MobileNumber = mobileUint
 
 	// Handle Kisansathi User Id if present (same as above)
 	if req.KisansathiUserId != nil {
