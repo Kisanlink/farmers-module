@@ -19,7 +19,27 @@ func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 	kisanID := c.Query("kisansathi_user_id")
 	includeUserDetails := c.Query("user_details") == "true"
 
-	// 1) base fetch
+	// Parse 'subscribed' query parameter
+	subscribedParam := c.Query("subscribed")
+	var filterBySubscribed bool
+	var subscribedValue bool
+	if subscribedParam != "" {
+		val, err := strconv.ParseBool(subscribedParam)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, models.Response{
+				StatusCode: http.StatusBadRequest,
+				Success:    false,
+				Message:    "Invalid 'subscribed' value. Use true or false.",
+				Error:      err.Error(),
+				TimeStamp:  time.Now().UTC().Format(time.RFC3339),
+			})
+			return
+		}
+		filterBySubscribed = true
+		subscribedValue = val
+	}
+
+	// Step 1: Fetch all farmers
 	farmers, err := h.farmerService.FetchFarmers(userID, farmerID, kisanID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
@@ -32,29 +52,18 @@ func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 		return
 	}
 
-	// 2) filter on is_subscribed if requested
-	if subQ := c.Query("is_subscribed"); subQ != "" {
-		wantSub, perr := strconv.ParseBool(subQ)
-		if perr != nil {
-			c.JSON(http.StatusBadRequest, models.Response{
-				StatusCode: http.StatusBadRequest,
-				Success:    false,
-				Message:    "Invalid is_subscribed flag",
-				Error:      perr.Error(),
-				TimeStamp:  time.Now().UTC().Format(time.RFC3339),
-			})
-			return
-		}
+	// Step 2: Apply 'subscribed' filter
+	if filterBySubscribed {
 		filtered := farmers[:0]
 		for _, f := range farmers {
-			if f.IsSubscribed == wantSub {
+			if f.IsSubscribed == subscribedValue {
 				filtered = append(filtered, f)
 			}
 		}
 		farmers = filtered
 	}
 
-	// 3) enrich with user details if requested
+	// Step 3: Optionally enrich with user details
 	if includeUserDetails && len(farmers) > 0 {
 		userMap := make(map[string]*pb.User, len(farmers))
 		for _, f := range farmers {
@@ -77,55 +86,12 @@ func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 		}
 	}
 
+	// Step 4: Respond
 	c.JSON(http.StatusOK, models.Response{
 		StatusCode: http.StatusOK,
 		Success:    true,
 		Message:    "Farmers fetched successfully",
 		Data:       farmers,
-		TimeStamp:  time.Now().UTC().Format(time.RFC3339),
-	})
-}
-
-// -----------------------------------------
-// 3) SUBSCRIBE / UNSUBSCRIBE
-// -----------------------------------------
-type subscribeRequest struct {
-	IsSubscribed bool `json:"is_subscribed" binding:"required"`
-}
-
-func (h *FarmerHandler) SubscribeHandler(c *gin.Context) {
-	farmerID := c.Param("id")
-	var req subscribeRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.Response{
-			StatusCode: http.StatusBadRequest,
-			Success:    false,
-			Message:    "Invalid request body",
-			Error:      err.Error(),
-			TimeStamp:  time.Now().UTC().Format(time.RFC3339),
-		})
-		return
-	}
-
-	if err := h.farmerService.SetSubscriptionStatus(farmerID, req.IsSubscribed); err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{
-			StatusCode: http.StatusInternalServerError,
-			Success:    false,
-			Message:    "Could not update subscription",
-			Error:      err.Error(),
-			TimeStamp:  time.Now().UTC().Format(time.RFC3339),
-		})
-		return
-	}
-
-	msg := "unsubscribed"
-	if req.IsSubscribed {
-		msg = "subscribed"
-	}
-	c.JSON(http.StatusOK, models.Response{
-		StatusCode: http.StatusOK,
-		Success:    true,
-		Message:    "Farmer " + msg + " successfully",
 		TimeStamp:  time.Now().UTC().Format(time.RFC3339),
 	})
 }
