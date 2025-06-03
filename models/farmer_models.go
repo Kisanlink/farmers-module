@@ -6,11 +6,15 @@ import (
 
 // FarmerSignupRequest defines the request structure for farmer registration
 type FarmerSignupRequest struct {
-	UserId           *string `json:"user_id" validate:"omitempty,uuid"`
-	UserName         *string `json:"username" validate:"omitempty,min=2,max=100"`
-	Email            *string `json:"email" validate:"omitempty,email"`
-	CountryCode      string  `json:"country_code" validate:"required,numeric,len=3"`   // Changed to numeric validation
-	MobileNumber     uint64  `json:"mobile_number" validate:"required,numeric,len=10"` // Indian mobile numbers
+	UserId      *string `json:"user_id" validate:"omitempty,uuid"`
+	UserName    *string `json:"username" validate:"omitempty,min=2,max=100"`
+	Email       *string `json:"email" validate:"omitempty,email"`
+	CountryCode string  `json:"country_code" validate:"required,numeric,len=3"` // Changed to numeric validation
+	// raw JSON goes here
+	MobileNumberString string `json:"mobile_number" validate:"required,numeric,len=10"`
+	// parsed integer, ignored by JSON
+	MobileNumber uint64 `json:"-"`
+
 	AadhaarNumber    *string `json:"aadhaar_number" validate:"omitempty,numeric,len=12"`
 	KisansathiUserId *string `json:"kisansathi_user_id" validate:"omitempty,uuid"`
 
