@@ -13,11 +13,8 @@ import (
 type FarmerServiceInterface interface {
 	CreateFarmer(userId string, req models.FarmerSignupRequest) (*models.Farmer, *pb.GetUserByIdResponse, error)
 	// FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, *pb.GetUserByIdResponse, error) // Updated to include user details
-	FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, error) // Updated to include user details
-	FetchFarmersWithoutUserDetails(farmerId, kisansathiUserId string) ([]models.Farmer, error)
-
-	FetchSubscribedFarmers(userId, kisansathiUserId string) ([]models.Farmer, error)
-	SetSubscriptionStatus(farmerId string, subscribe bool) error
+	FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, error)           // Updated to include user details
+	FetchFarmersWithoutUserDetails(farmerId, kisansathiUserId string) ([]models.Farmer, error) // New method
 }
 
 // FarmerService handles business logic for farmers
@@ -94,17 +91,4 @@ func (s *FarmerService) FetchFarmers(userId, farmerId, kisansathiUserId string) 
 
 func (s *FarmerService) FetchFarmersWithoutUserDetails(farmerId, kisansathiUserId string) ([]models.Farmer, error) {
 	return s.repo.FetchFarmers("", farmerId, kisansathiUserId)
-}
-
-func (s *FarmerService) FetchSubscribedFarmers(
-	userId, kisansathiUserId string,
-) ([]models.Farmer, error) {
-	return s.repo.FetchSubscribedFarmers(userId, kisansathiUserId)
-}
-
-func (s *FarmerService) SetSubscriptionStatus(
-	farmerId string,
-	subscribe bool,
-) error {
-	return s.repo.SetSubscriptionStatus(farmerId, subscribe)
 }
