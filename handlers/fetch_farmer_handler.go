@@ -4,8 +4,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"strconv"
-	"time"
 
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/services"
@@ -14,84 +12,52 @@ import (
 )
 
 func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
-	userID := c.Query("user_id")
-	farmerID := c.Query("farmer_id")
-	kisanID := c.Query("kisansathi_user_id")
+	// Extract query parameters
+	userId := c.Query("user_id")
+	farmerId := c.Query("farmer_id")
+	kisansathiUserId := c.Query("kisansathi_user_id")
 	includeUserDetails := c.Query("user_details") == "true"
 
-	// Parse 'subscribed' query parameter
-	subscribedParam := c.Query("subscribed")
-	var filterBySubscribed bool
-	var subscribedValue bool
-	if subscribedParam != "" {
-		val, err := strconv.ParseBool(subscribedParam)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, models.Response{
-				StatusCode: http.StatusBadRequest,
-				Success:    false,
-				Message:    "Invalid 'subscribed' value. Use true or false.",
-				Error:      err.Error(),
-				TimeStamp:  time.Now().UTC().Format(time.RFC3339),
-			})
-			return
-		}
-		filterBySubscribed = true
-		subscribedValue = val
-	}
+	var farmers []models.Farmer
+	var err error
 
-	// Step 1: Fetch all farmers
-	farmers, err := h.farmerService.FetchFarmers(userID, farmerID, kisanID)
+	// Always fetch farmers first
+	farmers, err = h.farmerService.FetchFarmers(userId, farmerId, kisansathiUserId)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{
-			StatusCode: http.StatusInternalServerError,
-			Success:    false,
-			Message:    "Failed to fetch farmers",
-			Error:      err.Error(),
-			TimeStamp:  time.Now().UTC().Format(time.RFC3339),
-		})
+		h.sendErrorResponse(c, http.StatusInternalServerError, "Failed to fetch farmers", err.Error())
 		return
 	}
 
-	// Step 2: Apply 'subscribed' filter
-	if filterBySubscribed {
-		filtered := farmers[:0]
-		for _, f := range farmers {
-			if f.IsSubscribed == subscribedValue {
-				filtered = append(filtered, f)
-			}
-		}
-		farmers = filtered
-	}
-
-	// Step 3: Optionally enrich with user details
+	// If user details are requested and we have farmers with user_ids
 	if includeUserDetails && len(farmers) > 0 {
-		userMap := make(map[string]*pb.User, len(farmers))
-		for _, f := range farmers {
-			if f.UserId == "" {
-				continue
-			}
-			resp, err := services.GetUserByIdClient(context.Background(), f.UserId)
-			if err != nil {
-				log.Printf("Error fetching user %s: %v", f.UserId, err)
-				continue
-			}
-			if resp != nil && resp.Data != nil {
-				userMap[f.UserId] = resp.Data
+		// Collect all unique user IDs from farmers
+		userIds := make([]string, 0, len(farmers))
+		for _, farmer := range farmers {
+			if farmer.UserId != "" {
+				userIds = append(userIds, farmer.UserId)
 			}
 		}
+
+		// Fetch user details for all user_ids
+		userDetailsMap := make(map[string]*pb.User)
+		for _, uid := range userIds {
+			userDetails, err := services.GetUserByIdClient(context.Background(), uid)
+			if err != nil {
+				log.Printf("Error fetching user details for %s: %v", uid, err)
+				continue
+			}
+			if userDetails != nil && userDetails.Data != nil {
+				userDetailsMap[uid] = userDetails.Data
+			}
+		}
+
+		// Assign user details to farmers
 		for i := range farmers {
-			if ud := userMap[farmers[i].UserId]; ud != nil {
-				farmers[i].UserDetails = ud
+			if details, exists := userDetailsMap[farmers[i].UserId]; exists {
+				farmers[i].UserDetails = details
 			}
 		}
 	}
 
-	// Step 4: Respond
-	c.JSON(http.StatusOK, models.Response{
-		StatusCode: http.StatusOK,
-		Success:    true,
-		Message:    "Farmers fetched successfully",
-		Data:       farmers,
-		TimeStamp:  time.Now().UTC().Format(time.RFC3339),
-	})
+	h.sendSuccessResponse(c, http.StatusOK, "Farmers fetched successfully", farmers)
 }

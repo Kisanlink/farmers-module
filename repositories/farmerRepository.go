@@ -9,9 +9,6 @@ import (
 type FarmerRepositoryInterface interface {
 	CreateFarmerEntry(farmer *models.Farmer) (*models.Farmer, error)
 	FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, error)
-
-	FetchSubscribedFarmers(userId, kisansathiUserId string) ([]models.Farmer, error)
-	SetSubscriptionStatus(farmerID string, subscribe bool) error
 }
 
 // FarmerRepository interacts with the database
@@ -52,46 +49,4 @@ func (r *FarmerRepository) FetchFarmers(userId, farmerId, kisansathiUserId strin
 		return nil, err
 	}
 	return farmers, nil
-}
-
-// FetchSubscribedFarmers returns all farmers where is_subscribed = true,
-// with optional filters on user_id or kisansathi_user_id
-func (r *FarmerRepository) FetchSubscribedFarmers(
-	userId, kisansathiUserId string,
-) ([]models.Farmer, error) {
-	var farmers []models.Farmer
-	q := r.db.Model(&models.Farmer{}).
-		Where("is_subscribed = ?", true)
-
-	if userId != "" {
-		q = q.Where("user_id = ?", userId)
-	}
-	if kisansathiUserId != "" {
-		q = q.Where("kisansathi_user_id = ?", kisansathiUserId)
-	}
-
-	if err := q.Find(&farmers).Error; err != nil {
-		return nil, err
-	}
-	return farmers, nil
-}
-
-// SetSubscriptionStatus toggles the is_subscribed column for a single farmer
-func (r *FarmerRepository) SetSubscriptionStatus(
-	farmerID string,
-	subscribe bool,
-) error {
-	return r.db.
-		Model(&models.Farmer{}).
-		Where("id = ?", farmerID).
-		Update("is_subscribed", subscribe).
-		Error
-}
-
-func (r *FarmerRepository) SubscribeFarmer(farmerID string) error {
-	return r.SetSubscriptionStatus(farmerID, true)
-}
-
-func (r *FarmerRepository) UnsubscribeFarmer(farmerID string) error {
-	return r.SetSubscriptionStatus(farmerID, false)
 }

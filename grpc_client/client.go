@@ -8,20 +8,17 @@ import (
 	"github.com/Kisanlink/farmers-module/config"
 	"github.com/kisanlink/protobuf/pb-aaa"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 )
 
-// UserClient is your global UserServiceClient
 var UserClient pb.UserServiceClient
 
-// unary interceptor to attach the AAA auth token and log
 func ClientInterceptor(token string) grpc.UnaryClientInterceptor {
 	return func(
 		ctx context.Context,
 		method string,
-		req, reply interface{},
+		req interface{},
+		reply interface{},
 		cc *grpc.ClientConn,
 		invoker grpc.UnaryInvoker,
 		opts ...grpc.CallOption,
@@ -30,50 +27,54 @@ func ClientInterceptor(token string) grpc.UnaryClientInterceptor {
 			md := metadata.Pairs("aaa-auth-token", token)
 			ctx = metadata.NewOutgoingContext(ctx, md)
 		}
-		log.Printf("→ gRPC %s", method)
+
+		// Log the request
+		log.Printf("Sending request to method: %s", method)
 		start := time.Now()
 		err := invoker(ctx, method, req, reply, cc, opts...)
-		log.Printf("← gRPC %s %v (took %s)", method,
-			errOrOK(err), time.Since(start))
-		return err
+		if err != nil {
+			log.Printf("Request failed: %v (duration: %s)", err, time.Since(start))
+			return err
+		}
+		log.Printf("Request succeeded to method: %s (duration: %s)", method, time.Since(start))
+		return nil
 	}
 }
 
-func errOrOK(err error) string {
-	if err != nil {
-		return err.Error()
-	}
-	return "OK"
-}
-
-// GrpcClient dials the AAA host:port, installs interceptor, and
-// initializes UserClient. No Greeter calls here.
 func GrpcClient(token string) (*grpc.ClientConn, error) {
-	// load .env or env vars
+	var clientInterceptor grpc.UnaryClientInterceptor
+
+	clientInterceptor = ClientInterceptor(token)
+
+	// Load environment variables
 	config.LoadEnv()
-	host := config.GetEnv("AAA_HOST")
-	port := config.GetEnv("AAA_GRPC_PORT")
-	addr := host + ":" + port
 
-	conn, err := grpc.Dial(
-		addr,
-		grpc.WithInsecure(),
-		grpc.WithBlock(),
-		grpc.WithUnaryInterceptor(ClientInterceptor(token)),
-	)
+	// Get AAA GRPC connection details
+	aaaHost := config.GetEnv("AAA_HOST")
+	aaaGRPCPort := config.GetEnv("AAA_GRPC_PORT")
+
+	connection := aaaHost + ":" + aaaGRPCPort
+
+	conn, err := grpc.Dial(connection, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithUnaryInterceptor(clientInterceptor))
 	if err != nil {
-		return nil, err
+		log.Fatalf("failed to connect to gRPC server: %v", err)
 	}
 
-	// only initialize UserService client
 	UserClient = pb.NewUserServiceClient(conn)
-	return conn, nil
-}
+	client := pb.NewGreeterClient(conn)
 
-// Helper to fetch a user by ID (in your services/GetUserByIdClient)
-func GetUserById(ctx context.Context, id string) (*pb.GetUserByIdResponse, error) {
-	if UserClient == nil {
-		return nil, status.Errorf(codes.FailedPrecondition, "gRPC client not initialized")
+	request := &pb.HelloRequest{
+		Name: "World",
 	}
-	return UserClient.GetUserById(ctx, &pb.GetUserByIdRequest{Id: id})
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	response, err := client.SayHello(ctx, request)
+	if err != nil {
+		log.Fatalf("Failed to call SayHello: %v", err)
+	}
+	log.Printf("Response from Greeter service: %s", response.GetMessage())
+
+	return conn, nil
 }

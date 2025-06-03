@@ -17,8 +17,6 @@ type FarmerSignupRequest struct {
 
 	AadhaarNumber    *string `json:"aadhaar_number" validate:"omitempty,numeric,len=12"`
 	KisansathiUserId *string `json:"kisansathi_user_id" validate:"omitempty,uuid"`
-
-	IsSubscribed *bool `json:"is_subscribed" validate:"omitempty"`
 }
 
 // Farmer represents a farmer entity in the database
@@ -27,8 +25,6 @@ type Farmer struct {
 	UserId           string  `gorm:"type:varchar(36);uniqueIndex" json:"user_id"`
 	KisansathiUserId *string `gorm:"type:varchar(36)" json:"kisansathi_user_id,omitempty"`
 	IsActive         bool    `gorm:"default:true" json:"is_active"`
-
-	IsSubscribed bool `gorm:"default:false" json:"is_subscribed"`
 
 	// Changed from json:"user,omitempty" to json:"user_details,omitempty"
 	UserDetails *pb.User `json:"user_details,omitempty" gorm:"-"`
