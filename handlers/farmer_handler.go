@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/config"
@@ -101,12 +102,30 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 		return
 	}
 
-	// If UserId is not provided, we need all personal information
-	// Check if phone number is present
-	if req.MobileNumber == 0 {
-		h.sendErrorResponse(c, http.StatusBadRequest, "Mobile number is required", "mobile_number field is missing or invalid")
+	// 1) length check
+	if len(req.MobileNumberString) != 10 {
+		h.sendErrorResponse(c, http.StatusBadRequest,
+			"Invalid mobile number", "must be exactly 10 digits")
 		return
 	}
+
+	// 2) leading-zero check
+	if req.MobileNumberString[0] == '0' {
+		h.sendErrorResponse(c, http.StatusBadRequest,
+			"Invalid mobile number", "should not start with 0")
+		return
+	}
+
+	// 3) parse into uint64
+	mobileUint, err := strconv.ParseUint(req.MobileNumberString, 10, 64)
+	if err != nil {
+		h.sendErrorResponse(c, http.StatusBadRequest,
+			"Invalid mobile number", "must contain only digits")
+		return
+	}
+
+	// 4) stash
+	req.MobileNumber = mobileUint
 
 	// Handle Kisansathi User Id if present (same as above)
 	if req.KisansathiUserId != nil {
@@ -236,49 +255,5 @@ func (h *FarmerHandler) sendSuccessResponse(c *gin.Context, status int, message 
 		"timestamp": time.Now().UTC(),
 		"data":      data,
 		"success":   true,
-	})
-}
-
-// -----------------------------------------
-// 3) SUBSCRIBE / UNSUBSCRIBE
-// -----------------------------------------
-type subscribeRequest struct {
-	IsSubscribed *bool `json:"is_subscribed" binding:"required"`
-}
-
-func (h *FarmerHandler) SubscribeHandler(c *gin.Context) {
-	farmerID := c.Param("id")
-	var req subscribeRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.Response{
-			StatusCode: http.StatusBadRequest,
-			Success:    false,
-			Message:    "Invalid request body",
-			Error:      err.Error(),
-			TimeStamp:  time.Now().UTC().Format(time.RFC3339),
-		})
-		return
-	}
-
-	if err := h.farmerService.SetSubscriptionStatus(farmerID, *req.IsSubscribed); err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{
-			StatusCode: http.StatusInternalServerError,
-			Success:    false,
-			Message:    "Could not update subscription",
-			Error:      err.Error(),
-			TimeStamp:  time.Now().UTC().Format(time.RFC3339),
-		})
-		return
-	}
-
-	msg := "unsubscribed"
-	if *req.IsSubscribed {
-		msg = "subscribed"
-	}
-	c.JSON(http.StatusOK, models.Response{
-		StatusCode: http.StatusOK,
-		Success:    true,
-		Message:    "Farmer " + msg + " successfully",
-		TimeStamp:  time.Now().UTC().Format(time.RFC3339),
 	})
 }

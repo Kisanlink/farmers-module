@@ -17,8 +17,6 @@ type FarmerSignupRequest struct {
 
 	AadhaarNumber    *string `json:"aadhaar_number" validate:"omitempty,numeric,len=12"`
 	KisansathiUserId *string `json:"kisansathi_user_id" validate:"omitempty,uuid"`
-
-	IsSubscribed *bool `json:"is_subscribed" validate:"omitempty"`
 }
 
 // Farmer represents a farmer entity in the database
