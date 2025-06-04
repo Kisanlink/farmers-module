@@ -257,3 +257,43 @@ func (h *FarmerHandler) sendSuccessResponse(c *gin.Context, status int, message 
 		"success":   true,
 	})
 }
+
+// SetSubscription handles “POST /farmers/:farmer_id/subscription?is_subscribed={true|false}”
+func (h *FarmerHandler) SetSubscription(c *gin.Context) {
+	// 1. Extract path parameter
+	farmerID := c.Param("farmer_id")
+	if farmerID == "" {
+		h.sendErrorResponse(c, http.StatusBadRequest,
+			"farmer_id is required in path", "missing path parameter")
+		return
+	}
+
+	// 2. Extract query parameter
+	isSubStr := c.Query("is_subscribed")
+	if isSubStr == "" {
+		h.sendErrorResponse(c, http.StatusBadRequest,
+			"is_subscribed query parameter is required", "missing query parameter")
+		return
+	}
+
+	// 3. Parse “is_subscribed” into a bool
+	isSubscribed, err := strconv.ParseBool(isSubStr)
+	if err != nil {
+		h.sendErrorResponse(c, http.StatusBadRequest,
+			"invalid value for is_subscribed; must be true or false", err.Error())
+		return
+	}
+
+	// 4. Call service to toggle the subscription flag
+	if err := h.farmerService.SetSubscriptionStatus(farmerID, isSubscribed); err != nil {
+		h.sendErrorResponse(c, http.StatusInternalServerError,
+			"failed to update subscription status", err.Error())
+		return
+	}
+
+	// 5. Return a success response
+	h.sendSuccessResponse(c, http.StatusOK, "subscription status updated", gin.H{
+		"farmer_id":     farmerID,
+		"is_subscribed": isSubscribed,
+	})
+}
