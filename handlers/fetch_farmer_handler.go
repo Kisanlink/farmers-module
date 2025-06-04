@@ -12,25 +12,31 @@ import (
 )
 
 func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
-	// Extract query parameters
+	// 1) Extract query parameters
 	userId := c.Query("user_id")
 	farmerId := c.Query("farmer_id")
 	kisansathiUserId := c.Query("kisansathi_user_id")
 	includeUserDetails := c.Query("user_details") == "true"
+	subscribed := c.Query("subscribed") == "true"
 
 	var farmers []models.Farmer
 	var err error
 
-	// Always fetch farmers first
-	farmers, err = h.farmerService.FetchFarmers(userId, farmerId, kisansathiUserId)
+	// 2) If ?subscribed=true, call FetchSubscribedFarmers. Otherwise, call the normal FetchFarmers.
+	if subscribed {
+		// Note: FetchSubscribedFarmers only accepts userId and kisansathiUserId,
+		// so we ignore farmerId here.
+		farmers, err = h.farmerService.FetchSubscribedFarmers(userId, kisansathiUserId)
+	} else {
+		farmers, err = h.farmerService.FetchFarmers(userId, farmerId, kisansathiUserId)
+	}
 	if err != nil {
 		h.sendErrorResponse(c, http.StatusInternalServerError, "Failed to fetch farmers", err.Error())
 		return
 	}
 
-	// If user details are requested and we have farmers with user_ids
+	// 3) (Unchanged) If user_details=true, enrich each farmer with gRPC user info
 	if includeUserDetails && len(farmers) > 0 {
-		// Collect all unique user IDs from farmers
 		userIds := make([]string, 0, len(farmers))
 		for _, farmer := range farmers {
 			if farmer.UserId != "" {
@@ -38,7 +44,6 @@ func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 			}
 		}
 
-		// Fetch user details for all user_ids
 		userDetailsMap := make(map[string]*pb.User)
 		for _, uid := range userIds {
 			userDetails, err := services.GetUserByIdClient(context.Background(), uid)
@@ -51,7 +56,6 @@ func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 			}
 		}
 
-		// Assign user details to farmers
 		for i := range farmers {
 			if details, exists := userDetailsMap[farmers[i].UserId]; exists {
 				farmers[i].UserDetails = details
@@ -59,5 +63,6 @@ func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 		}
 	}
 
+	// 4) Return the final list
 	h.sendSuccessResponse(c, http.StatusOK, "Farmers fetched successfully", farmers)
 }
