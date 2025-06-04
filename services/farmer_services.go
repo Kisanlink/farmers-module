@@ -13,8 +13,8 @@ import (
 type FarmerServiceInterface interface {
 	CreateFarmer(userId string, req models.FarmerSignupRequest) (*models.Farmer, *pb.GetUserByIdResponse, error)
 	// FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, *pb.GetUserByIdResponse, error) // Updated to include user details
-	FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, error) // Updated to include user details
-	FetchFarmersWithoutUserDetails(farmerId, kisansathiUserId string) ([]models.Farmer, error)
+	FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, error)           // Updated to include user details
+	FetchFarmersWithoutUserDetails(farmerId, kisansathiUserId string) ([]models.Farmer, error) // New method
 
 	FetchSubscribedFarmers(userId, kisansathiUserId string) ([]models.Farmer, error)
 	SetSubscriptionStatus(farmerId string, subscribe bool) error

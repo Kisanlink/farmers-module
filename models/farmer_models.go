@@ -28,8 +28,8 @@ type Farmer struct {
 	KisansathiUserId *string `gorm:"type:varchar(36)" json:"kisansathi_user_id,omitempty"`
 	IsActive         bool    `gorm:"default:true" json:"is_active"`
 
-	IsSubscribed bool `gorm:"default:false" json:"is_subscribed"`
-
 	// Changed from json:"user,omitempty" to json:"user_details,omitempty"
 	UserDetails *pb.User `json:"user_details,omitempty" gorm:"-"`
+
+	IsSubscribed bool `gorm:"default:false" json:"is_subscribed"`
 }

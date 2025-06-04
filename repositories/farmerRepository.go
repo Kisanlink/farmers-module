@@ -11,7 +11,7 @@ type FarmerRepositoryInterface interface {
 	FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, error)
 
 	FetchSubscribedFarmers(userId, kisansathiUserId string) ([]models.Farmer, error)
-	SetSubscriptionStatus(farmerID string, subscribe bool) error
+	SetSubscriptionStatus(farmerId string, subscribe bool) error
 }
 
 // FarmerRepository interacts with the database
