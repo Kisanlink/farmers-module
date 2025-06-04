@@ -3,7 +3,6 @@ package database
 import (
 	// "fmt"
 
-	"fmt"
 	"log"
 	"sync"
 
@@ -17,6 +16,7 @@ var (
 	once       sync.Once
 )
 
+/*
 // InitializeDatabase initializes the PostgreSQL connection and sets the global database instance.
 func InitializeDatabase() {
 	once.Do(func() {
@@ -44,6 +44,29 @@ func InitializeDatabase() {
 			log.Fatalf("Failed to connect to PostgreSQL: %v", err)
 		}
 		log.Println("Connected to PostgreSQL successfully")
+		RunMigrations()
+	})
+}*/
+
+func InitializeDatabase() {
+	once.Do(func() {
+		// Load environment variables
+		config.LoadEnv()
+
+		// Use DATABASE_URL directly from environment
+		dsn := config.GetEnv("DATABASE_URL")
+		if dsn == "" {
+			log.Fatal("DATABASE_URL is not set in the environment")
+		}
+
+		// Connect to PostgreSQL
+		var err error
+		dbInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err != nil {
+			log.Fatalf("Failed to connect to PostgreSQL: %v", err)
+		}
+		log.Println("Connected to PostgreSQL successfully")
+
 		RunMigrations()
 	})
 }
