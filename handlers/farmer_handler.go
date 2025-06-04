@@ -47,28 +47,6 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 				return
 			}
 
-			/* // Check permissions
-			if userResp.Data.UsageRight == nil {
-				h.sendErrorResponse(c, http.StatusForbidden,
-					"Permission denied", "user has no usage rights defined")
-				return
-			}
-
-			hasPermission := false
-			for _, perm := range userResp.Data.UsageRight.Permissions {
-				if perm.Name == "manage_farmers" {
-					hasPermission = true
-					break
-				}
-			}
-
-			if !hasPermission {
-				h.sendErrorResponse(c, http.StatusForbidden,
-					"Permission denied", "missing required permissions or actions")
-				return
-			}
-			*/
-
 			// Check permissions using RolePermissions
 			if len(userResp.Data.RolePermissions) == 0 {
 				h.sendErrorResponse(c, http.StatusForbidden,

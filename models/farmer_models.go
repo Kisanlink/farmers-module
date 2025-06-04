@@ -28,4 +28,6 @@ type Farmer struct {
 
 	// Changed from json:"user,omitempty" to json:"user_details,omitempty"
 	UserDetails *pb.User `json:"user_details,omitempty" gorm:"-"`
+
+	IsSubscribed bool `gorm:"default:false" json:"is_subscribed"`
 }

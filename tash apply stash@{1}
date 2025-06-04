@@ -1,0 +1,9 @@
+stash@{0}: WIP on subscribers: 1637291 Merge pull request #18 from Kisanlink/revert-17-subscribed_farmers
+stash@{1}: WIP on subscribed_farmers: fa40709 Fixed for current beta
+stash@{2}: WIP on beta: f3a63d9 Merge pull request #16 from Kisanlink/Create_farmer_fix
+stash@{3}: WIP on subscribed_farmers: 23fb014 - Added Subscription functionality for farmers - Removed all references and calls to pb.Greeter and SayHello method - Updated client initialization to only dial and register UserServiceClient - Added helper function GetUserById to encapsulate UserClient.GetUserById call - Simplified connection logic by focusing on UserService only
+stash@{4}: WIP on subscribed_farmers: 23fb014 - Added Subscription functionality for farmers - Removed all references and calls to pb.Greeter and SayHello method - Updated client initialization to only dial and register UserServiceClient - Added helper function GetUserById to encapsulate UserClient.GetUserById call - Simplified connection logic by focusing on UserService only
+stash@{5}: WIP on beta: 0453eeb Added start date check for create activity
+stash@{6}: WIP on redo: 55f5688 Merge branch 'redo' of github.com:Kisanlink/farmers-module into redo
+stash@{7}: WIP on redo: 55f5688 Merge branch 'redo' of github.com:Kisanlink/farmers-module into redo
+stash@{8}: WIP on your-feature-branch: 80c07cd Changed the response body of fetch farmers
