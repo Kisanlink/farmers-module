@@ -18,6 +18,7 @@ type FarmerSignupRequest struct {
 	MobileNumber       uint64  `json:"-"`
 	AadhaarNumber      *string `json:"aadhaar_number" validate:"omitempty,numeric,len=12"`
 	KisansathiUserId   *string `json:"kisansathi_user_id" validate:"omitempty,uuid"`
+	Type               string  `json:"-"`
 }
 
 // Farmer represents a farmer entity in the database

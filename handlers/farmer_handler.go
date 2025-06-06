@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/config"
+	"github.com/Kisanlink/farmers-module/entities"
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/services"
 	"github.com/gin-gonic/gin"
@@ -28,6 +30,22 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 		h.sendErrorResponse(c, http.StatusBadRequest, "Invalid request parameters", err.Error())
 		return
 	}
+
+	typeParam := c.Query("type")
+	if typeParam == "" {
+		h.sendErrorResponse(c, http.StatusBadRequest,
+			"Farmer type is required", "query param `type` must be one of OWNER, TENANT, OTHER")
+		return
+	}
+	// validate against your enum
+	if !entities.FARMER_TYPES.IsValid(typeParam) {
+		h.sendErrorResponse(c, http.StatusBadRequest,
+			"Invalid farmer type",
+			fmt.Sprintf("`type` must be one of: %v", entities.FARMER_TYPES.StringValues()))
+		return
+	}
+	// stash it in the request
+	req.Type = typeParam
 
 	// If UserId is provided, we only need to check KisansathiUserId
 	if req.UserId != nil {
