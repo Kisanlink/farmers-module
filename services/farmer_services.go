@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Kisanlink/farmers-module/entities"
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/repositories"
 	"github.com/kisanlink/protobuf/pb-aaa"
@@ -43,11 +44,14 @@ func (s *FarmerService) CreateFarmer(
 		return nil, nil, fmt.Errorf("failed to fetch user details: %w", err)
 	}
 
+	farmerType := entities.FarmerType(req.Type)
+
 	// Create farmer record
 	newFarmer := &models.Farmer{
 		UserId:           userId,
 		KisansathiUserId: req.KisansathiUserId,
 		IsActive:         true,
+		Type:             farmerType,
 	}
 
 	createdFarmer, err := s.repo.CreateFarmerEntry(newFarmer)
