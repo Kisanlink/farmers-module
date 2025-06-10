@@ -18,7 +18,7 @@ type FarmerSignupRequest struct {
 	MobileNumber       uint64  `json:"-"`
 	AadhaarNumber      *string `json:"aadhaar_number" validate:"omitempty,numeric,len=12"`
 	KisansathiUserId   *string `json:"kisansathi_user_id" validate:"omitempty,uuid"`
-	Type               string  `json:"-"`
+	Type               string  `json:"type" validate:"omitempty"`
 }
 
 // Farmer represents a farmer entity in the database
@@ -29,11 +29,15 @@ type Farmer struct {
 	IsActive         bool                `gorm:"default:true" json:"is_active"`
 	UserDetails      *pb.User            `json:"user_details,omitempty" gorm:"-"`
 	IsSubscribed     bool                `gorm:"default:false" json:"is_subscribed"`
-	Type             entities.FarmerType `gorm:"type:varchar(10);not null" json:"type"`
+	Type             entities.FarmerType `gorm:"type:varchar(10);not null;default:'OTHER'" json:"type"`
 }
 
 func (f *Farmer) BeforeCreate(tx *gorm.DB) (err error) {
-	// Validate that f.Type is one of OWNER, TENANT, or OTHER
+	// First, generate/validate Base.Id
+	if err = f.Base.BeforeCreate(tx); err != nil {
+		return err
+	}
+	// Then validate Farmer-specific fields (type, etc.)
 	if !entities.FARMER_TYPES.IsValid(string(f.Type)) {
 		return fmt.Errorf(
 			"invalid farmer type: %s. Valid values are: %v",

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/config"
@@ -31,25 +32,23 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 		return
 	}
 
-	typeParam := c.Query("type")
-	if typeParam == "" {
-		h.sendErrorResponse(c, http.StatusBadRequest,
-			"Farmer type is required", "query param `type` must be one of OWNER, TENANT, OTHER")
-		return
+	// Validate req.Type if provided in JSON
+	if req.Type != "" {
+		// Optionally normalize case, e.g., uppercase
+		tp := strings.ToUpper(req.Type)
+		if !entities.FARMER_TYPES.IsValid(tp) {
+			h.sendErrorResponse(c, http.StatusBadRequest,
+				"Invalid farmer type",
+				fmt.Sprintf("`type` must be one of: %v", entities.FARMER_TYPES.StringValues()))
+			return
+		}
+		req.Type = tp
 	}
-	// validate against your enum
-	if !entities.FARMER_TYPES.IsValid(typeParam) {
-		h.sendErrorResponse(c, http.StatusBadRequest,
-			"Invalid farmer type",
-			fmt.Sprintf("`type` must be one of: %v", entities.FARMER_TYPES.StringValues()))
-		return
-	}
-	// stash it in the request
-	req.Type = typeParam
+	// If req.Type is empty, service layer will default to OTHER
 
-	// If UserId is provided, we only need to check KisansathiUserId
+	// If UserId is provided, handle that flow
 	if req.UserId != nil {
-		// Still need to validate KisansathiUserId if it's provided
+		// (existing KisansathiUserId verification...)
 		if req.KisansathiUserId != nil {
 			userResp, err := services.GetUserByIdClient(c.Request.Context(), *req.KisansathiUserId)
 			if err != nil {
@@ -57,21 +56,16 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 					"Failed to verify Kisansathi user", err.Error())
 				return
 			}
-
-			// Check if user exists and response is valid
 			if userResp == nil || userResp.StatusCode != http.StatusOK || userResp.Data == nil {
 				h.sendErrorResponse(c, http.StatusUnauthorized,
 					"Kisansathi user not found", "invalid user response")
 				return
 			}
-
-			// Check permissions using RolePermissions
 			if len(userResp.Data.RolePermissions) == 0 {
 				h.sendErrorResponse(c, http.StatusForbidden,
 					"Permission denied", "user has no role permissions defined")
 				return
 			}
-
 			hasPermission := false
 			for _, rolePerm := range userResp.Data.RolePermissions {
 				for _, perm := range rolePerm.Permissions {
@@ -84,23 +78,20 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 					break
 				}
 			}
-
 			if !hasPermission {
 				h.sendErrorResponse(c, http.StatusForbidden,
 					"Permission denied", "missing required permissions or actions")
 				return
 			}
-
 		}
 
-		// Create Farmer Record with just the UserId and optional KisansathiUserId
+		// Create Farmer Record with UserId, optional KisansathiUserId, and req.Type
 		farmer, userDetails, err := h.farmerService.CreateFarmer(*req.UserId, req)
 		if err != nil {
 			h.sendErrorResponse(c, http.StatusInternalServerError,
 				"Failed to create farmer record", err.Error())
 			return
 		}
-
 		// Assign Farmer Role
 		if _, err := services.AssignRoleToUserClient(
 			c.Request.Context(),
@@ -111,8 +102,6 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 				"Farmer created but role assignment failed", err.Error())
 			return
 		}
-
-		// Return Success Response
 		h.sendSuccessResponse(c, http.StatusCreated, "Farmer registered successfully", gin.H{
 			"farmer": farmer,
 			"user":   userDetails,
@@ -120,32 +109,25 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 		return
 	}
 
-	// 1) length check
+	// Mobile-based signup: same as before
 	if len(req.MobileNumberString) != 10 {
 		h.sendErrorResponse(c, http.StatusBadRequest,
 			"Invalid mobile number", "must be exactly 10 digits")
 		return
 	}
-
-	// 2) leading-zero check
 	if req.MobileNumberString[0] == '0' {
 		h.sendErrorResponse(c, http.StatusBadRequest,
 			"Invalid mobile number", "should not start with 0")
 		return
 	}
-
-	// 3) parse into uint64
 	mobileUint, err := strconv.ParseUint(req.MobileNumberString, 10, 64)
 	if err != nil {
 		h.sendErrorResponse(c, http.StatusBadRequest,
 			"Invalid mobile number", "must contain only digits")
 		return
 	}
-
-	// 4) stash
 	req.MobileNumber = mobileUint
 
-	// Handle Kisansathi User Id if present (same as above)
 	if req.KisansathiUserId != nil {
 		userResp, err := services.GetUserByIdClient(c.Request.Context(), *req.KisansathiUserId)
 		if err != nil {
@@ -153,43 +135,16 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 				"Failed to verify Kisansathi user", err.Error())
 			return
 		}
-
-		// Check if user exists and response is valid
 		if userResp == nil || userResp.StatusCode != http.StatusOK || userResp.Data == nil {
 			h.sendErrorResponse(c, http.StatusUnauthorized,
 				"Kisansathi user not found", "invalid user response")
 			return
 		}
-
-		/*// Check permissions
-		if userResp.Data.UsageRight == nil {
-			h.sendErrorResponse(c, http.StatusForbidden,
-				"Permission denied", "user has no usage rights defined")
-			return
-		}
-
-		hasPermission := false
-		for _, perm := range userResp.Data.UsageRight.Permissions {
-			if perm.Name == "manage_farmers" {
-				hasPermission = true
-				break
-			}
-		}
-
-		if !hasPermission {
-			h.sendErrorResponse(c, http.StatusForbidden,
-				"Permission denied", "missing required permissions or actions")
-			return
-		}
-		*/
-
-		// Check permissions using RolePermissions
 		if len(userResp.Data.RolePermissions) == 0 {
 			h.sendErrorResponse(c, http.StatusForbidden,
 				"Permission denied", "user has no role permissions defined")
 			return
 		}
-
 		hasPermission := false
 		for _, rolePerm := range userResp.Data.RolePermissions {
 			for _, perm := range rolePerm.Permissions {
@@ -202,21 +157,17 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 				break
 			}
 		}
-
 		if !hasPermission {
 			h.sendErrorResponse(c, http.StatusForbidden,
 				"Permission denied", "missing required permissions or actions")
 			return
 		}
-
 	}
 
-	// Create new user via AAA service since UserId wasn't provided
 	if req.UserName == nil || req.AadhaarNumber == nil {
 		h.sendErrorResponse(c, http.StatusBadRequest, "Name and Aadhaar number are required", "missing required fields")
 		return
 	}
-
 	createUserResp, err := services.CreateUserClient(req, "")
 	if err != nil {
 		h.sendErrorResponse(c, http.StatusInternalServerError,
@@ -231,22 +182,18 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 	}
 	userId := createUserResp.Data.Id
 
-	// Create Farmer Record
 	farmer, userDetails, err := h.farmerService.CreateFarmer(userId, req)
 	if err != nil {
 		h.sendErrorResponse(c, http.StatusInternalServerError,
 			"Failed to create farmer record", err.Error())
 		return
 	}
-
-	if _, err := services.AssignRoleToUserClient(c.Request.Context(), userId, "FARMER"); err != nil {
+	if _, err := services.AssignRoleToUserClient(c.Request.Context(), userId, config.ROLE_FARMER); err != nil {
 		log.Printf("Role assignment failed for user %s: %v", userId, err)
 		h.sendErrorResponse(c, http.StatusInternalServerError,
 			"Role assignment failed", "invalid user Id format or system error")
 		return
 	}
-
-	// Return Success Response
 	h.sendSuccessResponse(c, http.StatusCreated, "Farmer registered successfully", gin.H{
 		"farmer": farmer,
 		"user":   userDetails,
