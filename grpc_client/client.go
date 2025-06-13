@@ -61,20 +61,9 @@ func GrpcClient(token string) (*grpc.ClientConn, error) {
 	}
 
 	UserClient = pb.NewUserServiceClient(conn)
-	client := pb.NewGreeterClient(conn)
 
-	request := &pb.HelloRequest{
-		Name: "World",
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	_, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-
-	response, err := client.SayHello(ctx, request)
-	if err != nil {
-		log.Fatalf("Failed to call SayHello: %v", err)
-	}
-	log.Printf("Response from Greeter service: %s", response.GetMessage())
 
 	return conn, nil
 }
