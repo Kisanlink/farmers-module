@@ -271,3 +271,70 @@ func (css cropCycleStatuses) StringValues() []string {
 	}
 	return vals
 }
+
+// -------------------
+// Farmer Type Enum
+// -------------------
+type FarmerType string
+
+type farmerTypes struct {
+	OWNER  FarmerType
+	TENANT FarmerType
+	OTHER  FarmerType
+}
+
+var FARMER_TYPES = farmerTypes{
+	OWNER:  "OWNER",
+	TENANT: "TENANT",
+	OTHER:  "OTHER",
+}
+
+func (ft *FarmerType) Scan(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("invalid data for FarmerType: %v", value)
+	}
+	parsed, err := FARMER_TYPES.Parse(str)
+	if err != nil {
+		return err
+	}
+	*ft = parsed
+	return nil
+}
+
+func (ft FarmerType) Value() (driver.Value, error) {
+	return string(ft), nil
+}
+
+func (f farmerTypes) All() []FarmerType {
+	v := reflect.ValueOf(f)
+	out := make([]FarmerType, 0, v.NumField())
+	for i := 0; i < v.NumField(); i++ {
+		out = append(out, v.Field(i).Interface().(FarmerType))
+	}
+	return out
+}
+
+func (f farmerTypes) IsValid(input string) bool {
+	for _, candidate := range f.All() {
+		if string(candidate) == input {
+			return true
+		}
+	}
+	return false
+}
+
+func (f farmerTypes) Parse(input string) (FarmerType, error) {
+	if f.IsValid(input) {
+		return FarmerType(input), nil
+	}
+	return "", errors.New("invalid farmer type: " + input)
+}
+
+func (f farmerTypes) StringValues() []string {
+	s := make([]string, 0, len(f.All()))
+	for _, v := range f.All() {
+		s = append(s, string(v))
+	}
+	return s
+}
