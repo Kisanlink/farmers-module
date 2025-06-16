@@ -1,0 +1,17 @@
+# These owners will be the default owners for everything in the repo
+* @kaushik
+
+# Specific file/directory owners
+/.github/ @kaushik
+/routes/ @kaushik
+/services/ @kaushik
+/utils/ @kaushik
+/models/ @kaushik
+/repositories/ @kaushik
+/handlers/ @kaushik
+/database/ @kaushik
+/entities/ @kaushik
+/internal/ @kaushik
+/grpc_client/ @kaushik
+/config/ @kaushik
+/middleware/ @kaushik
