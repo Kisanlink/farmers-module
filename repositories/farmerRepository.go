@@ -12,6 +12,7 @@ type FarmerRepositoryInterface interface {
 
 	FetchSubscribedFarmers(userId, kisansathiUserId string) ([]models.Farmer, error)
 	SetSubscriptionStatus(farmerId string, subscribe bool) error
+	CountByUserId(id string) (int64, error)
 }
 
 // FarmerRepository interacts with the database
@@ -94,4 +95,12 @@ func (r *FarmerRepository) SubscribeFarmer(farmerID string) error {
 
 func (r *FarmerRepository) UnsubscribeFarmer(farmerID string) error {
 	return r.SetSubscriptionStatus(farmerID, false)
+}
+
+func (r *FarmerRepository) CountByUserId(id string) (int64, error) {
+	var n int64
+	err := r.db.Model(&models.Farmer{}).
+		Where("user_id = ?", id).
+		Count(&n).Error
+	return n, err
 }

@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	grpcclient "github.com/Kisanlink/farmers-module/grpc_client"
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/kisanlink/protobuf/pb-aaa"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func InitializeGrpcClient(token string, retries int) (*grpc.ClientConn, error) {
@@ -48,12 +51,17 @@ func CreateUserClient(req models.FarmerSignupRequest, token string) (*pb.CreateU
 
 	// Prepare gRPC request
 	userRequest := &pb.CreateUserRequest{
-		Username:      *req.UserName,
-		MobileNumber:  req.MobileNumber,
-		AadhaarNumber: *req.AadhaarNumber,
-		Password:      "Default@123",
-		CountryCode:   "+91",
+		Username:     *req.UserName,
+		MobileNumber: req.MobileNumber,
+		Password:     "Default@123",
+		CountryCode:  "+91",
 	}
+
+	// Aadhaar is optional
+	if req.AadhaarNumber != nil {
+		userRequest.AadhaarNumber = *req.AadhaarNumber
+	}
+
 	log.Printf("CreateUserClient: Prepared gRPC request: %+v", userRequest)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
@@ -148,5 +156,54 @@ func AssignRoleToUserClient(ctx context.Context, userId string, roles string) (*
 	}
 
 	log.Printf("AssignRoleToUserClient: Successfully assigned roles to user %s: %+v", userId, resp)
+	return resp, nil
+}
+
+// GetUserByMobileClient asks AAA for a user by mobile number.
+// If the user does not exist, it returns (nil, nil).
+// Any other gRPC failure bubbles up as an error.
+func GetUserByMobileClient(
+	ctx context.Context,
+	mobile uint64,
+) (*pb.GetUserByMobileNumberResponse, error) {
+
+	// ─── 1. gRPC connection with retries ────────────────────────────────────
+	conn, err := InitializeGrpcClient("", 3) // no auth token for internal calls
+	if err != nil {
+		return nil, fmt.Errorf("grpc init: %w", err)
+	}
+	defer conn.Close()
+
+	cli := pb.NewUserServiceClient(conn)
+
+	// ─── 2. Prepare request ─────────────────────────────────────────────────
+	req := &pb.GetUserByMobileNumberRequest{
+		MobileNumber: mobile,
+	}
+
+	// Put a tight timeout on the downstream call
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	// ─── 3. Call AAA service ───────────────────────────────────────────────
+	resp, err := cli.GetUserByMobileNumber(ctx, req)
+	if err != nil {
+		// Normalise “user not found” so caller can treat it as nil, nil
+		if st, ok := status.FromError(err); ok {
+			if st.Code() == codes.NotFound ||
+				strings.Contains(st.Message(), "user not found") ||
+				strings.Contains(st.Message(), "record not found") {
+				return nil, nil
+			}
+		}
+		// Any other error is a real dependency failure
+		return nil, err
+	}
+
+	// ─── 4. No data? Treat as not-found ─────────────────────────────────────
+	if resp.GetData() == nil || resp.GetData().GetId() == "" {
+		return nil, nil
+	}
+
 	return resp, nil
 }

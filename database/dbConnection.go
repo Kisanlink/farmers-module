@@ -1,7 +1,6 @@
 package database
 
 import (
-	"fmt"
 	"log"
 	"sync"
 
@@ -15,33 +14,24 @@ var (
 	once       sync.Once
 )
 
-// InitializeDatabase initializes the PostgreSQL connection and sets the global database instance.
+// InitializeDatabase sets up a singleton *gorm.DB.
 func InitializeDatabase() {
 	once.Do(func() {
-		// Load environment variables
+		// 1. Load environment variables (.env and/or OS)
 		config.LoadEnv()
 
-		// Get PostgreSQL connection details
-		host := config.GetEnv("DB_HOST")
-		port := config.GetEnv("DB_PORT")
-		user := config.GetEnv("DB_USER")
-		password := config.GetEnv("DB_PASSWORD")
-		dbName := config.GetEnv("DB_NAME")
-		sslMode := config.GetEnv("DB_SSLMODE")
+		// 2. Prefer a pre-built DSN (simplest for managed hosts like Neon)
+		dsn := config.GetEnv("DATABASE_URL")
 
-		// PostgreSQL DSN
-		dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=%s", user, password, host, port, dbName, sslMode)
-
-		// // PostgreSQL DSN
-		// dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, port, user, password, dbName, sslMode)
-
-		// Connect to PostgreSQL
+		// 3. Connect via GORM
 		var err error
 		dbInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
-			log.Fatalf("Failed to connect to PostgreSQL: %v", err)
+			log.Fatalf("failed to connect to PostgreSQL: %v", err)
 		}
-		log.Println("Connected to PostgreSQL successfully")
+		log.Println("connected to PostgreSQL successfully")
+
+		// 4. Auto-migrate (if you need it)
 		RunMigrations()
 	})
 }
