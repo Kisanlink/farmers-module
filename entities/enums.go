@@ -89,6 +89,11 @@ type cropCategories struct {
 	VEGETABLE CropCategory
 	FRUIT     CropCategory
 	SPICE     CropCategory
+	OILSEED   CropCategory
+	FIBER     CropCategory
+	TUBER     CropCategory
+	NUT       CropCategory
+	FODDER    CropCategory
 }
 
 var CROP_CATEGORIES = cropCategories{
@@ -97,6 +102,11 @@ var CROP_CATEGORIES = cropCategories{
 	VEGETABLE: "VEGETABLE",
 	FRUIT:     "FRUIT",
 	SPICE:     "SPICE",
+	OILSEED:   "OILSEED",
+	FIBER:     "FIBER",
+	TUBER:     "TUBER",
+	NUT:       "NUT",
+	FODDER:    "FODDER",
 }
 
 func (c *CropCategory) Scan(value interface{}) error {
@@ -141,6 +151,65 @@ func (cc cropCategories) Parse(category string) (CropCategory, error) {
 		return CropCategory(category), nil
 	}
 	return "", errors.New("invalid crop category: " + category)
+}
+
+// -------------------
+// Crop Season Enum
+// -------------------
+type CropSeason string
+
+type cropSeasons struct {
+	RABI   CropSeason
+	KHARIF CropSeason
+	ZAID   CropSeason
+	PERENN CropSeason
+}
+
+var CROP_SEASONS = cropSeasons{
+	RABI:   "RABI",
+	KHARIF: "KHARIF",
+	ZAID:   "ZAID",
+	PERENN: "PERENNIAL",
+}
+
+func (s *CropSeason) Scan(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("invalid data for CropSeason: %v", value)
+	}
+	season, err := CROP_SEASONS.Parse(str)
+	if err != nil {
+		return err
+	}
+	*s = season
+	return nil
+}
+
+func (s CropSeason) Value() (driver.Value, error) { return string(s), nil }
+
+func (cs cropSeasons) All() []CropSeason {
+	v := reflect.ValueOf(cs)
+	out := make([]CropSeason, 0, v.NumField())
+	for i := 0; i < v.NumField(); i++ {
+		out = append(out, v.Field(i).Interface().(CropSeason))
+	}
+	return out
+}
+
+func (cs cropSeasons) IsValid(v string) bool {
+	for _, s := range cs.All() {
+		if string(s) == v {
+			return true
+		}
+	}
+	return false
+}
+
+func (cs cropSeasons) Parse(v string) (CropSeason, error) {
+	if cs.IsValid(v) {
+		return CropSeason(v), nil
+	}
+	return "", fmt.Errorf("invalid crop season: %s", v)
 }
 
 // -------------------

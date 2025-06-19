@@ -36,6 +36,20 @@ func (h *CropHandler) CreateCrop(c *gin.Context) {
 		return
 	}
 
+	// Validate Season if provided
+	if crop.Season != "" && !entities.CROP_SEASONS.IsValid(string(crop.Season)) {
+		c.JSON(http.StatusBadRequest, models.Response{
+			StatusCode: http.StatusBadRequest,
+			Success:    false,
+			Message:    "Invalid crop season",
+			Data:       nil,
+			Error: fmt.Sprintf("Invalid season: %s. Valid values are: %v",
+				crop.Season, entities.CROP_SEASONS.All()),
+			TimeStamp: time.Now().UTC().Format(time.RFC3339),
+		})
+		return
+	}
+
 	if err := h.service.CreateCrop(&crop); err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			StatusCode: http.StatusInternalServerError,
@@ -147,6 +161,20 @@ func (h *CropHandler) UpdateCrop(c *gin.Context) {
 			Data:       nil,
 			Error:      err.Error(),
 			TimeStamp:  time.Now().UTC().Format(time.RFC3339),
+		})
+		return
+	}
+
+	// Validate Season if provided
+	if crop.Season != "" && !entities.CROP_SEASONS.IsValid(string(crop.Season)) {
+		c.JSON(http.StatusBadRequest, models.Response{
+			StatusCode: http.StatusBadRequest,
+			Success:    false,
+			Message:    "Invalid crop season",
+			Data:       nil,
+			Error: fmt.Sprintf("Invalid season: %s. Valid values are: %v",
+				crop.Season, entities.CROP_SEASONS.All()),
+			TimeStamp: time.Now().UTC().Format(time.RFC3339),
 		})
 		return
 	}
