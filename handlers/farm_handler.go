@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
-        "log"
-	
+
 	"github.com/Kisanlink/farmers-module/models"
 	"github.com/Kisanlink/farmers-module/services"
 	"github.com/gin-gonic/gin"
@@ -79,13 +79,13 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 		requiredAction = "read"
 	}
 
-	// Get user details to check actions
+	/*// Get user details to check actions
 	userResp, err := services.GetUserByIdClient(c.Request.Context(), actorId)
 	if err != nil {
 		sendStandardError(c, http.StatusInternalServerError,
 			"Failed to verify user actions", err.Error())
 		return
-	}
+	}*/
 
 	// Verify the required action exists in user's allowed actions
 	// Verify the required action exists in user's allowed actions
@@ -100,7 +100,7 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 		}
 	}
 	*/
-	// role permissions
+	/* role permissions
 	if userResp != nil && userResp.Data != nil && userResp.Data.RolePermissions != nil {
 		for _, rolePerms := range userResp.Data.RolePermissions {
 			for _, permission := range rolePerms.Permissions {
@@ -113,7 +113,7 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 				break
 			}
 		}
-	}
+	}*/
 
 	if !hasAction {
 		sendStandardError(c, http.StatusForbidden,
@@ -151,18 +151,18 @@ func (h *FarmHandler) CreateFarmHandler(c *gin.Context) {
 	}
 
 	// API call for divya drishti to create farm data
-	    // Start a goroutine to handle the CreateFarmData call asynchronously
-    go func(farmId string) {
-        // You might want to add some error handling or logging here
-        defer func() {
-            if r := recover(); r != nil {
-                // Log the panic if the goroutine panics
-                log.Printf("Recovered from panic in CreateFarmData goroutine: %v", r)
-            }
-        }()
-        
-        CreateFarmData(farmId)
-    }(farm.Id)
+	// Start a goroutine to handle the CreateFarmData call asynchronously
+	go func(farmId string) {
+		// You might want to add some error handling or logging here
+		defer func() {
+			if r := recover(); r != nil {
+				// Log the panic if the goroutine panics
+				log.Printf("Recovered from panic in CreateFarmData goroutine: %v", r)
+			}
+		}()
+
+		CreateFarmData(farmId)
+	}(farm.Id)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"status":    http.StatusCreated,

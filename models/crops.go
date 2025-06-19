@@ -12,6 +12,7 @@ type Crop struct {
 	CropName      string                `json:"crop_name" gorm:"type:varchar(100);not null"`
 	Variant       string                `json:"variant" gorm:"type:varchar(100)"`
 	CycleDuration int                   `json:"cycle_duration"`
+	Season        entities.CropSeason   `json:"season,omitempty" gorm:"column:season;type:varchar(20)"`
 	Category      entities.CropCategory `json:"category" gorm:"type:varchar(100);not null"`
 	Unit          entities.CropUnit     `json:"unit" gorm:"type:varchar(20);not null"`
 	Image         string                `json:"image" gorm:"type:text"`
