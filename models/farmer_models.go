@@ -15,7 +15,7 @@ type FarmerSignupRequest struct {
 	MobileNumberString string  `json:"mobile_number"                validate:"required,numeric,len=10"`
 	MobileNumber       uint64  `json:"-"`
 	AadhaarNumber      *string `json:"aadhar_number,omitempty"   validate:"omitempty,numeric,len=12"`
-	UserName           *string `json:"name,omitempty"            validate:"omitempty,min=2,max=100"`
+	UserName           *string `json:"username,omitempty"            validate:"omitempty,min=2,max=100"`
 
 	Gender         string `json:"gender,omitempty"            validate:"omitempty,oneof=male female other"`
 	FatherName     string `json:"father_name,omitempty"`

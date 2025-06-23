@@ -196,7 +196,7 @@ func (h *FarmerHandler) FarmerSignupHandler(c *gin.Context) {
 
 	// 5‑C.  Path ② — no existing user  ➜  we have to create one first
 	if err := requireFields(map[string]*string{
-		"name": req.UserName,
+		"username": req.UserName,
 	}); err != nil {
 		h.sendErrorResponse(c, semanticStatus.Validation,
 			"Validation failed", err.Error())
