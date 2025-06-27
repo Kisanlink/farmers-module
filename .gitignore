@@ -2,6 +2,63 @@
 .env
 *.pem
 farmers-module-beta-ec2.pem
+farmers-module
 
 # Temporary files and directories
 tmp/
+
+# Binaries
+farmers-module
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below if you use Go modules)
+vendor/
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+
+# Test cache
+*.cache
+
+# Build directories
+bin/
+dist/
+
+# Private keys
+*.pem
+
+# Temporary files and directories
+*.tmp
+*.bak
+*.old
+
+# Env files
+.env.*
+
+# Coverage files
+coverage*
+
+# GitHub Actions artifacts
+*.codecov
+
+# Pre-commit
+.pre-commit-config.yaml

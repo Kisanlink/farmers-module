@@ -9,7 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator/v10 v10.24.0
 	github.com/joho/godotenv v1.5.1
-	github.com/kisanlink/protobuf v0.0.0-20250623092544-c7227880b138
+	github.com/kisanlink/protobuf v0.0.0-20250620043806-ce07a868490f
 	google.golang.org/grpc v1.72.0
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
