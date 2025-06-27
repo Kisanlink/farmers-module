@@ -2,8 +2,8 @@ package services
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/Kisanlink/farmers-module/entities"
 	"github.com/Kisanlink/farmers-module/models"
@@ -26,13 +26,13 @@ type FarmerServiceInterface interface {
 // FarmerService handles business logic for farmers
 type FarmerService struct {
 	repo repositories.FarmerRepositoryInterface
+	fpo  FPOServiceInterface
 }
 
 // NewFarmerService initializes a new FarmerService
-func NewFarmerService(repo repositories.FarmerRepositoryInterface) *FarmerService {
-	return &FarmerService{
-		repo: repo,
-	}
+func NewFarmerService(repo repositories.FarmerRepositoryInterface,
+	fpoSvc FPOServiceInterface) *FarmerService {
+	return &FarmerService{repo: repo, fpo: fpoSvc}
 }
 
 func (s *FarmerService) CreateFarmer(
@@ -50,9 +50,18 @@ func (s *FarmerService) CreateFarmer(
 		ftype = entities.FarmerType(req.Type)
 	}
 
+	var fpoRegNo *string
+	if reg := strings.TrimSpace(req.FpoRegNo); reg != "" {
+		if _, err := s.fpo.Get(reg); err != nil {
+			return nil, nil, fmt.Errorf("unknown FPO reg-no: %s", reg)
+		}
+		fpoRegNo = &reg
+	}
+
 	f := &models.Farmer{
 		UserId:           userId,
 		KisansathiUserId: req.KisansathiUserId,
+		FullName:         req.FullName,
 
 		Gender:         req.Gender,
 		SocialCategory: req.SocialCategory,
@@ -61,14 +70,7 @@ func (s *FarmerService) CreateFarmer(
 		TotalShare:     req.TotalShare,
 		AreaType:       req.AreaType,
 
-		IsFPO:    req.IsFPO,
-		State:    nullable(req.State),
-		District: nullable(req.District),
-		Block:    nullable(req.Block),
-		IaName:   nullable(req.IaName),
-		CbbName:  nullable(req.CbbName),
-		FpoName:  nullable(req.FpoName),
-		FpoRegNo: nullable(req.FpoRegNo),
+		FpoRegNo: fpoRegNo,
 
 		IsActive: true,
 		Type:     ftype,
@@ -79,10 +81,6 @@ func (s *FarmerService) CreateFarmer(
 		return nil, nil, err
 	}
 	return created, userDetails, nil
-}
-
-func nullable(s string) sql.NullString {
-	return sql.NullString{String: s, Valid: s != ""}
 }
 
 func (s *FarmerService) ExistsForUser(userId string) (bool, error) {

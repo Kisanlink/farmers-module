@@ -18,6 +18,7 @@ func RunMigrations() {
 		&models.FarmActivity{},
 		&models.CropCycle{},
 		&models.Crop{},
+		&models.FPO{},
 	)
 	if err != nil {
 		log.Fatalf("❌ Failed to run migrations: %v", err)
