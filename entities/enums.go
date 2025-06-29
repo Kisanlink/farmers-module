@@ -173,10 +173,26 @@ var CROP_SEASONS = cropSeasons{
 }
 
 func (s *CropSeason) Scan(value interface{}) error {
-	str, ok := value.(string)
-	if !ok {
+	if value == nil { // season column is NULL
+		*s = ""
+		return nil
+	}
+
+	var str string
+	switch v := value.(type) {
+	case string:
+		str = v
+	case []byte:
+		str = string(v)
+	default:
 		return fmt.Errorf("invalid data for CropSeason: %v", value)
 	}
+
+	if str == "" { // empty string tolerated
+		*s = ""
+		return nil
+	}
+
 	season, err := CROP_SEASONS.Parse(str)
 	if err != nil {
 		return err
@@ -185,7 +201,12 @@ func (s *CropSeason) Scan(value interface{}) error {
 	return nil
 }
 
-func (s CropSeason) Value() (driver.Value, error) { return string(s), nil }
+func (s CropSeason) Value() (driver.Value, error) {
+	if s == "" {
+		return nil, nil // write NULL when zero value
+	}
+	return string(s), nil
+}
 
 func (cs cropSeasons) All() []CropSeason {
 	v := reflect.ValueOf(cs)
