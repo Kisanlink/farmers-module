@@ -8,7 +8,7 @@ import (
 // FarmerRepositoryInterface defines repository methods for farmers
 type FarmerRepositoryInterface interface {
 	CreateFarmerEntry(farmer *models.Farmer) (*models.Farmer, error)
-	FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, error)
+	FetchFarmers(userId, farmerId, kisansathiUserId, fpoRegNo string) ([]models.Farmer, error)
 
 	FetchSubscribedFarmers(userId, kisansathiUserId string) ([]models.Farmer, error)
 	SetSubscriptionStatus(farmerId string, subscribe bool) error
@@ -33,7 +33,7 @@ func (r *FarmerRepository) CreateFarmerEntry(farmer *models.Farmer) (*models.Far
 	return farmer, nil
 }
 
-func (r *FarmerRepository) FetchFarmers(userId, farmerId, kisansathiUserId string) ([]models.Farmer, error) {
+func (r *FarmerRepository) FetchFarmers(userId, farmerId, kisansathiUserId string, fpoRegNo string) ([]models.Farmer, error) {
 	var farmers []models.Farmer
 	query := r.db.Model(&models.Farmer{})
 
@@ -46,6 +46,9 @@ func (r *FarmerRepository) FetchFarmers(userId, farmerId, kisansathiUserId strin
 	}
 	if kisansathiUserId != "" {
 		query = query.Where("kisansathi_user_id = ?", kisansathiUserId)
+	}
+	if fpoRegNo != "" {
+		query = query.Where("fpo_reg_no = ?", fpoRegNo)
 	}
 
 	// Execute the query
