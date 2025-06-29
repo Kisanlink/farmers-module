@@ -4,9 +4,9 @@ import (
 	"log"
 
 	"github.com/Kisanlink/farmers-module/database"
+	"github.com/Kisanlink/farmers-module/middleware"
 	"github.com/Kisanlink/farmers-module/repositories"
 	"github.com/Kisanlink/farmers-module/services"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -56,14 +56,9 @@ func Setup() *gin.Engine {
 
 	// Setup router and middleware
 	router := gin.Default()
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "https://farmers.kisanlink.in"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * 60 * 60,
-	}))
+
+	// Apply all middlewares including CORS
+	middleware.SetupMiddlewares(router)
 
 	InitializeRoutes(router, deps)
 
