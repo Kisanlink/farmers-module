@@ -34,7 +34,11 @@ func InitializeGrpcClient(token string, retries int) (*grpc.ClientConn, error) {
 	return nil, fmt.Errorf("failed to initialize gRPC client after %d retries: %v", retries, err)
 }
 
-func CreateUserClient(req models.FarmerSignupRequest, token string) (*pb.CreateUserResponse, error) {
+func CreateUserClient(
+	ctx context.Context,
+	req models.FarmerSignupRequest,
+	token string, // keep if you really need auth; otherwise "" is fine
+) (*pb.CreateUserResponse, error) {
 	log.Println("CreateUserClient: Starting user creation process")
 
 	// Initialize gRPC connection with retry mechanism
@@ -64,7 +68,7 @@ func CreateUserClient(req models.FarmerSignupRequest, token string) (*pb.CreateU
 
 	log.Printf("CreateUserClient: Prepared gRPC request: %+v", userRequest)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
 	// Call gRPC service
@@ -188,7 +192,7 @@ func GetUserByMobileClient(
 	// ─── 3. Call AAA service ───────────────────────────────────────────────
 	resp, err := cli.GetUserByMobileNumber(ctx, req)
 	if err != nil {
-		// Normalise “user not found” so caller can treat it as nil, nil
+		// Normalise "user not found" so caller can treat it as nil, nil
 		if st, ok := status.FromError(err); ok {
 			if st.Code() == codes.NotFound ||
 				strings.Contains(st.Message(), "user not found") ||

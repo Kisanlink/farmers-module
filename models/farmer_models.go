@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/Kisanlink/farmers-module/entities"
@@ -24,18 +23,13 @@ type FarmerSignupRequest struct {
 	TotalShare     string `json:"total_share,omitempty"       validate:"omitempty,numeric"`
 	AreaType       string `json:"area_type,omitempty"`
 
-	IsFPO    bool   `json:"isFPO"`
-	State    string `json:"state,omitempty"`
-	District string `json:"district,omitempty"`
-	Block    string `json:"block,omitempty"`
-	IaName   string `json:"iaName,omitempty"`
-	CbbName  string `json:"cbbName,omitempty"`
-	FpoName  string `json:"fpoName,omitempty"`
-	FpoRegNo string `json:"fpoRegNo,omitempty"`
+	FullName string `json:"full_name,omitempty"`
 
 	UserId           *string `json:"user_id,omitempty"            validate:"omitempty,uuid"`
 	KisansathiUserId *string `json:"kisansathi_user_id,omitempty" validate:"omitempty,uuid"`
 	Type             string  `json:"type,omitempty"`
+
+	FpoRegNo string `json:"fpo_reg_no,omitempty"`
 }
 
 type Farmer struct {
@@ -43,6 +37,7 @@ type Farmer struct {
 
 	UserId           string  `gorm:"column:user_id;type:varchar(36);uniqueIndex" json:"user_id"`
 	KisansathiUserId *string `gorm:"column:kisansathi_user_id;type:varchar(36)"  json:"kisansathi_user_id,omitempty"`
+	FullName         string  `gorm:"column:full_name;type:varchar(150)"     json:"full_name"`
 
 	// ─── profile ───────────────────────────────────────────────────────────
 	Gender         string `gorm:"column:gender;type:varchar(6)"           json:"gender"`
@@ -52,15 +47,7 @@ type Farmer struct {
 	TotalShare     string `gorm:"column:total_share;type:varchar(10)"     json:"total_share"`
 	AreaType       string `gorm:"column:area_type;type:varchar(10)"       json:"area_type"`
 
-	// ─── FPO details ───────────────────────────────────────────────────────
-	IsFPO    bool           `gorm:"column:is_fpo;default:false" json:"is_fpo"`
-	State    sql.NullString `gorm:"column:state"                json:"state,omitempty"`
-	District sql.NullString `gorm:"column:district"             json:"district,omitempty"`
-	Block    sql.NullString `gorm:"column:block"                json:"block,omitempty"`
-	IaName   sql.NullString `gorm:"column:ia_name"              json:"ia_name,omitempty"`
-	CbbName  sql.NullString `gorm:"column:cbb_name"             json:"cbb_name,omitempty"`
-	FpoName  sql.NullString `gorm:"column:fpo_name"             json:"fpo_name,omitempty"`
-	FpoRegNo sql.NullString `gorm:"column:fpo_reg_no"           json:"fpo_reg_no,omitempty"`
+	FpoRegNo *string `gorm:"column:fpo_reg_no;type:varchar(36)" json:"fpo_reg_no,omitempty"`
 
 	// ─── misc flags ────────────────────────────────────────────────────────
 	IsActive     bool                `gorm:"column:is_active;default:true"   json:"is_active"`
@@ -71,14 +58,7 @@ type Farmer struct {
 }
 
 // wipe FPO columns when IsFPO=false
-func (f *Farmer) BeforeSave(tx *gorm.DB) (err error) {
-	if !f.IsFPO {
-		f.State, f.District, f.Block,
-			f.IaName, f.CbbName, f.FpoName, f.FpoRegNo = sql.NullString{}, sql.NullString{},
-			sql.NullString{}, sql.NullString{}, sql.NullString{}, sql.NullString{}, sql.NullString{}
-	}
-	return nil
-}
+func (f *Farmer) BeforeSave(tx *gorm.DB) error { return nil }
 
 func (f *Farmer) BeforeCreate(tx *gorm.DB) (err error) {
 	if err = f.Base.BeforeCreate(tx); err != nil {

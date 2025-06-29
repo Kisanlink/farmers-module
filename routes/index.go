@@ -4,9 +4,9 @@ import (
 	"log"
 
 	"github.com/Kisanlink/farmers-module/database"
+	"github.com/Kisanlink/farmers-module/middleware"
 	"github.com/Kisanlink/farmers-module/repositories"
 	"github.com/Kisanlink/farmers-module/services"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,6 +17,7 @@ type Dependencies struct {
 	FarmActivityService services.FarmActivityServiceInterface
 	CropCycleService    services.CropCycleServiceInterface
 	CropService         services.CropServiceInterface
+	FPOService          services.FPOServiceInterface
 }
 
 func Setup() *gin.Engine {
@@ -30,11 +31,14 @@ func Setup() *gin.Engine {
 	farmActivityRepo := repositories.NewFarmActivityRepository(db)
 	cropCycleRepo := repositories.NewCropCycleRepository(db)
 	cropRepo := repositories.NewCropRepository(db)
+	fpoRepo := repositories.NewFPORepository(db)
 
 	// Initialize services
+	FPOService := services.NewFPOService(fpoRepo)
+
 	farmService := services.NewFarmService(farmRepo)
 	userService := services.NewUserService(userRepo)
-	farmerService := services.NewFarmerService(farmerRepo)
+	farmerService := services.NewFarmerService(farmerRepo, FPOService)
 	farmActivityService := services.NewFarmActivityService(farmActivityRepo)
 	cropCycleService := services.NewCropCycleService(cropCycleRepo, farmRepo)
 	cropService := services.NewCropService(cropRepo)
@@ -47,18 +51,14 @@ func Setup() *gin.Engine {
 		FarmActivityService: farmActivityService,
 		CropCycleService:    cropCycleService,
 		CropService:         cropService,
+		FPOService:          FPOService,
 	}
 
 	// Setup router and middleware
 	router := gin.Default()
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "https://farmers.kisanlink.in"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * 60 * 60,
-	}))
+
+	// Apply all middlewares including CORS
+	middleware.SetupMiddlewares(router)
 
 	InitializeRoutes(router, deps)
 
@@ -78,5 +78,6 @@ func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
 		RegisterFarmActivityRoutes(api, deps.FarmActivityService)
 		RegisterCropCycleRoutes(api, deps.CropCycleService)
 		RegisterCropRoutes(api, deps.CropService)
+		RegisterFPORoutes(api, deps.FPOService)
 	}
 }

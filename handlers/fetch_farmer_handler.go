@@ -16,6 +16,7 @@ func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 	userId := c.Query("user_id")
 	farmerId := c.Query("farmer_id")
 	kisansathiUserId := c.Query("kisansathi_user_id")
+	fpoRegNo := c.Query("fpo_reg_no")
 	includeUserDetails := c.Query("user_details") == "true"
 	subscribed := c.Query("subscribed") == "true"
 
@@ -28,7 +29,7 @@ func (h *FarmerHandler) FetchFarmersHandler(c *gin.Context) {
 		// so we ignore farmerId here.
 		farmers, err = h.farmerService.FetchSubscribedFarmers(userId, kisansathiUserId)
 	} else {
-		farmers, err = h.farmerService.FetchFarmers(userId, farmerId, kisansathiUserId)
+		farmers, err = h.farmerService.FetchFarmers(userId, farmerId, kisansathiUserId, fpoRegNo)
 	}
 	if err != nil {
 		h.sendErrorResponse(c, http.StatusInternalServerError, "Failed to fetch farmers", err.Error())

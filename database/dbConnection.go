@@ -15,7 +15,6 @@ var (
 	once       sync.Once
 )
 
-// InitializeDatabase initializes the PostgreSQL connection and sets the global database instance.
 func InitializeDatabase() {
 	once.Do(func() {
 		// Load environment variables
