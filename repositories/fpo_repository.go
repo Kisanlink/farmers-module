@@ -10,6 +10,7 @@ import (
 type FPORepositoryInterface interface {
 	Create(fpo *models.FPO) error
 	Get(reg string) (*models.FPO, error)
+	GetByCEO(ceoID string) (*models.FPO, error)
 	List() ([]models.FPO, error)
 	Update(fpo *models.FPO) error
 	Delete(reg string) error
@@ -32,6 +33,14 @@ func (r *FPORepository) Create(fpo *models.FPO) error {
 func (r *FPORepository) Get(reg string) (*models.FPO, error) {
 	var f models.FPO
 	if err := r.db.First(&f, "fpo_reg_no = ?", reg).Error; err != nil {
+		return nil, err
+	}
+	return &f, nil
+}
+
+func (r *FPORepository) GetByCEO(ceoID string) (*models.FPO, error) {
+	var f models.FPO
+	if err := r.db.First(&f, "ceo_id = ?", ceoID).Error; err != nil {
 		return nil, err
 	}
 	return &f, nil

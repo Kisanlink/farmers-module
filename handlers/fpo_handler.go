@@ -68,7 +68,20 @@ func (h *FPOHandler) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, resp("deleted", nil))
 }
 
+// handlers/fpo_handler.go
 func (h *FPOHandler) List(c *gin.Context) {
+	if ceoID := c.Query("ceo_id"); ceoID != "" {
+		// Return exactly one FPO matched by CEO_ID
+		fpo, err := h.svc.GetByCEO(ceoID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, resp("not found", err.Error()))
+			return
+		}
+		c.JSON(http.StatusOK, resp("ok", fpo))
+		return
+	}
+
+	// No ceo_id query param → return the full list
 	fpos, err := h.svc.List()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, resp("fetch failed", err.Error()))

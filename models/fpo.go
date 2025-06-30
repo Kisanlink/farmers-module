@@ -1,7 +1,8 @@
 package models
 
 type FPO struct {
-	FpoRegNo string `gorm:"column:fpo_reg_no;primaryKey;size:50" json:"fpo_reg_no"`
+	FpoRegNo string  `gorm:"column:fpo_reg_no;primaryKey;size:50" json:"fpo_reg_no"`
+	CEOID    *string `gorm:"column:ceo_id;type:varchar(36)"      json:"ceo_id,omitempty"`
 
 	State    string `gorm:"column:state"    json:"state,omitempty"`
 	District string `gorm:"column:district" json:"district,omitempty"`
