@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"fmt"
+
 	"github.com/Kisanlink/farmers-module/models"
 	"gorm.io/gorm"
 )
@@ -13,6 +15,8 @@ type FarmerRepositoryInterface interface {
 	FetchSubscribedFarmers(userId, kisansathiUserId string) ([]models.Farmer, error)
 	SetSubscriptionStatus(farmerId string, subscribe bool) error
 	CountByUserId(id string) (int64, error)
+
+	UpdateKisansathiUserId(kisansathiUserId string, farmerIds []string) error
 }
 
 // FarmerRepository interacts with the database
@@ -106,4 +110,19 @@ func (r *FarmerRepository) CountByUserId(id string) (int64, error) {
 		Where("user_id = ?", id).
 		Count(&n).Error
 	return n, err
+}
+
+// UpdateKisansathiUserId updates the KisansathiUserId for the specified farmers.
+func (r *FarmerRepository) UpdateKisansathiUserId(kisansathiUserId string, farmerIds []string) error {
+	if len(farmerIds) == 0 {
+		return nil
+	}
+
+	// Update the KisansathiUserId for the list of farmers
+	if err := r.db.Model(&models.Farmer{}).
+		Where("id IN (?)", farmerIds).
+		Update("kisansathi_user_id", kisansathiUserId).Error; err != nil {
+		return fmt.Errorf("failed to update KisansathiUserId: %w", err)
+	}
+	return nil
 }

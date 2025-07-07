@@ -21,6 +21,8 @@ type FarmerServiceInterface interface {
 
 	FetchSubscribedFarmers(userId, kisansathiUserId string) ([]models.Farmer, error)
 	SetSubscriptionStatus(farmerId string, subscribe bool) error
+
+	AssignKisansathiToFarmers(kisansathiUserId string, farmerIds []string) error
 }
 
 // FarmerService handles business logic for farmers
@@ -107,4 +109,13 @@ func (s *FarmerService) SetSubscriptionStatus(
 	subscribe bool,
 ) error {
 	return s.repo.SetSubscriptionStatus(farmerId, subscribe)
+}
+
+// AssignKisansathiToFarmers assigns the KisansathiUserId to all specified farmers.
+func (s *FarmerService) AssignKisansathiToFarmers(kisansathiUserId string, farmerIds []string) error {
+	// Update farmers' KisansathiUserId
+	if err := s.repo.UpdateKisansathiUserId(kisansathiUserId, farmerIds); err != nil {
+		return fmt.Errorf("failed to assign Kisansathi UserId: %w", err)
+	}
+	return nil
 }
