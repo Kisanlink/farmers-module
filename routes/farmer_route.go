@@ -14,5 +14,5 @@ func RegisterFarmerRoutes(router *gin.RouterGroup, farmerService services.Farmer
 	router.GET("/farmers", farmerHandler.FetchFarmersHandler)
 	router.POST("/farmers/:farmer_id/subscription", farmerHandler.SetSubscription)
 
-	router.POST("/farmers/assign-kisansathi", farmerHandler.AssignKisansathiToFarmers)
+	router.POST("/farmers/assign-kisansathi/:kisansathi_user_id", farmerHandler.AssignKisansathiToFarmers)
 }

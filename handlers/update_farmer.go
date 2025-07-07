@@ -8,8 +8,8 @@ import (
 
 // AssignKisansathiToFarmers handles assigning Kisansathi UserId to multiple farmers
 func (h *FarmerHandler) AssignKisansathiToFarmers(c *gin.Context) {
-	// Extract Kisansathi User ID from query parameter
-	kisansathiUserId := c.DefaultQuery("kisansathi_user_id", "")
+	// Extract Kisansathi User ID from path parameter
+	kisansathiUserId := c.Param("kisansathi_user_id")
 	if kisansathiUserId == "" {
 		h.sendErrorResponse(c, http.StatusBadRequest,
 			"Kisansathi user ID is required", "missing Kisansathi user ID")
