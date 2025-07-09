@@ -24,7 +24,7 @@ func NewFarmRepository(db *gorm.DB) *FarmRepository {
 type FarmRepositoryInterface interface {
 	CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, error)
 	CreateFarmRecord(farm *models.Farm) error
-	GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error)
+	GetAllFarms(farmerId, pincode, date, id, fpoRegNo string) ([]*models.Farm, error)
 	GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error)
 	// New method to get a farm by its ID
 	GetFarmByID(farmId string) (*models.Farm, error)
@@ -117,59 +117,60 @@ func (r *FarmRepository) CreateFarmRecord(farm *models.Farm) error {
 // 	return fmt.Sprintf("POLYGON((%s))", strings.Join(points, ", "))
 // }
 
-// Implement the methods in FarmRepository
-func (r *FarmRepository) GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error) {
-	var farms []*models.Farm
+func (r *FarmRepository) GetAllFarms(
+	farmerId, pincode, date, id, fpoRegNo string,
+) ([]*models.Farm, error) {
 
-	// Build the base query
+	var farms []*models.Farm
 	query := `
-        SELECT 
-            id,
-            farmer_id,
-            kisansathi_id,
-            verified,
-            is_owner,
-            ST_AsGeoJSON(location)::jsonb as location,
-            area,
-            pincode,
-            locality,
-            current_cycle,
-            owner_id,
-            created_at,
-            updated_at
-        FROM farms
+        SELECT  f.id,
+                f.farmer_id,
+                f.kisansathi_id,
+                f.verified,
+                f.is_owner,
+                ST_AsGeoJSON(f.location)::jsonb as location,
+                f.area,
+                f.pincode,
+                f.locality,
+                f.current_cycle,
+                f.owner_id,
+                f.created_at,
+                f.updated_at
+        FROM farms f
         WHERE 1=1
     `
-
-	// Add filters dynamically
 	var args []interface{}
+
 	if farmerId != "" {
-		query += " AND farmer_id = ?"
+		query += " AND f.farmer_id = ?"
 		args = append(args, farmerId)
 	}
 	if pincode != "" {
-		query += " AND pincode = ?"
+		query += " AND f.pincode = ?"
 		args = append(args, pincode)
 	}
 	if date != "" {
-		// Filter for a specific date (ignoring time portion)
-		query += " AND DATE(created_at) >= ?"
+		query += " AND DATE(f.created_at) >= ?"
 		args = append(args, date)
 	}
 	if id != "" {
-		// Filter for a specific Id
-		query += " AND id = ?"
+		query += " AND f.id = ?"
 		args = append(args, id)
 	}
-
-	// Execute the query with filters
-	err := r.db.Raw(query, args...).Scan(&farms).Error
-	if err != nil {
-		return nil, fmt.Errorf("database error: %w", err)
+	if fpoRegNo != "" {
+		// keep it DB‑portable without extra joins
+		query += ` AND f.farmer_id IN (
+                       SELECT id FROM farmers WHERE fpo_reg_no = ?
+                   )`
+		args = append(args, fpoRegNo)
 	}
 
+	if err := r.db.Raw(query, args...).Scan(&farms).Error; err != nil {
+		return nil, fmt.Errorf("database error: %w", err)
+	}
 	return farms, nil
 }
+
 func (r *FarmRepository) GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error) {
 	var farms []*models.Farm
 	query := r.db.Model(&models.Farm{})

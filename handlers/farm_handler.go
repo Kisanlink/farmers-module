@@ -210,7 +210,8 @@ func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
 	farmerId := c.Query("farmer_id")
 	pincode := c.Query("pincode")
 	createdAtFrom := c.Query("created_at_from")
-	id := c.Query("id") // New ID parameter
+	id := c.Query("id")
+	fpoRegNo := c.Query("fpo_reg_no")
 	//createdAtTo := c.Query("created_at_from")
 	//updatedAtFrom := c.Query("created_at_from")
 	//updateAtTo:= c.Query("created_at_from") // New date parameter
@@ -233,7 +234,7 @@ func (h *FarmHandler) GetFarmsHandler(c *gin.Context) {
 	}
 
 	// Call service layer with the new date parameter
-	farms, err := h.farmService.GetAllFarms(farmerId, pincode, parsedDate.Format(time.RFC3339), id)
+	farms, err := h.farmService.GetAllFarms(farmerId, pincode, parsedDate.Format(time.RFC3339), id, fpoRegNo)
 	if err != nil {
 		sendStandardError(c, http.StatusInternalServerError,
 			"Failed to retrieve farms",
