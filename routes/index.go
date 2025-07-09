@@ -18,6 +18,7 @@ type Dependencies struct {
 	CropCycleService    services.CropCycleServiceInterface
 	CropService         services.CropServiceInterface
 	FPOService          services.FPOServiceInterface
+	KisansathiService   services.KisansathiServiceInterface
 }
 
 func Setup() *gin.Engine {
@@ -42,6 +43,7 @@ func Setup() *gin.Engine {
 	farmActivityService := services.NewFarmActivityService(farmActivityRepo)
 	cropCycleService := services.NewCropCycleService(cropCycleRepo, farmRepo)
 	cropService := services.NewCropService(cropRepo)
+	kisansathiService := services.NewKisansathiService(farmerRepo)
 
 	// Setup dependencies
 	deps := &Dependencies{
@@ -52,6 +54,7 @@ func Setup() *gin.Engine {
 		CropCycleService:    cropCycleService,
 		CropService:         cropService,
 		FPOService:          FPOService,
+		KisansathiService:   kisansathiService,
 	}
 
 	// Setup router and middleware
@@ -79,5 +82,6 @@ func InitializeRoutes(router *gin.Engine, deps *Dependencies) {
 		RegisterCropCycleRoutes(api, deps.CropCycleService)
 		RegisterCropRoutes(api, deps.CropService)
 		RegisterFPORoutes(api, deps.FPOService)
+		RegisterKisansathiRoutes(api, deps.KisansathiService)
 	}
 }
