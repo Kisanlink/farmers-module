@@ -16,7 +16,7 @@ type FarmServiceInterface interface {
 		pincode int,
 		ownerId string,
 	) (*models.Farm, error)
-	GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error)
+	GetAllFarms(farmerId, pincode, date, id, fpoRegNo string) ([]*models.Farm, error)
 	GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error)
 
 	GetFarmByID(farmId string) (*models.Farm, error)
@@ -73,8 +73,11 @@ func (s *FarmService) CreateFarm(
 	return farm, nil
 }
 
-func (s *FarmService) GetAllFarms(farmerId, pincode, date, id string) ([]*models.Farm, error) {
-	farms, err := s.repo.GetAllFarms(farmerId, pincode, date, id)
+func (s *FarmService) GetAllFarms(
+	farmerId, pincode, date, id, fpoRegNo string,
+) ([]*models.Farm, error) {
+
+	farms, err := s.repo.GetAllFarms(farmerId, pincode, date, id, fpoRegNo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get farms: %w", err)
 	}
