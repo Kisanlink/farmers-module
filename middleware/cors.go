@@ -10,7 +10,7 @@ func CORSMiddleware() gin.HandlerFunc {
 	return cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "aaa-auth-token", "Farmer-Id", "X-Requested-With", "Accept", "Accept-Encoding", "Accept-Language", "Cache-Control", "Connection", "DNT", "Host", "Pragma", "Referer", "User-Agent", "Access-Control-Request-Method", "Access-Control-Request-Headers"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "aaa-auth-token", "User-Id", "X-Requested-With", "Accept", "Accept-Encoding", "Accept-Language", "Cache-Control", "Connection", "DNT", "Host", "Pragma", "Referer", "User-Agent", "Access-Control-Request-Method", "Access-Control-Request-Headers"},
 		ExposeHeaders:    []string{"Content-Length", "Content-Type", "Authorization"},
 		AllowCredentials: false,        // Set to false when using AllowOrigins: ["*"]
 		MaxAge:           12 * 60 * 60, // 12 hours
