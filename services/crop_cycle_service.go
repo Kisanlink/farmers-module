@@ -29,6 +29,7 @@ type CropCycleServiceInterface interface {
 		expectedQuantity float64,
 		quantity *float64,
 		report string,
+		noOfCrops *int,
 	) (*models.CropCycle, error)
 
 	GetCropCycleByID(id string) (*models.CropCycle, error)
@@ -45,7 +46,7 @@ func (s *CropCycleService) CreateCropCycle(
 	expectedQuantity float64,
 	quantity *float64,
 	report string,
-) (*models.CropCycle, error) {
+	noOfCrops *int) (*models.CropCycle, error) {
 	// Step 1: Validate required fields
 	if farmID == "" {
 		return nil, fmt.Errorf("farm ID is required")
