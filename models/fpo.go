@@ -2,7 +2,7 @@ package models
 
 type FPO struct {
 	FpoRegNo string `gorm:"column:fpo_reg_no;primaryKey;size:50" json:"fpo_reg_no"`
-	FpoName  string `gorm:"column:fpo_name;type:varchar(150);not null" json:"fpo_name"`
+	FpoName  *string `gorm:"column:fpo_name;type:varchar(150);not null" json:"fpo_name"`
 
 	// Address fields
 	AddressLine1 *string `gorm:"column:address_line1;type:varchar(255)" json:"address_line1,omitempty"`
