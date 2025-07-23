@@ -86,6 +86,7 @@ func (s *CropCycleService) CreateCropCycle(
 		EndDate:          endDate,
 		Acreage:          acreage,
 		ExpectedQuantity: &expectedQuantity,
+		NoOfCrops:        noOfCrops,
 		Report:           report,
 	}
 
