@@ -57,6 +57,23 @@ type Farmer struct {
 	UserDetails *pb.User `json:"user_details,omitempty" gorm:"-"`
 }
 
+// FarmerUpdateRequest defines the request structure for updating a farmer's details.
+// Pointers are used for all fields to distinguish between a field not being provided (nil)
+// and a field being provided with its zero value (e.g., an empty string "").
+type FarmerUpdateRequest struct {
+	FullName       *string `json:"full_name,omitempty"       validate:"omitempty,min=2,max=100"`
+	Gender         *string `json:"gender,omitempty"          validate:"omitempty,oneof=male female other"`
+	SocialCategory *string `json:"social_category,omitempty"`
+	FatherName     *string `json:"father_name,omitempty"`
+	EquityShare    *string `json:"equity_share,omitempty"    validate:"omitempty,numeric"`
+	TotalShare     *string `json:"total_share,omitempty"     validate:"omitempty,numeric"`
+	AreaType       *string `json:"area_type,omitempty"`
+	FpoRegNo       *string `json:"fpo_reg_no,omitempty"`
+	IsActive       *bool   `json:"is_active,omitempty"`
+	IsSubscribed   *bool   `json:"is_subscribed,omitempty"`
+	Type           *string `json:"type,omitempty"`
+}
+
 // wipe FPO columns when IsFPO=false
 func (f *Farmer) BeforeSave(tx *gorm.DB) error { return nil }
 

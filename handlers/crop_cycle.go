@@ -24,6 +24,7 @@ func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
 		CropID           string    `json:"crop_id" binding:"required"`
 		StartDate        time.Time `json:"start_date" binding:"required"`
 		Acreage          float64   `json:"acreage" binding:"required"`
+		NoOfCrops        *int      `json:"no_of_crops"`
 		ExpectedQuantity float64   `json:"expected_quantity" binding:"required"`
 		Report           string    `json:"report"`
 	}
@@ -45,6 +46,7 @@ func (h *CropCycleHandler) CreateCropCycle(c *gin.Context) {
 		req.Acreage, req.ExpectedQuantity,
 		nil,
 		req.Report,
+		req.NoOfCrops,
 	)
 
 	if err != nil {

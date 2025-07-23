@@ -19,8 +19,8 @@ type CropCycle struct {
 	Quantity         float64    `json:"quantity" gorm:"type:numeric(10,2);not null;check:quantity >= 0"`
 	Report           string     `json:"report" gorm:"type:text"`
 	Status           string     `json:"status" gorm:"type:varchar(20);not null;default:'ONGOING';check:status IN ('ONGOING','COMPLETED')"`
-
-	Crop Crop `json:"crop" gorm:"foreignKey:CropID;references:Id"`
+	NoOfCrops        *int       `json:"no_of_crops" gorm:"check:no_of_crops IS NULL OR no_of_crops >= 0"`
+	Crop             Crop       `json:"crop" gorm:"foreignKey:CropID;references:Id"`
 }
 
 var (

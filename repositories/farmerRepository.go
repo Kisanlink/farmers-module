@@ -11,7 +11,7 @@ import (
 type FarmerRepositoryInterface interface {
 	CreateFarmerEntry(farmer *models.Farmer) (*models.Farmer, error)
 	FetchFarmers(userId, farmerId, kisansathiUserId, fpoRegNo string) ([]models.Farmer, error)
-
+	UpdateFarmer(farmerId string, updates map[string]interface{}) (*models.Farmer, error)
 	FetchSubscribedFarmers(userId, kisansathiUserId string) ([]models.Farmer, error)
 	SetSubscriptionStatus(farmerId string, subscribe bool) error
 	CountByUserId(id string) (int64, error)
@@ -60,6 +60,27 @@ func (r *FarmerRepository) FetchFarmers(userId, farmerId, kisansathiUserId strin
 		return nil, err
 	}
 	return farmers, nil
+}
+
+// UpdateFarmer performs a partial update on a farmer's record and returns the updated model.
+func (r *FarmerRepository) UpdateFarmer(farmerId string, updates map[string]interface{}) (*models.Farmer, error) {
+	// First, fetch the farmer to ensure it exists.
+	var farmer models.Farmer
+	if err := r.db.First(&farmer, "id = ?", farmerId).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("farmer with ID %s not found", farmerId)
+		}
+		return nil, err
+	}
+
+	// Apply the updates. GORM's Updates method only updates non-zero fields from a struct,
+	// but when using a map[string]interface{}, it updates the specified columns.
+	if err := r.db.Model(&farmer).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+
+	// The `farmer` variable is now updated with the new values.
+	return &farmer, nil
 }
 
 // FetchSubscribedFarmers returns all farmers where is_subscribed = true,
