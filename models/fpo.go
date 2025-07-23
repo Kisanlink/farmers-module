@@ -2,6 +2,7 @@ package models
 
 type FPO struct {
 	FpoRegNo string `gorm:"column:fpo_reg_no;primaryKey;size:50" json:"fpo_reg_no"`
+	FpoName  string `gorm:"column:fpo_name;type:varchar(150);not null" json:"fpo_name"`
 
 	// Address fields
 	AddressLine1 *string `gorm:"column:address_line1;type:varchar(255)" json:"address_line1,omitempty"`
@@ -13,13 +14,6 @@ type FPO struct {
 
 	// CBBO Name (if any)
 	CbboName *string `gorm:"column:cbbo_name;type:varchar(100)" json:"cbbo_name,omitempty"`
-
-	// Chairman details
-	ChairmanName    *string `gorm:"column:chairman_name;type:varchar(100)" json:"chairman_name,omitempty"`
-	ChairmanContact *string `gorm:"column:chairman_contact;type:varchar(50)" json:"chairman_contact,omitempty"`
-
-	// Board of Directors details
-	BoardOfDirectors []BoardMember `gorm:"foreignKey:FPORegNo;references:FpoRegNo" json:"board_of_directors,omitempty"`
 
 	// Bank details
 	BankName          *string `gorm:"column:bank_name;type:varchar(100)" json:"bank_name,omitempty"`
@@ -41,10 +35,4 @@ type FPO struct {
 
 	// The CEO ID (already defined)
 	CEOID *string `gorm:"column:ceo_id;type:varchar(36)" json:"ceo_id,omitempty"`
-}
-
-type BoardMember struct {
-	Name     string `gorm:"column:name;type:varchar(100)" json:"name"`
-	Contact  string `gorm:"column:contact;type:varchar(50)" json:"contact"`
-	FPORegNo string `gorm:"column:fpo_reg_no;type:varchar(50)" json:"-"`
 }
