@@ -16,4 +16,11 @@ func RegisterFarmActivityRoutes(router *gin.RouterGroup, activityService service
 		activityRoutes.PUT("/:id", handler.UpdateActivity)
 		activityRoutes.DELETE("/:id", handler.DeleteActivity)
 	}
+
+	// Batch routes
+	batchGroup := router.Group("/batch")
+	{
+		// Route for getting farm activities for multiple farms
+		batchGroup.POST("/farm-activities", handler.GetBatchFarmActivities)
+	}
 }

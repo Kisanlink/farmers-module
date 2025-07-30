@@ -36,6 +36,9 @@ type CropCycleServiceInterface interface {
 	GetCropCycles(farmID string, cropID *string, status *string) ([]*models.CropCycle, error)
 	UpdateCropCycleByID(id string, endDate *time.Time, quantity *float64, report *string) (*models.CropCycle, error)
 	ValidateCropCycleBelongsToFarm(cycleID, farmID string) (*models.CropCycle, error)
+
+	// Batch methods
+	GetCropCyclesBatch(farmIDs []string, cropID *string, status *string) (map[string]interface{}, map[string]string)
 }
 
 func (s *CropCycleService) CreateCropCycle(
@@ -163,4 +166,21 @@ func (s *CropCycleService) ValidateCropCycleBelongsToFarm(cycleID, farmID string
 	}
 
 	return cycle, nil
+}
+
+// GetCropCyclesBatch retrieves crop cycles for multiple farms
+func (s *CropCycleService) GetCropCyclesBatch(farmIDs []string, cropID *string, status *string) (map[string]interface{}, map[string]string) {
+	data := make(map[string]interface{})
+	errors := make(map[string]string)
+
+	for _, farmID := range farmIDs {
+		cycles, err := s.GetCropCycles(farmID, cropID, status)
+		if err != nil {
+			errors[farmID] = err.Error()
+		} else {
+			data[farmID] = cycles
+		}
+	}
+
+	return data, errors
 }

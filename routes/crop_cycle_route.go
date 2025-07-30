@@ -23,4 +23,11 @@ func RegisterCropCycleRoutes(router *gin.RouterGroup, svc services.CropCycleServ
 		// Route for updating a specific crop cycle by farm ID and cycle ID
 		farmGroup.PUT("/crop-cycles/:cycleId", h.UpdateCropCycle)
 	}
+
+	// Batch routes
+	batchGroup := router.Group("/batch")
+	{
+		// Route for getting crop cycles for multiple farms
+		batchGroup.POST("/crop-cycles", h.GetBatchCropCycles)
+	}
 }

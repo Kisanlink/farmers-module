@@ -216,3 +216,78 @@ func (h *CropCycleHandler) UpdateCropCycle(c *gin.Context) {
 		TimeStamp:  time.Now().Format(time.RFC3339),
 	})
 }
+
+// BatchCropCyclesRequest represents the request structure for batch crop cycles
+type BatchCropCyclesRequest struct {
+	FarmIDs []string `json:"farm_ids" binding:"required,min=1,max=50"`
+	Filters struct {
+		CropID *string `json:"crop_id,omitempty"`
+		Status *string `json:"status,omitempty"`
+	} `json:"filters,omitempty"`
+}
+
+// GetBatchCropCycles handles POST /api/v1/batch/crop-cycles
+func (h *CropCycleHandler) GetBatchCropCycles(c *gin.Context) {
+	var req BatchCropCyclesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.BatchResponse{
+			StatusCode: http.StatusBadRequest,
+			Success:    false,
+			Message:    "Invalid request body",
+			Data:       make(map[string]interface{}),
+			Errors:     map[string]string{"validation": err.Error()},
+			TimeStamp:  time.Now().Format(time.RFC3339),
+		})
+		return
+	}
+
+	// Validate farm IDs count
+	if len(req.FarmIDs) == 0 {
+		c.JSON(http.StatusBadRequest, models.BatchResponse{
+			StatusCode: http.StatusBadRequest,
+			Success:    false,
+			Message:    "At least one farm ID is required",
+			Data:       make(map[string]interface{}),
+			Errors:     map[string]string{"validation": "farm_ids cannot be empty"},
+			TimeStamp:  time.Now().Format(time.RFC3339),
+		})
+		return
+	}
+
+	if len(req.FarmIDs) > 50 {
+		c.JSON(http.StatusBadRequest, models.BatchResponse{
+			StatusCode: http.StatusBadRequest,
+			Success:    false,
+			Message:    "Too many farm IDs",
+			Data:       make(map[string]interface{}),
+			Errors:     map[string]string{"validation": "maximum 50 farm IDs allowed"},
+			TimeStamp:  time.Now().Format(time.RFC3339),
+		})
+		return
+	}
+
+	// Get batch crop cycles
+	data, errors := h.service.GetCropCyclesBatch(req.FarmIDs, req.Filters.CropID, req.Filters.Status)
+
+	success := len(errors) == 0
+	message := "Batch crop cycles retrieved successfully"
+	if len(errors) > 0 && len(data) > 0 {
+		message = "Batch crop cycles retrieved with some errors"
+	} else if len(errors) > 0 {
+		message = "Failed to retrieve crop cycles for all farms"
+	}
+
+	statusCode := http.StatusOK
+	if len(errors) > 0 && len(data) == 0 {
+		statusCode = http.StatusPartialContent
+	}
+
+	c.JSON(statusCode, models.BatchResponse{
+		StatusCode: statusCode,
+		Success:    success,
+		Message:    message,
+		Data:       data,
+		Errors:     errors,
+		TimeStamp:  time.Now().Format(time.RFC3339),
+	})
+}
