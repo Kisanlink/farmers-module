@@ -277,7 +277,7 @@ func (h *FarmActivityHandler) DeleteActivity(c *gin.Context) {
 
 // BatchFarmActivitiesRequest represents the request structure for batch farm activities
 type BatchFarmActivitiesRequest struct {
-	FarmIDs []string `json:"farm_ids" binding:"required,min=1,max=50"`
+	models.BatchRequest
 	Filters struct {
 		StartDate *string `json:"start_date,omitempty"` // RFC3339 format
 		EndDate   *string `json:"end_date,omitempty"`   // RFC3339 format
@@ -294,31 +294,6 @@ func (h *FarmActivityHandler) GetBatchFarmActivities(c *gin.Context) {
 			Message:    "Invalid request body",
 			Data:       make(map[string]interface{}),
 			Errors:     map[string]string{"validation": err.Error()},
-			TimeStamp:  time.Now().Format(time.RFC3339),
-		})
-		return
-	}
-
-	// Validate farm IDs count
-	if len(req.FarmIDs) == 0 {
-		c.JSON(http.StatusBadRequest, models.BatchResponse{
-			StatusCode: http.StatusBadRequest,
-			Success:    false,
-			Message:    "At least one farm ID is required",
-			Data:       make(map[string]interface{}),
-			Errors:     map[string]string{"validation": "farm_ids cannot be empty"},
-			TimeStamp:  time.Now().Format(time.RFC3339),
-		})
-		return
-	}
-
-	if len(req.FarmIDs) > 50 {
-		c.JSON(http.StatusBadRequest, models.BatchResponse{
-			StatusCode: http.StatusBadRequest,
-			Success:    false,
-			Message:    "Too many farm IDs",
-			Data:       make(map[string]interface{}),
-			Errors:     map[string]string{"validation": "maximum 50 farm IDs allowed"},
 			TimeStamp:  time.Now().Format(time.RFC3339),
 		})
 		return
@@ -361,8 +336,10 @@ func (h *FarmActivityHandler) GetBatchFarmActivities(c *gin.Context) {
 	}
 
 	statusCode := http.StatusOK
-	if len(errors) > 0 && len(data) == 0 {
+	if len(errors) > 0 && len(data) > 0 {
 		statusCode = http.StatusPartialContent
+	} else if len(errors) > 0 && len(data) == 0 {
+		statusCode = http.StatusInternalServerError
 	}
 
 	c.JSON(statusCode, models.BatchResponse{

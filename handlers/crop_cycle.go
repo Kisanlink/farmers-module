@@ -219,7 +219,7 @@ func (h *CropCycleHandler) UpdateCropCycle(c *gin.Context) {
 
 // BatchCropCyclesRequest represents the request structure for batch crop cycles
 type BatchCropCyclesRequest struct {
-	FarmIDs []string `json:"farm_ids" binding:"required,min=1,max=50"`
+	models.BatchRequest
 	Filters struct {
 		CropID *string `json:"crop_id,omitempty"`
 		Status *string `json:"status,omitempty"`
@@ -241,31 +241,6 @@ func (h *CropCycleHandler) GetBatchCropCycles(c *gin.Context) {
 		return
 	}
 
-	// Validate farm IDs count
-	if len(req.FarmIDs) == 0 {
-		c.JSON(http.StatusBadRequest, models.BatchResponse{
-			StatusCode: http.StatusBadRequest,
-			Success:    false,
-			Message:    "At least one farm ID is required",
-			Data:       make(map[string]interface{}),
-			Errors:     map[string]string{"validation": "farm_ids cannot be empty"},
-			TimeStamp:  time.Now().Format(time.RFC3339),
-		})
-		return
-	}
-
-	if len(req.FarmIDs) > 50 {
-		c.JSON(http.StatusBadRequest, models.BatchResponse{
-			StatusCode: http.StatusBadRequest,
-			Success:    false,
-			Message:    "Too many farm IDs",
-			Data:       make(map[string]interface{}),
-			Errors:     map[string]string{"validation": "maximum 50 farm IDs allowed"},
-			TimeStamp:  time.Now().Format(time.RFC3339),
-		})
-		return
-	}
-
 	// Get batch crop cycles
 	data, errors := h.service.GetCropCyclesBatch(req.FarmIDs, req.Filters.CropID, req.Filters.Status)
 
@@ -278,8 +253,10 @@ func (h *CropCycleHandler) GetBatchCropCycles(c *gin.Context) {
 	}
 
 	statusCode := http.StatusOK
-	if len(errors) > 0 && len(data) == 0 {
+	if len(errors) > 0 && len(data) > 0 {
 		statusCode = http.StatusPartialContent
+	} else if len(errors) > 0 && len(data) == 0 {
+		statusCode = http.StatusInternalServerError
 	}
 
 	c.JSON(statusCode, models.BatchResponse{
