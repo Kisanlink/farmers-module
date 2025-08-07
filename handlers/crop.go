@@ -36,6 +36,11 @@ func (h *CropHandler) CreateCrop(c *gin.Context) {
 		return
 	}
 
+	// Assign the order based on the array index from the request.
+	for i := range crop.Stages {
+		crop.Stages[i].Order = i + 1
+	}
+
 	// Validate Season if provided
 	if crop.Season != "" && !entities.CROP_SEASONS.IsValid(string(crop.Season)) {
 		c.JSON(http.StatusBadRequest, models.Response{
@@ -163,6 +168,11 @@ func (h *CropHandler) UpdateCrop(c *gin.Context) {
 			TimeStamp:  time.Now().UTC().Format(time.RFC3339),
 		})
 		return
+	}
+
+	// Assign the order based on the array index from the request.
+	for i := range crop.Stages {
+		crop.Stages[i].Order = i + 1
 	}
 
 	// Validate Season if provided

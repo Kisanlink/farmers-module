@@ -18,6 +18,8 @@ func RunMigrations() {
 		&models.FarmActivity{},
 		&models.CropCycle{},
 		&models.Crop{},
+		&models.Stage{},
+		&models.CropStage{},
 		&models.FPO{},
 	)
 	if err != nil {

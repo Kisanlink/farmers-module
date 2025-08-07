@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/Kisanlink/farmers-module/models"
-	"github.com/Kisanlink/farmers-module/utils"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // CropRepository handles CRUD operations for the Crop model.
@@ -30,14 +30,29 @@ type CropRepositoryInterface interface {
 
 // CreateCrop creates a new crop record.
 func (r *CropRepository) CreateCrop(crop *models.Crop) error {
-	crop.Id = utils.Generate10DigitId() // Generate a unique 10-digit ID.
-	crop.CreatedAt = time.Now()
-	crop.UpdatedAt = time.Now()
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// The BeforeCreate hook will generate the ID and set timestamps.
+		if err := tx.Create(crop).Error; err != nil {
+			return fmt.Errorf("failed to create crop: %w", err)
+		}
 
-	if err := r.db.Create(crop).Error; err != nil {
-		return fmt.Errorf("failed to create crop: %w", err)
-	}
-	return nil
+		// If stages are provided, create them.
+		if len(crop.Stages) > 0 {
+			for i := range crop.Stages {
+				crop.Stages[i].CropID = crop.Id
+				// The 'order' should be set in the service/handler before calling the repo
+			}
+			if err := tx.Create(&crop.Stages).Error; err != nil {
+				return fmt.Errorf("failed to create crop stages: %w", err)
+			}
+		}
+
+		// Re-fetch the crop with preloaded stages to return the full object.
+		// We need to preload the nested Stage details within CropStage.
+		return tx.Preload("Stages.Stage").Preload("Stages", func(db *gorm.DB) *gorm.DB {
+			return db.Order("crop_stages.\"order\" ASC")
+		}).First(crop, "id = ?", crop.Id).Error
+	})
 }
 
 func (r *CropRepository) GetAllCrops(name string, page, pageSize int) ([]*models.Crop, int64, error) {
@@ -47,22 +62,25 @@ func (r *CropRepository) GetAllCrops(name string, page, pageSize int) ([]*models
 	query := r.db.Model(&models.Crop{})
 
 	if name != "" {
-		// PostgreSQL case-insensitive search using ILIKE
 		query = query.Where("crop_name ILIKE ?", "%"+name+"%")
 	}
 
-	// Count total records first
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count crops: %w", err)
 	}
 
-	// Apply pagination
 	if page > 0 && pageSize > 0 {
 		offset := (page - 1) * pageSize
 		query = query.Offset(offset).Limit(pageSize)
 	}
 
-	if err := query.Find(&crops).Error; err != nil {
+	// Preload stages in the correct order for each crop.
+	// Also preload the master stage info for each association.
+	err := query.Preload("Stages.Stage").Preload("Stages", func(db *gorm.DB) *gorm.DB {
+		return db.Order("crop_stages.\"order\" ASC")
+	}).Find(&crops).Error
+
+	if err != nil {
 		return nil, 0, fmt.Errorf("failed to get crops: %w", err)
 	}
 
@@ -72,7 +90,12 @@ func (r *CropRepository) GetAllCrops(name string, page, pageSize int) ([]*models
 // GetCropByID retrieves a single crop record by its ID.
 func (r *CropRepository) GetCropByID(id string) (*models.Crop, error) {
 	var crop models.Crop
-	if err := r.db.Where("id = ?", id).First(&crop).Error; err != nil {
+	// Preload stages in the correct order.
+	err := r.db.Preload("Stages.Stage").Preload("Stages", func(db *gorm.DB) *gorm.DB {
+		return db.Order("crop_stages.\"order\" ASC")
+	}).Where("id = ?", id).First(&crop).Error
+
+	if err != nil {
 		return nil, fmt.Errorf("failed to get crop by id %s: %w", id, err)
 	}
 	return &crop, nil
@@ -80,18 +103,39 @@ func (r *CropRepository) GetCropByID(id string) (*models.Crop, error) {
 
 // UpdateCrop updates an existing crop record. It automatically updates the UpdatedAt timestamp.
 func (r *CropRepository) UpdateCrop(crop *models.Crop) error {
-	crop.UpdatedAt = time.Now()
-	if err := r.db.Save(crop).Error; err != nil {
-		return fmt.Errorf("failed to update crop with id %s: %w", crop.Id, err)
-	}
-	return nil
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		crop.UpdatedAt = time.Now()
+
+		// 1. Update the crop itself. We use Omit to prevent GORM from touching the association.
+		if err := tx.Model(crop).Omit("Stages").Save(crop).Error; err != nil {
+			return fmt.Errorf("failed to update crop with id %s: %w", crop.Id, err)
+		}
+
+		// 2. Delete existing stage associations for this crop.
+		if err := tx.Where("crop_id = ?", crop.Id).Delete(&models.CropStage{}).Error; err != nil {
+			return fmt.Errorf("failed to delete old stages for crop %s: %w", crop.Id, err)
+		}
+
+		// 3. Insert the new stage associations, if any.
+		if len(crop.Stages) > 0 {
+			for i := range crop.Stages {
+				crop.Stages[i].CropID = crop.Id
+			}
+			if err := tx.Create(&crop.Stages).Error; err != nil {
+				return fmt.Errorf("failed to create new stages for crop %s: %w", crop.Id, err)
+			}
+		}
+
+		// Re-fetch the fully updated crop data to return to the user.
+		return tx.Preload("Stages.Stage").Preload("Stages", func(db *gorm.DB) *gorm.DB {
+			return db.Order("crop_stages.\"order\" ASC")
+		}).First(crop, "id = ?", crop.Id).Error
+	})
 }
 
 // DeleteCrop deletes a crop record by its ID.
 func (r *CropRepository) DeleteCrop(id string) error {
-	if err := r.db.
-		Where("id = ?", id).
-		Delete(&models.Crop{}).Error; err != nil {
+	if err := r.db.Select(clause.Associations).Delete(&models.Crop{Base: models.Base{Id: id}}).Error; err != nil {
 		return fmt.Errorf("failed to delete crop with id %s: %w", id, err)
 	}
 	return nil
