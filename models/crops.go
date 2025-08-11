@@ -37,7 +37,7 @@ func (Stage) TableName() string {
 
 // BeforeCreate hook for Stage to generate ID.
 func (s *Stage) BeforeCreate(tx *gorm.DB) (err error) {
-	s.Id = "stg_" + utils.Generate10DigitId() // Prefix for clarity
+	s.Id = "STG" + utils.Generate7DigitId() // Prefix for clarity
 	s.CreatedAt = time.Now()
 	s.UpdatedAt = time.Now()
 	return
@@ -62,7 +62,7 @@ func (CropStage) TableName() string {
 func (c *Crop) BeforeCreate(tx *gorm.DB) (err error) {
 
 	if c.Id == "" {
-		c.Id = "crp_" + utils.Generate10DigitId() // Prefix for crop IDs
+		c.Id = "CRP" + utils.Generate7DigitId() // Prefix for crop IDs
 	}
 	c.CreatedAt = time.Now()
 	c.UpdatedAt = time.Now()

@@ -7,6 +7,24 @@ import (
 	"math/big"
 )
 
+func Generate7DigitId() string {
+	// The range for a 7-digit number is 1,000,000 to 9,999,999.
+	min := int64(1000000)
+	max := int64(9999999)
+
+	// Generate a cryptographically secure random number in the required range.
+	nBig, err := rand.Int(rand.Reader, big.NewInt(max-min+1))
+	if err != nil {
+		LogError(fmt.Sprintf("failed to generate random number: %v", err))
+		return "" // Return empty on error, as in the example.
+	}
+
+	id := nBig.Int64() + min
+
+	// Format the number as a 7-digit string.
+	return fmt.Sprintf("%07d", id)
+}
+
 func Generate10DigitId() string {
 	min := int64(1000000000)
 	max := int64(9999999999)
