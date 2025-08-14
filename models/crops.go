@@ -47,7 +47,7 @@ func (s *Stage) BeforeCreate(tx *gorm.DB) (err error) {
 type CropStage struct {
 	CropID       string    `json:"-" gorm:"primaryKey;type:varchar(10);not null"`
 	StageID      string    `json:"id" gorm:"primaryKey;type:varchar(10);not null"`
-	Order        int       `json:"order" gorm:"column:\"order\";not null"` // Quoting "order" is crucial
+	Order        int       `json:"order" gorm:"column:\"order\""` // Using quoted identifier for PostgreSQL reserved keyword
 	Duration     int       `json:"duration"`
 	DurationUnit string    `json:"duration_unit" gorm:"type:varchar(20);default:'DAYS'"`
 	CreatedAt    time.Time `json:"-"`
