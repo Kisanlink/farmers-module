@@ -13,4 +13,5 @@ func RegisterFarmRoutes(router *gin.RouterGroup, farmService services.FarmServic
 	router.GET("/farms", farmHandler.GetFarmsHandler)
 	router.GET("/farms/:farmId", farmHandler.GetFarmByFarmID)
 	router.GET("/getFarmCentroids", farmHandler.GetFarmCentroidsHandler)
+	router.GET("/getFarmHeatmap", farmHandler.GetFarmHeatmapHandler)
 }

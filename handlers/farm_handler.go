@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -313,6 +314,37 @@ func (h *FarmHandler) GetFarmCentroidsHandler(c *gin.Context) {
 		"status":    http.StatusOK,
 		"message":   "Farm centroids retrieved successfully",
 		"data":      centroids,
+		"timestamp": time.Now().UTC(),
+		"success":   true,
+	})
+}
+
+func (h *FarmHandler) GetFarmHeatmapHandler(c *gin.Context) {
+	// 1. Parse radius from query parameter, with a default value
+	// c.DefaultQuery returns the given default value if the key is not found
+	radiusStr := c.DefaultQuery("radius", "10")
+	radius, err := strconv.ParseFloat(radiusStr, 64)
+	if err != nil {
+		sendStandardError(c, http.StatusBadRequest,
+			"Invalid radius provided",
+			"Radius must be a valid number.")
+		return
+	}
+
+	// 2. Call the service layer to get the heatmap data
+	heatmapData, err := h.farmService.GetFarmHeatmap(radius)
+	if err != nil {
+		sendStandardError(c, http.StatusInternalServerError,
+			"Failed to generate farm heatmap",
+			err.Error())
+		return
+	}
+
+	// 3. Respond with the data
+	c.JSON(http.StatusOK, gin.H{
+		"status":    http.StatusOK,
+		"message":   "Farm heatmap retrieved successfully",
+		"data":      heatmapData,
 		"timestamp": time.Now().UTC(),
 		"success":   true,
 	})
