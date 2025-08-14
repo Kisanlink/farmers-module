@@ -20,6 +20,7 @@ type FarmServiceInterface interface {
 	GetFarmsWithFilters(farmerId, pincode string) ([]*models.Farm, error)
 
 	GetFarmByID(farmId string) (*models.Farm, error)
+	GetFarmCentroids() ([]*repositories.FarmCentroid, error)
 }
 
 type FarmService struct {
@@ -94,4 +95,13 @@ func (s *FarmService) GetFarmByID(farmId string) (*models.Farm, error) {
 		return nil, fmt.Errorf("failed to retrieve farm: %w", err)
 	}
 	return farm, nil
+}
+
+func (s *FarmService) GetFarmCentroids() ([]*repositories.FarmCentroid, error) {
+	centroids, err := s.repo.GetAllFarmCentroids()
+	if err != nil {
+		// The error from the repository is already well-described.
+		return nil, err
+	}
+	return centroids, nil
 }

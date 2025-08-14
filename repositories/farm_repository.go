@@ -21,6 +21,11 @@ func NewFarmRepository(db *gorm.DB) *FarmRepository {
 	return &FarmRepository{db: db}
 }
 
+type FarmCentroid struct {
+	FarmID   string              `json:"farm_id" gorm:"column:farm_id"`
+	Centroid models.GeoJSONPoint `json:"centroid" gorm:"column:centroid"`
+}
+
 type FarmRepositoryInterface interface {
 	CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, error)
 	CreateFarmRecord(farm *models.Farm) error
@@ -30,6 +35,7 @@ type FarmRepositoryInterface interface {
 	GetFarmByID(farmId string) (*models.Farm, error)
 
 	GetFarmAreaByID(farmID string) (float64, error)
+	GetAllFarmCentroids() ([]*FarmCentroid, error)
 }
 
 func (r *FarmRepository) CheckFarmOverlap(geoJSON models.GeoJSONPolygon) (bool, error) {
@@ -236,4 +242,22 @@ func (r *FarmRepository) GetFarmAreaByID(farmID string) (float64, error) {
 		return 0, fmt.Errorf("failed to get farm area: %w", err)
 	}
 	return area, nil
+}
+
+func (r *FarmRepository) GetAllFarmCentroids() ([]*FarmCentroid, error) {
+	var centroids []*FarmCentroid
+
+	query := `
+		SELECT
+			id AS farm_id,
+			ST_AsGeoJSON(ST_Centroid(location))::jsonb AS centroid
+		FROM
+			farms
+	`
+
+	if err := r.db.Raw(query).Scan(&centroids).Error; err != nil {
+		return nil, fmt.Errorf("database error while fetching farm centroids: %w", err)
+	}
+
+	return centroids, nil
 }

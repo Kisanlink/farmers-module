@@ -288,3 +288,32 @@ func (h *FarmHandler) GetFarmByFarmID(c *gin.Context) {
 		"success":   true,
 	})
 }
+
+func (h *FarmHandler) GetFarmCentroidsHandler(c *gin.Context) {
+	centroids, err := h.farmService.GetFarmCentroids()
+	if err != nil {
+		sendStandardError(c, http.StatusInternalServerError,
+			"Failed to retrieve farm centroids",
+			err.Error())
+		return
+	}
+
+	if len(centroids) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"status":    http.StatusOK,
+			"message":   "No farms found",
+			"data":      []interface{}{}, // Return empty list instead of null
+			"timestamp": time.Now().UTC(),
+			"success":   true,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":    http.StatusOK,
+		"message":   "Farm centroids retrieved successfully",
+		"data":      centroids,
+		"timestamp": time.Now().UTC(),
+		"success":   true,
+	})
+}

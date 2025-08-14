@@ -25,6 +25,30 @@ type GeoJSONPolygon struct {
 	Coordinates [][][]float64 `json:"coordinates"`
 }
 
+type GeoJSONPoint struct {
+	Type        string    `json:"type" default:"Point"`
+	Coordinates []float64 `json:"coordinates"`
+}
+
+func (p *GeoJSONPoint) Scan(value interface{}) error {
+	if value == nil {
+		p.Type = "Point"
+		p.Coordinates = make([]float64, 0)
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("unsupported type for GeoJSONPoint: %T", value)
+	}
+
+	return json.Unmarshal(bytes, p)
+}
+
+func (p GeoJSONPoint) Value() (driver.Value, error) {
+	return json.Marshal(p)
+}
+
 // Implement a more robust Scan method
 func (g *GeoJSONPolygon) Scan(value interface{}) error {
 	if value == nil {
