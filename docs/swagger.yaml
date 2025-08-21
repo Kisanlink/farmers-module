@@ -1,0 +1,403 @@
+basePath: /api/v1
+definitions:
+  farmer.CreateFarmerRequest:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      kisan_sathi_user_id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      profile:
+        $ref: '#/definitions/internal_entities_requests_farmer.FarmerProfileData'
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_id
+    type: object
+  internal_entities_requests_farmer.AddressData:
+    properties:
+      city:
+        type: string
+      coordinates:
+        description: WKT format for PostGIS
+        type: string
+      country:
+        type: string
+      postal_code:
+        type: string
+      state:
+        type: string
+      street_address:
+        type: string
+    type: object
+  internal_entities_requests_farmer.FarmerProfileData:
+    properties:
+      address:
+        $ref: '#/definitions/internal_entities_requests_farmer.AddressData'
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      last_name:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      phone_number:
+        type: string
+      preferences:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  services.CreateFarmerRequest:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      kisan_sathi_user_id:
+        type: string
+      last_name:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      phone_number:
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_id
+    type: object
+  services.FarmerData:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      created_at:
+        type: string
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      id:
+        type: string
+      kisan_sathi_user_id:
+        type: string
+      last_name:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      phone_number:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  services.FarmerListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/services.FarmerData'
+        type: array
+      message:
+        type: string
+      page:
+        type: integer
+      page_size:
+        type: integer
+      success:
+        type: boolean
+      total_count:
+        type: integer
+    type: object
+  services.FarmerResponse:
+    properties:
+      data:
+        $ref: '#/definitions/services.FarmerData'
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Farmers Module Service with Workflow-Based Architecture for Farm Management
+  title: Farmers Module API
+  version: 1.0.0
+paths:
+  /:
+    get:
+      consumes:
+      - application/json
+      description: Get information about the Farmers Module service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get service info
+      tags:
+      - service
+  /admin:
+    get:
+      consumes:
+      - application/json
+      description: Get information about admin and access control endpoints
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get admin endpoints info
+      tags:
+      - admin
+  /crops:
+    get:
+      consumes:
+      - application/json
+      description: Get information about crop management endpoints
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get crop endpoints info
+      tags:
+      - crops
+  /farms:
+    get:
+      consumes:
+      - application/json
+      description: Get information about farm management endpoints
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get farm endpoints info
+      tags:
+      - farms
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Check the health status of the service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - health
+  /identity:
+    get:
+      consumes:
+      - application/json
+      description: Get information about identity and organization linkage endpoints
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get identity endpoints info
+      tags:
+      - identity
+  /identity/farmers:
+    get:
+      consumes:
+      - application/json
+      description: List farmers with filtering and pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: AAA Org ID filter
+        in: query
+        name: aaa_org_id
+        type: string
+      - description: KisanSathi User ID filter
+        in: query
+        name: kisan_sathi_user_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.FarmerListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List farmers
+      tags:
+      - identity
+    post:
+      consumes:
+      - application/json
+      description: Create a new farmer profile
+      parameters:
+      - description: Farmer data
+        in: body
+        name: farmer
+        required: true
+        schema:
+          $ref: '#/definitions/services.CreateFarmerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/services.FarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new farmer
+      tags:
+      - identity
+  /identity/farmers/{aaa_user_id}/{aaa_org_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a farmer profile by AAA user ID and org ID
+      parameters:
+      - description: AAA User ID
+        in: path
+        name: aaa_user_id
+        required: true
+        type: string
+      - description: AAA Org ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.FarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get farmer by ID
+      tags:
+      - identity
+  /kisansathi:
+    get:
+      consumes:
+      - application/json
+      description: Get information about KisanSathi assignment endpoints
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get KisanSathi endpoints info
+      tags:
+      - kisansathi
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

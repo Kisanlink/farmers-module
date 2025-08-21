@@ -1,39 +1,57 @@
-# Variables
-BINARY_NAME=build
-SRC_FILE=main.go
+# Farmers Module Makefile
+# Provides common development and deployment commands
 
-# Targets
+.PHONY: help build test clean run docs
 
-# Run the application with Air
-air:
-	air
+# Default target
+help: ## Show this help message
+	@echo "Farmers Module - Farm Management Service"
+	@echo "========================================"
+	@echo ""
+	@echo "Available commands:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-# Run the application normally
-run:
-	go run $(SRC_FILE)
+# Development commands
+build: ## Build the application
+	@echo "Building Farmers Module..."
+	go build -o farmers-server cmd/farmers-service/main.go
+	@echo "✅ Build complete: farmers-server"
 
-# Build the application binary
-build:
-	go build -o $(BINARY_NAME) $(SRC_FILE)
-
-# Run tests
-test:
+test: ## Run tests
+	@echo "Running tests..."
 	go test ./... -v
 
-# Clean up generated files (Linux/macOS)
-clean-linux:
-	@rm -f $(BINARY_NAME)
+# Documentation
+docs: ## Generate Swagger documentation
+	@echo "Generating Swagger documentation..."
+	swag init -g cmd/farmers-service/main.go
+	@echo "✅ Swagger documentation generated"
 
-# Clean up generated files (Windows)
-clean-windows:
-	@if exist $(BINARY_NAME) del $(BINARY_NAME)
+# Development server
+run: ## Run the farmers module server
+	@echo "Starting Farmers Module server..."
+	@echo "HTTP server will be available at: http://localhost:8080"
+	@echo "API documentation at: http://localhost:8080/docs"
+	@echo ""
+	go run cmd/farmers-service/main.go
 
-# Format the Go code
-fmt:
-	go fmt ./...
+dev: run ## Alias for run command
 
-# Install dependencies
-deps:
-	go mod tidy
+# Cleanup
+clean: ## Clean build artifacts
+	@echo "Cleaning build artifacts..."
+	rm -f farmers-server
+	@echo "✅ Cleanup complete"
 
+# Quick development workflow
+dev-setup: build docs ## Setup development environment with docs
+	@echo "✅ Development setup complete"
 
+# Helpers
+version: ## Show version information
+	@echo "Farmers Module"
+	@echo "Version: 1.0.0"
+	@echo "Date: $(shell date)"
+
+# Default target
+.DEFAULT_GOAL := help

@@ -9,6 +9,8 @@ tmp/
 
 # Binaries
 farmers-module
+farmers-service
+farmers-server
 *.exe
 *.exe~
 *.dll

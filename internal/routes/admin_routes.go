@@ -1,0 +1,25 @@
+package routes
+
+import (
+	"github.com/Kisanlink/farmers-module/internal/handlers"
+	"github.com/Kisanlink/farmers-module/internal/services"
+	"github.com/gin-gonic/gin"
+)
+
+// RegisterAdminRoutes registers routes for Admin & Access Control workflows
+func RegisterAdminRoutes(router *gin.RouterGroup, services *services.ServiceFactory) {
+	admin := router.Group("/admin")
+	{
+		// W18: Seed roles and permissions
+		admin.POST("/seed", handlers.SeedRolesAndPermissions(services.AAAService))
+
+		// W19: Check permission (for testing)
+		admin.POST("/check-permission", handlers.CheckPermission(services.AAAService))
+
+		// Health check
+		admin.GET("/health", handlers.HealthCheck())
+
+		// Audit trail
+		admin.GET("/audit", handlers.GetAuditTrail())
+	}
+}

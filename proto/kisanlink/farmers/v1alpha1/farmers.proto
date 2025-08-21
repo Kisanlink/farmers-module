@@ -1,0 +1,442 @@
+syntax = "proto3";
+
+package kisanlink.farmers.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/Kisanlink/farmers-module/proto/kisanlink/farmers/v1alpha1;farmersv1alpha1";
+
+// Common enums
+enum Season {
+  SEASON_UNSPECIFIED = 0;
+  SEASON_RABI = 1;
+  SEASON_KHARIF = 2;
+  SEASON_ZAID = 3;
+  SEASON_OTHER = 4;
+}
+
+enum CycleStatus {
+  CYCLE_STATUS_UNSPECIFIED = 0;
+  CYCLE_STATUS_PLANNED = 1;
+  CYCLE_STATUS_ACTIVE = 2;
+  CYCLE_STATUS_COMPLETED = 3;
+  CYCLE_STATUS_CANCELLED = 4;
+}
+
+enum ActivityType {
+  ACTIVITY_TYPE_UNSPECIFIED = 0;
+  ACTIVITY_TYPE_PLANTING = 1;
+  ACTIVITY_TYPE_FERTILIZING = 2;
+  ACTIVITY_TYPE_IRRIGATION = 3;
+  ACTIVITY_TYPE_PEST_CONTROL = 4;
+  ACTIVITY_TYPE_HARVESTING = 5;
+  ACTIVITY_TYPE_OTHER = 6;
+}
+
+// Common message types
+message PermissionContext {
+  string subject_aaa_user_id = 1 [(validate.rules).string.min_len = 1];
+  string org_aaa_org_id = 2 [(validate.rules).string.min_len = 1];
+  string resource = 3 [(validate.rules).string.min_len = 1];
+  string action = 4 [(validate.rules).string.min_len = 1];
+  string object_id = 5; // optional
+}
+
+message Geometry {
+  string wkt = 1; // Well-Known Text format
+  bytes wkb = 2; // Well-Known Binary format
+}
+
+// FPO Service
+service FPOService {
+  rpc RegisterFPORef(RegisterFPORefRequest) returns (RegisterFPORefResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/fpo/register"
+      body: "*"
+    };
+  }
+
+  rpc GetFPORef(GetFPORefRequest) returns (GetFPORefResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha1/fpo/{aaa_org_id}"
+    };
+  }
+}
+
+message RegisterFPORefRequest {
+  string aaa_org_id = 1 [(validate.rules).string.min_len = 1];
+  map<string, string> business_config = 2;
+}
+
+message RegisterFPORefResponse {
+  FPORef fpo_ref = 1;
+}
+
+message GetFPORefRequest {
+  string aaa_org_id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message GetFPORefResponse {
+  FPORef fpo_ref = 1;
+}
+
+message FPORef {
+  string id = 1;
+  string aaa_org_id = 2;
+  map<string, string> business_config = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+// Farmer Service
+service FarmerService {
+  rpc LinkFarmerToFPO(LinkFarmerToFPORequest) returns (LinkFarmerToFPOResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/farmers/link"
+      body: "*"
+    };
+  }
+
+  rpc AssignKisanSathi(AssignKisanSathiRequest) returns (AssignKisanSathiResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/farmers/assign-kisan-sathi"
+      body: "*"
+    };
+  }
+
+  rpc GetFarmerProfile(GetFarmerProfileRequest) returns (GetFarmerProfileResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha1/farmers/{aaa_user_id}/profile"
+    };
+  }
+}
+
+message LinkFarmerToFPORequest {
+  string aaa_user_id = 1 [(validate.rules).string.min_len = 1];
+  string aaa_org_id = 2 [(validate.rules).string.min_len = 1];
+}
+
+message LinkFarmerToFPOResponse {
+  FarmerLink farmer_link = 1;
+}
+
+message AssignKisanSathiRequest {
+  string aaa_farmer_user_id = 1 [(validate.rules).string.min_len = 1];
+  string aaa_kisan_sathi_user_id = 2 [(validate.rules).string.min_len = 1];
+  string aaa_org_id = 3 [(validate.rules).string.min_len = 1];
+}
+
+message AssignKisanSathiResponse {
+  FarmerLink farmer_link = 1;
+}
+
+message GetFarmerProfileRequest {
+  string aaa_user_id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message GetFarmerProfileResponse {
+  FarmerProfile farmer_profile = 1;
+}
+
+message FarmerLink {
+  string id = 1;
+  string aaa_user_id = 2;
+  string aaa_org_id = 3;
+  string kisan_sathi_user_id = 4;
+  string status = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message FarmerProfile {
+  string aaa_user_id = 1;
+  string aaa_org_id = 2;
+  string kisan_sathi_user_id = 3;
+  repeated Farm farms = 4;
+}
+
+// Farm Service
+service FarmService {
+  rpc CreateFarm(CreateFarmRequest) returns (CreateFarmResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/farms"
+      body: "*"
+    };
+  }
+
+  rpc GetFarm(GetFarmRequest) returns (GetFarmResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha1/farms/{farm_id}"
+    };
+  }
+
+  rpc ListFarms(ListFarmsRequest) returns (ListFarmsResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha1/farms"
+    };
+  }
+
+  rpc UpdateFarm(UpdateFarmRequest) returns (UpdateFarmResponse) {
+    option (google.api.http) = {
+      put: "/v1alpha1/farms/{farm_id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteFarm(DeleteFarmRequest) returns (DeleteFarmResponse) {
+    option (google.api.http) = {
+      delete: "/v1alpha1/farms/{farm_id}"
+    };
+  }
+}
+
+message CreateFarmRequest {
+  string aaa_farmer_user_id = 1 [(validate.rules).string.min_len = 1];
+  string aaa_org_id = 2 [(validate.rules).string.min_len = 1];
+  Geometry geometry = 3 [(validate.rules).message.required = true];
+  map<string, string> metadata = 4;
+}
+
+message CreateFarmResponse {
+  Farm farm = 1;
+}
+
+message GetFarmRequest {
+  string farm_id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message GetFarmResponse {
+  Farm farm = 1;
+}
+
+message ListFarmsRequest {
+  string aaa_farmer_user_id = 1;
+  string aaa_org_id = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+}
+
+message ListFarmsResponse {
+  repeated Farm farms = 1;
+  string next_page_token = 2;
+}
+
+message UpdateFarmRequest {
+  string farm_id = 1 [(validate.rules).string.min_len = 1];
+  Geometry geometry = 2;
+  map<string, string> metadata = 3;
+}
+
+message UpdateFarmResponse {
+  Farm farm = 1;
+}
+
+message DeleteFarmRequest {
+  string farm_id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message DeleteFarmResponse {
+  bool success = 1;
+}
+
+message Farm {
+  string id = 1;
+  string aaa_farmer_user_id = 2;
+  string aaa_org_id = 3;
+  Geometry geometry = 4;
+  double area_ha = 5;
+  map<string, string> metadata = 6;
+  string created_by = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+// Crop Cycle Service
+service CropCycleService {
+  rpc StartCycle(StartCycleRequest) returns (StartCycleResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/crop-cycles"
+      body: "*"
+    };
+  }
+
+  rpc UpdateCycle(UpdateCycleRequest) returns (UpdateCycleResponse) {
+    option (google.api.http) = {
+      put: "/v1alpha1/crop-cycles/{cycle_id}"
+      body: "*"
+    };
+  }
+
+  rpc EndCycle(EndCycleRequest) returns (EndCycleResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/crop-cycles/{cycle_id}/end"
+      body: "*"
+    };
+  }
+
+  rpc ListCycles(ListCyclesRequest) returns (ListCyclesResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha1/crop-cycles"
+    };
+  }
+}
+
+message StartCycleRequest {
+  string farm_id = 1 [(validate.rules).string.min_len = 1];
+  Season season = 2 [(validate.rules).enum.defined_only = true];
+  google.protobuf.Timestamp start_date = 3 [(validate.rules).timestamp.required = true];
+  repeated string planned_crops = 4;
+}
+
+message StartCycleResponse {
+  CropCycle cycle = 1;
+}
+
+message UpdateCycleRequest {
+  string cycle_id = 1 [(validate.rules).string.min_len = 1];
+  Season season = 2;
+  CycleStatus status = 3;
+  google.protobuf.Timestamp start_date = 4;
+  google.protobuf.Timestamp end_date = 5;
+  repeated string planned_crops = 6;
+  map<string, string> outcome = 7;
+}
+
+message UpdateCycleResponse {
+  CropCycle cycle = 1;
+}
+
+message EndCycleRequest {
+  string cycle_id = 1 [(validate.rules).string.min_len = 1];
+  google.protobuf.Timestamp end_date = 2 [(validate.rules).timestamp.required = true];
+  map<string, string> outcome = 3;
+}
+
+message EndCycleResponse {
+  CropCycle cycle = 1;
+}
+
+message ListCyclesRequest {
+  string farm_id = 1 [(validate.rules).string.min_len = 1];
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListCyclesResponse {
+  repeated CropCycle cycles = 1;
+  string next_page_token = 2;
+}
+
+message CropCycle {
+  string id = 1;
+  string farm_id = 2;
+  Season season = 3;
+  CycleStatus status = 4;
+  google.protobuf.Timestamp start_date = 5;
+  google.protobuf.Timestamp end_date = 6;
+  repeated string planned_crops = 7;
+  map<string, string> outcome = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+// Farm Activity Service
+service FarmActivityService {
+  rpc CreateActivity(CreateActivityRequest) returns (CreateActivityResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/farm-activities"
+      body: "*"
+    };
+  }
+
+  rpc CompleteActivity(CompleteActivityRequest) returns (CompleteActivityResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/farm-activities/{activity_id}/complete"
+      body: "*"
+    };
+  }
+
+  rpc ListActivities(ListActivitiesRequest) returns (ListActivitiesResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha1/farm-activities"
+    };
+  }
+}
+
+message CreateActivityRequest {
+  string cycle_id = 1 [(validate.rules).string.min_len = 1];
+  ActivityType activity_type = 2 [(validate.rules).enum.defined_only = true];
+  google.protobuf.Timestamp planned_at = 3;
+  map<string, string> metadata = 4;
+}
+
+message CreateActivityResponse {
+  FarmActivity activity = 1;
+}
+
+message CompleteActivityRequest {
+  string activity_id = 1 [(validate.rules).string.min_len = 1];
+  google.protobuf.Timestamp completed_at = 2 [(validate.rules).timestamp.required = true];
+  map<string, string> output = 3;
+}
+
+message CompleteActivityResponse {
+  FarmActivity activity = 1;
+}
+
+message ListActivitiesRequest {
+  string cycle_id = 1 [(validate.rules).string.min_len = 1];
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListActivitiesResponse {
+  repeated FarmActivity activities = 1;
+  string next_page_token = 2;
+}
+
+message FarmActivity {
+  string id = 1;
+  string cycle_id = 2;
+  ActivityType activity_type = 3;
+  google.protobuf.Timestamp planned_at = 4;
+  google.protobuf.Timestamp completed_at = 5;
+  map<string, string> metadata = 6;
+  map<string, string> output = 7;
+  string created_by = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+// Admin Service
+service AdminService {
+  rpc SeedRolesAndPermissions(SeedRolesAndPermissionsRequest) returns (SeedRolesAndPermissionsResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/admin/seed"
+      body: "*"
+    };
+  }
+
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha1/admin/health"
+    };
+  }
+}
+
+message SeedRolesAndPermissionsRequest {}
+
+message SeedRolesAndPermissionsResponse {
+  bool success = 1;
+  repeated string roles_created = 2;
+  repeated string permissions_created = 3;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  string status = 1;
+  google.protobuf.Timestamp timestamp = 2;
+}
