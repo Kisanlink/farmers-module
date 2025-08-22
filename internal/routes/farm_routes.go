@@ -3,13 +3,14 @@ package routes
 import (
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/internal/handlers"
+	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/Kisanlink/farmers-module/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterFarmRoutes registers routes for Farm Management workflows
-func RegisterFarmRoutes(router *gin.RouterGroup, services *services.ServiceFactory, cfg *config.Config) {
+func RegisterFarmRoutes(router *gin.RouterGroup, services *services.ServiceFactory, cfg *config.Config, logger interfaces.Logger) {
 	// Initialize validation middleware
 	validationMiddleware := middleware.NewValidationMiddleware(services.AAAClient, cfg)
 

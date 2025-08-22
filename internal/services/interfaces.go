@@ -84,4 +84,6 @@ type AAAService interface {
 	CreateUser(ctx context.Context, req interface{}) (interface{}, error)
 	// Get user from AAA
 	GetUser(ctx context.Context, userID string) (interface{}, error)
+	// Get user from AAA by mobile number
+	GetUserByMobile(ctx context.Context, mobileNumber string) (interface{}, error)
 }

@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/Kisanlink/farmers-module/internal/clients/aaa"
 	"github.com/Kisanlink/farmers-module/internal/config"
+	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/farmers-module/internal/repo"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
 )
@@ -30,7 +31,7 @@ type ServiceFactory struct {
 }
 
 // NewServiceFactory creates a new service factory
-func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.PostgresManager, cfg *config.Config) *ServiceFactory {
+func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.PostgresManager, cfg *config.Config, logger interfaces.Logger) *ServiceFactory {
 	// Initialize AAA client first as it's used by other services
 	aaaClient, err := aaa.NewClient(cfg)
 	if err != nil {
@@ -42,9 +43,9 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	aaaService := NewAAAService(cfg)
 
 	// Initialize identity services
-	farmerService := NewFarmerService(postgresManager)
+	farmerService := NewFarmerService(postgresManager, aaaService)
 	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo, aaaService)
-	fpoRefService := NewFPORefService(repoFactory.FPORefRepo, aaaClient)
+	fpoRefService := NewFPORefService(repoFactory.FPORefRepo, aaaService)
 	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo, aaaService)
 
 	// Initialize farm management services

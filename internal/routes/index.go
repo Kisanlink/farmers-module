@@ -4,30 +4,31 @@ import (
 	"net/http"
 
 	"github.com/Kisanlink/farmers-module/internal/config"
+	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/farmers-module/internal/services"
 	scalar "github.com/MarceloPetrucio/go-scalar-api-reference"
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterAllRoutes registers all workflow-based routes
-func RegisterAllRoutes(router *gin.Engine, services *services.ServiceFactory, cfg *config.Config) {
+func RegisterAllRoutes(router *gin.Engine, services *services.ServiceFactory, cfg *config.Config, logger interfaces.Logger) {
 	// API v1 group
 	api := router.Group("/api/v1")
 	{
 		// Identity & Organization Linkage (W1-W3)
-		RegisterIdentityRoutes(api, services, cfg)
+		RegisterIdentityRoutes(api, services, cfg, logger)
 
 		// KisanSathi Assignment (W4-W5)
-		RegisterKisanSathiRoutes(api, services, cfg)
+		RegisterKisanSathiRoutes(api, services, cfg, logger)
 
 		// Farm Management (W6-W9)
-		RegisterFarmRoutes(api, services, cfg)
+		RegisterFarmRoutes(api, services, cfg, logger)
 
 		// Crop Management (W10-W17)
-		RegisterCropRoutes(api, services, cfg)
+		RegisterCropRoutes(api, services, cfg, logger)
 
 		// Admin & Access Control (W18-W19)
-		RegisterAdminRoutes(api, services, cfg)
+		RegisterAdminRoutes(api, services, cfg, logger)
 	}
 
 	// Health check endpoint
@@ -37,13 +38,13 @@ func RegisterAllRoutes(router *gin.Engine, services *services.ServiceFactory, cf
 }
 
 // SetupRoutes sets up all routes with proper handlers and middleware
-func SetupRoutes(router *gin.Engine, services *services.ServiceFactory, cfg *config.Config) {
+func SetupRoutes(router *gin.Engine, services *services.ServiceFactory, cfg *config.Config, logger interfaces.Logger) {
 	// Add middleware
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
 	// Register all routes
-	RegisterAllRoutes(router, services, cfg)
+	RegisterAllRoutes(router, services, cfg, logger)
 
 	// Add Scalar-powered Swagger documentation route
 	router.GET("/docs", func(c *gin.Context) {

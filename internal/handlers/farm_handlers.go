@@ -8,6 +8,15 @@ import (
 )
 
 // CreateFarm handles W6: Create farm
+// @Summary Create a new farm
+// @Description Create a new farm with geographic boundaries and metadata
+// @Tags farms
+// @Accept json
+// @Produce json
+// @Param farm body object true "Farm data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /farms [post]
 func CreateFarm(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
@@ -38,6 +47,16 @@ func CreateFarm(service services.FarmService) gin.HandlerFunc {
 }
 
 // UpdateFarm handles W7: Update farm
+// @Summary Update an existing farm
+// @Description Update farm details including name, geometry, and location
+// @Tags farms
+// @Accept json
+// @Produce json
+// @Param farm_id path string true "Farm ID"
+// @Param farm body object true "Farm update data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /farms/{farm_id} [put]
 func UpdateFarm(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		farmID := c.Param("farm_id")
@@ -63,6 +82,15 @@ func UpdateFarm(service services.FarmService) gin.HandlerFunc {
 }
 
 // DeleteFarm handles W8: Delete farm
+// @Summary Delete a farm
+// @Description Delete a farm by ID
+// @Tags farms
+// @Accept json
+// @Produce json
+// @Param farm_id path string true "Farm ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /farms/{farm_id} [delete]
 func DeleteFarm(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		farmID := c.Param("farm_id")
@@ -78,6 +106,14 @@ func DeleteFarm(service services.FarmService) gin.HandlerFunc {
 }
 
 // ListFarms handles W9: List farms
+// @Summary List all farms
+// @Description Retrieve a list of all farms with optional filtering
+// @Tags farms
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /farms [get]
 func ListFarms(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement the actual service call
@@ -89,6 +125,15 @@ func ListFarms(service services.FarmService) gin.HandlerFunc {
 }
 
 // GetFarm handles getting farm by ID
+// @Summary Get farm by ID
+// @Description Retrieve a specific farm by its ID
+// @Tags farms
+// @Accept json
+// @Produce json
+// @Param farm_id path string true "Farm ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /farms/{farm_id} [get]
 func GetFarm(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		farmID := c.Param("farm_id")

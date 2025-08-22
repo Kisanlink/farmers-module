@@ -3,13 +3,14 @@ package routes
 import (
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/internal/handlers"
+	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/Kisanlink/farmers-module/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterIdentityRoutes registers routes for Identity & Organization Linkage workflows
-func RegisterIdentityRoutes(router *gin.RouterGroup, services *services.ServiceFactory, cfg *config.Config) {
+func RegisterIdentityRoutes(router *gin.RouterGroup, services *services.ServiceFactory, cfg *config.Config, logger interfaces.Logger) {
 	// Initialize validation middleware
 	validationMiddleware := middleware.NewValidationMiddleware(services.AAAClient, cfg)
 
@@ -19,19 +20,19 @@ func RegisterIdentityRoutes(router *gin.RouterGroup, services *services.ServiceF
 		farmers := identity.Group("/farmers")
 		{
 			// Create a new farmer with validation
-			farmers.POST("", validationMiddleware.ValidateFarmerCreation(), handlers.CreateFarmer(services.FarmerService))
+			farmers.POST("", validationMiddleware.ValidateFarmerCreation(), handlers.CreateFarmer(services.FarmerService, logger))
 
 			// List farmers with filtering and pagination
-			farmers.GET("", handlers.ListFarmers(services.FarmerService))
+			farmers.GET("", handlers.ListFarmers(services.FarmerService, logger))
 
 			// Get farmer by ID
-			farmers.GET("/:aaa_user_id/:aaa_org_id", handlers.GetFarmer(services.FarmerService))
+			farmers.GET("/:aaa_user_id/:aaa_org_id", handlers.GetFarmer(services.FarmerService, logger))
 
 			// Update farmer with validation
-			farmers.PUT("/:aaa_user_id/:aaa_org_id", validationMiddleware.ValidateFarmerCreation(), handlers.UpdateFarmer(services.FarmerService))
+			farmers.PUT("/:aaa_user_id/:aaa_org_id", validationMiddleware.ValidateFarmerCreation(), handlers.UpdateFarmer(services.FarmerService, logger))
 
 			// Delete farmer
-			farmers.DELETE("/:aaa_user_id/:aaa_org_id", handlers.DeleteFarmer(services.FarmerService))
+			farmers.DELETE("/:aaa_user_id/:aaa_org_id", handlers.DeleteFarmer(services.FarmerService, logger))
 		}
 
 		// W1: Link farmer to FPO

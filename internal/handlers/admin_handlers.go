@@ -8,6 +8,14 @@ import (
 )
 
 // SeedRolesAndPermissions handles W18: Seed roles and permissions
+// @Summary Seed roles and permissions
+// @Description Initialize the system with default roles and permissions
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /admin/seed [post]
 func SeedRolesAndPermissions(service services.AAAService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement the actual service call
@@ -18,6 +26,15 @@ func SeedRolesAndPermissions(service services.AAAService) gin.HandlerFunc {
 }
 
 // CheckPermission handles W19: Check permission
+// @Summary Check user permission
+// @Description Check if a user has permission to perform a specific action
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param permission body object true "Permission check data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /admin/permissions/check [post]
 func CheckPermission(service services.AAAService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
@@ -49,6 +66,13 @@ func CheckPermission(service services.AAAService) gin.HandlerFunc {
 }
 
 // HealthCheck handles health check
+// @Summary Health check
+// @Description Check the health status of the service
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /admin/health [get]
 func HealthCheck() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -59,12 +83,38 @@ func HealthCheck() gin.HandlerFunc {
 }
 
 // GetAuditTrail handles getting audit trail
+// @Summary Get audit trail
+// @Description Retrieve the audit trail for system activities
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /admin/audit [get]
 func GetAuditTrail() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// TODO: Implement audit trail retrieval
+		// Get query parameters for filtering
+		startDate := c.Query("start_date")
+		endDate := c.Query("end_date")
+		userID := c.Query("user_id")
+		action := c.Query("action")
+
+		// TODO: Add validation for date formats
+
+		// TODO: Call audit service to retrieve filtered audit logs
+
+		// For now return empty result
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Audit trail retrieved successfully",
-			"data":    []interface{}{},
+			"data": gin.H{
+				"audit_logs": []interface{}{},
+				"filters": gin.H{
+					"start_date": startDate,
+					"end_date":   endDate,
+					"user_id":    userID,
+					"action":     action,
+				},
+			},
 		})
 	}
 }

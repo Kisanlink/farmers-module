@@ -1,7 +1,6 @@
 package responses
 
 import (
-	"github.com/Kisanlink/farmers-module/internal/entities/farm"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
@@ -25,9 +24,6 @@ type FarmOverlapResponse struct {
 
 // FarmData represents farm data in responses
 // Note: FarmData is already defined in farmer_responses.go as farm.Farm
-
-// GeometryData represents geometric data in responses
-type GeometryData = farm.Geometry
 
 // FarmOverlapData represents farm overlap check result
 type FarmOverlapData struct {

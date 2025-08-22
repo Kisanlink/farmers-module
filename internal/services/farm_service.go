@@ -4,17 +4,17 @@ import (
 	"context"
 
 	farmEntity "github.com/Kisanlink/farmers-module/internal/entities/farm"
-	farmRepo "github.com/Kisanlink/farmers-module/internal/repo/farm"
+	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
 // FarmServiceImpl implements FarmService
 type FarmServiceImpl struct {
-	farmRepo   farmRepo.FarmRepository
+	farmRepo   *base.BaseFilterableRepository[*farmEntity.Farm]
 	aaaService AAAService
 }
 
 // NewFarmService creates a new farm service
-func NewFarmService(farmRepo farmRepo.FarmRepository, aaaService AAAService) FarmService {
+func NewFarmService(farmRepo *base.BaseFilterableRepository[*farmEntity.Farm], aaaService AAAService) FarmService {
 	return &FarmServiceImpl{
 		farmRepo:   farmRepo,
 		aaaService: aaaService,

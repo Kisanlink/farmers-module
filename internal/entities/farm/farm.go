@@ -6,19 +6,14 @@ import (
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
 )
 
-// Geometry represents a geometric shape (PostGIS)
-type Geometry struct {
-	WKT string // Well-Known Text format
-	WKB []byte // Well-Known Binary format
-}
-
 // Farm represents a farm with geographic boundaries
 type Farm struct {
 	base.BaseModel
 	AAAFarmerUserID string            `json:"aaa_farmer_user_id" gorm:"type:varchar(255);not null"`
 	AAAOrgID        string            `json:"aaa_org_id" gorm:"type:varchar(255);not null"`
-	Geometry        Geometry          `json:"geometry" gorm:"type:geometry(Polygon,4326);not null"`
-	AreaHa          float64           `json:"area_ha" gorm:"type:numeric(12,4);generated"`
+	Name            string            `json:"name" gorm:"type:varchar(255)"`
+	Geometry        string            `json:"geometry" gorm:"type:geometry(POLYGON,4326)"`
+	AreaHa          float64           `json:"area_ha" gorm:"type:numeric(12,4);->"`
 	Metadata        map[string]string `json:"metadata" gorm:"type:jsonb;default:'{}'"`
 }
 
@@ -45,21 +40,8 @@ func (f *Farm) Validate() error {
 	if f.AAAOrgID == "" {
 		return common.ErrInvalidFarmData
 	}
-	if f.Geometry.WKT == "" && len(f.Geometry.WKB) == 0 {
+	if f.Geometry == "" {
 		return common.ErrInvalidFarmGeometry
 	}
 	return nil
-}
-
-// Helper methods for geometry
-func (g *Geometry) ToWKT() string {
-	return g.WKT
-}
-
-func (g *Geometry) ToWKB() []byte {
-	return g.WKB
-}
-
-func (g *Geometry) IsValid() bool {
-	return g.WKT != "" || len(g.WKB) > 0
 }

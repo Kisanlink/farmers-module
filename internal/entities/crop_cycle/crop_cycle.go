@@ -11,13 +11,14 @@ import (
 // CropCycle represents an agricultural cycle within a farm
 type CropCycle struct {
 	base.BaseModel
-	FarmID       string            `json:"farm_id" gorm:"type:uuid;not null"`
+	FarmID       string            `json:"farm_id" gorm:"type:varchar(255);not null"`
+	FarmerID     string            `json:"farmer_id" gorm:"type:varchar(255);not null"`
 	Season       string            `json:"season" gorm:"type:season;not null"`
 	Status       string            `json:"status" gorm:"type:cycle_status;not null;default:'PLANNED'"`
-	StartDate    time.Time         `json:"start_date" gorm:"type:date;not null"`
+	StartDate    *time.Time        `json:"start_date" gorm:"type:date"`
 	EndDate      *time.Time        `json:"end_date" gorm:"type:date"`
 	PlannedCrops []string          `json:"planned_crops" gorm:"type:jsonb;default:'[]'"`
-	Outcome      map[string]string `json:"outcome" gorm:"type:jsonb"`
+	Outcome      map[string]string `json:"outcome" gorm:"type:jsonb;default:'{}'"`
 }
 
 // TableName returns the table name for the CropCycle model
@@ -40,10 +41,10 @@ func (cc *CropCycle) Validate() error {
 	if cc.FarmID == "" {
 		return common.ErrInvalidCropCycleData
 	}
-	if cc.Season == "" {
+	if cc.FarmerID == "" {
 		return common.ErrInvalidCropCycleData
 	}
-	if cc.StartDate.IsZero() {
+	if cc.Season == "" {
 		return common.ErrInvalidCropCycleData
 	}
 	return nil

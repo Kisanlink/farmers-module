@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
@@ -24,16 +25,18 @@ type FarmerService interface {
 type FarmerServiceImpl struct {
 	repository *base.BaseFilterableRepository[*farmer.Farmer]
 	dbManager  db.DBManager
+	aaaService AAAService
 }
 
-// NewFarmerService creates a new farmer service with DBManager
-func NewFarmerService(dbManager db.DBManager) FarmerService {
+// NewFarmerService creates a new farmer service with DBManager and AAA service
+func NewFarmerService(dbManager db.DBManager, aaaService AAAService) FarmerService {
 	repo := base.NewBaseFilterableRepository[*farmer.Farmer]()
 	repo.SetDBManager(dbManager)
 
 	return &FarmerServiceImpl{
 		repository: repo,
 		dbManager:  dbManager,
+		aaaService: aaaService,
 	}
 }
 
@@ -50,16 +53,64 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		return nil, fmt.Errorf("farmer already exists")
 	}
 
+	// Check if user exists in AAA by mobile number
+	var aaaUserID string
+	var aaaOrgID string
+
+	if req.Profile.PhoneNumber != "" {
+		// Try to find existing user by mobile number
+		aaaUser, err := s.aaaService.GetUserByMobile(ctx, req.Profile.PhoneNumber)
+		if err != nil {
+			// User doesn't exist, create new user in AAA
+			log.Printf("User not found in AAA, creating new user with mobile: %s", req.Profile.PhoneNumber)
+
+			// Create user in AAA
+			createUserReq := map[string]interface{}{
+				"username":       fmt.Sprintf("farmer_%s", req.Profile.PhoneNumber),
+				"mobile_number":  req.Profile.PhoneNumber,
+				"password":       "default_password", // TODO: Generate secure password or require it in request
+				"country_code":   "+91",              // TODO: Make configurable
+				"aadhaar_number": "",                 // TODO: Add to request if available
+			}
+
+			aaaUser, err = s.aaaService.CreateUser(ctx, createUserReq)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create user in AAA: %w", err)
+			}
+		}
+
+		// Extract AAA user ID from response
+		if userMap, ok := aaaUser.(map[string]interface{}); ok {
+			if id, exists := userMap["id"]; exists {
+				aaaUserID = fmt.Sprintf("%v", id)
+			}
+		}
+
+		if aaaUserID == "" {
+			return nil, fmt.Errorf("failed to get AAA user ID from response")
+		}
+
+		// For now, use the same org ID as provided in request
+		// TODO: Create or verify organization in AAA if needed
+		aaaOrgID = req.AAAOrgID
+	} else {
+		// Use provided AAA user ID and org ID
+		aaaUserID = req.AAAUserID
+		aaaOrgID = req.AAAOrgID
+	}
+
 	// Create new farmer model
 	farmer := farmer.NewFarmer()
-	farmer.AAAUserID = req.AAAUserID
-	farmer.AAAOrgID = req.AAAOrgID
+	farmer.AAAUserID = aaaUserID
+	farmer.AAAOrgID = aaaOrgID
 	farmer.KisanSathiUserID = req.KisanSathiUserID
 	farmer.FirstName = req.Profile.FirstName
 	farmer.LastName = req.Profile.LastName
 	farmer.PhoneNumber = req.Profile.PhoneNumber
 	farmer.Email = req.Profile.Email
-	farmer.DateOfBirth = req.Profile.DateOfBirth
+	if req.Profile.DateOfBirth != "" {
+		farmer.DateOfBirth = &req.Profile.DateOfBirth
+	}
 	farmer.Gender = req.Profile.Gender
 	farmer.StreetAddress = req.Profile.Address.StreetAddress
 	farmer.City = req.Profile.Address.City
@@ -85,8 +136,13 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		LastName:         farmer.LastName,
 		PhoneNumber:      farmer.PhoneNumber,
 		Email:            farmer.Email,
-		DateOfBirth:      farmer.DateOfBirth,
-		Gender:           farmer.Gender,
+		DateOfBirth: func() string {
+			if farmer.DateOfBirth != nil {
+				return *farmer.DateOfBirth
+			}
+			return ""
+		}(),
+		Gender: farmer.Gender,
 		Address: responses.AddressData{
 			StreetAddress: farmer.StreetAddress,
 			City:          farmer.City,
@@ -127,8 +183,13 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 		LastName:         farmer.LastName,
 		PhoneNumber:      farmer.PhoneNumber,
 		Email:            farmer.Email,
-		DateOfBirth:      farmer.DateOfBirth,
-		Gender:           farmer.Gender,
+		DateOfBirth: func() string {
+			if farmer.DateOfBirth != nil {
+				return *farmer.DateOfBirth
+			}
+			return ""
+		}(),
+		Gender: farmer.Gender,
 		Address: responses.AddressData{
 			StreetAddress: farmer.StreetAddress,
 			City:          farmer.City,
@@ -175,7 +236,7 @@ func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.Upda
 		existingFarmer.Email = req.Profile.Email
 	}
 	if req.Profile.DateOfBirth != "" {
-		existingFarmer.DateOfBirth = req.Profile.DateOfBirth
+		existingFarmer.DateOfBirth = &req.Profile.DateOfBirth
 	}
 	if req.Profile.Gender != "" {
 		existingFarmer.Gender = req.Profile.Gender
@@ -218,8 +279,13 @@ func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.Upda
 		LastName:         existingFarmer.LastName,
 		PhoneNumber:      existingFarmer.PhoneNumber,
 		Email:            existingFarmer.Email,
-		DateOfBirth:      existingFarmer.DateOfBirth,
-		Gender:           existingFarmer.Gender,
+		DateOfBirth: func() string {
+			if existingFarmer.DateOfBirth != nil {
+				return *existingFarmer.DateOfBirth
+			}
+			return ""
+		}(),
+		Gender: existingFarmer.Gender,
 		Address: responses.AddressData{
 			StreetAddress: existingFarmer.StreetAddress,
 			City:          existingFarmer.City,
@@ -299,8 +365,13 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 			LastName:         f.LastName,
 			PhoneNumber:      f.PhoneNumber,
 			Email:            f.Email,
-			DateOfBirth:      f.DateOfBirth,
-			Gender:           f.Gender,
+			DateOfBirth: func() string {
+				if f.DateOfBirth != nil {
+					return *f.DateOfBirth
+				}
+				return ""
+			}(),
+			Gender: f.Gender,
 			Address: responses.AddressData{
 				StreetAddress: f.StreetAddress,
 				City:          f.City,

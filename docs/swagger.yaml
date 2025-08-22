@@ -1,174 +1,4 @@
 basePath: /api/v1
-definitions:
-  base.PaginationInfo:
-    properties:
-      has_next:
-        type: boolean
-      has_prev:
-        type: boolean
-      page:
-        type: integer
-      per_page:
-        type: integer
-      total:
-        type: integer
-      total_pages:
-        type: integer
-    type: object
-  github_com_Kisanlink_farmers-module_internal_entities_farm.Geometry:
-    properties:
-      wkb:
-        description: Well-Known Binary format
-        items:
-          format: int32
-          type: integer
-        type: array
-      wkt:
-        description: Well-Known Text format
-        type: string
-    type: object
-  github_com_Kisanlink_farmers-module_internal_entities_responses.AddressData:
-    properties:
-      city:
-        type: string
-      coordinates:
-        type: string
-      country:
-        type: string
-      postal_code:
-        type: string
-      state:
-        type: string
-      street_address:
-        type: string
-    type: object
-  github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse:
-    properties:
-      data: {}
-      error: {}
-      message:
-        type: string
-      request_id:
-        type: string
-      success:
-        type: boolean
-      timestamp:
-        type: string
-    type: object
-  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData:
-    properties:
-      aaa_farmer_user_id:
-        type: string
-      aaa_org_id:
-        type: string
-      area_ha:
-        type: number
-      created_at:
-        type: string
-      created_by:
-        type: string
-      deleted_at:
-        type: string
-      deleted_by:
-        type: string
-      geometry:
-        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_farm.Geometry'
-      id:
-        type: string
-      metadata:
-        additionalProperties:
-          type: string
-        type: object
-      updated_at:
-        type: string
-      updated_by:
-        type: string
-    type: object
-  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerListResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData'
-        type: array
-      error: {}
-      message:
-        type: string
-      pagination:
-        $ref: '#/definitions/base.PaginationInfo'
-      request_id:
-        type: string
-      success:
-        type: boolean
-      timestamp:
-        type: string
-    type: object
-  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData:
-    properties:
-      aaa_org_id:
-        type: string
-      aaa_user_id:
-        type: string
-      address:
-        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.AddressData'
-      created_at:
-        type: string
-      date_of_birth:
-        type: string
-      email:
-        type: string
-      farms:
-        items:
-          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData'
-        type: array
-      first_name:
-        type: string
-      gender:
-        type: string
-      kisan_sathi_user_id:
-        type: string
-      last_name:
-        type: string
-      metadata:
-        additionalProperties:
-          type: string
-        type: object
-      phone_number:
-        type: string
-      preferences:
-        additionalProperties:
-          type: string
-        type: object
-      updated_at:
-        type: string
-    type: object
-  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileResponse:
-    properties:
-      data:
-        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData'
-      error: {}
-      message:
-        type: string
-      request_id:
-        type: string
-      success:
-        type: boolean
-      timestamp:
-        type: string
-    type: object
-  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerResponse:
-    properties:
-      data:
-        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData'
-      error: {}
-      message:
-        type: string
-      request_id:
-        type: string
-      success:
-        type: boolean
-      timestamp:
-        type: string
-    type: object
 host: localhost:8000
 info:
   contact: {}
@@ -176,6 +6,505 @@ info:
   title: Farmers Module API
   version: 1.0.0
 paths:
+  /admin/audit:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the audit trail for system activities
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get audit trail
+      tags:
+      - admin
+  /admin/health:
+    get:
+      consumes:
+      - application/json
+      description: Check the health status of the service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - admin
+  /admin/permissions/check:
+    post:
+      consumes:
+      - application/json
+      description: Check if a user has permission to perform a specific action
+      parameters:
+      - description: Permission check data
+        in: body
+        name: permission
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Check user permission
+      tags:
+      - admin
+  /admin/seed:
+    post:
+      consumes:
+      - application/json
+      description: Initialize the system with default roles and permissions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Seed roles and permissions
+      tags:
+      - admin
+  /crops/activities:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all farm activities
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List farm activities
+      tags:
+      - farm-activities
+    post:
+      consumes:
+      - application/json
+      description: Create a new farm activity for a crop cycle
+      parameters:
+      - description: Farm activity data
+        in: body
+        name: activity
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new farm activity
+      tags:
+      - farm-activities
+  /crops/activities/{activity_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific farm activity by its ID
+      parameters:
+      - description: Activity ID
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get farm activity by ID
+      tags:
+      - farm-activities
+    put:
+      consumes:
+      - application/json
+      description: Update an existing farm activity details
+      parameters:
+      - description: Activity ID
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: Activity update data
+        in: body
+        name: activity
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update a farm activity
+      tags:
+      - farm-activities
+  /crops/activities/{activity_id}/complete:
+    post:
+      consumes:
+      - application/json
+      description: Mark a farm activity as completed
+      parameters:
+      - description: Activity ID
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: Activity completion data
+        in: body
+        name: activity
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Complete a farm activity
+      tags:
+      - farm-activities
+  /crops/cycles:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all crop cycles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List crop cycles
+      tags:
+      - crop-cycles
+    post:
+      consumes:
+      - application/json
+      description: Start a new crop cycle for a specific farm
+      parameters:
+      - description: Crop cycle data
+        in: body
+        name: cycle
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Start a new crop cycle
+      tags:
+      - crop-cycles
+  /crops/cycles/{cycle_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific crop cycle by its ID
+      parameters:
+      - description: Crop Cycle ID
+        in: path
+        name: cycle_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get crop cycle by ID
+      tags:
+      - crop-cycles
+    put:
+      consumes:
+      - application/json
+      description: Update an existing crop cycle details
+      parameters:
+      - description: Crop Cycle ID
+        in: path
+        name: cycle_id
+        required: true
+        type: string
+      - description: Crop cycle update data
+        in: body
+        name: cycle
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update a crop cycle
+      tags:
+      - crop-cycles
+  /crops/cycles/{cycle_id}/end:
+    post:
+      consumes:
+      - application/json
+      description: End an active crop cycle with status and outcome
+      parameters:
+      - description: Crop Cycle ID
+        in: path
+        name: cycle_id
+        required: true
+        type: string
+      - description: Crop cycle end data
+        in: body
+        name: cycle
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: End a crop cycle
+      tags:
+      - crop-cycles
+  /farms:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all farms with optional filtering
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List all farms
+      tags:
+      - farms
+    post:
+      consumes:
+      - application/json
+      description: Create a new farm with geographic boundaries and metadata
+      parameters:
+      - description: Farm data
+        in: body
+        name: farm
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new farm
+      tags:
+      - farms
+  /farms/{farm_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a farm by ID
+      parameters:
+      - description: Farm ID
+        in: path
+        name: farm_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a farm
+      tags:
+      - farms
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific farm by its ID
+      parameters:
+      - description: Farm ID
+        in: path
+        name: farm_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get farm by ID
+      tags:
+      - farms
+    put:
+      consumes:
+      - application/json
+      description: Update farm details including name, geometry, and location
+      parameters:
+      - description: Farm ID
+        in: path
+        name: farm_id
+        required: true
+        type: string
+      - description: Farm update data
+        in: body
+        name: farm
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update an existing farm
+      tags:
+      - farms
   /identity/farmers:
     get:
       consumes:
@@ -206,15 +535,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerListResponse'
+            type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
       summary: List farmers
       tags:
       - identity
@@ -235,19 +564,19 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerResponse'
+            type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
       summary: Create a new farmer
       tags:
       - identity
@@ -273,19 +602,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
       summary: Delete farmer
       tags:
       - identity
@@ -310,19 +639,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileResponse'
+            type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
       summary: Get farmer by ID
       tags:
       - identity
@@ -353,22 +682,105 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerResponse'
+            type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+            type: object
       summary: Update farmer
       tags:
       - identity
+  /kisansathi/assign:
+    post:
+      consumes:
+      - application/json
+      description: Assign a KisanSathi user to a specific farmer
+      parameters:
+      - description: KisanSathi assignment data
+        in: body
+        name: assignment
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Assign KisanSathi to farmer
+      tags:
+      - kisansathi
+  /kisansathi/assignment/{farmer_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the KisanSathi assignment for a specific farmer
+      parameters:
+      - description: Farmer ID
+        in: path
+        name: farmer_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get KisanSathi assignment
+      tags:
+      - kisansathi
+  /kisansathi/reassign:
+    post:
+      consumes:
+      - application/json
+      description: Reassign a KisanSathi to a different farmer or remove the assignment
+      parameters:
+      - description: KisanSathi reassignment data
+        in: body
+        name: assignment
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Reassign or remove KisanSathi
+      tags:
+      - kisansathi
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

@@ -4,17 +4,17 @@ import (
 	"context"
 
 	cropCycleEntity "github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
-	cropCycleRepo "github.com/Kisanlink/farmers-module/internal/repo/crop_cycle"
+	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
 // CropCycleServiceImpl implements CropCycleService
 type CropCycleServiceImpl struct {
-	cropCycleRepo cropCycleRepo.CropCycleRepository
+	cropCycleRepo *base.BaseFilterableRepository[*cropCycleEntity.CropCycle]
 	aaaService    AAAService
 }
 
 // NewCropCycleService creates a new crop cycle service
-func NewCropCycleService(cropCycleRepo cropCycleRepo.CropCycleRepository, aaaService AAAService) CropCycleService {
+func NewCropCycleService(cropCycleRepo *base.BaseFilterableRepository[*cropCycleEntity.CropCycle], aaaService AAAService) CropCycleService {
 	return &CropCycleServiceImpl{
 		cropCycleRepo: cropCycleRepo,
 		aaaService:    aaaService,

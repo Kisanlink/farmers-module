@@ -4,17 +4,17 @@ import (
 	"context"
 
 	farmActivityEntity "github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
-	farmActivityRepo "github.com/Kisanlink/farmers-module/internal/repo/farm_activity"
+	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
 // FarmActivityServiceImpl implements FarmActivityService
 type FarmActivityServiceImpl struct {
-	farmActivityRepo farmActivityRepo.FarmActivityRepository
+	farmActivityRepo *base.BaseFilterableRepository[*farmActivityEntity.FarmActivity]
 	aaaService       AAAService
 }
 
 // NewFarmActivityService creates a new farm activity service
-func NewFarmActivityService(farmActivityRepo farmActivityRepo.FarmActivityRepository, aaaService AAAService) FarmActivityService {
+func NewFarmActivityService(farmActivityRepo *base.BaseFilterableRepository[*farmActivityEntity.FarmActivity], aaaService AAAService) FarmActivityService {
 	return &FarmActivityServiceImpl{
 		farmActivityRepo: farmActivityRepo,
 		aaaService:       aaaService,
@@ -27,14 +27,14 @@ func (s *FarmActivityServiceImpl) CreateActivity(ctx context.Context, req interf
 	return &farmActivityEntity.FarmActivity{}, nil
 }
 
-// CompleteActivity implements W15: Complete farm activity
-func (s *FarmActivityServiceImpl) CompleteActivity(ctx context.Context, req interface{}) (interface{}, error) {
+// UpdateActivity implements W15: Update farm activity
+func (s *FarmActivityServiceImpl) UpdateActivity(ctx context.Context, req interface{}) (interface{}, error) {
 	// TODO: Implement AAA permission check
 	return &farmActivityEntity.FarmActivity{}, nil
 }
 
-// UpdateActivity implements W16: Update farm activity
-func (s *FarmActivityServiceImpl) UpdateActivity(ctx context.Context, req interface{}) (interface{}, error) {
+// CompleteActivity implements W16: Complete farm activity
+func (s *FarmActivityServiceImpl) CompleteActivity(ctx context.Context, req interface{}) (interface{}, error) {
 	// TODO: Implement AAA permission check
 	return &farmActivityEntity.FarmActivity{}, nil
 }

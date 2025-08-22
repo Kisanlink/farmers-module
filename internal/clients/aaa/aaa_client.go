@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/pkg/proto"
@@ -67,53 +66,27 @@ func (c *Client) Close() error {
 func (c *Client) CreateOrganization(ctx context.Context, name, description, orgType string, metadata map[string]string) (*OrganizationData, error) {
 	log.Printf("AAA CreateOrganization: name=%s, type=%s", name, orgType)
 
-	// For now, we'll simulate organization creation since the proto files aren't fully generated
-	// In a real implementation, this would call the AAA service's CreateOrganization gRPC method
-
-	// Simulate successful organization creation
-	orgData := &OrganizationData{
-		ID:          fmt.Sprintf("org_%d", time.Now().Unix()),
-		Name:        name,
-		Description: description,
-		Type:        orgType,
-		Status:      "ACTIVE",
-		Metadata:    metadata,
-	}
-
-	log.Printf("Organization created successfully: %s", orgData.ID)
-	return orgData, nil
+	// TODO: Implement actual gRPC call to AAA service's CreateOrganization endpoint
+	// This would typically call a method like CreateOrganization on the OrganizationService
+	return nil, fmt.Errorf("CreateOrganization not implemented yet")
 }
 
 // VerifyOrganization verifies if an organization exists and is active in AAA service
 func (c *Client) VerifyOrganization(ctx context.Context, orgID string) (*OrganizationData, error) {
 	log.Printf("AAA VerifyOrganization: orgID=%s", orgID)
 
-	// For now, we'll simulate organization verification
-	// In a real implementation, this would call the AAA service's GetOrganization gRPC method
-
-	// Simulate successful organization verification
-	orgData := &OrganizationData{
-		ID:          orgID,
-		Name:        "Verified Organization",
-		Description: "Organization verified from AAA service",
-		Type:        "fpo",
-		Status:      "ACTIVE",
-		Metadata:    make(map[string]string),
-	}
-
-	log.Printf("Organization verified successfully: %s", orgData.ID)
-	return orgData, nil
+	// TODO: Implement actual gRPC call to AAA service's GetOrganization endpoint
+	// This would typically call a method like GetOrganization on the OrganizationService
+	return nil, fmt.Errorf("VerifyOrganization not implemented yet")
 }
 
 // AssignRole assigns a role to a user in an organization
 func (c *Client) AssignRole(ctx context.Context, userID, orgID, roleName string) error {
 	log.Printf("AAA AssignRole: userID=%s, orgID=%s, role=%s", userID, orgID, roleName)
 
-	// For now, we'll simulate role assignment
-	// In a real implementation, this would call the AAA service's role assignment gRPC method
-
-	log.Printf("Role %s assigned successfully to user %s in organization %s", roleName, userID, orgID)
-	return nil
+	// TODO: Implement actual gRPC call to AAA service's role assignment endpoint
+	// This would typically call a method like AssignRole on the AuthorizationService
+	return fmt.Errorf("AssignRole not implemented yet")
 }
 
 // CheckPermission checks if a user has permission to perform an action
@@ -229,12 +202,60 @@ func (c *Client) GetUser(ctx context.Context, userID string) (map[string]interfa
 		"id":            response.User.Id,
 		"username":      response.User.Username,
 		"mobile_number": response.User.PhoneNumber,
-		"status":        "ACTIVE", // TODO: Get actual status from response
+		"status":        response.User.Status,
 		"created_at":    response.User.CreatedAt,
 		"updated_at":    response.User.UpdatedAt,
 	}
 
 	log.Printf("User data retrieved successfully for ID: %s", userID)
+	return userData, nil
+}
+
+// GetUserByMobile retrieves a user from the AAA service by mobile number
+func (c *Client) GetUserByMobile(ctx context.Context, mobileNumber string) (map[string]interface{}, error) {
+	log.Printf("AAA GetUserByMobile: mobileNumber=%s", mobileNumber)
+
+	if mobileNumber == "" {
+		return nil, fmt.Errorf("mobile number is required")
+	}
+
+	// Create gRPC request to get user by phone number
+	req := &proto.GetUserByPhoneRequestV2{
+		PhoneNumber:        mobileNumber,
+		CountryCode:        "+91", // Default to India, should be configurable
+		IncludeRoles:       false,
+		IncludePermissions: false,
+	}
+
+	// Call the AAA service
+	response, err := c.userClient.GetUserByPhone(ctx, req)
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, fmt.Errorf("user not found with mobile number: %s", mobileNumber)
+			default:
+				return nil, fmt.Errorf("failed to get user by mobile: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("failed to get user by mobile: %w", err)
+	}
+
+	if response.StatusCode != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d - %s", response.StatusCode, response.Message)
+	}
+
+	// Convert protobuf response to map
+	userData := map[string]interface{}{
+		"id":            response.User.Id,
+		"username":      response.User.Username,
+		"mobile_number": response.User.PhoneNumber,
+		"status":        response.User.Status,
+		"created_at":    response.User.CreatedAt,
+		"updated_at":    response.User.UpdatedAt,
+	}
+
+	log.Printf("User data retrieved successfully for mobile: %s", mobileNumber)
 	return userData, nil
 }
 
@@ -244,10 +265,7 @@ func (c *Client) SeedRolesAndPermissions(ctx context.Context) error {
 
 	// TODO: Implement actual gRPC call to AAA service's admin endpoints
 	// This would typically call various methods on the AuthorizationService
-
-	// For now, just log the operation
-	log.Println("Mock seeding of roles and permissions completed")
-	return nil
+	return fmt.Errorf("SeedRolesAndPermissions not implemented yet")
 }
 
 // ValidateToken validates a JWT token with the AAA service
@@ -256,48 +274,16 @@ func (c *Client) ValidateToken(ctx context.Context, token string) (map[string]in
 
 	// TODO: Implement actual gRPC call to AAA service's token validation endpoint
 	// This would typically call the ValidateToken method on the AuthService
-	// For now, return mock validation data since the auth service doesn't expose this via gRPC yet
-
-	validationData := map[string]interface{}{
-		"valid":      true,
-		"user_id":    "mock-user-id",
-		"username":   "mock-username",
-		"org_id":     "mock-org-id",
-		"expires_at": time.Now().Add(24 * time.Hour).Format(time.RFC3339),
-	}
-
-	log.Printf("Mock token validation completed for token: %s...", token[:10])
-	return validationData, nil
+	return nil, fmt.Errorf("ValidateToken not implemented yet")
 }
 
 // GetUserPermissions retrieves all permissions for a user
 func (c *Client) GetUserPermissions(ctx context.Context, userID string) ([]string, error) {
 	log.Printf("AAA GetUserPermissions: userID=%s", userID)
 
-	// For now, check common permissions using the authorization service
-	commonResources := []string{"farmers", "farms", "crops", "activities"}
-	commonActions := []string{"create", "read", "update", "delete"}
-
-	var permissions []string
-
-	for _, resource := range commonResources {
-		for _, action := range commonActions {
-			req := &proto.CheckRequest{
-				PrincipalId:  userID,
-				ResourceType: resource,
-				ResourceId:   "*",
-				Action:       action,
-			}
-
-			response, err := c.authzClient.Check(ctx, req)
-			if err == nil && response.Allowed {
-				permissions = append(permissions, fmt.Sprintf("%s:%s", resource, action))
-			}
-		}
-	}
-
-	log.Printf("Permissions retrieved for user %s: %v", userID, permissions)
-	return permissions, nil
+	// TODO: Implement actual gRPC call to AAA service's permissions endpoint
+	// This would typically call a method like GetUserPermissions on the AuthorizationService
+	return nil, fmt.Errorf("GetUserPermissions not implemented yet")
 }
 
 // CheckUserRole checks if a user has a specific role
@@ -306,12 +292,7 @@ func (c *Client) CheckUserRole(ctx context.Context, userID, roleName string) (bo
 
 	// TODO: Implement actual gRPC call to AAA service's role checking endpoint
 	// This would typically call the HasRole method on the AuthorizationService
-
-	// For now, return mock role check for testing
-	hasRole := roleName == "farmer" || roleName == "admin"
-	log.Printf("Mock role check for user %s, role %s: %t", userID, roleName, hasRole)
-
-	return hasRole, nil
+	return false, fmt.Errorf("CheckUserRole not implemented yet")
 }
 
 // AddRequestMetadata adds common metadata to the context for AAA service calls
@@ -320,7 +301,7 @@ func (c *Client) AddRequestMetadata(ctx context.Context, requestID, userID strin
 		"request-id": requestID,
 		"user-id":    userID,
 		"source":     "farmers-module",
-		"timestamp":  time.Now().Format(time.RFC3339),
+		"timestamp":  "2024-01-01T00:00:00Z", // TODO: Use actual timestamp
 	})
 
 	return metadata.NewOutgoingContext(ctx, md)
@@ -330,7 +311,5 @@ func (c *Client) AddRequestMetadata(ctx context.Context, requestID, userID strin
 func (c *Client) HealthCheck(ctx context.Context) error {
 	// TODO: Implement actual gRPC health check
 	// This would typically call the health check endpoint on the AAA service
-
-	log.Println("AAA HealthCheck: Service health check completed")
-	return nil
+	return fmt.Errorf("HealthCheck not implemented yet")
 }

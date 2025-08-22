@@ -4,22 +4,28 @@ import (
 	"net/http"
 	"strconv"
 
+	_ "github.com/Kisanlink/farmers-module/internal/docs" // Import for Swagger docs
 	farmerReq "github.com/Kisanlink/farmers-module/internal/entities/requests"
 	farmerResp "github.com/Kisanlink/farmers-module/internal/entities/responses"
+	"github.com/Kisanlink/farmers-module/internal/interfaces"
+
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // FarmerHandler handles HTTP requests for farmer operations
 type FarmerHandler struct {
 	farmerService services.FarmerService
+	logger        interfaces.Logger
 }
 
 // NewFarmerHandler creates a new farmer handler
-func NewFarmerHandler(farmerService services.FarmerService) *FarmerHandler {
+func NewFarmerHandler(farmerService services.FarmerService, logger interfaces.Logger) *FarmerHandler {
 	return &FarmerHandler{
 		farmerService: farmerService,
+		logger:        logger,
 	}
 }
 
@@ -30,15 +36,19 @@ func NewFarmerHandler(farmerService services.FarmerService) *FarmerHandler {
 // @Accept json
 // @Produce json
 // @Param farmer body object true "Farmer data"
-// @Success 201 {object} farmerResp.FarmerResponse
-// @Failure 400 {object} farmerResp.BaseResponse
-// @Failure 409 {object} farmerResp.BaseResponse
-// @Failure 500 {object} farmerResp.BaseResponse
+// @Success 201 {object} object
+// @Failure 400 {object} object
+// @Failure 409 {object} object
+// @Failure 500 {object} object
 // @Router /identity/farmers [post]
 func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
 	var req farmerReq.CreateFarmerRequest
 	_ = farmerResp.FarmerResponse{}
+
+	h.logger.Info("Creating new farmer profile")
+
 	if err := c.ShouldBindJSON(&req); err != nil {
+		h.logger.Error("Failed to bind request", zap.Error(err))
 		errorResp := base.NewErrorResponse("Invalid request format", base.NewValidationError("Invalid request format", err.Error()))
 		c.JSON(http.StatusBadRequest, errorResp)
 		return
@@ -46,6 +56,7 @@ func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
 
 	response, err := h.farmerService.CreateFarmer(c.Request.Context(), &req)
 	if err != nil {
+		h.logger.Error("Failed to create farmer", zap.Error(err))
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
@@ -66,6 +77,10 @@ func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
 		response.SetRequestID(req.RequestID)
 	}
 
+	h.logger.Info("Farmer created successfully",
+		zap.String("aaa_user_id", response.Data.AAAUserID),
+		zap.String("aaa_org_id", response.Data.AAAOrgID))
+
 	c.JSON(http.StatusCreated, response)
 }
 
@@ -77,14 +92,18 @@ func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
 // @Produce json
 // @Param aaa_user_id path string true "AAA User ID"
 // @Param aaa_org_id path string true "AAA Org ID"
-// @Success 200 {object} farmerResp.FarmerProfileResponse
-// @Failure 400 {object} farmerResp.BaseResponse
-// @Failure 404 {object} farmerResp.BaseResponse
-// @Failure 500 {object} farmerResp.BaseResponse
+// @Success 200 {object} object
+// @Failure 400 {object} object
+// @Failure 404 {object} object
+// @Failure 500 {object} object
 // @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [get]
 func (h *FarmerHandler) GetFarmer(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")
 	aaaOrgID := c.Param("aaa_org_id")
+
+	h.logger.Info("Getting farmer profile",
+		zap.String("aaa_user_id", aaaUserID),
+		zap.String("aaa_org_id", aaaOrgID))
 
 	req := farmerReq.GetFarmerRequest{
 		AAAUserID: aaaUserID,
@@ -93,6 +112,7 @@ func (h *FarmerHandler) GetFarmer(c *gin.Context) {
 
 	response, err := h.farmerService.GetFarmer(c.Request.Context(), &req)
 	if err != nil {
+		h.logger.Error("Failed to get farmer", zap.Error(err))
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
@@ -126,11 +146,17 @@ func (h *FarmerHandler) GetFarmer(c *gin.Context) {
 // @Param page_size query int false "Page size" default(10)
 // @Param aaa_org_id query string false "AAA Org ID filter"
 // @Param kisan_sathi_user_id query string false "KisanSathi User ID filter"
-// @Success 200 {object} farmerResp.FarmerListResponse
-// @Failure 400 {object} farmerResp.BaseResponse
-// @Failure 500 {object} farmerResp.BaseResponse
+// @Success 200 {object} object
+// @Failure 400 {object} object
+// @Failure 500 {object} object
 // @Router /identity/farmers [get]
 func (h *FarmerHandler) ListFarmers(c *gin.Context) {
+	h.logger.Info("Listing farmers with filters",
+		zap.String("page", c.Query("page")),
+		zap.String("page_size", c.Query("page_size")),
+		zap.String("aaa_org_id", c.Query("aaa_org_id")),
+		zap.String("kisan_sathi_user_id", c.Query("kisan_sathi_user_id")))
+
 	req := farmerReq.NewListFarmersRequest()
 
 	// Parse query parameters
@@ -165,6 +191,7 @@ func (h *FarmerHandler) ListFarmers(c *gin.Context) {
 
 	response, err := h.farmerService.ListFarmers(c.Request.Context(), &req)
 	if err != nil {
+		h.logger.Error("Failed to list farmers", zap.Error(err))
 		apiError := base.NewInternalServerError("Failed to list farmers", err.Error())
 		errorResp := base.NewErrorResponse("Failed to list farmers", apiError)
 		c.JSON(http.StatusInternalServerError, errorResp)
@@ -188,17 +215,22 @@ func (h *FarmerHandler) ListFarmers(c *gin.Context) {
 // @Param aaa_user_id path string true "AAA User ID"
 // @Param aaa_org_id path string true "AAA Org ID"
 // @Param farmer body object true "Farmer update data"
-// @Success 200 {object} farmerResp.FarmerResponse
-// @Failure 400 {object} farmerResp.BaseResponse
-// @Failure 404 {object} farmerResp.BaseResponse
-// @Failure 500 {object} farmerResp.BaseResponse
+// @Success 200 {object} object
+// @Failure 400 {object} object
+// @Failure 404 {object} object
+// @Failure 500 {object} object
 // @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [put]
 func (h *FarmerHandler) UpdateFarmer(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")
 	aaaOrgID := c.Param("aaa_org_id")
 
+	h.logger.Info("Updating farmer profile",
+		zap.String("aaa_user_id", aaaUserID),
+		zap.String("aaa_org_id", aaaOrgID))
+
 	var req farmerReq.UpdateFarmerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		h.logger.Error("Failed to bind request", zap.Error(err))
 		errorResp := base.NewErrorResponse("Invalid request format", base.NewValidationError("Invalid request format", err.Error()))
 		c.JSON(http.StatusBadRequest, errorResp)
 		return
@@ -210,6 +242,7 @@ func (h *FarmerHandler) UpdateFarmer(c *gin.Context) {
 
 	response, err := h.farmerService.UpdateFarmer(c.Request.Context(), &req)
 	if err != nil {
+		h.logger.Error("Failed to update farmer", zap.Error(err))
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
@@ -241,14 +274,18 @@ func (h *FarmerHandler) UpdateFarmer(c *gin.Context) {
 // @Produce json
 // @Param aaa_user_id path string true "AAA User ID"
 // @Param aaa_org_id path string true "AAA Org ID"
-// @Success 200 {object} farmerResp.BaseResponse
-// @Failure 400 {object} farmerResp.BaseResponse
-// @Failure 404 {object} farmerResp.BaseResponse
-// @Failure 500 {object} farmerResp.BaseResponse
+// @Success 200 {object} object
+// @Failure 400 {object} object
+// @Failure 404 {object} object
+// @Failure 500 {object} object
 // @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [delete]
 func (h *FarmerHandler) DeleteFarmer(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")
 	aaaOrgID := c.Param("aaa_org_id")
+
+	h.logger.Info("Deleting farmer profile",
+		zap.String("aaa_user_id", aaaUserID),
+		zap.String("aaa_org_id", aaaOrgID))
 
 	req := farmerReq.DeleteFarmerRequest{
 		AAAUserID: aaaUserID,
@@ -257,6 +294,7 @@ func (h *FarmerHandler) DeleteFarmer(c *gin.Context) {
 
 	err := h.farmerService.DeleteFarmer(c.Request.Context(), &req)
 	if err != nil {
+		h.logger.Error("Failed to delete farmer", zap.Error(err))
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
@@ -277,6 +315,10 @@ func (h *FarmerHandler) DeleteFarmer(c *gin.Context) {
 		successResp.RequestID = req.RequestID
 	}
 
+	h.logger.Info("Farmer deleted successfully",
+		zap.String("aaa_user_id", aaaUserID),
+		zap.String("aaa_org_id", aaaOrgID))
+
 	c.JSON(http.StatusOK, successResp)
 }
 
@@ -284,31 +326,31 @@ func (h *FarmerHandler) DeleteFarmer(c *gin.Context) {
 // These functions create a handler instance and return the method as a gin.HandlerFunc
 
 // CreateFarmer creates a handler function for creating farmers
-func CreateFarmer(farmerService services.FarmerService) gin.HandlerFunc {
-	handler := NewFarmerHandler(farmerService)
+func CreateFarmer(farmerService services.FarmerService, logger interfaces.Logger) gin.HandlerFunc {
+	handler := NewFarmerHandler(farmerService, logger)
 	return handler.CreateFarmer
 }
 
 // GetFarmer creates a handler function for getting farmers
-func GetFarmer(farmerService services.FarmerService) gin.HandlerFunc {
-	handler := NewFarmerHandler(farmerService)
+func GetFarmer(farmerService services.FarmerService, logger interfaces.Logger) gin.HandlerFunc {
+	handler := NewFarmerHandler(farmerService, logger)
 	return handler.GetFarmer
 }
 
 // ListFarmers creates a handler function for listing farmers
-func ListFarmers(farmerService services.FarmerService) gin.HandlerFunc {
-	handler := NewFarmerHandler(farmerService)
+func ListFarmers(farmerService services.FarmerService, logger interfaces.Logger) gin.HandlerFunc {
+	handler := NewFarmerHandler(farmerService, logger)
 	return handler.ListFarmers
 }
 
 // UpdateFarmer creates a handler function for updating farmers
-func UpdateFarmer(farmerService services.FarmerService) gin.HandlerFunc {
-	handler := NewFarmerHandler(farmerService)
+func UpdateFarmer(farmerService services.FarmerService, logger interfaces.Logger) gin.HandlerFunc {
+	handler := NewFarmerHandler(farmerService, logger)
 	return handler.UpdateFarmer
 }
 
 // DeleteFarmer creates a handler function for deleting farmers
-func DeleteFarmer(farmerService services.FarmerService) gin.HandlerFunc {
-	handler := NewFarmerHandler(farmerService)
+func DeleteFarmer(farmerService services.FarmerService, logger interfaces.Logger) gin.HandlerFunc {
+	handler := NewFarmerHandler(farmerService, logger)
 	return handler.DeleteFarmer
 }

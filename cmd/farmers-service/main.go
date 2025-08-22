@@ -12,8 +12,10 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/repo"
 	"github.com/Kisanlink/farmers-module/internal/routes"
 	"github.com/Kisanlink/farmers-module/internal/services"
+	"github.com/Kisanlink/farmers-module/internal/utils"
 	kisanlinkDB "github.com/Kisanlink/kisanlink-db/pkg/db"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // @title Farmers Module API
@@ -49,8 +51,22 @@ func main() {
 	// Initialize repository factory
 	repoFactory := repo.NewRepositoryFactory(dbManager)
 
+	// Initialize structured logger
+	zapLogger, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatalf("Failed to initialize logger: %v", err)
+	}
+	defer func() {
+		if err := zapLogger.Sync(); err != nil {
+			log.Printf("Failed to sync logger: %v", err)
+		}
+	}()
+
+	// Create logger adapter
+	logger := utils.NewLoggerAdapter(zapLogger)
+
 	// Initialize service factory
-	serviceFactory := services.NewServiceFactory(repoFactory, dbManager, cfg)
+	serviceFactory := services.NewServiceFactory(repoFactory, dbManager, cfg, logger)
 
 	// Initialize router
 	router := gin.Default()
@@ -70,7 +86,7 @@ func main() {
 	})
 
 	// Setup all routes with handlers and middleware
-	routes.SetupRoutes(router, serviceFactory, cfg)
+	routes.SetupRoutes(router, serviceFactory, cfg, logger)
 
 	// Get port from configuration
 	port := cfg.Server.Port

@@ -125,6 +125,13 @@ func createEnums(gormDB *gorm.DB) {
 	gormDB.Exec(`DO $$ BEGIN
 		CREATE TYPE link_status AS ENUM ('ACTIVE','INACTIVE');
 	EXCEPTION WHEN duplicate_object THEN NULL; END $$;`)
+
+	// Farmer status enum
+	gormDB.Exec(`DO $$ BEGIN
+		CREATE TYPE farmer_status AS ENUM ('ACTIVE','INACTIVE','SUSPENDED');
+	EXCEPTION WHEN duplicate_object THEN NULL; END $$;`)
+
+	log.Println("Custom ENUM types created successfully")
 }
 
 // setupPostMigration sets up computed columns, indexes, and constraints
@@ -143,6 +150,15 @@ func setupPostMigration(gormDB *gorm.DB) {
 
 		// Create spatial indexes
 		gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_geometry_gist ON farms USING GIST (geometry::geometry);`)
+
+		// Add SRID validation constraint
+		gormDB.Exec(`ALTER TABLE farms ADD CONSTRAINT IF NOT EXISTS farms_geometry_srid_check
+			CHECK (ST_SRID(geometry) = 4326);`)
+
+		// Add geometry validity constraint
+		gormDB.Exec(`ALTER TABLE farms ADD CONSTRAINT IF NOT EXISTS farms_geometry_valid_check
+			CHECK (ST_IsValid(geometry));`)
+
 		log.Println("PostGIS spatial features configured")
 	} else {
 		log.Println("PostGIS not available - skipping spatial features")
@@ -151,13 +167,34 @@ func setupPostMigration(gormDB *gorm.DB) {
 	// Create regular indexes
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_farmer_id_idx ON farms (aaa_farmer_user_id);`)
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_fpo_id_idx ON farms (aaa_org_id);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_created_at_idx ON farms (created_at);`)
 
-	// Create indexes for other tables
-	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmer_links_aaa_user_id_idx ON farmer_links (aaa_user_id);`)
-	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmer_links_aaa_org_id_idx ON farmer_links (aaa_org_id);`)
+	// Create indexes for farmer tables
+	gormDB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS farmers_aaa_user_org_idx ON farmers (aaa_user_id, aaa_org_id);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmers_phone_idx ON farmers (phone_number);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmers_email_idx ON farmers (email);`)
+
+	// Create indexes for farmer_links table
+	gormDB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS farmer_links_user_org_idx ON farmer_links (aaa_user_id, aaa_org_id);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmer_links_kisan_sathi_idx ON farmer_links (kisan_sathi_user_id);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmer_links_status_idx ON farmer_links (status);`)
+
+	// Create indexes for fpo_refs table
+	gormDB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS fpo_refs_aaa_org_id_idx ON fpo_refs (aaa_org_id);`)
+
+	// Create indexes for crop_cycles table
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_cycles_farm_id_idx ON crop_cycles (farm_id);`)
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_cycles_farmer_id_idx ON crop_cycles (farmer_id);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_cycles_season_idx ON crop_cycles (season);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_cycles_status_idx ON crop_cycles (status);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_cycles_start_date_idx ON crop_cycles (start_date);`)
+
+	// Create indexes for farm_activities table
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farm_activities_crop_cycle_id_idx ON farm_activities (crop_cycle_id);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farm_activities_type_idx ON farm_activities (activity_type);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farm_activities_status_idx ON farm_activities (status);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farm_activities_created_by_idx ON farm_activities (created_by);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farm_activities_planned_at_idx ON farm_activities (planned_at);`)
 
 	log.Println("Post-migration setup completed")
 }

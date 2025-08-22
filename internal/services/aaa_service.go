@@ -76,23 +76,7 @@ func (s *AAAServiceImpl) CheckPermission(ctx context.Context, req interface{}) (
 // CreateUser creates a user in AAA
 func (s *AAAServiceImpl) CreateUser(ctx context.Context, req interface{}) (interface{}, error) {
 	if s.client == nil {
-		log.Println("AAA client not available, returning mock user")
-		// Type assert the request to get the required fields
-		createReq, ok := req.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid request format")
-		}
-
-		username, _ := createReq["username"].(string)
-		mobileNumber, _ := createReq["mobile_number"].(string)
-		aadhaarNumber, _ := createReq["aadhaar_number"].(string)
-
-		return map[string]interface{}{
-			"id":             "temp-user-id",
-			"username":       username,
-			"mobile_number":  mobileNumber,
-			"aadhaar_number": aadhaarNumber,
-		}, nil
+		return nil, fmt.Errorf("AAA client not available")
 	}
 
 	// Type assert the request to get the required fields
@@ -123,12 +107,7 @@ func (s *AAAServiceImpl) CreateUser(ctx context.Context, req interface{}) (inter
 // GetUser gets a user from AAA
 func (s *AAAServiceImpl) GetUser(ctx context.Context, userID string) (interface{}, error) {
 	if s.client == nil {
-		log.Println("AAA client not available, returning mock user")
-		return map[string]interface{}{
-			"id":            userID,
-			"username":      "temp-username",
-			"mobile_number": "temp-mobile",
-		}, nil
+		return nil, fmt.Errorf("AAA client not available")
 	}
 
 	userData, err := s.client.GetUser(ctx, userID)
@@ -136,13 +115,19 @@ func (s *AAAServiceImpl) GetUser(ctx context.Context, userID string) (interface{
 		return nil, fmt.Errorf("failed to get user from AAA: %w", err)
 	}
 
-	// Extract fields from userData map
-	username, _ := userData["username"].(string)
-	mobileNumber, _ := userData["mobile_number"].(string)
+	return userData, nil
+}
 
-	return map[string]interface{}{
-		"id":            userID,
-		"username":      username,
-		"mobile_number": mobileNumber,
-	}, nil
+// GetUserByMobile gets a user from AAA by mobile number
+func (s *AAAServiceImpl) GetUserByMobile(ctx context.Context, mobileNumber string) (interface{}, error) {
+	if s.client == nil {
+		return nil, fmt.Errorf("AAA client not available")
+	}
+
+	userData, err := s.client.GetUserByMobile(ctx, mobileNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by mobile from AAA: %w", err)
+	}
+
+	return userData, nil
 }

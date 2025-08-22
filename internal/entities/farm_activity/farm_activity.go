@@ -11,12 +11,14 @@ import (
 // FarmActivity represents an individual activity within a crop cycle
 type FarmActivity struct {
 	base.BaseModel
-	CycleID      string            `json:"cycle_id" gorm:"type:uuid;not null"`
+	CropCycleID  string            `json:"crop_cycle_id" gorm:"type:varchar(255);not null"`
 	ActivityType string            `json:"activity_type" gorm:"type:varchar(255);not null"`
 	PlannedAt    *time.Time        `json:"planned_at" gorm:"type:timestamptz"`
 	CompletedAt  *time.Time        `json:"completed_at" gorm:"type:timestamptz"`
+	CreatedBy    string            `json:"created_by" gorm:"type:varchar(255);not null"`
+	Status       string            `json:"status" gorm:"type:activity_status;not null;default:'PLANNED'"`
+	Output       map[string]string `json:"output" gorm:"type:jsonb;default:'{}'"`
 	Metadata     map[string]string `json:"metadata" gorm:"type:jsonb;default:'{}'"`
-	Output       map[string]string `json:"output" gorm:"type:jsonb"`
 }
 
 // TableName returns the table name for the FarmActivity model
@@ -36,10 +38,13 @@ func (fa *FarmActivity) GetTableSize() hash.TableSize {
 
 // Validation methods
 func (fa *FarmActivity) Validate() error {
-	if fa.CycleID == "" {
+	if fa.CropCycleID == "" {
 		return common.ErrInvalidFarmActivityData
 	}
 	if fa.ActivityType == "" {
+		return common.ErrInvalidFarmActivityData
+	}
+	if fa.CreatedBy == "" {
 		return common.ErrInvalidFarmActivityData
 	}
 	return nil
