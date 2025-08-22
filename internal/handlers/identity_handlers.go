@@ -15,14 +15,35 @@ func LinkFarmerToFPO(service services.FarmerLinkageService) gin.HandlerFunc {
 		var req requests.LinkFarmerRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Invalid request format",
+				"details": err.Error(),
+			})
 			return
 		}
 
-		// Implement the actual service call
-		err := service.LinkFarmerToFPO(c.Request.Context(), req)
+		// Set request ID if not provided
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+
+		// Call the service
+		err := service.LinkFarmerToFPO(c.Request.Context(), &req)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			statusCode := http.StatusInternalServerError
+			if isValidationError(err) {
+				statusCode = http.StatusBadRequest
+			} else if isPermissionError(err) {
+				statusCode = http.StatusForbidden
+			} else if isNotFoundError(err) {
+				statusCode = http.StatusNotFound
+			}
+
+			c.JSON(statusCode, gin.H{
+				"error":          err.Error(),
+				"request_id":     req.RequestID,
+				"correlation_id": req.RequestID,
+			})
 			return
 		}
 
@@ -44,14 +65,35 @@ func UnlinkFarmerFromFPO(service services.FarmerLinkageService) gin.HandlerFunc 
 		var req requests.UnlinkFarmerRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Invalid request format",
+				"details": err.Error(),
+			})
 			return
 		}
 
-		// Implement the actual service call
-		err := service.UnlinkFarmerFromFPO(c.Request.Context(), req)
+		// Set request ID if not provided
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+
+		// Call the service
+		err := service.UnlinkFarmerFromFPO(c.Request.Context(), &req)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			statusCode := http.StatusInternalServerError
+			if isValidationError(err) {
+				statusCode = http.StatusBadRequest
+			} else if isPermissionError(err) {
+				statusCode = http.StatusForbidden
+			} else if isNotFoundError(err) {
+				statusCode = http.StatusNotFound
+			}
+
+			c.JSON(statusCode, gin.H{
+				"error":          err.Error(),
+				"request_id":     req.RequestID,
+				"correlation_id": req.RequestID,
+			})
 			return
 		}
 
@@ -93,7 +135,7 @@ func GetFarmerLinkage(service services.FarmerLinkageService) gin.HandlerFunc {
 }
 
 // RegisterFPORef handles W3: Register FPO reference
-func RegisterFPORef(service services.FPORefService) gin.HandlerFunc {
+func RegisterFPORef(service services.FPOService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req requests.RegisterFPORefRequest
 
@@ -103,7 +145,7 @@ func RegisterFPORef(service services.FPORefService) gin.HandlerFunc {
 		}
 
 		// Implement the actual service call
-		err := service.RegisterFPORef(c.Request.Context(), req)
+		_, err := service.RegisterFPORef(c.Request.Context(), &req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -122,7 +164,7 @@ func RegisterFPORef(service services.FPORefService) gin.HandlerFunc {
 }
 
 // GetFPORef handles getting FPO reference
-func GetFPORef(service services.FPORefService) gin.HandlerFunc {
+func GetFPORef(service services.FPOService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		orgID := c.Param("org_id")
 

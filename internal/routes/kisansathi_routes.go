@@ -13,12 +13,15 @@ func RegisterKisanSathiRoutes(router *gin.RouterGroup, services *services.Servic
 	kisansathi := router.Group("/kisansathi")
 	{
 		// W4: Assign KisanSathi to farmer
-		kisansathi.POST("/assign", handlers.AssignKisanSathi(services.KisanSathiService, logger))
+		kisansathi.POST("/assign", handlers.AssignKisanSathi(services.FarmerLinkageService, logger))
 
 		// W5: Reassign or remove KisanSathi
-		kisansathi.PUT("/reassign", handlers.ReassignOrRemoveKisanSathi(services.KisanSathiService, logger))
+		kisansathi.PUT("/reassign", handlers.ReassignOrRemoveKisanSathi(services.FarmerLinkageService, logger))
 
 		// Get KisanSathi assignment
-		kisansathi.GET("/assignment/:farmer_id", handlers.GetKisanSathiAssignment(services.KisanSathiService, logger))
+		kisansathi.GET("/assignment/:farmer_id/:org_id", handlers.GetKisanSathiAssignment(services.FarmerLinkageService, logger))
+
+		// Create KisanSathi user
+		kisansathi.POST("/create-user", handlers.CreateKisanSathiUser(services.FarmerLinkageService, logger))
 	}
 }

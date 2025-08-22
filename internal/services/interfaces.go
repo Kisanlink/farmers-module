@@ -12,13 +12,21 @@ type FarmerLinkageService interface {
 	UnlinkFarmerFromFPO(ctx context.Context, req interface{}) error
 	// Get farmer linkage status
 	GetFarmerLinkage(ctx context.Context, farmerID, orgID string) (interface{}, error)
+	// W4: Assign KisanSathi to farmer
+	AssignKisanSathi(ctx context.Context, req interface{}) (interface{}, error)
+	// W5: Reassign or remove KisanSathi
+	ReassignOrRemoveKisanSathi(ctx context.Context, req interface{}) (interface{}, error)
+	// Create KisanSathi user with role assignment
+	CreateKisanSathiUser(ctx context.Context, req interface{}) (interface{}, error)
 }
 
-// FPORefService handles FPO reference data workflows
-type FPORefService interface {
-	// W3: Register FPO reference
-	RegisterFPORef(ctx context.Context, req interface{}) error
-	// Get FPO reference
+// FPOService handles FPO creation and management workflows
+type FPOService interface {
+	// CreateFPO creates an FPO organization with AAA integration
+	CreateFPO(ctx context.Context, req interface{}) (interface{}, error)
+	// RegisterFPORef registers FPO reference for local management
+	RegisterFPORef(ctx context.Context, req interface{}) (interface{}, error)
+	// GetFPORef gets FPO reference
 	GetFPORef(ctx context.Context, orgID string) (interface{}, error)
 }
 

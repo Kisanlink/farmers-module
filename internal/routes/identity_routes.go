@@ -44,10 +44,36 @@ func RegisterIdentityRoutes(router *gin.RouterGroup, services *services.ServiceF
 		// Get farmer linkage status
 		identity.GET("/farmer/linkage/:farmer_id/:org_id", handlers.GetFarmerLinkage(services.FarmerLinkageService))
 
-		// W3: Register FPO reference with validation
-		identity.POST("/fpo/register", validationMiddleware.ValidateFPOCreation(), handlers.RegisterFPORef(services.FPORefService))
+		// KisanSathi management endpoints
+		kisanSathi := identity.Group("/kisansathi")
+		{
+			// W4: Assign KisanSathi to farmer
+			kisanSathi.POST("/assign", handlers.AssignKisanSathi(services.FarmerLinkageService, logger))
 
-		// Get FPO reference with organization access validation
-		identity.GET("/fpo/:org_id", validationMiddleware.ValidateOrganizationAccess("org_id"), handlers.GetFPORef(services.FPORefService))
+			// W5: Reassign or remove KisanSathi
+			kisanSathi.PUT("/reassign", handlers.ReassignOrRemoveKisanSathi(services.FarmerLinkageService, logger))
+
+			// Create new KisanSathi user with role assignment
+			kisanSathi.POST("/create-user", handlers.CreateKisanSathiUser(services.FarmerLinkageService, logger))
+
+			// Get KisanSathi assignment for farmer
+			kisanSathi.GET("/assignment/:farmer_id/:org_id", handlers.GetKisanSathiAssignment(services.FarmerLinkageService, logger))
+		}
+
+		// FPO management endpoints
+		fpo := identity.Group("/fpo")
+		{
+			// Create FPO handler
+			fpoHandler := handlers.NewFPOHandler(services.FPOService, logger)
+
+			// Create FPO organization with AAA integration
+			fpo.POST("/create", fpoHandler.CreateFPO)
+
+			// Register FPO reference with validation
+			fpo.POST("/register", fpoHandler.RegisterFPORef)
+
+			// Get FPO reference with organization access validation
+			fpo.GET("/reference/:aaa_org_id", fpoHandler.GetFPORef)
+		}
 	}
 }

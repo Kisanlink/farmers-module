@@ -44,7 +44,7 @@
   - Write comprehensive tests for farmer registration workflow
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9_
 
-- [ ] 6. FPO Creation and Organization Management Service
+- [x] 6. FPO Creation and Organization Management Service
 
   - Implement CreateFPO service with AAA organization creation
   - Add CEO user setup and user group creation (directors, shareholders, store_staff, store_managers)
@@ -53,9 +53,10 @@
   - Build FPO management HTTP handlers and write comprehensive tests
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9_
 
-- [ ] 7. Farmer-FPO Linkage and KisanSathi Assignment Services
+- [x] 7. Farmer-FPO Linkage and KisanSathi Assignment Services
 
   - Implement LinkFarmerToFPO service with AAA validation and farmer_links management
+  - Add the life cycle management of kisansathi, ensure it is a role in aaa-service and assigned to users. If the user is not present while registration, then create a new user and assign this role
   - Create UnlinkFarmerFromFPO service with soft delete functionality
   - Build AssignKisanSathi service with role validation through AAA
   - Implement ReassignOrRemoveKisanSathi service for KisanSathi management
