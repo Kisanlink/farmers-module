@@ -1,8 +1,12 @@
 package responses
 
+import (
+	"github.com/Kisanlink/kisanlink-db/pkg/base"
+)
+
 // FarmerLinkageResponse represents a single farmer linkage response
 type FarmerLinkageResponse struct {
-	BaseResponse
+	*base.BaseResponse
 	Data *FarmerLinkageData `json:"data"`
 }
 
@@ -20,14 +24,16 @@ type FarmerLinkageData struct {
 }
 
 // NewFarmerLinkageResponse creates a new farmer linkage response
-func NewFarmerLinkageResponse(linkage *FarmerLinkageData, message string) FarmerLinkageResponse {
-	return FarmerLinkageResponse{
-		BaseResponse: NewBaseResponse(),
+func NewFarmerLinkageResponse(linkage *FarmerLinkageData, message string) *FarmerLinkageResponse {
+	return &FarmerLinkageResponse{
+		BaseResponse: base.NewSuccessResponse(message, linkage),
 		Data:         linkage,
 	}
 }
 
 // SetRequestID sets the request ID for tracking
 func (r *FarmerLinkageResponse) SetRequestID(requestID string) {
-	r.BaseResponse.SetResponseID(requestID)
+	if r.BaseResponse != nil {
+		r.BaseResponse.RequestID = requestID
+	}
 }

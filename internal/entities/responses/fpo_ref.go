@@ -2,8 +2,8 @@ package responses
 
 // FPORefResponse represents a single FPO reference response
 type FPORefResponse struct {
-	BaseResponse
-	Data *FPORefData `json:"data"`
+	*BaseResponse `json:",inline"`
+	Data          *FPORefData `json:"data"`
 }
 
 // FPORefData represents FPO reference data in responses
@@ -20,13 +20,14 @@ type FPORefData struct {
 
 // NewFPORefResponse creates a new FPO reference response
 func NewFPORefResponse(fpoRef *FPORefData, message string) FPORefResponse {
+	baseResp := NewSuccessResponse(message, fpoRef)
 	return FPORefResponse{
-		BaseResponse: NewBaseResponse(),
+		BaseResponse: baseResp,
 		Data:         fpoRef,
 	}
 }
 
 // SetRequestID sets the request ID for tracking
 func (r *FPORefResponse) SetRequestID(requestID string) {
-	r.BaseResponse.SetResponseID(requestID)
+	r.BaseResponse.RequestID = requestID
 }

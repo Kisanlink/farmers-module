@@ -1,13 +1,14 @@
 package routes
 
 import (
+	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/internal/handlers"
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterKisanSathiRoutes registers routes for KisanSathi Assignment workflows
-func RegisterKisanSathiRoutes(router *gin.RouterGroup, services *services.ServiceFactory) {
+func RegisterKisanSathiRoutes(router *gin.RouterGroup, services *services.ServiceFactory, cfg *config.Config) {
 	kisansathi := router.Group("/kisansathi")
 	{
 		// W4: Assign KisanSathi to farmer

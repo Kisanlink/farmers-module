@@ -5,7 +5,9 @@ import (
 	"strconv"
 
 	farmerReq "github.com/Kisanlink/farmers-module/internal/entities/requests"
+	farmerResp "github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/services"
+	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,32 +29,35 @@ func NewFarmerHandler(farmerService services.FarmerService) *FarmerHandler {
 // @Tags identity
 // @Accept json
 // @Produce json
-// @Param farmer body farmerReq.CreateFarmerRequest true "Farmer data"
+// @Param farmer body object true "Farmer data"
 // @Success 201 {object} farmerResp.FarmerResponse
-// @Failure 400 {object} map[string]interface{}
-// @Failure 409 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Failure 400 {object} farmerResp.BaseResponse
+// @Failure 409 {object} farmerResp.BaseResponse
+// @Failure 500 {object} farmerResp.BaseResponse
 // @Router /identity/farmers [post]
 func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
 	var req farmerReq.CreateFarmerRequest
+	_ = farmerResp.FarmerResponse{}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "Invalid request",
-			"message": err.Error(),
-		})
+		errorResp := base.NewErrorResponse("Invalid request format", base.NewValidationError("Invalid request format", err.Error()))
+		c.JSON(http.StatusBadRequest, errorResp)
 		return
 	}
 
 	response, err := h.farmerService.CreateFarmer(c.Request.Context(), &req)
 	if err != nil {
 		status := http.StatusInternalServerError
+		var apiError base.ErrorInterface
+
 		if err.Error() == "farmer already exists" {
 			status = http.StatusConflict
+			apiError = base.NewConflictError("Farmer", err.Error())
+		} else {
+			apiError = base.NewInternalServerError("Failed to create farmer", err.Error())
 		}
-		c.JSON(status, gin.H{
-			"error":   "Failed to create farmer",
-			"message": err.Error(),
-		})
+
+		errorResp := base.NewErrorResponse("Failed to create farmer", apiError)
+		c.JSON(status, errorResp)
 		return
 	}
 
@@ -73,9 +78,9 @@ func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
 // @Param aaa_user_id path string true "AAA User ID"
 // @Param aaa_org_id path string true "AAA Org ID"
 // @Success 200 {object} farmerResp.FarmerProfileResponse
-// @Failure 400 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Failure 400 {object} farmerResp.BaseResponse
+// @Failure 404 {object} farmerResp.BaseResponse
+// @Failure 500 {object} farmerResp.BaseResponse
 // @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [get]
 func (h *FarmerHandler) GetFarmer(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")
@@ -89,13 +94,17 @@ func (h *FarmerHandler) GetFarmer(c *gin.Context) {
 	response, err := h.farmerService.GetFarmer(c.Request.Context(), &req)
 	if err != nil {
 		status := http.StatusInternalServerError
+		var apiError base.ErrorInterface
+
 		if err.Error() == "farmer not found" {
 			status = http.StatusNotFound
+			apiError = base.NewNotFoundError("Farmer", aaaUserID)
+		} else {
+			apiError = base.NewInternalServerError("Failed to get farmer", err.Error())
 		}
-		c.JSON(status, gin.H{
-			"error":   "Failed to get farmer",
-			"message": err.Error(),
-		})
+
+		errorResp := base.NewErrorResponse("Failed to get farmer", apiError)
+		c.JSON(status, errorResp)
 		return
 	}
 
@@ -118,8 +127,8 @@ func (h *FarmerHandler) GetFarmer(c *gin.Context) {
 // @Param aaa_org_id query string false "AAA Org ID filter"
 // @Param kisan_sathi_user_id query string false "KisanSathi User ID filter"
 // @Success 200 {object} farmerResp.FarmerListResponse
-// @Failure 400 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Failure 400 {object} farmerResp.BaseResponse
+// @Failure 500 {object} farmerResp.BaseResponse
 // @Router /identity/farmers [get]
 func (h *FarmerHandler) ListFarmers(c *gin.Context) {
 	req := farmerReq.NewListFarmersRequest()
@@ -135,6 +144,18 @@ func (h *FarmerHandler) ListFarmers(c *gin.Context) {
 			req.PageSize = size
 		}
 	}
+
+	// Ensure pagination values are always valid to prevent division by zero
+	if req.Page < 1 {
+		req.Page = 1
+	}
+	if req.PageSize < 1 {
+		req.PageSize = 10
+	}
+	if req.PageSize > 100 {
+		req.PageSize = 100
+	}
+
 	if orgID := c.Query("aaa_org_id"); orgID != "" {
 		req.AAAOrgID = orgID
 	}
@@ -144,10 +165,9 @@ func (h *FarmerHandler) ListFarmers(c *gin.Context) {
 
 	response, err := h.farmerService.ListFarmers(c.Request.Context(), &req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "Failed to list farmers",
-			"message": err.Error(),
-		})
+		apiError := base.NewInternalServerError("Failed to list farmers", err.Error())
+		errorResp := base.NewErrorResponse("Failed to list farmers", apiError)
+		c.JSON(http.StatusInternalServerError, errorResp)
 		return
 	}
 
@@ -157,4 +177,138 @@ func (h *FarmerHandler) ListFarmers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+// UpdateFarmer handles PUT /api/v1/identity/farmers/:aaa_user_id/:aaa_org_id
+// @Summary Update farmer
+// @Description Update an existing farmer profile
+// @Tags identity
+// @Accept json
+// @Produce json
+// @Param aaa_user_id path string true "AAA User ID"
+// @Param aaa_org_id path string true "AAA Org ID"
+// @Param farmer body object true "Farmer update data"
+// @Success 200 {object} farmerResp.FarmerResponse
+// @Failure 400 {object} farmerResp.BaseResponse
+// @Failure 404 {object} farmerResp.BaseResponse
+// @Failure 500 {object} farmerResp.BaseResponse
+// @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [put]
+func (h *FarmerHandler) UpdateFarmer(c *gin.Context) {
+	aaaUserID := c.Param("aaa_user_id")
+	aaaOrgID := c.Param("aaa_org_id")
+
+	var req farmerReq.UpdateFarmerRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errorResp := base.NewErrorResponse("Invalid request format", base.NewValidationError("Invalid request format", err.Error()))
+		c.JSON(http.StatusBadRequest, errorResp)
+		return
+	}
+
+	// Set the IDs from path parameters
+	req.AAAUserID = aaaUserID
+	req.AAAOrgID = aaaOrgID
+
+	response, err := h.farmerService.UpdateFarmer(c.Request.Context(), &req)
+	if err != nil {
+		status := http.StatusInternalServerError
+		var apiError base.ErrorInterface
+
+		if err.Error() == "farmer not found" {
+			status = http.StatusNotFound
+			apiError = base.NewNotFoundError("Farmer", aaaUserID)
+		} else {
+			apiError = base.NewInternalServerError("Failed to update farmer", err.Error())
+		}
+
+		errorResp := base.NewErrorResponse("Failed to update farmer", apiError)
+		c.JSON(status, errorResp)
+		return
+	}
+
+	// Set request ID if available
+	if req.RequestID != "" {
+		response.SetRequestID(req.RequestID)
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+// DeleteFarmer handles DELETE /api/v1/identity/farmers/:aaa_user_id/:aaa_org_id
+// @Summary Delete farmer
+// @Description Delete a farmer profile
+// @Tags identity
+// @Accept json
+// @Produce json
+// @Param aaa_user_id path string true "AAA User ID"
+// @Param aaa_org_id path string true "AAA Org ID"
+// @Success 200 {object} farmerResp.BaseResponse
+// @Failure 400 {object} farmerResp.BaseResponse
+// @Failure 404 {object} farmerResp.BaseResponse
+// @Failure 500 {object} farmerResp.BaseResponse
+// @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [delete]
+func (h *FarmerHandler) DeleteFarmer(c *gin.Context) {
+	aaaUserID := c.Param("aaa_user_id")
+	aaaOrgID := c.Param("aaa_org_id")
+
+	req := farmerReq.DeleteFarmerRequest{
+		AAAUserID: aaaUserID,
+		AAAOrgID:  aaaOrgID,
+	}
+
+	err := h.farmerService.DeleteFarmer(c.Request.Context(), &req)
+	if err != nil {
+		status := http.StatusInternalServerError
+		var apiError base.ErrorInterface
+
+		if err.Error() == "farmer not found" {
+			status = http.StatusNotFound
+			apiError = base.NewNotFoundError("Farmer", aaaUserID)
+		} else {
+			apiError = base.NewInternalServerError("Failed to delete farmer", err.Error())
+		}
+
+		errorResp := base.NewErrorResponse("Failed to delete farmer", apiError)
+		c.JSON(status, errorResp)
+		return
+	}
+
+	successResp := base.NewSuccessResponse("Farmer deleted successfully", nil)
+	if req.RequestID != "" {
+		successResp.RequestID = req.RequestID
+	}
+
+	c.JSON(http.StatusOK, successResp)
+}
+
+// Wrapper functions for use in routes
+// These functions create a handler instance and return the method as a gin.HandlerFunc
+
+// CreateFarmer creates a handler function for creating farmers
+func CreateFarmer(farmerService services.FarmerService) gin.HandlerFunc {
+	handler := NewFarmerHandler(farmerService)
+	return handler.CreateFarmer
+}
+
+// GetFarmer creates a handler function for getting farmers
+func GetFarmer(farmerService services.FarmerService) gin.HandlerFunc {
+	handler := NewFarmerHandler(farmerService)
+	return handler.GetFarmer
+}
+
+// ListFarmers creates a handler function for listing farmers
+func ListFarmers(farmerService services.FarmerService) gin.HandlerFunc {
+	handler := NewFarmerHandler(farmerService)
+	return handler.ListFarmers
+}
+
+// UpdateFarmer creates a handler function for updating farmers
+func UpdateFarmer(farmerService services.FarmerService) gin.HandlerFunc {
+	handler := NewFarmerHandler(farmerService)
+	return handler.UpdateFarmer
+}
+
+// DeleteFarmer creates a handler function for deleting farmers
+func DeleteFarmer(farmerService services.FarmerService) gin.HandlerFunc {
+	handler := NewFarmerHandler(farmerService)
+	return handler.DeleteFarmer
 }

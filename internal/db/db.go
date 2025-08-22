@@ -32,8 +32,16 @@ func Connect(config *db.Config) *db.PostgresManager {
 
 // SetupDatabase runs migrations and setup for the farmers module
 func SetupDatabase(postgresManager *db.PostgresManager) error {
+	// First connect to the database
+	ctx := context.Background()
+	if err := postgresManager.Connect(ctx); err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
+	}
+	// Note: We don't close the connection here as it's needed by the server
+	// The connection will be closed when the main function exits
+
 	// Get the GORM DB instance
-	gormDB, err := postgresManager.GetDB(context.Background(), false)
+	gormDB, err := postgresManager.GetDB(ctx, false)
 	if err != nil {
 		return fmt.Errorf("failed to get GORM DB: %w", err)
 	}
@@ -41,29 +49,56 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		return fmt.Errorf("GORM DB not available")
 	}
 
-	// Enable PostGIS extension
-	if err := gormDB.Exec(`CREATE EXTENSION IF NOT EXISTS postgis;`).Error; err != nil {
-		return fmt.Errorf("failed to enable PostGIS extension: %w", err)
+	// Check if PostGIS is available before proceeding
+	var postgisAvailable bool
+	if err := gormDB.Raw(`SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'postgis')`).Scan(&postgisAvailable).Error; err != nil {
+		log.Printf("Warning: Could not check PostGIS availability: %v", err)
+		postgisAvailable = false
 	}
 
-	// Create custom ENUMs
-	createEnums(gormDB)
+	if !postgisAvailable {
+		log.Println("PostGIS not available - skipping spatial features")
+		// For now, skip the farm entity that requires PostGIS
+		models := []interface{}{
+			&fpo.FPORef{},
+			&farmer.FarmerLink{},
+			&farmer.Farmer{}, // Add the main Farmer model
+			&crop_cycle.CropCycle{},
+			&farm_activity.FarmActivity{},
+		}
 
-	// AutoMigrate models using kisanlink-db
-	models := []interface{}{
-		&fpo.FPORef{},
-		&farmer.FarmerLink{},
-		&farm.Farm{},
-		&crop_cycle.CropCycle{},
-		&farm_activity.FarmActivity{},
+		if err := postgresManager.AutoMigrateModels(ctx, models...); err != nil {
+			return fmt.Errorf("failed to run AutoMigrate: %w", err)
+		}
+	} else {
+		// Enable PostGIS extension
+		if err := gormDB.Exec(`CREATE EXTENSION IF NOT EXISTS postgis;`).Error; err != nil {
+			log.Printf("Warning: PostGIS extension not available: %v", err)
+			log.Println("Continuing without PostGIS - some spatial features may not work")
+		} else {
+			log.Println("PostGIS extension enabled successfully")
+		}
+
+		// Create custom ENUMs
+		createEnums(gormDB)
+
+		// AutoMigrate all models including farm
+		models := []interface{}{
+			&fpo.FPORef{},
+			&farmer.FarmerLink{},
+			&farmer.Farmer{}, // Add the main Farmer model
+			&farm.Farm{},
+			&crop_cycle.CropCycle{},
+			&farm_activity.FarmActivity{},
+		}
+
+		if err := postgresManager.AutoMigrateModels(ctx, models...); err != nil {
+			return fmt.Errorf("failed to run AutoMigrate: %w", err)
+		}
+
+		// Post-migration setup
+		setupPostMigration(gormDB)
 	}
-
-	if err := postgresManager.AutoMigrateModels(context.Background(), models...); err != nil {
-		return fmt.Errorf("failed to run AutoMigrate: %w", err)
-	}
-
-	// Post-migration setup
-	setupPostMigration(gormDB)
 
 	log.Println("Database setup completed successfully")
 	return nil
@@ -94,14 +129,28 @@ func createEnums(gormDB *gorm.DB) {
 
 // setupPostMigration sets up computed columns, indexes, and constraints
 func setupPostMigration(gormDB *gorm.DB) {
-	// Add computed area column for farms
-	gormDB.Exec(`ALTER TABLE farms ADD COLUMN IF NOT EXISTS area_ha NUMERIC(12,4)
-		GENERATED ALWAYS AS (ST_Area(geom::geography)/10000.0) STORED;`)
+	// Check if PostGIS is available before setting up spatial features
+	var postgisAvailable bool
+	if err := gormDB.Raw(`SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'postgis')`).Scan(&postgisAvailable).Error; err != nil {
+		log.Printf("Warning: Could not check PostGIS availability: %v", err)
+		postgisAvailable = false
+	}
 
-	// Create spatial indexes
-	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_geom_gist ON farms USING GIST (geom);`)
-	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_farmer_id_idx ON farms (farmer_id);`)
-	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_fpo_id_idx ON farms (fpo_id);`)
+	if postgisAvailable {
+		// Add computed area column for farms with PostGIS
+		gormDB.Exec(`ALTER TABLE farms ADD COLUMN IF NOT EXISTS area_ha_computed NUMERIC(12,4)
+			GENERATED ALWAYS AS (ST_Area(geometry::geometry)/10000.0) STORED;`)
+
+		// Create spatial indexes
+		gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_geometry_gist ON farms USING GIST (geometry::geometry);`)
+		log.Println("PostGIS spatial features configured")
+	} else {
+		log.Println("PostGIS not available - skipping spatial features")
+	}
+
+	// Create regular indexes
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_farmer_id_idx ON farms (aaa_farmer_user_id);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_fpo_id_idx ON farms (aaa_org_id);`)
 
 	// Create indexes for other tables
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmer_links_aaa_user_id_idx ON farmer_links (aaa_user_id);`)

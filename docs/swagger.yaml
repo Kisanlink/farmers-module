@@ -1,39 +1,37 @@
 basePath: /api/v1
 definitions:
-  farmer.CreateFarmerRequest:
+  base.PaginationInfo:
     properties:
-      aaa_org_id:
-        type: string
-      aaa_user_id:
-        type: string
-      kisan_sathi_user_id:
-        type: string
-      metadata:
-        additionalProperties:
-          type: string
-        type: object
-      org_id:
-        type: string
-      profile:
-        $ref: '#/definitions/internal_entities_requests_farmer.FarmerProfileData'
-      request_id:
-        type: string
-      request_type:
-        type: string
-      timestamp:
-        type: string
-      user_id:
-        type: string
-    required:
-    - aaa_org_id
-    - aaa_user_id
+      has_next:
+        type: boolean
+      has_prev:
+        type: boolean
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
     type: object
-  internal_entities_requests_farmer.AddressData:
+  github_com_Kisanlink_farmers-module_internal_entities_farm.Geometry:
+    properties:
+      wkb:
+        description: Well-Known Binary format
+        items:
+          format: int32
+          type: integer
+        type: array
+      wkt:
+        description: Well-Known Text format
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.AddressData:
     properties:
       city:
         type: string
       coordinates:
-        description: WKT format for PostGIS
         type: string
       country:
         type: string
@@ -44,17 +42,89 @@ definitions:
       street_address:
         type: string
     type: object
-  internal_entities_requests_farmer.FarmerProfileData:
+  github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse:
     properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData:
+    properties:
+      aaa_farmer_user_id:
+        type: string
+      aaa_org_id:
+        type: string
+      area_ha:
+        type: number
+      created_at:
+        type: string
+      created_by:
+        type: string
+      deleted_at:
+        type: string
+      deleted_by:
+        type: string
+      geometry:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_farm.Geometry'
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      updated_at:
+        type: string
+      updated_by:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData'
+        type: array
+      error: {}
+      message:
+        type: string
+      pagination:
+        $ref: '#/definitions/base.PaginationInfo'
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
       address:
-        $ref: '#/definitions/internal_entities_requests_farmer.AddressData'
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.AddressData'
+      created_at:
+        type: string
       date_of_birth:
         type: string
       email:
         type: string
+      farms:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData'
+        type: array
       first_name:
         type: string
       gender:
+        type: string
+      kisan_sathi_user_id:
         type: string
       last_name:
         type: string
@@ -68,195 +138,44 @@ definitions:
         additionalProperties:
           type: string
         type: object
-    type: object
-  services.CreateFarmerRequest:
-    properties:
-      aaa_org_id:
-        type: string
-      aaa_user_id:
-        type: string
-      date_of_birth:
-        type: string
-      email:
-        type: string
-      first_name:
-        type: string
-      gender:
-        type: string
-      kisan_sathi_user_id:
-        type: string
-      last_name:
-        type: string
-      metadata:
-        additionalProperties:
-          type: string
-        type: object
-      phone_number:
-        type: string
-    required:
-    - aaa_org_id
-    - aaa_user_id
-    type: object
-  services.FarmerData:
-    properties:
-      aaa_org_id:
-        type: string
-      aaa_user_id:
-        type: string
-      created_at:
-        type: string
-      date_of_birth:
-        type: string
-      email:
-        type: string
-      first_name:
-        type: string
-      gender:
-        type: string
-      id:
-        type: string
-      kisan_sathi_user_id:
-        type: string
-      last_name:
-        type: string
-      metadata:
-        additionalProperties:
-          type: string
-        type: object
-      phone_number:
-        type: string
       updated_at:
         type: string
     type: object
-  services.FarmerListResponse:
+  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileResponse:
     properties:
       data:
-        items:
-          $ref: '#/definitions/services.FarmerData'
-        type: array
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData'
+      error: {}
       message:
         type: string
-      page:
-        type: integer
-      page_size:
-        type: integer
-      success:
-        type: boolean
-      total_count:
-        type: integer
-    type: object
-  services.FarmerResponse:
-    properties:
-      data:
-        $ref: '#/definitions/services.FarmerData'
-      message:
+      request_id:
         type: string
       success:
         type: boolean
+      timestamp:
+        type: string
     type: object
-host: localhost:8080
+  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData'
+      error: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+host: localhost:8000
 info:
   contact: {}
   description: Farmers Module Service with Workflow-Based Architecture for Farm Management
   title: Farmers Module API
   version: 1.0.0
 paths:
-  /:
-    get:
-      consumes:
-      - application/json
-      description: Get information about the Farmers Module service
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get service info
-      tags:
-      - service
-  /admin:
-    get:
-      consumes:
-      - application/json
-      description: Get information about admin and access control endpoints
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get admin endpoints info
-      tags:
-      - admin
-  /crops:
-    get:
-      consumes:
-      - application/json
-      description: Get information about crop management endpoints
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get crop endpoints info
-      tags:
-      - crops
-  /farms:
-    get:
-      consumes:
-      - application/json
-      description: Get information about farm management endpoints
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get farm endpoints info
-      tags:
-      - farms
-  /health:
-    get:
-      consumes:
-      - application/json
-      description: Check the health status of the service
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Health check
-      tags:
-      - health
-  /identity:
-    get:
-      consumes:
-      - application/json
-      description: Get information about identity and organization linkage endpoints
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get identity endpoints info
-      tags:
-      - identity
   /identity/farmers:
     get:
       consumes:
@@ -287,17 +206,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/services.FarmerListResponse'
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerListResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
       summary: List farmers
       tags:
       - identity
@@ -311,33 +228,67 @@ paths:
         name: farmer
         required: true
         schema:
-          $ref: '#/definitions/services.CreateFarmerRequest'
+          type: object
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/services.FarmerResponse'
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
         "409":
           description: Conflict
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
       summary: Create a new farmer
       tags:
       - identity
   /identity/farmers/{aaa_user_id}/{aaa_org_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a farmer profile
+      parameters:
+      - description: AAA User ID
+        in: path
+        name: aaa_user_id
+        required: true
+        type: string
+      - description: AAA Org ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+      summary: Delete farmer
+      tags:
+      - identity
     get:
       consumes:
       - application/json
@@ -359,41 +310,65 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/services.FarmerResponse'
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
       summary: Get farmer by ID
       tags:
       - identity
-  /kisansathi:
-    get:
+    put:
       consumes:
       - application/json
-      description: Get information about KisanSathi assignment endpoints
+      description: Update an existing farmer profile
+      parameters:
+      - description: AAA User ID
+        in: path
+        name: aaa_user_id
+        required: true
+        type: string
+      - description: AAA Org ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      - description: Farmer update data
+        in: body
+        name: farmer
+        required: true
+        schema:
+          type: object
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
-      summary: Get KisanSathi endpoints info
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse'
+      summary: Update farmer
       tags:
-      - kisansathi
+      - identity
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

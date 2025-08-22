@@ -1,45 +1,33 @@
 package responses
 
 import (
-	"github.com/Kisanlink/farmers-module/internal/entities/responses"
+	"github.com/Kisanlink/farmers-module/internal/entities/farm"
+	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
 // FarmResponse represents a single farm response
 type FarmResponse struct {
-	responses.BaseResponse
-	Data *FarmData `json:"data"`
+	*base.BaseResponse `json:",inline"`
+	Data               *FarmData `json:"data"`
 }
 
 // FarmListResponse represents a list of farms response
 type FarmListResponse struct {
-	responses.ListResponse
-	Data []*FarmData `json:"data"`
+	*base.PaginatedResponse `json:",inline"`
+	Data                    []*FarmData `json:"data"`
 }
 
 // FarmOverlapResponse represents a farm overlap check response
 type FarmOverlapResponse struct {
-	responses.BaseResponse
-	Data *FarmOverlapData `json:"data"`
+	*base.BaseResponse `json:",inline"`
+	Data               *FarmOverlapData `json:"data"`
 }
 
 // FarmData represents farm data in responses
-type FarmData struct {
-	ID              string            `json:"id"`
-	AAAFarmerUserID string            `json:"aaa_farmer_user_id"`
-	AAAOrgID        string            `json:"aaa_org_id"`
-	Geometry        GeometryData      `json:"geometry,omitempty"`
-	AreaHa          float64           `json:"area_ha"`
-	Metadata        map[string]string `json:"metadata,omitempty"`
-	CreatedBy       string            `json:"created_by,omitempty"`
-	CreatedAt       string            `json:"created_at,omitempty"`
-	UpdatedAt       string            `json:"updated_at,omitempty"`
-}
+// Note: FarmData is already defined in farmer_responses.go as farm.Farm
 
 // GeometryData represents geometric data in responses
-type GeometryData struct {
-	WKT string `json:"wkt,omitempty"` // Well-Known Text format
-	WKB []byte `json:"wkb,omitempty"` // Well-Known Binary format
-}
+type GeometryData = farm.Geometry
 
 // FarmOverlapData represents farm overlap check result
 type FarmOverlapData struct {
@@ -52,44 +40,45 @@ type FarmOverlapData struct {
 // NewFarmResponse creates a new farm response
 func NewFarmResponse(farm *FarmData, message string) FarmResponse {
 	return FarmResponse{
-		BaseResponse: responses.NewBaseResponse(),
+		BaseResponse: base.NewSuccessResponse(message, farm),
 		Data:         farm,
 	}
 }
 
 // NewFarmListResponse creates a new farm list response
 func NewFarmListResponse(farms []*FarmData, page, pageSize int, totalCount int64) FarmListResponse {
-	// Convert to interface slice for NewListResponse
-	var responseData []interface{}
+	// Convert to interface slice for pagination
+	var data []interface{}
 	for _, f := range farms {
-		responseData = append(responseData, f)
+		data = append(data, f)
 	}
 
+	paginationInfo := base.NewPaginationInfo(page, pageSize, int(totalCount))
 	return FarmListResponse{
-		ListResponse: responses.NewListResponse(responseData, page, pageSize, totalCount),
-		Data:         farms,
+		PaginatedResponse: base.NewPaginatedResponse("Farms retrieved successfully", data, paginationInfo),
+		Data:              farms,
 	}
 }
 
 // NewFarmOverlapResponse creates a new farm overlap response
 func NewFarmOverlapResponse(overlap *FarmOverlapData, message string) FarmOverlapResponse {
 	return FarmOverlapResponse{
-		BaseResponse: responses.NewBaseResponse(),
+		BaseResponse: base.NewSuccessResponse(message, overlap),
 		Data:         overlap,
 	}
 }
 
 // SetRequestID sets the request ID for tracking
 func (r *FarmResponse) SetRequestID(requestID string) {
-	r.BaseResponse.SetResponseID(requestID)
+	r.BaseResponse.RequestID = requestID
 }
 
 // SetRequestID sets the request ID for tracking
 func (r *FarmListResponse) SetRequestID(requestID string) {
-	r.ListResponse.PaginationResponse.BaseResponse.SetResponseID(requestID)
+	r.PaginatedResponse.RequestID = requestID
 }
 
 // SetRequestID sets the request ID for tracking
 func (r *FarmOverlapResponse) SetRequestID(requestID string) {
-	r.BaseResponse.SetResponseID(requestID)
+	r.BaseResponse.RequestID = requestID
 }

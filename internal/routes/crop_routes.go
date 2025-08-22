@@ -1,13 +1,14 @@
 package routes
 
 import (
+	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/internal/handlers"
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterCropRoutes registers routes for Crop Management workflows
-func RegisterCropRoutes(router *gin.RouterGroup, services *services.ServiceFactory) {
+func RegisterCropRoutes(router *gin.RouterGroup, services *services.ServiceFactory, cfg *config.Config) {
 	crops := router.Group("/crops")
 	{
 		// Crop Cycles (W10-W13)

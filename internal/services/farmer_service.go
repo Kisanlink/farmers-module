@@ -6,18 +6,18 @@ import (
 
 	"github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
-	farmerResponse "github.com/Kisanlink/farmers-module/internal/entities/responses/farmer"
+	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
 )
 
 // FarmerService handles farmer-related operations
 type FarmerService interface {
-	CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*farmerResponse.FarmerResponse, error)
-	GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*farmerResponse.FarmerProfileResponse, error)
-	UpdateFarmer(ctx context.Context, req *requests.UpdateFarmerRequest) (*farmerResponse.FarmerResponse, error)
+	CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error)
+	GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*responses.FarmerProfileResponse, error)
+	UpdateFarmer(ctx context.Context, req *requests.UpdateFarmerRequest) (*responses.FarmerResponse, error)
 	DeleteFarmer(ctx context.Context, req *requests.DeleteFarmerRequest) error
-	ListFarmers(ctx context.Context, req *requests.ListFarmersRequest) (*farmerResponse.FarmerListResponse, error)
+	ListFarmers(ctx context.Context, req *requests.ListFarmersRequest) (*responses.FarmerListResponse, error)
 }
 
 // FarmerServiceImpl implements FarmerService
@@ -38,7 +38,7 @@ func NewFarmerService(dbManager db.DBManager) FarmerService {
 }
 
 // CreateFarmer creates a new farmer
-func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*farmerResponse.FarmerResponse, error) {
+func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error) {
 	// Check if farmer already exists using filter
 	existingFilter := base.NewFilterBuilder().
 		Where("aaa_user_id", base.OpEqual, req.AAAUserID).
@@ -77,7 +77,7 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 	}
 
 	// Convert to response format
-	farmerProfile := &farmerResponse.FarmerProfileData{
+	farmerProfile := &responses.FarmerProfileData{
 		AAAUserID:        farmer.AAAUserID,
 		AAAOrgID:         farmer.AAAOrgID,
 		KisanSathiUserID: farmer.KisanSathiUserID,
@@ -87,7 +87,7 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		Email:            farmer.Email,
 		DateOfBirth:      farmer.DateOfBirth,
 		Gender:           farmer.Gender,
-		Address: farmerResponse.AddressData{
+		Address: responses.AddressData{
 			StreetAddress: farmer.StreetAddress,
 			City:          farmer.City,
 			State:         farmer.State,
@@ -97,17 +97,17 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		},
 		Preferences: farmer.Preferences,
 		Metadata:    farmer.Metadata,
-		Farms:       []*farmerResponse.FarmData{},
+		Farms:       []*responses.FarmData{},
 		CreatedAt:   farmer.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:   farmer.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
-	response := farmerResponse.NewFarmerResponse(farmerProfile, "Farmer created successfully")
+	response := responses.NewFarmerResponse(farmerProfile, "Farmer created successfully")
 	return &response, nil
 }
 
 // GetFarmer retrieves a farmer by ID
-func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*farmerResponse.FarmerProfileResponse, error) {
+func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*responses.FarmerProfileResponse, error) {
 	filter := base.NewFilterBuilder().
 		Where("aaa_user_id", base.OpEqual, req.AAAUserID).
 		Where("aaa_org_id", base.OpEqual, req.AAAOrgID).
@@ -119,7 +119,7 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 	}
 
 	// Convert to response format
-	farmerProfile := &farmerResponse.FarmerProfileData{
+	farmerProfile := &responses.FarmerProfileData{
 		AAAUserID:        farmer.AAAUserID,
 		AAAOrgID:         farmer.AAAOrgID,
 		KisanSathiUserID: farmer.KisanSathiUserID,
@@ -129,7 +129,7 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 		Email:            farmer.Email,
 		DateOfBirth:      farmer.DateOfBirth,
 		Gender:           farmer.Gender,
-		Address: farmerResponse.AddressData{
+		Address: responses.AddressData{
 			StreetAddress: farmer.StreetAddress,
 			City:          farmer.City,
 			State:         farmer.State,
@@ -139,17 +139,17 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 		},
 		Preferences: farmer.Preferences,
 		Metadata:    farmer.Metadata,
-		Farms:       []*farmerResponse.FarmData{}, // TODO: Load actual farms
+		Farms:       []*responses.FarmData{}, // TODO: Load actual farms
 		CreatedAt:   farmer.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:   farmer.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
-	response := farmerResponse.NewFarmerProfileResponse(farmerProfile, "Farmer retrieved successfully")
+	response := responses.NewFarmerProfileResponse(farmerProfile, "Farmer retrieved successfully")
 	return &response, nil
 }
 
 // UpdateFarmer updates an existing farmer
-func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.UpdateFarmerRequest) (*farmerResponse.FarmerResponse, error) {
+func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.UpdateFarmerRequest) (*responses.FarmerResponse, error) {
 	// Find existing farmer
 	filter := base.NewFilterBuilder().
 		Where("aaa_user_id", base.OpEqual, req.AAAUserID).
@@ -210,7 +210,7 @@ func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.Upda
 	}
 
 	// Convert to response format
-	farmerProfile := &farmerResponse.FarmerProfileData{
+	farmerProfile := &responses.FarmerProfileData{
 		AAAUserID:        existingFarmer.AAAUserID,
 		AAAOrgID:         existingFarmer.AAAOrgID,
 		KisanSathiUserID: existingFarmer.KisanSathiUserID,
@@ -220,7 +220,7 @@ func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.Upda
 		Email:            existingFarmer.Email,
 		DateOfBirth:      existingFarmer.DateOfBirth,
 		Gender:           existingFarmer.Gender,
-		Address: farmerResponse.AddressData{
+		Address: responses.AddressData{
 			StreetAddress: existingFarmer.StreetAddress,
 			City:          existingFarmer.City,
 			State:         existingFarmer.State,
@@ -230,12 +230,12 @@ func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.Upda
 		},
 		Preferences: existingFarmer.Preferences,
 		Metadata:    existingFarmer.Metadata,
-		Farms:       []*farmerResponse.FarmData{}, // TODO: Load actual farms
+		Farms:       []*responses.FarmData{}, // TODO: Load actual farms
 		CreatedAt:   existingFarmer.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:   existingFarmer.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
-	response := farmerResponse.NewFarmerResponse(farmerProfile, "Farmer updated successfully")
+	response := responses.NewFarmerResponse(farmerProfile, "Farmer updated successfully")
 	return &response, nil
 }
 
@@ -261,7 +261,7 @@ func (s *FarmerServiceImpl) DeleteFarmer(ctx context.Context, req *requests.Dele
 }
 
 // ListFarmers lists farmers with filtering
-func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListFarmersRequest) (*farmerResponse.FarmerListResponse, error) {
+func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListFarmersRequest) (*responses.FarmerListResponse, error) {
 	// Build filter for database query
 	filter := base.NewFilterBuilder().
 		Page(req.Page, req.PageSize)
@@ -283,15 +283,15 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 	}
 
 	// Get total count
-	totalCount, err := s.repository.Count(ctx, filter.Build(), &farmer.Farmer{})
+	totalCount, err := s.repository.Count(ctx, filter.Build(), farmer.NewFarmer())
 	if err != nil {
 		return nil, fmt.Errorf("failed to count farmers: %w", err)
 	}
 
 	// Convert to response format
-	var farmerProfiles []*farmerResponse.FarmerProfileData
+	var farmerProfiles []*responses.FarmerProfileData
 	for _, f := range farmers {
-		farmerProfile := &farmerResponse.FarmerProfileData{
+		farmerProfile := &responses.FarmerProfileData{
 			AAAUserID:        f.AAAUserID,
 			AAAOrgID:         f.AAAOrgID,
 			KisanSathiUserID: f.KisanSathiUserID,
@@ -301,7 +301,7 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 			Email:            f.Email,
 			DateOfBirth:      f.DateOfBirth,
 			Gender:           f.Gender,
-			Address: farmerResponse.AddressData{
+			Address: responses.AddressData{
 				StreetAddress: f.StreetAddress,
 				City:          f.City,
 				State:         f.State,
@@ -311,13 +311,13 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 			},
 			Preferences: f.Preferences,
 			Metadata:    f.Metadata,
-			Farms:       []*farmerResponse.FarmData{}, // TODO: Load actual farms
+			Farms:       []*responses.FarmData{}, // TODO: Load actual farms
 			CreatedAt:   f.CreatedAt.Format("2006-01-02T15:04:05Z"),
 			UpdatedAt:   f.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		}
 		farmerProfiles = append(farmerProfiles, farmerProfile)
 	}
 
-	response := farmerResponse.NewFarmerListResponse(farmerProfiles, req.Page, req.PageSize, totalCount)
+	response := responses.NewFarmerListResponse(farmerProfiles, req.Page, req.PageSize, totalCount)
 	return &response, nil
 }

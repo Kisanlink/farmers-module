@@ -12,6 +12,7 @@ import (
 
 // RepositoryFactory provides access to all domain repositories
 type RepositoryFactory struct {
+	PostgresManager   *db.PostgresManager
 	FarmerRepo        farmer.FarmerRepository
 	FarmerLinkageRepo farmer_linkage.FarmerLinkageRepository
 	FPORefRepo        fpo_ref.FPORefRepository

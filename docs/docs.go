@@ -15,150 +15,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/": {
-            "get": {
-                "description": "Get information about the Farmers Module service",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "service"
-                ],
-                "summary": "Get service info",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/admin": {
-            "get": {
-                "description": "Get information about admin and access control endpoints",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "admin"
-                ],
-                "summary": "Get admin endpoints info",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/crops": {
-            "get": {
-                "description": "Get information about crop management endpoints",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "crops"
-                ],
-                "summary": "Get crop endpoints info",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/farms": {
-            "get": {
-                "description": "Get information about farm management endpoints",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "farms"
-                ],
-                "summary": "Get farm endpoints info",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/health": {
-            "get": {
-                "description": "Check the health status of the service",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "health"
-                ],
-                "summary": "Health check",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/identity": {
-            "get": {
-                "description": "Get information about identity and organization linkage endpoints",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "identity"
-                ],
-                "summary": "Get identity endpoints info",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/identity/farmers": {
             "get": {
                 "description": "List farmers with filtering and pagination",
@@ -204,21 +60,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/services.FarmerListResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerListResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
                         }
                     }
                 }
@@ -242,7 +96,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.CreateFarmerRequest"
+                            "type": "object"
                         }
                     }
                 ],
@@ -250,28 +104,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/services.FarmerResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
                         }
                     }
                 }
@@ -310,36 +161,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/services.FarmerResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
                         }
                     }
                 }
-            }
-        },
-        "/kisansathi": {
-            "get": {
-                "description": "Get information about KisanSathi assignment endpoints",
+            },
+            "put": {
+                "description": "Update an existing farmer profile",
                 "consumes": [
                     "application/json"
                 ],
@@ -347,15 +193,112 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "kisansathi"
+                    "identity"
                 ],
-                "summary": "Get KisanSathi endpoints info",
+                "summary": "Update farmer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "AAA User ID",
+                        "name": "aaa_user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "AAA Org ID",
+                        "name": "aaa_org_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Farmer update data",
+                        "name": "farmer",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a farmer profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "summary": "Delete farmer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "AAA User ID",
+                        "name": "aaa_user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "AAA Org ID",
+                        "name": "aaa_org_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse"
                         }
                     }
                 }
@@ -363,56 +306,53 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "farmer.CreateFarmerRequest": {
+        "base.PaginationInfo": {
             "type": "object",
-            "required": [
-                "aaa_org_id",
-                "aaa_user_id"
-            ],
             "properties": {
-                "aaa_org_id": {
-                    "type": "string"
+                "has_next": {
+                    "type": "boolean"
                 },
-                "aaa_user_id": {
-                    "type": "string"
+                "has_prev": {
+                    "type": "boolean"
                 },
-                "kisan_sathi_user_id": {
-                    "type": "string"
+                "page": {
+                    "type": "integer"
                 },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
+                "per_page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_farm.Geometry": {
+            "type": "object",
+            "properties": {
+                "wkb": {
+                    "description": "Well-Known Binary format",
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "format": "int32"
                     }
                 },
-                "org_id": {
-                    "type": "string"
-                },
-                "profile": {
-                    "$ref": "#/definitions/internal_entities_requests_farmer.FarmerProfileData"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "request_type": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "user_id": {
+                "wkt": {
+                    "description": "Well-Known Text format",
                     "type": "string"
                 }
             }
         },
-        "internal_entities_requests_farmer.AddressData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.AddressData": {
             "type": "object",
             "properties": {
                 "city": {
                     "type": "string"
                 },
                 "coordinates": {
-                    "description": "WKT format for PostGIS",
                     "type": "string"
                 },
                 "country": {
@@ -429,11 +369,110 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_entities_requests_farmer.FarmerProfileData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.BaseResponse": {
             "type": "object",
             "properties": {
+                "data": {},
+                "error": {},
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData": {
+            "type": "object",
+            "properties": {
+                "aaa_farmer_user_id": {
+                    "type": "string"
+                },
+                "aaa_org_id": {
+                    "type": "string"
+                },
+                "area_ha": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "deleted_by": {
+                    "type": "string"
+                },
+                "geometry": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_farm.Geometry"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "updated_by": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData"
+                    }
+                },
+                "error": {},
+                "message": {
+                    "type": "string"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/base.PaginationInfo"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData": {
+            "type": "object",
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
+                "aaa_user_id": {
+                    "type": "string"
+                },
                 "address": {
-                    "$ref": "#/definitions/internal_entities_requests_farmer.AddressData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.AddressData"
+                },
+                "created_at": {
+                    "type": "string"
                 },
                 "date_of_birth": {
                     "type": "string"
@@ -441,10 +480,19 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "farms": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData"
+                    }
+                },
                 "first_name": {
                     "type": "string"
                 },
                 "gender": {
+                    "type": "string"
+                },
+                "kisan_sathi_user_id": {
                     "type": "string"
                 },
                 "last_name": {
@@ -464,135 +512,51 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "services.CreateFarmerRequest": {
-            "type": "object",
-            "required": [
-                "aaa_org_id",
-                "aaa_user_id"
-            ],
-            "properties": {
-                "aaa_org_id": {
-                    "type": "string"
-                },
-                "aaa_user_id": {
-                    "type": "string"
-                },
-                "date_of_birth": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "gender": {
-                    "type": "string"
-                },
-                "kisan_sathi_user_id": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "phone_number": {
-                    "type": "string"
-                }
-            }
-        },
-        "services.FarmerData": {
-            "type": "object",
-            "properties": {
-                "aaa_org_id": {
-                    "type": "string"
-                },
-                "aaa_user_id": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "date_of_birth": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "gender": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "kisan_sathi_user_id": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "phone_number": {
-                    "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "services.FarmerListResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/services.FarmerData"
-                    }
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData"
                 },
+                "error": {},
                 "message": {
                     "type": "string"
                 },
-                "page": {
-                    "type": "integer"
-                },
-                "page_size": {
-                    "type": "integer"
+                "request_id": {
+                    "type": "string"
                 },
                 "success": {
                     "type": "boolean"
                 },
-                "total_count": {
-                    "type": "integer"
+                "timestamp": {
+                    "type": "string"
                 }
             }
         },
-        "services.FarmerResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/services.FarmerData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData"
                 },
+                "error": {},
                 "message": {
+                    "type": "string"
+                },
+                "request_id": {
                     "type": "string"
                 },
                 "success": {
                     "type": "boolean"
+                },
+                "timestamp": {
+                    "type": "string"
                 }
             }
         }
@@ -610,7 +574,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0.0",
-	Host:             "localhost:8080",
+	Host:             "localhost:8000",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Farmers Module API",
