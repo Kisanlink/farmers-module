@@ -295,7 +295,7 @@ func (vm *ValidationMiddleware) validateFarmerProfile(profile map[string]interfa
 
 // verifyOrganization verifies if an organization exists in AAA service
 func (vm *ValidationMiddleware) verifyOrganization(ctx context.Context, orgID string) error {
-	org, err := vm.aaaClient.VerifyOrganization(ctx, orgID)
+	org, err := vm.aaaClient.GetOrganization(ctx, orgID)
 	if err != nil {
 		return fmt.Errorf("failed to verify organization %s: %w", orgID, err)
 	}

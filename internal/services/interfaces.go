@@ -80,10 +80,28 @@ type AAAService interface {
 	SeedRolesAndPermissions(ctx context.Context) error
 	// W19: Check permission (for RPC interceptor)
 	CheckPermission(ctx context.Context, req interface{}) (bool, error)
-	// Create user in AAA
+
+	// User Management
 	CreateUser(ctx context.Context, req interface{}) (interface{}, error)
-	// Get user from AAA
 	GetUser(ctx context.Context, userID string) (interface{}, error)
-	// Get user from AAA by mobile number
 	GetUserByMobile(ctx context.Context, mobileNumber string) (interface{}, error)
+	GetUserByEmail(ctx context.Context, email string) (interface{}, error)
+
+	// Organization Management
+	CreateOrganization(ctx context.Context, req interface{}) (interface{}, error)
+	GetOrganization(ctx context.Context, orgID string) (interface{}, error)
+
+	// User Group Management
+	CreateUserGroup(ctx context.Context, req interface{}) (interface{}, error)
+	AddUserToGroup(ctx context.Context, userID, groupID string) error
+	RemoveUserFromGroup(ctx context.Context, userID, groupID string) error
+
+	// Role and Permission Management
+	AssignRole(ctx context.Context, userID, orgID, roleName string) error
+	CheckUserRole(ctx context.Context, userID, roleName string) (bool, error)
+	AssignPermissionToGroup(ctx context.Context, groupID, resource, action string) error
+
+	// Token and Health Management
+	ValidateToken(ctx context.Context, token string) (map[string]interface{}, error)
+	HealthCheck(ctx context.Context) error
 }

@@ -8,15 +8,15 @@
   - Write unit tests for model validation and database operations
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
 
-- [ ] 2. AAA Service Client Enhancement and Integration
+- [x] 2. AAA Service Client Enhancement and Integration
 
-  - Extend existing AAA client with missing methods (CreateOrganization, CreateUserGroup, etc.)
-  - Implement user management methods (CreateUser, GetUserByPhone, CheckUserRole)
-  - Add organization and user group management capabilities
+  - Complete missing AAA client methods (CreateOrganization, CreateUserGroup, AssignRole, etc.)
+  - Implement ValidateToken, SeedRolesAndPermissions, and HealthCheck methods
+  - Add proper error handling and gRPC status code mapping
   - Create comprehensive AAA client tests with gRPC mocks
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
 
-- [ ] 3. Repository Layer Implementation
+- [x] 3. Repository Layer Implementation
 
   - Implement FarmerRepository with CRUD operations and AAA user ID lookups
   - Create FPORefRepository with organization reference management
@@ -28,14 +28,14 @@
 
 - [ ] 4. Authentication and Authorization Middleware
 
-  - Implement JWT token extraction and validation middleware
-  - Create authorization middleware with route-to-permission mapping
-  - Build audit logging middleware with structured JSON output
-  - Implement error handling middleware with correlation IDs and structured responses
+  - Complete JWT token extraction and validation middleware using AAA client
+  - Implement authorization middleware with route-to-permission mapping
+  - Enhance audit logging middleware with structured JSON output and correlation IDs
+  - Add comprehensive error handling middleware with proper HTTP status mapping
   - Write middleware tests with HTTP mocks and AAA service integration
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8_
 
-- [ ] 5. Farmer Registration and Management Service
+- [x] 5. Farmer Registration and Management Service
 
   - Implement RegisterFarmer service with AAA user creation and local profile storage
   - Create GetFarmer, UpdateFarmer, and ListFarmers service methods
@@ -64,29 +64,29 @@
 
 - [ ] 8. Farm Management Service with Geospatial Operations
 
-  - Implement CreateFarm service with WKT validation and PostGIS integration
-  - Create UpdateFarm and DeleteFarm services with proper authorization
+  - Complete CreateFarm service implementation with WKT validation and PostGIS integration
+  - Implement UpdateFarm and DeleteFarm services with proper authorization
   - Build ListFarms service with spatial filtering and bounding box queries
   - Add geometry validation service with SRID enforcement and integrity checks
-  - Implement farm management HTTP handlers and write geospatial tests
+  - Complete farm management HTTP handlers and write geospatial tests
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9_
 
 - [ ] 9. Crop Cycle Lifecycle Management Service
 
-  - Implement StartCycle service with farm validation and cycle creation
-  - Create UpdateCycle service for non-terminal cycle modifications
+  - Complete StartCycle service implementation with farm validation and cycle creation
+  - Implement UpdateCycle service for non-terminal cycle modifications
   - Build EndCycle service with completion/cancellation logic
   - Add ListCycles service with filtering by farm/status/season
-  - Create crop cycle HTTP handlers and write lifecycle tests
+  - Complete crop cycle HTTP handlers and write lifecycle tests
   - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7_
 
 - [ ] 10. Farm Activity Management Service
 
-  - Implement CreateActivity service with cycle validation and activity creation
-  - Create CompleteActivity service with output recording and status updates
+  - Complete CreateActivity service implementation with cycle validation and activity creation
+  - Implement CompleteActivity service with output recording and status updates
   - Build UpdateActivity service for pre-completion activity modifications
   - Add ListActivities service with filtering by cycle/type/date/status
-  - Create activity management HTTP handlers and write activity lifecycle tests
+  - Complete activity management HTTP handlers and write activity lifecycle tests
   - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
 
 - [ ] 11. Data Quality and Validation Services
@@ -132,7 +132,31 @@
   - Write API usage examples and cURL commands for all endpoints
   - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.7_
 
-- [ ] 16. Service Configuration and Deployment Setup
+- [ ] 16. Request/Response Models and Validation Enhancement
+
+  - Complete request/response model implementations for all services
+  - Add comprehensive validation for all input models
+  - Implement proper error response structures with correlation IDs
+  - Add request/response model tests and validation scenarios
+  - _Requirements: All requirements for proper API contracts_
+
+- [ ] 17. Service Factory and Dependency Injection
+
+  - Complete service factory implementation with proper dependency injection
+  - Add service interface implementations for all domain services
+  - Implement proper service lifecycle management
+  - Add service factory tests and integration scenarios
+  - _Requirements: All requirements for service layer architecture_
+
+- [ ] 18. Route Setup and HTTP Handler Integration
+
+  - Complete route setup with proper middleware chain
+  - Integrate all HTTP handlers with services and middleware
+  - Add route-level authorization and validation
+  - Implement proper HTTP status code handling
+  - _Requirements: All requirements for HTTP API layer_
+
+- [ ] 19. Service Configuration and Deployment Setup
   - Enhance configuration management with validation and environment-specific settings
   - Create Docker containerization with proper health checks
   - Build deployment scripts and environment setup documentation

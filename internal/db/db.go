@@ -56,6 +56,9 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		postgisAvailable = false
 	}
 
+	// Create custom ENUMs first (needed regardless of PostGIS availability)
+	createEnums(gormDB)
+
 	if !postgisAvailable {
 		log.Println("PostGIS not available - skipping spatial features")
 		// For now, skip the farm entity that requires PostGIS
@@ -70,6 +73,9 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		if err := postgresManager.AutoMigrateModels(ctx, models...); err != nil {
 			return fmt.Errorf("failed to run AutoMigrate: %w", err)
 		}
+
+		// Post-migration setup (without PostGIS features)
+		setupPostMigration(gormDB)
 	} else {
 		// Enable PostGIS extension
 		if err := gormDB.Exec(`CREATE EXTENSION IF NOT EXISTS postgis;`).Error; err != nil {
@@ -78,9 +84,6 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		} else {
 			log.Println("PostGIS extension enabled successfully")
 		}
-
-		// Create custom ENUMs
-		createEnums(gormDB)
 
 		// AutoMigrate all models including farm
 		models := []interface{}{
@@ -96,7 +99,7 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 			return fmt.Errorf("failed to run AutoMigrate: %w", err)
 		}
 
-		// Post-migration setup
+		// Post-migration setup (with PostGIS features)
 		setupPostMigration(gormDB)
 	}
 
@@ -164,10 +167,12 @@ func setupPostMigration(gormDB *gorm.DB) {
 		log.Println("PostGIS not available - skipping spatial features")
 	}
 
-	// Create regular indexes
-	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_farmer_id_idx ON farms (aaa_farmer_user_id);`)
-	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_fpo_id_idx ON farms (aaa_org_id);`)
-	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_created_at_idx ON farms (created_at);`)
+	// Create regular indexes (only create farm indexes if PostGIS is available)
+	if postgisAvailable {
+		gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_farmer_id_idx ON farms (aaa_farmer_user_id);`)
+		gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_fpo_id_idx ON farms (aaa_org_id);`)
+		gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_created_at_idx ON farms (created_at);`)
+	}
 
 	// Create indexes for farmer tables
 	gormDB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS farmers_aaa_user_org_idx ON farmers (aaa_user_id, aaa_org_id);`)

@@ -18,7 +18,15 @@ import (
 // @Router /admin/seed [post]
 func SeedRolesAndPermissions(service services.AAAService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// TODO: Implement the actual service call
+		err := service.SeedRolesAndPermissions(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to seed roles and permissions",
+				"details": err.Error(),
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Roles and permissions seeded successfully",
 		})
@@ -50,7 +58,24 @@ func CheckPermission(service services.AAAService) gin.HandlerFunc {
 			return
 		}
 
-		// TODO: Implement the actual service call
+		// Convert to map for service call
+		permissionReq := map[string]interface{}{
+			"subject":  req.Subject,
+			"resource": req.Resource,
+			"action":   req.Action,
+			"object":   req.Object,
+			"org_id":   req.OrgID,
+		}
+
+		allowed, err := service.CheckPermission(c.Request.Context(), permissionReq)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to check permission",
+				"details": err.Error(),
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Permission check completed",
 			"data": gin.H{
@@ -59,7 +84,7 @@ func CheckPermission(service services.AAAService) gin.HandlerFunc {
 				"action":   req.Action,
 				"object":   req.Object,
 				"org_id":   req.OrgID,
-				"allowed":  true, // Placeholder
+				"allowed":  allowed,
 			},
 		})
 	}
