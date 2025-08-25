@@ -33,11 +33,11 @@ func NewFPOHandler(fpoService services.FPOService, logger interfaces.Logger) *FP
 // @Accept json
 // @Produce json
 // @Param request body requests.CreateFPORequest true "Create FPO Request"
-// @Success 201 {object} responses.CreateFPOResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 201 {object} responses.SwaggerCreateFPOResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /fpo/create [post]
 func (h *FPOHandler) CreateFPO(c *gin.Context) {
 	h.logger.Info("Creating FPO organization")
@@ -45,9 +45,7 @@ func (h *FPOHandler) CreateFPO(c *gin.Context) {
 	var req requests.CreateFPORequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.logger.Error("Invalid request body for CreateFPO", zap.Error(err))
-		apiError := responses.NewValidationError("Invalid request body", err.Error())
-		errorResp := responses.NewErrorResponse("Invalid request body", apiError)
-		c.JSON(http.StatusBadRequest, errorResp)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -76,26 +74,7 @@ func (h *FPOHandler) CreateFPO(c *gin.Context) {
 			zap.Error(err),
 		)
 
-		// Map service errors to HTTP status codes
-		var apiError responses.ErrorInterface
-		var statusCode int
-
-		if err.Error() == "FPO name is required" ||
-			err.Error() == "FPO registration number is required" ||
-			err.Error() == "CEO user details are required" ||
-			err.Error() == "CEO phone number is required" {
-			statusCode = http.StatusBadRequest
-			apiError = responses.NewValidationError("Failed to create FPO", err.Error())
-		} else if err.Error() == "failed to create CEO user: user already exists" {
-			statusCode = http.StatusConflict
-			apiError = responses.NewConflictError("Failed to create FPO", err.Error())
-		} else {
-			statusCode = http.StatusInternalServerError
-			apiError = responses.NewInternalServerError("Failed to create FPO", err.Error())
-		}
-
-		errorResp := responses.NewErrorResponse("Failed to create FPO", apiError)
-		c.JSON(statusCode, errorResp)
+		handleServiceError(c, err)
 		return
 	}
 
@@ -105,9 +84,7 @@ func (h *FPOHandler) CreateFPO(c *gin.Context) {
 		h.logger.Error("Invalid service response type for CreateFPO",
 			zap.String("request_id", req.RequestID),
 		)
-		apiError := responses.NewInternalServerError("Internal server error", "Invalid response type")
-		errorResp := responses.NewErrorResponse("Internal server error", apiError)
-		c.JSON(http.StatusInternalServerError, errorResp)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
@@ -133,12 +110,12 @@ func (h *FPOHandler) CreateFPO(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body requests.RegisterFPORefRequest true "Register FPO Reference Request"
-// @Success 201 {object} responses.FPORefResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 409 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 201 {object} responses.SwaggerFPORefResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 409 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /fpo/register [post]
 func (h *FPOHandler) RegisterFPORef(c *gin.Context) {
 	h.logger.Info("Registering FPO reference")
@@ -146,9 +123,7 @@ func (h *FPOHandler) RegisterFPORef(c *gin.Context) {
 	var req requests.RegisterFPORefRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.logger.Error("Invalid request body for RegisterFPORef", zap.Error(err))
-		apiError := responses.NewValidationError("Invalid request body", err.Error())
-		errorResp := responses.NewErrorResponse("Invalid request body", apiError)
-		c.JSON(http.StatusBadRequest, errorResp)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -176,27 +151,7 @@ func (h *FPOHandler) RegisterFPORef(c *gin.Context) {
 			zap.Error(err),
 		)
 
-		// Map service errors to HTTP status codes
-		var apiError responses.ErrorInterface
-		var statusCode int
-
-		if err.Error() == "AAA organization ID is required" ||
-			err.Error() == "FPO name is required" {
-			statusCode = http.StatusBadRequest
-			apiError = responses.NewValidationError("Failed to register FPO reference", err.Error())
-		} else if err.Error() == "FPO reference already exists for organization ID: "+req.AAAOrgID {
-			statusCode = http.StatusConflict
-			apiError = responses.NewConflictError("Failed to register FPO reference", err.Error())
-		} else if err.Error() == "failed to verify organization in AAA: resource not found" {
-			statusCode = http.StatusNotFound
-			apiError = responses.NewNotFoundError("Failed to register FPO reference", err.Error())
-		} else {
-			statusCode = http.StatusInternalServerError
-			apiError = responses.NewInternalServerError("Failed to register FPO reference", err.Error())
-		}
-
-		errorResp := responses.NewErrorResponse("Failed to register FPO reference", apiError)
-		c.JSON(statusCode, errorResp)
+		handleServiceError(c, err)
 		return
 	}
 
@@ -206,9 +161,7 @@ func (h *FPOHandler) RegisterFPORef(c *gin.Context) {
 		h.logger.Error("Invalid service response type for RegisterFPORef",
 			zap.String("request_id", req.RequestID),
 		)
-		apiError := responses.NewInternalServerError("Internal server error", "Invalid response type")
-		errorResp := responses.NewErrorResponse("Internal server error", apiError)
-		c.JSON(http.StatusInternalServerError, errorResp)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
@@ -232,12 +185,12 @@ func (h *FPOHandler) RegisterFPORef(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param aaa_org_id path string true "AAA Organization ID"
-// @Success 200 {object} responses.FPORefResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerFPORefResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /fpo/reference/{aaa_org_id} [get]
 func (h *FPOHandler) GetFPORef(c *gin.Context) {
 	aaaOrgID := c.Param("aaa_org_id")
@@ -252,9 +205,7 @@ func (h *FPOHandler) GetFPORef(c *gin.Context) {
 		h.logger.Error("Missing AAA organization ID parameter",
 			zap.String("request_id", requestID),
 		)
-		apiError := responses.NewValidationError("AAA organization ID is required", "aaa_org_id parameter is required")
-		errorResp := responses.NewErrorResponse("AAA organization ID is required", apiError)
-		c.JSON(http.StatusBadRequest, errorResp)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "AAA organization ID is required"})
 		return
 	}
 
@@ -267,23 +218,7 @@ func (h *FPOHandler) GetFPORef(c *gin.Context) {
 			zap.Error(err),
 		)
 
-		// Map service errors to HTTP status codes
-		var apiError responses.ErrorInterface
-		var statusCode int
-
-		if err.Error() == "organization ID is required" {
-			statusCode = http.StatusBadRequest
-			apiError = responses.NewValidationError("Failed to get FPO reference", err.Error())
-		} else if err.Error() == "FPO reference not found for organization ID: "+aaaOrgID {
-			statusCode = http.StatusNotFound
-			apiError = responses.NewNotFoundError("Failed to get FPO reference", err.Error())
-		} else {
-			statusCode = http.StatusInternalServerError
-			apiError = responses.NewInternalServerError("Failed to get FPO reference", err.Error())
-		}
-
-		errorResp := responses.NewErrorResponse("Failed to get FPO reference", apiError)
-		c.JSON(statusCode, errorResp)
+		handleServiceError(c, err)
 		return
 	}
 
@@ -293,9 +228,7 @@ func (h *FPOHandler) GetFPORef(c *gin.Context) {
 		h.logger.Error("Invalid service response type for GetFPORef",
 			zap.String("request_id", requestID),
 		)
-		apiError := responses.NewInternalServerError("Internal server error", "Invalid response type")
-		errorResp := responses.NewErrorResponse("Internal server error", apiError)
-		c.JSON(http.StatusInternalServerError, errorResp)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 

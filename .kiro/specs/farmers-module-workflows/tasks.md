@@ -63,7 +63,7 @@
   - Create linkage management HTTP handlers and write comprehensive tests
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8_
 
-- [ ] 8. Farm Management Service with Geospatial Operations
+- [x] 8. Farm Management Service with Geospatial Operations
 
   - Complete CreateFarm service implementation with WKT validation and PostGIS integration
   - Implement UpdateFarm and DeleteFarm services with proper authorization
@@ -72,7 +72,7 @@
   - Complete farm management HTTP handlers and write geospatial tests
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9_
 
-- [ ] 9. Crop Cycle Lifecycle Management Service
+- [x] 9. Crop Cycle Lifecycle Management Service
 
   - Complete StartCycle service implementation with farm validation and cycle creation
   - Implement UpdateCycle service for non-terminal cycle modifications
@@ -90,7 +90,7 @@
   - Complete activity management HTTP handlers and write activity lifecycle tests
   - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
 
-- [ ] 11. Data Quality and Validation Services
+- [-] 11. Data Quality and Validation Services
 
   - Implement ValidateGeometry service with PostGIS validation and SRID checks
   - Create ReconcileAAALinks service for healing broken AAA references

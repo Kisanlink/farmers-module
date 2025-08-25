@@ -1,6 +1,8 @@
 package responses
 
 import (
+	"time"
+
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
@@ -23,7 +25,17 @@ type FarmOverlapResponse struct {
 }
 
 // FarmData represents farm data in responses
-// Note: FarmData is already defined in farmer_responses.go as farm.Farm
+type FarmData struct {
+	ID              string            `json:"id"`
+	AAAFarmerUserID string            `json:"aaa_farmer_user_id"`
+	AAAOrgID        string            `json:"aaa_org_id"`
+	Name            string            `json:"name"`
+	Geometry        string            `json:"geometry"`
+	AreaHa          float64           `json:"area_ha"`
+	Metadata        map[string]string `json:"metadata"`
+	CreatedAt       time.Time         `json:"created_at"`
+	UpdatedAt       time.Time         `json:"updated_at"`
+}
 
 // FarmOverlapData represents farm overlap check result
 type FarmOverlapData struct {

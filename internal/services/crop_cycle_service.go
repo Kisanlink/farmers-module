@@ -2,8 +2,12 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	cropCycleEntity "github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
+	"github.com/Kisanlink/farmers-module/internal/entities/requests"
+	"github.com/Kisanlink/farmers-module/internal/entities/responses"
+	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
@@ -23,42 +27,310 @@ func NewCropCycleService(cropCycleRepo *base.BaseFilterableRepository[*cropCycle
 
 // StartCycle implements W10: Start crop cycle
 func (s *CropCycleServiceImpl) StartCycle(ctx context.Context, req interface{}) (interface{}, error) {
-	// TODO: Implement AAA permission check
-	return &cropCycleEntity.CropCycle{
-		// FarmID:       req.FarmID,
-		// Season:       req.Season,
-		// Status:       "PLANNED",
-		// StartDate:    req.StartDate,
-		// PlannedCrops: req.PlannedCrops,
-	}, nil
+	startReq, ok := req.(*requests.StartCycleRequest)
+	if !ok {
+		return nil, common.ErrInvalidInput
+	}
+
+	// Check permission for cycle.start
+	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
+		"subject":  startReq.UserID,
+		"resource": "cycle",
+		"action":   "start",
+		"object":   startReq.FarmID,
+		"org_id":   startReq.OrgID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to check permission: %w", err)
+	}
+	if !hasPermission {
+		return nil, common.ErrForbidden
+	}
+
+	// Validate farm exists and user has access
+	// This would typically involve checking the farm service
+	// For now, we'll assume the farm validation is done by the permission check
+
+	// Create crop cycle entity
+	cycle := &cropCycleEntity.CropCycle{
+		FarmID:       startReq.FarmID,
+		FarmerID:     startReq.UserID,
+		Season:       startReq.Season,
+		Status:       "PLANNED",
+		StartDate:    &startReq.StartDate,
+		PlannedCrops: startReq.PlannedCrops,
+	}
+
+	// Validate the cycle
+	if err := cycle.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Create the cycle in database
+	if err := s.cropCycleRepo.Create(ctx, cycle); err != nil {
+		return nil, fmt.Errorf("failed to create crop cycle: %w", err)
+	}
+
+	// Convert to response data
+	cycleData := &responses.CropCycleData{
+		ID:           cycle.ID,
+		FarmID:       cycle.FarmID,
+		FarmerID:     cycle.FarmerID,
+		Season:       cycle.Season,
+		Status:       cycle.Status,
+		StartDate:    cycle.StartDate,
+		EndDate:      cycle.EndDate,
+		PlannedCrops: cycle.PlannedCrops,
+		Outcome:      cycle.Outcome,
+		CreatedAt:    cycle.CreatedAt,
+		UpdatedAt:    cycle.UpdatedAt,
+	}
+
+	return responses.NewCropCycleResponse(cycleData, "Crop cycle started successfully"), nil
 }
 
 // UpdateCycle implements W11: Update crop cycle
 func (s *CropCycleServiceImpl) UpdateCycle(ctx context.Context, req interface{}) (interface{}, error) {
-	// TODO: Implement AAA permission check
-	return &cropCycleEntity.CropCycle{
-		// ID: req.CycleID,
-	}, nil
+	updateReq, ok := req.(*requests.UpdateCycleRequest)
+	if !ok {
+		return nil, common.ErrInvalidInput
+	}
+
+	// Check permission for cycle.update first
+	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
+		"subject":  updateReq.UserID,
+		"resource": "cycle",
+		"action":   "update",
+		"object":   updateReq.ID,
+		"org_id":   updateReq.OrgID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to check permission: %w", err)
+	}
+	if !hasPermission {
+		return nil, common.ErrForbidden
+	}
+
+	// Get existing cycle
+	cycle := &cropCycleEntity.CropCycle{}
+	_, err = s.cropCycleRepo.GetByID(ctx, updateReq.ID, cycle)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get crop cycle: %w", err)
+	}
+
+	// Check if cycle is in terminal state
+	if cycle.Status == "COMPLETED" || cycle.Status == "CANCELLED" {
+		return nil, fmt.Errorf("cannot update cycle in terminal state: %s", cycle.Status)
+	}
+
+	// Update fields if provided
+	if updateReq.Season != nil {
+		cycle.Season = *updateReq.Season
+	}
+	if updateReq.StartDate != nil {
+		cycle.StartDate = updateReq.StartDate
+	}
+	if updateReq.PlannedCrops != nil {
+		cycle.PlannedCrops = updateReq.PlannedCrops
+	}
+
+	// Validate the updated cycle
+	if err := cycle.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Update the cycle in database
+	if err := s.cropCycleRepo.Update(ctx, cycle); err != nil {
+		return nil, fmt.Errorf("failed to update crop cycle: %w", err)
+	}
+
+	// Convert to response data
+	cycleData := &responses.CropCycleData{
+		ID:           cycle.ID,
+		FarmID:       cycle.FarmID,
+		FarmerID:     cycle.FarmerID,
+		Season:       cycle.Season,
+		Status:       cycle.Status,
+		StartDate:    cycle.StartDate,
+		EndDate:      cycle.EndDate,
+		PlannedCrops: cycle.PlannedCrops,
+		Outcome:      cycle.Outcome,
+		CreatedAt:    cycle.CreatedAt,
+		UpdatedAt:    cycle.UpdatedAt,
+	}
+
+	return responses.NewCropCycleResponse(cycleData, "Crop cycle updated successfully"), nil
 }
 
 // EndCycle implements W12: End crop cycle
 func (s *CropCycleServiceImpl) EndCycle(ctx context.Context, req interface{}) (interface{}, error) {
-	// TODO: Implement AAA permission check
-	return &cropCycleEntity.CropCycle{
-		// ID: req.CycleID,
-	}, nil
+	endReq, ok := req.(*requests.EndCycleRequest)
+	if !ok {
+		return nil, common.ErrInvalidInput
+	}
+
+	// Check permission for cycle.end first
+	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
+		"subject":  endReq.UserID,
+		"resource": "cycle",
+		"action":   "end",
+		"object":   endReq.ID,
+		"org_id":   endReq.OrgID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to check permission: %w", err)
+	}
+	if !hasPermission {
+		return nil, common.ErrForbidden
+	}
+
+	// Get existing cycle
+	cycle := &cropCycleEntity.CropCycle{}
+	_, err = s.cropCycleRepo.GetByID(ctx, endReq.ID, cycle)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get crop cycle: %w", err)
+	}
+
+	// Check if cycle is already in terminal state
+	if cycle.Status == "COMPLETED" || cycle.Status == "CANCELLED" {
+		return nil, fmt.Errorf("cycle is already in terminal state: %s", cycle.Status)
+	}
+
+	// Update cycle with end details
+	cycle.Status = endReq.Status
+	cycle.EndDate = &endReq.EndDate
+	if endReq.Outcome != nil {
+		cycle.Outcome = endReq.Outcome
+	}
+
+	// Update the cycle in database
+	if err := s.cropCycleRepo.Update(ctx, cycle); err != nil {
+		return nil, fmt.Errorf("failed to end crop cycle: %w", err)
+	}
+
+	// Convert to response data
+	cycleData := &responses.CropCycleData{
+		ID:           cycle.ID,
+		FarmID:       cycle.FarmID,
+		FarmerID:     cycle.FarmerID,
+		Season:       cycle.Season,
+		Status:       cycle.Status,
+		StartDate:    cycle.StartDate,
+		EndDate:      cycle.EndDate,
+		PlannedCrops: cycle.PlannedCrops,
+		Outcome:      cycle.Outcome,
+		CreatedAt:    cycle.CreatedAt,
+		UpdatedAt:    cycle.UpdatedAt,
+	}
+
+	return responses.NewCropCycleResponse(cycleData, "Crop cycle ended successfully"), nil
 }
 
 // ListCycles implements W13: List crop cycles
 func (s *CropCycleServiceImpl) ListCycles(ctx context.Context, req interface{}) (interface{}, error) {
-	// TODO: Implement AAA permission check
-	return []*cropCycleEntity.CropCycle{}, nil
+	listReq, ok := req.(*requests.ListCyclesRequest)
+	if !ok {
+		return nil, common.ErrInvalidInput
+	}
+
+	// Check permission for cycle.list
+	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
+		"subject":  listReq.UserID,
+		"resource": "cycle",
+		"action":   "list",
+		"org_id":   listReq.OrgID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to check permission: %w", err)
+	}
+	if !hasPermission {
+		return nil, common.ErrForbidden
+	}
+
+	// Build filters
+	filters := make(map[string]interface{})
+	if listReq.FarmID != "" {
+		filters["farm_id"] = listReq.FarmID
+	}
+	if listReq.FarmerID != "" {
+		filters["farmer_id"] = listReq.FarmerID
+	}
+	if listReq.Season != "" {
+		filters["season"] = listReq.Season
+	}
+	if listReq.Status != "" {
+		filters["status"] = listReq.Status
+	}
+
+	// Build filter for database query
+	filterBuilder := base.NewFilterBuilder()
+
+	// Add filter conditions
+	for key, value := range filters {
+		filterBuilder.Where(key, base.OpEqual, value)
+	}
+
+	filter := filterBuilder.
+		Limit(listReq.PageSize, (listReq.Page-1)*listReq.PageSize).
+		Build()
+
+	// Get cycles from database
+	cycles, err := s.cropCycleRepo.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list crop cycles: %w", err)
+	}
+
+	// Get total count for pagination
+	totalCount, err := s.cropCycleRepo.Count(ctx, filter, &cropCycleEntity.CropCycle{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to count crop cycles: %w", err)
+	}
+
+	// Convert to response data
+	var cycleDataList []*responses.CropCycleData
+	for _, cycle := range cycles {
+		cycleData := &responses.CropCycleData{
+			ID:           cycle.ID,
+			FarmID:       cycle.FarmID,
+			FarmerID:     cycle.FarmerID,
+			Season:       cycle.Season,
+			Status:       cycle.Status,
+			StartDate:    cycle.StartDate,
+			EndDate:      cycle.EndDate,
+			PlannedCrops: cycle.PlannedCrops,
+			Outcome:      cycle.Outcome,
+			CreatedAt:    cycle.CreatedAt,
+			UpdatedAt:    cycle.UpdatedAt,
+		}
+		cycleDataList = append(cycleDataList, cycleData)
+	}
+
+	return responses.NewCropCycleListResponse(cycleDataList, listReq.Page, listReq.PageSize, totalCount), nil
 }
 
 // GetCropCycle gets crop cycle by ID
 func (s *CropCycleServiceImpl) GetCropCycle(ctx context.Context, cycleID string) (interface{}, error) {
-	// TODO: Implement AAA permission check
-	return &cropCycleEntity.CropCycle{
-		// ID: cycleID,
-	}, nil
+	// Get cycle from database
+	cycle := &cropCycleEntity.CropCycle{}
+	_, err := s.cropCycleRepo.GetByID(ctx, cycleID, cycle)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get crop cycle: %w", err)
+	}
+
+	// Convert to response data
+	cycleData := &responses.CropCycleData{
+		ID:           cycle.ID,
+		FarmID:       cycle.FarmID,
+		FarmerID:     cycle.FarmerID,
+		Season:       cycle.Season,
+		Status:       cycle.Status,
+		StartDate:    cycle.StartDate,
+		EndDate:      cycle.EndDate,
+		PlannedCrops: cycle.PlannedCrops,
+		Outcome:      cycle.Outcome,
+		CreatedAt:    cycle.CreatedAt,
+		UpdatedAt:    cycle.UpdatedAt,
+	}
+
+	return responses.NewCropCycleResponse(cycleData, "Crop cycle retrieved successfully"), nil
 }

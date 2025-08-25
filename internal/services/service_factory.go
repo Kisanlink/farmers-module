@@ -1,11 +1,14 @@
 package services
 
 import (
+	"context"
+
 	"github.com/Kisanlink/farmers-module/internal/clients/aaa"
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/farmers-module/internal/repo"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
+	"gorm.io/gorm"
 )
 
 // ServiceFactory provides access to all domain services
@@ -49,11 +52,16 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo, aaaService)
 
 	// Initialize farm management services
-	farmService := NewFarmService(repoFactory.FarmRepo, aaaService)
+	// Get GORM DB for farm service
+	var gormDB *gorm.DB
+	if db, err := postgresManager.GetDB(context.Background(), false); err == nil {
+		gormDB = db
+	}
+	farmService := NewFarmService(repoFactory.FarmRepo, aaaService, gormDB)
 
 	// Initialize crop management services
 	cropCycleService := NewCropCycleService(repoFactory.CropCycleRepo, aaaService)
-	farmActivityService := NewFarmActivityService(repoFactory.FarmActivityRepo, aaaService)
+	farmActivityService := NewFarmActivityService(repoFactory.FarmActivityRepo, repoFactory.CropCycleRepo, aaaService)
 
 	return &ServiceFactory{
 		FarmerService:        farmerService,

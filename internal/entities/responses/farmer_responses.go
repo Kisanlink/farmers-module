@@ -1,7 +1,6 @@
 package responses
 
 import (
-	"github.com/Kisanlink/farmers-module/internal/entities/farm"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
@@ -75,8 +74,7 @@ type FarmerLinkData struct {
 	UpdatedAt        string  `json:"updated_at,omitempty"`
 }
 
-// FarmData represents farm data in responses
-type FarmData = farm.Farm
+// FarmData is defined in farm_responses.go
 
 // NewFarmerResponse creates a new farmer response
 func NewFarmerResponse(farmer *FarmerProfileData, message string) FarmerResponse {

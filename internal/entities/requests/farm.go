@@ -62,6 +62,14 @@ type CheckFarmOverlapRequest struct {
 	FarmID   string `json:"farm_id,omitempty"`            // Exclude this farm from overlap check
 }
 
+// BoundingBox represents a geographic bounding box
+type BoundingBox struct {
+	MinLat float64 `json:"min_lat" validate:"required,min=-90,max=90"`
+	MaxLat float64 `json:"max_lat" validate:"required,min=-90,max=90"`
+	MinLon float64 `json:"min_lon" validate:"required,min=-180,max=180"`
+	MaxLon float64 `json:"max_lon" validate:"required,min=-180,max=180"`
+}
+
 // GeometryData represents geometric data for farms
 type GeometryData struct {
 	WKT string `json:"wkt,omitempty"` // Well-Known Text format

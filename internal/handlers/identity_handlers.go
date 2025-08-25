@@ -10,6 +10,17 @@ import (
 )
 
 // LinkFarmerToFPO handles W1: Link farmer to FPO
+// @Summary Link farmer to FPO
+// @Description Link a farmer to a Farmer Producer Organization with AAA validation
+// @Tags identity
+// @Accept json
+// @Produce json
+// @Param linkage body requests.LinkFarmerRequest true "Farmer linkage data"
+// @Success 200 {object} responses.SwaggerFarmerLinkageResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Router /identity/link-farmer [post]
 func LinkFarmerToFPO(service services.FarmerLinkageService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req requests.LinkFarmerRequest
@@ -60,6 +71,17 @@ func LinkFarmerToFPO(service services.FarmerLinkageService) gin.HandlerFunc {
 }
 
 // UnlinkFarmerFromFPO handles W2: Unlink farmer from FPO
+// @Summary Unlink farmer from FPO
+// @Description Unlink a farmer from a Farmer Producer Organization with soft delete
+// @Tags identity
+// @Accept json
+// @Produce json
+// @Param linkage body requests.UnlinkFarmerRequest true "Farmer unlinkage data"
+// @Success 200 {object} responses.SwaggerFarmerLinkageResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Router /identity/unlink-farmer [post]
 func UnlinkFarmerFromFPO(service services.FarmerLinkageService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req requests.UnlinkFarmerRequest
@@ -110,6 +132,18 @@ func UnlinkFarmerFromFPO(service services.FarmerLinkageService) gin.HandlerFunc 
 }
 
 // GetFarmerLinkage handles getting farmer linkage status
+// @Summary Get farmer linkage status
+// @Description Retrieve the linkage status between a farmer and FPO
+// @Tags identity
+// @Accept json
+// @Produce json
+// @Param farmer_id path string true "Farmer ID"
+// @Param org_id path string true "Organization ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Router /identity/linkage/{farmer_id}/{org_id} [get]
 func GetFarmerLinkage(service services.FarmerLinkageService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		farmerID := c.Param("farmer_id")

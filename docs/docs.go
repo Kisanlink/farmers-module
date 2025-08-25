@@ -753,6 +753,190 @@ const docTemplate = `{
                 }
             }
         },
+        "/fpo/create": {
+            "post": {
+                "description": "Creates a new FPO organization with CEO user setup and user groups",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Management"
+                ],
+                "summary": "Create FPO Organization",
+                "parameters": [
+                    {
+                        "description": "Create FPO Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.CreateFPORequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerCreateFPOResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/fpo/reference/{aaa_org_id}": {
+            "get": {
+                "description": "Retrieves FPO reference information by AAA organization ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Management"
+                ],
+                "summary": "Get FPO Reference",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "AAA Organization ID",
+                        "name": "aaa_org_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerFPORefResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/fpo/register": {
+            "post": {
+                "description": "Registers an existing FPO organization for local reference management",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Management"
+                ],
+                "summary": "Register FPO Reference",
+                "parameters": [
+                    {
+                        "description": "Register FPO Reference Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.RegisterFPORefRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerFPORefResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/identity/farmers": {
             "get": {
                 "description": "List farmers with filtering and pagination",
@@ -1042,6 +1226,171 @@ const docTemplate = `{
                 }
             }
         },
+        "/identity/link-farmer": {
+            "post": {
+                "description": "Link a farmer to a Farmer Producer Organization with AAA validation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "summary": "Link farmer to FPO",
+                "parameters": [
+                    {
+                        "description": "Farmer linkage data",
+                        "name": "linkage",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.LinkFarmerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerFarmerLinkageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/identity/linkage/{farmer_id}/{org_id}": {
+            "get": {
+                "description": "Retrieve the linkage status between a farmer and FPO",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "summary": "Get farmer linkage status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Farmer ID",
+                        "name": "farmer_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "org_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/identity/unlink-farmer": {
+            "post": {
+                "description": "Unlink a farmer from a Farmer Producer Organization with soft delete",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "summary": "Unlink farmer from FPO",
+                "parameters": [
+                    {
+                        "description": "Farmer unlinkage data",
+                        "name": "linkage",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UnlinkFarmerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerFarmerLinkageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/kisansathi/assign": {
             "post": {
                 "description": "Assign a KisanSathi user to a specific farmer",
@@ -1062,7 +1411,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/requests.AssignKisanSathiRequest"
                         }
                     }
                 ],
@@ -1070,21 +1419,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/responses.SwaggerKisanSathiAssignmentResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/kisansathi/assignment/{farmer_id}": {
+        "/kisansathi/assignment/{farmer_id}/{org_id}": {
             "get": {
                 "description": "Retrieve the KisanSathi assignment for a specific farmer",
                 "consumes": [
@@ -1104,6 +1463,13 @@ const docTemplate = `{
                         "name": "farmer_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "org_id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1120,12 +1486,78 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": true
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/kisansathi/create-user": {
+            "post": {
+                "description": "Create a new KisanSathi user with role assignment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "kisansathi"
+                ],
+                "summary": "Create KisanSathi user",
+                "parameters": [
+                    {
+                        "description": "KisanSathi user data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.CreateKisanSathiUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerKisanSathiUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
                     }
                 }
             }
         },
         "/kisansathi/reassign": {
-            "post": {
+            "put": {
                 "description": "Reassign a KisanSathi to a different farmer or remove the assignment",
                 "consumes": [
                     "application/json"
@@ -1144,7 +1576,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/requests.ReassignKisanSathiRequest"
                         }
                     }
                 ],
@@ -1152,16 +1584,655 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/responses.SwaggerKisanSathiAssignmentResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "requests.AssignKisanSathiRequest": {
+            "type": "object",
+            "required": [
+                "aaa_org_id",
+                "aaa_user_id",
+                "kisan_sathi_user_id"
+            ],
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
+                "aaa_user_id": {
+                    "type": "string"
+                },
+                "kisan_sathi_user_id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.CEOUserData": {
+            "type": "object",
+            "required": [
+                "first_name",
+                "last_name",
+                "password",
+                "phone_number"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "phone_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.CreateFPORequest": {
+            "type": "object",
+            "required": [
+                "ceo_user",
+                "name",
+                "registration_no"
+            ],
+            "properties": {
+                "business_config": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "ceo_user": {
+                    "$ref": "#/definitions/requests.CEOUserData"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "registration_no": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.CreateKisanSathiUserRequest": {
+            "type": "object",
+            "required": [
+                "full_name",
+                "password",
+                "phone_number",
+                "username"
+            ],
+            "properties": {
+                "country_code": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.LinkFarmerRequest": {
+            "type": "object",
+            "required": [
+                "aaa_org_id",
+                "aaa_user_id"
+            ],
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
+                "aaa_user_id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.ReassignKisanSathiRequest": {
+            "type": "object",
+            "required": [
+                "aaa_org_id",
+                "aaa_user_id"
+            ],
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
+                "aaa_user_id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "new_kisan_sathi_user_id": {
+                    "description": "nil means remove",
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.RegisterFPORefRequest": {
+            "type": "object",
+            "required": [
+                "aaa_org_id",
+                "name"
+            ],
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
+                "business_config": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "registration_no": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.UnlinkFarmerRequest": {
+            "type": "object",
+            "required": [
+                "aaa_org_id",
+                "aaa_user_id"
+            ],
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
+                "aaa_user_id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.CreateFPOData": {
+            "type": "object",
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
+                "ceo_user_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "fpo_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user_groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.UserGroupData"
+                    }
+                }
+            }
+        },
+        "responses.FPORefData": {
+            "type": "object",
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
+                "business_config": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "registration_no": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.FarmerLinkageData": {
+            "type": "object",
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
+                "aaa_user_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kisan_sathi_user_id": {
+                    "type": "string"
+                },
+                "linked_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "unlinked_at": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.KisanSathiAssignmentData": {
+            "type": "object",
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
+                "aaa_user_id": {
+                    "type": "string"
+                },
+                "assigned_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kisan_sathi_user_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "unassigned_at": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.KisanSathiUserData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.SwaggerCreateFPOResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.CreateFPOData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "responses.SwaggerErrorResponse": {
+            "type": "object",
+            "properties": {
+                "correlation_id": {
+                    "type": "string"
+                },
+                "details": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "error": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.SwaggerFPORefResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.FPORefData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "responses.SwaggerFarmerLinkageResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.FarmerLinkageData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "responses.SwaggerKisanSathiAssignmentResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.KisanSathiAssignmentData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "responses.SwaggerKisanSathiUserResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.KisanSathiUserData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "responses.UserGroupData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }

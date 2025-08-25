@@ -1,4 +1,422 @@
 basePath: /api/v1
+definitions:
+  requests.AssignKisanSathiRequest:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      kisan_sathi_user_id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_id
+    - kisan_sathi_user_id
+    type: object
+  requests.CEOUserData:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      phone_number:
+        type: string
+    required:
+    - first_name
+    - last_name
+    - password
+    - phone_number
+    type: object
+  requests.CreateFPORequest:
+    properties:
+      business_config:
+        additionalProperties:
+          type: string
+        type: object
+      ceo_user:
+        $ref: '#/definitions/requests.CEOUserData'
+      description:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      org_id:
+        type: string
+      registration_no:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - ceo_user
+    - name
+    - registration_no
+    type: object
+  requests.CreateKisanSathiUserRequest:
+    properties:
+      country_code:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      phone_number:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+      username:
+        type: string
+    required:
+    - full_name
+    - password
+    - phone_number
+    - username
+    type: object
+  requests.LinkFarmerRequest:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_id
+    type: object
+  requests.ReassignKisanSathiRequest:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      new_kisan_sathi_user_id:
+        description: nil means remove
+        type: string
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_id
+    type: object
+  requests.RegisterFPORefRequest:
+    properties:
+      aaa_org_id:
+        type: string
+      business_config:
+        additionalProperties:
+          type: string
+        type: object
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      org_id:
+        type: string
+      registration_no:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - aaa_org_id
+    - name
+    type: object
+  requests.UnlinkFarmerRequest:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_id
+    type: object
+  responses.CreateFPOData:
+    properties:
+      aaa_org_id:
+        type: string
+      ceo_user_id:
+        type: string
+      created_at:
+        type: string
+      fpo_id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      user_groups:
+        items:
+          $ref: '#/definitions/responses.UserGroupData'
+        type: array
+    type: object
+  responses.FPORefData:
+    properties:
+      aaa_org_id:
+        type: string
+      business_config:
+        additionalProperties:
+          type: string
+        type: object
+      created_at:
+        type: string
+      created_by:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      registration_no:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  responses.FarmerLinkageData:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      kisan_sathi_user_id:
+        type: string
+      linked_at:
+        type: string
+      status:
+        type: string
+      unlinked_at:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  responses.KisanSathiAssignmentData:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      assigned_at:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      kisan_sathi_user_id:
+        type: string
+      status:
+        type: string
+      unassigned_at:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  responses.KisanSathiUserData:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      phone_number:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+      username:
+        type: string
+    type: object
+  responses.SwaggerCreateFPOResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.CreateFPOData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  responses.SwaggerErrorResponse:
+    properties:
+      correlation_id:
+        type: string
+      details:
+        additionalProperties:
+          type: string
+        type: object
+      error:
+        type: string
+      message:
+        type: string
+      request_id:
+        type: string
+    type: object
+  responses.SwaggerFPORefResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.FPORefData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  responses.SwaggerFarmerLinkageResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.FarmerLinkageData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  responses.SwaggerKisanSathiAssignmentResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.KisanSathiAssignmentData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  responses.SwaggerKisanSathiUserResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.KisanSathiUserData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  responses.UserGroupData:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      group_id:
+        type: string
+      name:
+        type: string
+      org_id:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+    type: object
 host: localhost:8000
 info:
   contact: {}
@@ -505,6 +923,127 @@ paths:
       summary: Update an existing farm
       tags:
       - farms
+  /fpo/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new FPO organization with CEO user setup and user groups
+      parameters:
+      - description: Create FPO Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateFPORequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responses.SwaggerCreateFPOResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Create FPO Organization
+      tags:
+      - FPO Management
+  /fpo/reference/{aaa_org_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves FPO reference information by AAA organization ID
+      parameters:
+      - description: AAA Organization ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFPORefResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get FPO Reference
+      tags:
+      - FPO Management
+  /fpo/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers an existing FPO organization for local reference management
+      parameters:
+      - description: Register FPO Reference Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RegisterFPORefRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responses.SwaggerFPORefResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Register FPO Reference
+      tags:
+      - FPO Management
   /identity/farmers:
     get:
       consumes:
@@ -698,43 +1237,54 @@ paths:
       summary: Update farmer
       tags:
       - identity
-  /kisansathi/assign:
+  /identity/link-farmer:
     post:
       consumes:
       - application/json
-      description: Assign a KisanSathi user to a specific farmer
+      description: Link a farmer to a Farmer Producer Organization with AAA validation
       parameters:
-      - description: KisanSathi assignment data
+      - description: Farmer linkage data
         in: body
-        name: assignment
+        name: linkage
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/requests.LinkFarmerRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerFarmerLinkageResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
-      summary: Assign KisanSathi to farmer
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Link farmer to FPO
       tags:
-      - kisansathi
-  /kisansathi/assignment/{farmer_id}:
+      - identity
+  /identity/linkage/{farmer_id}/{org_id}:
     get:
       consumes:
       - application/json
-      description: Retrieve the KisanSathi assignment for a specific farmer
+      description: Retrieve the linkage status between a farmer and FPO
       parameters:
       - description: Farmer ID
         in: path
         name: farmer_id
+        required: true
+        type: string
+      - description: Organization ID
+        in: path
+        name: org_id
         required: true
         type: string
       produces:
@@ -750,21 +1300,103 @@ paths:
           schema:
             additionalProperties: true
             type: object
-      summary: Get KisanSathi assignment
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get farmer linkage status
       tags:
-      - kisansathi
-  /kisansathi/reassign:
+      - identity
+  /identity/unlink-farmer:
     post:
       consumes:
       - application/json
-      description: Reassign a KisanSathi to a different farmer or remove the assignment
+      description: Unlink a farmer from a Farmer Producer Organization with soft delete
       parameters:
-      - description: KisanSathi reassignment data
+      - description: Farmer unlinkage data
+        in: body
+        name: linkage
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UnlinkFarmerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmerLinkageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Unlink farmer from FPO
+      tags:
+      - identity
+  /kisansathi/assign:
+    post:
+      consumes:
+      - application/json
+      description: Assign a KisanSathi user to a specific farmer
+      parameters:
+      - description: KisanSathi assignment data
         in: body
         name: assignment
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/requests.AssignKisanSathiRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerKisanSathiAssignmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Assign KisanSathi to farmer
+      tags:
+      - kisansathi
+  /kisansathi/assignment/{farmer_id}/{org_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the KisanSathi assignment for a specific farmer
+      parameters:
+      - description: Farmer ID
+        in: path
+        name: farmer_id
+        required: true
+        type: string
+      - description: Organization ID
+        in: path
+        name: org_id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -778,6 +1410,84 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get KisanSathi assignment
+      tags:
+      - kisansathi
+  /kisansathi/create-user:
+    post:
+      consumes:
+      - application/json
+      description: Create a new KisanSathi user with role assignment
+      parameters:
+      - description: KisanSathi user data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateKisanSathiUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responses.SwaggerKisanSathiUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Create KisanSathi user
+      tags:
+      - kisansathi
+  /kisansathi/reassign:
+    put:
+      consumes:
+      - application/json
+      description: Reassign a KisanSathi to a different farmer or remove the assignment
+      parameters:
+      - description: KisanSathi reassignment data
+        in: body
+        name: assignment
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ReassignKisanSathiRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerKisanSathiAssignmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Reassign or remove KisanSathi
       tags:
       - kisansathi

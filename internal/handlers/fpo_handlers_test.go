@@ -197,10 +197,10 @@ func TestFPOHandler_CreateFPO_ValidationError(t *testing.T) {
 	// Assertions
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
-	var response responses.BaseResponse
+	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Equal(t, "Failed to create FPO", response.Message)
+	assert.Equal(t, "FPO name is required", response["error"])
 
 	// Verify mocks
 	mockService.AssertExpectations(t)
@@ -222,10 +222,10 @@ func TestFPOHandler_CreateFPO_InvalidJSON(t *testing.T) {
 	// Assertions
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
-	var response responses.BaseResponse
+	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Equal(t, "Invalid request body", response.Message)
+	assert.Equal(t, "Invalid request body", response["error"])
 }
 
 func TestFPOHandler_RegisterFPORef_Success(t *testing.T) {
@@ -298,10 +298,10 @@ func TestFPOHandler_RegisterFPORef_AlreadyExists(t *testing.T) {
 	// Assertions
 	assert.Equal(t, http.StatusConflict, w.Code)
 
-	var response responses.BaseResponse
+	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Equal(t, "Failed to register FPO reference", response.Message)
+	assert.Equal(t, "FPO reference already exists for organization ID: org123", response["error"])
 
 	// Verify mocks
 	mockService.AssertExpectations(t)
@@ -363,10 +363,10 @@ func TestFPOHandler_GetFPORef_NotFound(t *testing.T) {
 	// Assertions
 	assert.Equal(t, http.StatusNotFound, w.Code)
 
-	var response responses.BaseResponse
+	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Equal(t, "Failed to get FPO reference", response.Message)
+	assert.Equal(t, "FPO reference not found for organization ID: org123", response["error"])
 
 	// Verify mocks
 	mockService.AssertExpectations(t)
@@ -389,10 +389,10 @@ func TestFPOHandler_GetFPORef_MissingParameter(t *testing.T) {
 	// Assertions
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
-	var response responses.BaseResponse
+	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Equal(t, "AAA organization ID is required", response.Message)
+	assert.Equal(t, "AAA organization ID is required", response["error"])
 }
 
 func TestFPOHandler_CreateFPO_ServiceError(t *testing.T) {
@@ -423,10 +423,10 @@ func TestFPOHandler_CreateFPO_ServiceError(t *testing.T) {
 	// Assertions
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-	var response responses.BaseResponse
+	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Equal(t, "Failed to create FPO", response.Message)
+	assert.Equal(t, "failed to create organization: AAA service unavailable", response["error"])
 
 	// Verify mocks
 	mockService.AssertExpectations(t)
@@ -460,10 +460,10 @@ func TestFPOHandler_CreateFPO_UserExistsError(t *testing.T) {
 	// Assertions
 	assert.Equal(t, http.StatusConflict, w.Code)
 
-	var response responses.BaseResponse
+	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Equal(t, "Failed to create FPO", response.Message)
+	assert.Equal(t, "failed to create CEO user: user already exists", response["error"])
 
 	// Verify mocks
 	mockService.AssertExpectations(t)

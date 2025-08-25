@@ -5,7 +5,7 @@ go 1.24
 toolchain go1.24.4
 
 require (
-	github.com/Kisanlink/kisanlink-db v0.0.0-00010101000000-000000000000
+	github.com/Kisanlink/kisanlink-db v0.1.9
 	github.com/MarceloPetrucio/go-scalar-api-reference v0.0.0-20240521013641-ce5d2efe0e06
 	github.com/gin-contrib/cors v1.7.3
 	github.com/gin-gonic/gin v1.10.0
@@ -17,12 +17,10 @@ require (
 	go.uber.org/zap v1.24.0
 	google.golang.org/grpc v1.73.0
 	google.golang.org/protobuf v1.36.6
+	gorm.io/driver/postgres v1.6.0
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.30.0
 )
-
-// Replace with actual kisanlink-db version when available
-replace github.com/Kisanlink/kisanlink-db => ../kisanlink-db
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250613105001-9f2d3c737feb.1 // indirect
@@ -104,5 +102,4 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/driver/postgres v1.6.0 // indirect
 )

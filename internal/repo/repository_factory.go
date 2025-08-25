@@ -3,7 +3,6 @@ package repo
 import (
 	entities "github.com/Kisanlink/farmers-module/internal/entities"
 	cropCycleEntity "github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
-	farmEntity "github.com/Kisanlink/farmers-module/internal/entities/farm"
 	farmActivityEntity "github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
 	fpoEntity "github.com/Kisanlink/farmers-module/internal/entities/fpo"
 	"github.com/Kisanlink/farmers-module/internal/repo/crop_cycle"
@@ -20,7 +19,7 @@ type RepositoryFactory struct {
 	FarmerRepo        *base.BaseFilterableRepository[*entities.FarmerProfile]
 	FarmerLinkageRepo *base.BaseFilterableRepository[*entities.FarmerLink]
 	FPORefRepo        *base.BaseFilterableRepository[*fpoEntity.FPORef]
-	FarmRepo          *base.BaseFilterableRepository[*farmEntity.Farm]
+	FarmRepo          *farm.FarmRepository
 	CropCycleRepo     *base.BaseFilterableRepository[*cropCycleEntity.CropCycle]
 	FarmActivityRepo  *base.BaseFilterableRepository[*farmActivityEntity.FarmActivity]
 }

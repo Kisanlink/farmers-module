@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/entities/requests"
+	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/gin-gonic/gin"
 )
@@ -16,29 +18,44 @@ import (
 // @Tags crop-cycles
 // @Accept json
 // @Produce json
-// @Param cycle body object true "Crop cycle data"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
+// @Param cycle body requests.StartCycleRequest true "Crop cycle data"
+// @Success 201 {object} responses.CropCycleResponse
+// @Failure 400 {object} responses.BaseError
+// @Failure 401 {object} responses.BaseError
+// @Failure 403 {object} responses.BaseError
+// @Failure 500 {object} responses.BaseError
 // @Router /crops/cycles [post]
 func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req struct {
-			FarmID       string    `json:"farm_id" binding:"required"`
-			Season       string    `json:"season" binding:"required"`
-			StartDate    time.Time `json:"start_date" binding:"required"`
-			PlannedCrops string    `json:"planned_crops" binding:"required"`
-		}
+		var req requests.StartCycleRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, responses.NewValidationError("Invalid request data", err.Error()))
 			return
 		}
 
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Crop cycle started successfully",
-			"data":    req,
-		})
+		// Set user context from middleware
+		if userID, exists := c.Get("aaa_subject"); exists {
+			req.UserID = userID.(string)
+		}
+		if orgID, exists := c.Get("aaa_org"); exists {
+			req.OrgID = orgID.(string)
+		}
+
+		// Set request metadata
+		req.SetRequestID(c.GetString("request_id"))
+		req.SetRequestType("start_cycle")
+
+		// Call service
+		result, err := service.StartCycle(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response := result.(responses.CropCycleResponse)
+		response.SetRequestID(req.RequestID)
+		c.JSON(http.StatusCreated, response)
 	}
 }
 
@@ -49,31 +66,49 @@ func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param cycle_id path string true "Crop Cycle ID"
-// @Param cycle body object true "Crop cycle update data"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
+// @Param cycle body requests.UpdateCycleRequest true "Crop cycle update data"
+// @Success 200 {object} responses.CropCycleResponse
+// @Failure 400 {object} responses.BaseError
+// @Failure 401 {object} responses.BaseError
+// @Failure 403 {object} responses.BaseError
+// @Failure 404 {object} responses.BaseError
+// @Failure 500 {object} responses.BaseError
 // @Router /crops/cycles/{cycle_id} [put]
 func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cycleID := c.Param("cycle_id")
-		var req struct {
-			Season       *string    `json:"season,omitempty"`
-			StartDate    *time.Time `json:"start_date,omitempty"`
-			PlannedCrops *string    `json:"planned_crops,omitempty"`
-		}
+		var req requests.UpdateCycleRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, responses.NewValidationError("Invalid request data", err.Error()))
 			return
 		}
 
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Crop cycle updated successfully",
-			"data": gin.H{
-				"cycle_id": cycleID,
-			},
-		})
+		// Set cycle ID from path parameter
+		req.ID = cycleID
+
+		// Set user context from middleware
+		if userID, exists := c.Get("aaa_subject"); exists {
+			req.UserID = userID.(string)
+		}
+		if orgID, exists := c.Get("aaa_org"); exists {
+			req.OrgID = orgID.(string)
+		}
+
+		// Set request metadata
+		req.SetRequestID(c.GetString("request_id"))
+		req.SetRequestType("update_cycle")
+
+		// Call service
+		result, err := service.UpdateCycle(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response := result.(responses.CropCycleResponse)
+		response.SetRequestID(req.RequestID)
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -84,50 +119,104 @@ func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param cycle_id path string true "Crop Cycle ID"
-// @Param cycle body object true "Crop cycle end data"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
+// @Param cycle body requests.EndCycleRequest true "Crop cycle end data"
+// @Success 200 {object} responses.CropCycleResponse
+// @Failure 400 {object} responses.BaseError
+// @Failure 401 {object} responses.BaseError
+// @Failure 403 {object} responses.BaseError
+// @Failure 404 {object} responses.BaseError
+// @Failure 500 {object} responses.BaseError
 // @Router /crops/cycles/{cycle_id}/end [post]
 func EndCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cycleID := c.Param("cycle_id")
-		var req struct {
-			Status  string  `json:"status" binding:"required"`
-			Outcome *string `json:"outcome,omitempty"`
-		}
+		var req requests.EndCycleRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, responses.NewValidationError("Invalid request data", err.Error()))
 			return
 		}
 
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Crop cycle ended successfully",
-			"data": gin.H{
-				"cycle_id": cycleID,
-				"status":   req.Status,
-			},
-		})
+		// Set cycle ID from path parameter
+		req.ID = cycleID
+
+		// Set user context from middleware
+		if userID, exists := c.Get("aaa_subject"); exists {
+			req.UserID = userID.(string)
+		}
+		if orgID, exists := c.Get("aaa_org"); exists {
+			req.OrgID = orgID.(string)
+		}
+
+		// Set request metadata
+		req.SetRequestID(c.GetString("request_id"))
+		req.SetRequestType("end_cycle")
+
+		// Call service
+		result, err := service.EndCycle(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response := result.(responses.CropCycleResponse)
+		response.SetRequestID(req.RequestID)
+		c.JSON(http.StatusOK, response)
 	}
 }
 
 // ListCycles handles W13: List crop cycles
 // @Summary List crop cycles
-// @Description Retrieve a list of all crop cycles
+// @Description Retrieve a list of all crop cycles with filtering
 // @Tags crop-cycles
 // @Accept json
 // @Produce json
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(10)
+// @Param farm_id query string false "Filter by farm ID"
+// @Param farmer_id query string false "Filter by farmer ID"
+// @Param season query string false "Filter by season" Enums(RABI, KHARIF, ZAID)
+// @Param status query string false "Filter by status" Enums(PLANNED, ACTIVE, COMPLETED, CANCELLED)
+// @Success 200 {object} responses.CropCycleListResponse
+// @Failure 400 {object} responses.BaseError
+// @Failure 401 {object} responses.BaseError
+// @Failure 403 {object} responses.BaseError
+// @Failure 500 {object} responses.BaseError
 // @Router /crops/cycles [get]
 func ListCycles(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Crop cycles retrieved successfully",
-			"data":    []interface{}{},
-		})
+		var req requests.ListCyclesRequest
+
+		// Parse query parameters
+		req.Page = parseIntQuery(c, "page", 1)
+		req.PageSize = parseIntQuery(c, "page_size", 10)
+		req.FarmID = c.Query("farm_id")
+		req.FarmerID = c.Query("farmer_id")
+		req.Season = c.Query("season")
+		req.Status = c.Query("status")
+
+		// Set user context from middleware
+		if userID, exists := c.Get("aaa_subject"); exists {
+			req.UserID = userID.(string)
+		}
+		if orgID, exists := c.Get("aaa_org"); exists {
+			req.OrgID = orgID.(string)
+		}
+
+		// Set request metadata
+		req.SetRequestID(c.GetString("request_id"))
+		req.SetRequestType("list_cycles")
+
+		// Call service
+		result, err := service.ListCycles(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response := result.(responses.CropCycleListResponse)
+		response.SetRequestID(req.RequestID)
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -138,20 +227,32 @@ func ListCycles(service services.CropCycleService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param cycle_id path string true "Crop Cycle ID"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
+// @Success 200 {object} responses.CropCycleResponse
+// @Failure 400 {object} responses.BaseError
+// @Failure 401 {object} responses.BaseError
+// @Failure 403 {object} responses.BaseError
+// @Failure 404 {object} responses.BaseError
+// @Failure 500 {object} responses.BaseError
 // @Router /crops/cycles/{cycle_id} [get]
 func GetCropCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cycleID := c.Param("cycle_id")
 
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Crop cycle retrieved successfully",
-			"data": gin.H{
-				"cycle_id": cycleID,
-			},
-		})
+		if cycleID == "" {
+			c.JSON(http.StatusBadRequest, responses.NewValidationError("Cycle ID is required", "cycle_id parameter is missing"))
+			return
+		}
+
+		// Call service
+		result, err := service.GetCropCycle(c.Request.Context(), cycleID)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response := result.(responses.CropCycleResponse)
+		response.SetRequestID(c.GetString("request_id"))
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -294,7 +395,7 @@ func ListActivities(service services.FarmActivityService) gin.HandlerFunc {
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
 // @Router /crops/activities/{activity_id} [get]
-func GetFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
+func GetCropFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		activityID := c.Param("activity_id")
 
