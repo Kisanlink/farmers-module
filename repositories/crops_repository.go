@@ -36,14 +36,21 @@ func (r *CropRepository) CreateCrop(crop *models.Crop) error {
 			return fmt.Errorf("failed to create crop: %w", err)
 		}
 
-		// If stages are provided, create them.
+		// in repositories/crops_repository.go
+		// Make sure you have "log" and "fmt" imported
+
+		// in repositories/crops_repository.go
+
 		if len(crop.Stages) > 0 {
+			// We still need to assign the new CropID to each stage link.
 			for i := range crop.Stages {
 				crop.Stages[i].CropID = crop.Id
-				// The 'order' should be set in the service/handler before calling the repo
 			}
-			if err := tx.Create(&crop.Stages).Error; err != nil {
-				return fmt.Errorf("failed to create crop stages: %w", err)
+
+			// NEW APPROACH: Use GORM's Association Mode.
+			// This tells GORM to work with the "Stages" relationship of the crop model.
+			if err := tx.Model(&crop).Association("Stages").Append(&crop.Stages); err != nil {
+				return fmt.Errorf("failed to create crop stage associations: %w", err)
 			}
 		}
 
