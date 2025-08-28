@@ -1,6 +1,8 @@
 package responses
 
 import (
+	"time"
+
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
@@ -39,3 +41,13 @@ var (
 	NewPaginatedResponse = base.NewPaginatedResponse
 	NewPaginationInfo    = base.NewPaginationInfo
 )
+
+// ErrorResponse represents a structured error response
+type ErrorResponse struct {
+	Error         string            `json:"error"`
+	Message       string            `json:"message"`
+	Code          string            `json:"code,omitempty"`
+	CorrelationID string            `json:"correlation_id,omitempty"`
+	Details       map[string]string `json:"details,omitempty"`
+	Timestamp     time.Time         `json:"timestamp"`
+}

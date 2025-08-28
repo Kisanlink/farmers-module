@@ -43,13 +43,7 @@ func (s *FarmServiceImpl) CreateFarm(ctx context.Context, req interface{}) (inte
 	}
 
 	// Check AAA permission for farm.create
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  createReq.AAAFarmerUserID,
-		"resource": "farm",
-		"action":   "create",
-		"object":   createReq.AAAOrgID,
-		"org_id":   createReq.AAAOrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, createReq.AAAFarmerUserID, "farm", "create", createReq.AAAOrgID, createReq.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -118,13 +112,7 @@ func (s *FarmServiceImpl) UpdateFarm(ctx context.Context, req interface{}) (inte
 	}
 
 	// Check AAA permission for farm.update
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  existingFarm.AAAFarmerUserID,
-		"resource": "farm",
-		"action":   "update",
-		"object":   existingFarm.ID,
-		"org_id":   existingFarm.AAAOrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, existingFarm.AAAFarmerUserID, "farm", "update", existingFarm.ID, existingFarm.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -186,13 +174,7 @@ func (s *FarmServiceImpl) DeleteFarm(ctx context.Context, req interface{}) error
 	}
 
 	// Check AAA permission for farm.delete
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  existingFarm.AAAFarmerUserID,
-		"resource": "farm",
-		"action":   "delete",
-		"object":   existingFarm.ID,
-		"org_id":   existingFarm.AAAOrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, existingFarm.AAAFarmerUserID, "farm", "delete", existingFarm.ID, existingFarm.AAAOrgID)
 	if err != nil {
 		return fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -216,12 +198,7 @@ func (s *FarmServiceImpl) ListFarms(ctx context.Context, req interface{}) (inter
 	}
 
 	// Check AAA permission for farm.list
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  listReq.AAAFarmerUserID,
-		"resource": "farm",
-		"action":   "list",
-		"org_id":   listReq.AAAOrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, listReq.AAAFarmerUserID, "farm", "list", "", listReq.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -292,13 +269,7 @@ func (s *FarmServiceImpl) GetFarm(ctx context.Context, farmID string) (interface
 	}
 
 	// Check AAA permission for farm.read
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  farm.AAAFarmerUserID,
-		"resource": "farm",
-		"action":   "read",
-		"object":   farm.ID,
-		"org_id":   farm.AAAOrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, farm.AAAFarmerUserID, "farm", "read", farm.ID, farm.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -316,12 +287,7 @@ func (s *FarmServiceImpl) GetFarm(ctx context.Context, farmID string) (interface
 // ListFarmsByBoundingBox lists farms within a bounding box
 func (s *FarmServiceImpl) ListFarmsByBoundingBox(ctx context.Context, bbox requests.BoundingBox, filters requests.ListFarmsRequest) (interface{}, error) {
 	// Check AAA permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  filters.AAAFarmerUserID,
-		"resource": "farm",
-		"action":   "list",
-		"org_id":   filters.AAAOrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, filters.AAAFarmerUserID, "farm", "list", "", filters.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}

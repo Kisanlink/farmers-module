@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+
+	"github.com/Kisanlink/farmers-module/internal/interfaces"
 )
 
 // FarmerLinkageService handles farmer-to-FPO linkage workflows
@@ -87,7 +89,7 @@ type AAAService interface {
 	// W18: Seed roles and permissions
 	SeedRolesAndPermissions(ctx context.Context) error
 	// W19: Check permission (for RPC interceptor)
-	CheckPermission(ctx context.Context, req interface{}) (bool, error)
+	CheckPermission(ctx context.Context, subject, resource, action, object, orgID string) (bool, error)
 
 	// User Management
 	CreateUser(ctx context.Context, req interface{}) (interface{}, error)
@@ -110,6 +112,39 @@ type AAAService interface {
 	AssignPermissionToGroup(ctx context.Context, groupID, resource, action string) error
 
 	// Token and Health Management
-	ValidateToken(ctx context.Context, token string) (map[string]interface{}, error)
+	ValidateToken(ctx context.Context, token string) (*interfaces.UserInfo, error)
 	HealthCheck(ctx context.Context) error
+}
+
+// DataQualityService handles data quality and validation workflows
+type DataQualityService interface {
+	// ValidateGeometry validates WKT geometry with PostGIS validation and SRID checks
+	ValidateGeometry(ctx context.Context, req interface{}) (interface{}, error)
+
+	// ReconcileAAALinks heals broken AAA references in farmer_links
+	ReconcileAAALinks(ctx context.Context, req interface{}) (interface{}, error)
+
+	// RebuildSpatialIndexes rebuilds GIST indexes for database maintenance
+	RebuildSpatialIndexes(ctx context.Context, req interface{}) (interface{}, error)
+
+	// DetectFarmOverlaps detects spatial intersections between farm boundaries
+	DetectFarmOverlaps(ctx context.Context, req interface{}) (interface{}, error)
+}
+
+// ReportingService handles reporting and analytics workflows
+type ReportingService interface {
+	// ExportFarmerPortfolio aggregates farms, cycles, and activities data for a farmer
+	ExportFarmerPortfolio(ctx context.Context, req interface{}) (interface{}, error)
+
+	// OrgDashboardCounters provides org-level KPIs including counts and areas by season/status
+	OrgDashboardCounters(ctx context.Context, req interface{}) (interface{}, error)
+}
+
+// AdministrativeService handles administrative and system management workflows
+type AdministrativeService interface {
+	// SeedRolesAndPermissions triggers a complete reseed of AAA resources, actions, and role bindings
+	SeedRolesAndPermissions(ctx context.Context, req interface{}) (interface{}, error)
+
+	// HealthCheck verifies database connectivity and AAA service availability
+	HealthCheck(ctx context.Context, req interface{}) (interface{}, error)
 }

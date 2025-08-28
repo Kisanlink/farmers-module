@@ -10,6 +10,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CropCycleResponse represents a simple crop cycle response
+type CropCycleResponse struct {
+	Success   bool        `json:"success"`
+	Message   string      `json:"message"`
+	RequestID string      `json:"request_id"`
+	Data      interface{} `json:"data"`
+}
+
+// CropCycleListResponse represents a simple crop cycle list response
+type CropCycleListResponse struct {
+	Success   bool          `json:"success"`
+	Message   string        `json:"message"`
+	RequestID string        `json:"request_id"`
+	Data      []interface{} `json:"data"`
+	Page      int           `json:"page"`
+	PageSize  int           `json:"page_size"`
+	Total     int           `json:"total"`
+}
+
 // Crop Cycle Handlers (W10-W13)
 
 // StartCycle handles W10: Start crop cycle
@@ -19,11 +38,11 @@ import (
 // @Accept json
 // @Produce json
 // @Param cycle body requests.StartCycleRequest true "Crop cycle data"
-// @Success 201 {object} responses.CropCycleResponse
-// @Failure 400 {object} responses.BaseError
-// @Failure 401 {object} responses.BaseError
-// @Failure 403 {object} responses.BaseError
-// @Failure 500 {object} responses.BaseError
+// @Success 201 {object} CropCycleResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 403 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /crops/cycles [post]
 func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -67,12 +86,12 @@ func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Produce json
 // @Param cycle_id path string true "Crop Cycle ID"
 // @Param cycle body requests.UpdateCycleRequest true "Crop cycle update data"
-// @Success 200 {object} responses.CropCycleResponse
-// @Failure 400 {object} responses.BaseError
-// @Failure 401 {object} responses.BaseError
-// @Failure 403 {object} responses.BaseError
-// @Failure 404 {object} responses.BaseError
-// @Failure 500 {object} responses.BaseError
+// @Success 200 {object} CropCycleResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 403 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /crops/cycles/{cycle_id} [put]
 func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -120,12 +139,12 @@ func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Produce json
 // @Param cycle_id path string true "Crop Cycle ID"
 // @Param cycle body requests.EndCycleRequest true "Crop cycle end data"
-// @Success 200 {object} responses.CropCycleResponse
-// @Failure 400 {object} responses.BaseError
-// @Failure 401 {object} responses.BaseError
-// @Failure 403 {object} responses.BaseError
-// @Failure 404 {object} responses.BaseError
-// @Failure 500 {object} responses.BaseError
+// @Success 200 {object} CropCycleResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 403 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /crops/cycles/{cycle_id}/end [post]
 func EndCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -177,11 +196,11 @@ func EndCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Param farmer_id query string false "Filter by farmer ID"
 // @Param season query string false "Filter by season" Enums(RABI, KHARIF, ZAID)
 // @Param status query string false "Filter by status" Enums(PLANNED, ACTIVE, COMPLETED, CANCELLED)
-// @Success 200 {object} responses.CropCycleListResponse
-// @Failure 400 {object} responses.BaseError
-// @Failure 401 {object} responses.BaseError
-// @Failure 403 {object} responses.BaseError
-// @Failure 500 {object} responses.BaseError
+// @Success 200 {object} CropCycleListResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 403 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /crops/cycles [get]
 func ListCycles(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -227,12 +246,12 @@ func ListCycles(service services.CropCycleService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param cycle_id path string true "Crop Cycle ID"
-// @Success 200 {object} responses.CropCycleResponse
-// @Failure 400 {object} responses.BaseError
-// @Failure 401 {object} responses.BaseError
-// @Failure 403 {object} responses.BaseError
-// @Failure 404 {object} responses.BaseError
-// @Failure 500 {object} responses.BaseError
+// @Success 200 {object} CropCycleResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 403 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /crops/cycles/{cycle_id} [get]
 func GetCropCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -258,41 +277,82 @@ func GetCropCycle(service services.CropCycleService) gin.HandlerFunc {
 
 // Farm Activity Handlers (W14-W17)
 
+// CreateActivityRequest represents a request to create a farm activity
+type CreateActivityRequest struct {
+	CropCycleID  string    `json:"crop_cycle_id" binding:"required"`
+	ActivityType string    `json:"activity_type" binding:"required"`
+	PlannedAt    time.Time `json:"planned_at" binding:"required"`
+	Description  string    `json:"description"`
+	Metadata     string    `json:"metadata"`
+}
+
+// CreateActivityResponse represents a response for creating a farm activity
+type CreateActivityResponse struct {
+	Message string             `json:"message"`
+	Data    CreateActivityData `json:"data"`
+}
+
+// CreateActivityData represents the data returned when creating a farm activity
+type CreateActivityData struct {
+	CropCycleID  string    `json:"crop_cycle_id"`
+	ActivityType string    `json:"activity_type"`
+	PlannedAt    time.Time `json:"planned_at"`
+}
+
 // CreateActivity handles W14: Create farm activity
 // @Summary Create a new farm activity
 // @Description Create a new farm activity for a crop cycle
 // @Tags farm-activities
 // @Accept json
 // @Produce json
-// @Param activity body object true "Farm activity data"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
+// @Param activity body CreateActivityRequest true "Farm activity data"
+// @Success 200 {object} CreateActivityResponse
+// @Failure 400 {object} responses.ErrorResponse
 // @Router /crops/activities [post]
 func CreateActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req struct {
-			CropCycleID  string    `json:"crop_cycle_id" binding:"required"`
-			ActivityType string    `json:"activity_type" binding:"required"`
-			PlannedAt    time.Time `json:"planned_at" binding:"required"`
-			Description  string    `json:"description"`
-			Metadata     string    `json:"metadata"`
-		}
+		var req CreateActivityRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, responses.ErrorResponse{
+				Error:         "Invalid request format",
+				Message:       err.Error(),
+				Code:          "INVALID_REQUEST",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
 			return
 		}
 
 		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Farm activity created successfully",
-			"data": gin.H{
-				"crop_cycle_id": req.CropCycleID,
-				"activity_type": req.ActivityType,
-				"planned_at":    req.PlannedAt,
+		c.JSON(http.StatusOK, CreateActivityResponse{
+			Message: "Farm activity created successfully",
+			Data: CreateActivityData{
+				CropCycleID:  req.CropCycleID,
+				ActivityType: req.ActivityType,
+				PlannedAt:    req.PlannedAt,
 			},
 		})
 	}
+}
+
+// CompleteActivityRequest represents a request to complete a farm activity
+type CompleteActivityRequest struct {
+	CompletedAt time.Time `json:"completed_at" binding:"required"`
+	Notes       *string   `json:"notes,omitempty"`
+	Outcome     *string   `json:"outcome,omitempty"`
+}
+
+// CompleteActivityResponse represents a response for completing a farm activity
+type CompleteActivityResponse struct {
+	Message string               `json:"message"`
+	Data    CompleteActivityData `json:"data"`
+}
+
+// CompleteActivityData represents the data returned when completing a farm activity
+type CompleteActivityData struct {
+	ActivityID  string    `json:"activity_id"`
+	CompletedAt time.Time `json:"completed_at"`
 }
 
 // CompleteActivity handles W15: Complete farm activity
@@ -302,33 +362,53 @@ func CreateActivity(service services.FarmActivityService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param activity_id path string true "Activity ID"
-// @Param activity body object true "Activity completion data"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
+// @Param activity body CompleteActivityRequest true "Activity completion data"
+// @Success 200 {object} CompleteActivityResponse
+// @Failure 400 {object} responses.ErrorResponse
 // @Router /crops/activities/{activity_id}/complete [post]
 func CompleteActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		activityID := c.Param("activity_id")
-		var req struct {
-			CompletedAt time.Time `json:"completed_at" binding:"required"`
-			Notes       *string   `json:"notes,omitempty"`
-			Outcome     *string   `json:"outcome,omitempty"`
-		}
+		var req CompleteActivityRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, responses.ErrorResponse{
+				Error:         "Invalid request format",
+				Message:       err.Error(),
+				Code:          "INVALID_REQUEST",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
 			return
 		}
 
 		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Farm activity completed successfully",
-			"data": gin.H{
-				"activity_id":  activityID,
-				"completed_at": req.CompletedAt,
+		c.JSON(http.StatusOK, CompleteActivityResponse{
+			Message: "Farm activity completed successfully",
+			Data: CompleteActivityData{
+				ActivityID:  activityID,
+				CompletedAt: req.CompletedAt,
 			},
 		})
 	}
+}
+
+// UpdateActivityRequest represents a request to update a farm activity
+type UpdateActivityRequest struct {
+	ActivityType *string    `json:"activity_type,omitempty"`
+	PlannedAt    *time.Time `json:"planned_at,omitempty"`
+	Metadata     *string    `json:"metadata,omitempty"`
+}
+
+// UpdateActivityResponse represents a response for updating a farm activity
+type UpdateActivityResponse struct {
+	Message string             `json:"message"`
+	Data    UpdateActivityData `json:"data"`
+}
+
+// UpdateActivityData represents the data returned when updating a farm activity
+type UpdateActivityData struct {
+	ActivityID string `json:"activity_id"`
 }
 
 // UpdateActivity handles W16: Update farm activity
@@ -338,32 +418,40 @@ func CompleteActivity(service services.FarmActivityService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param activity_id path string true "Activity ID"
-// @Param activity body object true "Activity update data"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
+// @Param activity body UpdateActivityRequest true "Activity update data"
+// @Success 200 {object} UpdateActivityResponse
+// @Failure 400 {object} responses.ErrorResponse
 // @Router /crops/activities/{activity_id} [put]
 func UpdateActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		activityID := c.Param("activity_id")
-		var req struct {
-			ActivityType *string    `json:"activity_type,omitempty"`
-			PlannedAt    *time.Time `json:"planned_at,omitempty"`
-			Metadata     *string    `json:"metadata,omitempty"`
-		}
+		var req UpdateActivityRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, responses.ErrorResponse{
+				Error:         "Invalid request format",
+				Message:       err.Error(),
+				Code:          "INVALID_REQUEST",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
 			return
 		}
 
 		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Farm activity updated successfully",
-			"data": gin.H{
-				"activity_id": activityID,
+		c.JSON(http.StatusOK, UpdateActivityResponse{
+			Message: "Farm activity updated successfully",
+			Data: UpdateActivityData{
+				ActivityID: activityID,
 			},
 		})
 	}
+}
+
+// ListActivitiesResponse represents a response for listing farm activities
+type ListActivitiesResponse struct {
+	Message string        `json:"message"`
+	Data    []interface{} `json:"data"`
 }
 
 // ListActivities handles W17: List farm activities
@@ -372,17 +460,28 @@ func UpdateActivity(service services.FarmActivityService) gin.HandlerFunc {
 // @Tags farm-activities
 // @Accept json
 // @Produce json
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
+// @Success 200 {object} ListActivitiesResponse
+// @Failure 400 {object} responses.ErrorResponse
 // @Router /crops/activities [get]
 func ListActivities(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Farm activities retrieved successfully",
-			"data":    []interface{}{},
+		c.JSON(http.StatusOK, ListActivitiesResponse{
+			Message: "Farm activities retrieved successfully",
+			Data:    []interface{}{},
 		})
 	}
+}
+
+// GetFarmActivityResponse represents a response for getting a farm activity
+type GetFarmActivityResponse struct {
+	Message string              `json:"message"`
+	Data    GetFarmActivityData `json:"data"`
+}
+
+// GetFarmActivityData represents the data returned when getting a farm activity
+type GetFarmActivityData struct {
+	ActivityID string `json:"activity_id"`
 }
 
 // GetFarmActivity handles getting farm activity by ID
@@ -392,18 +491,18 @@ func ListActivities(service services.FarmActivityService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param activity_id path string true "Activity ID"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
+// @Success 200 {object} GetFarmActivityResponse
+// @Failure 400 {object} responses.ErrorResponse
 // @Router /crops/activities/{activity_id} [get]
 func GetCropFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		activityID := c.Param("activity_id")
 
 		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Farm activity retrieved successfully",
-			"data": gin.H{
-				"activity_id": activityID,
+		c.JSON(http.StatusOK, GetFarmActivityResponse{
+			Message: "Farm activity retrieved successfully",
+			Data: GetFarmActivityData{
+				ActivityID: activityID,
 			},
 		})
 	}

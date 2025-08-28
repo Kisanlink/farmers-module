@@ -10,6 +10,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// FarmResponse represents a simple farm response
+type FarmResponse struct {
+	Success   bool        `json:"success"`
+	Message   string      `json:"message"`
+	RequestID string      `json:"request_id"`
+	Data      interface{} `json:"data"`
+}
+
+// FarmListResponse represents a simple farm list response
+type FarmListResponse struct {
+	Success   bool          `json:"success"`
+	Message   string        `json:"message"`
+	RequestID string        `json:"request_id"`
+	Data      []interface{} `json:"data"`
+	Page      int           `json:"page"`
+	PageSize  int           `json:"page_size"`
+	Total     int           `json:"total"`
+}
+
 // CreateFarm handles W6: Create farm
 // @Summary Create a new farm
 // @Description Create a new farm with geographic boundaries and metadata
@@ -17,7 +36,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param farm body requests.CreateFarmRequest true "Farm data"
-// @Success 201 {object} responses.FarmResponse
+// @Success 201 {object} FarmResponse
 // @Failure 400 {object} responses.ErrorResponse
 // @Failure 403 {object} responses.ErrorResponse
 // @Router /farms [post]
@@ -60,7 +79,7 @@ func CreateFarm(service services.FarmService) gin.HandlerFunc {
 // @Produce json
 // @Param farm_id path string true "Farm ID"
 // @Param farm body requests.UpdateFarmRequest true "Farm update data"
-// @Success 200 {object} responses.FarmResponse
+// @Success 200 {object} FarmResponse
 // @Failure 400 {object} responses.ErrorResponse
 // @Failure 403 {object} responses.ErrorResponse
 // @Failure 404 {object} responses.ErrorResponse
@@ -144,7 +163,7 @@ func DeleteFarm(service services.FarmService) gin.HandlerFunc {
 // @Param org_id query string false "Filter by organization ID"
 // @Param min_area query number false "Minimum area in hectares"
 // @Param max_area query number false "Maximum area in hectares"
-// @Success 200 {object} responses.FarmListResponse
+// @Success 200 {object} FarmListResponse
 // @Failure 400 {object} responses.ErrorResponse
 // @Failure 403 {object} responses.ErrorResponse
 // @Router /farms [get]

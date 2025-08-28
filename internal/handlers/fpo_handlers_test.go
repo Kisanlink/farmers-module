@@ -41,26 +41,27 @@ func (m *MockFPOService) GetFPORef(ctx context.Context, orgID string) (interface
 
 // MockLogger is a mock implementation of Logger
 type MockLogger struct {
+	interfaces.Logger
 	mock.Mock
 }
 
-func (m *MockLogger) Info(msg string, fields ...zap.Field) {
+func (m *MockLogger) Info(msg string, fields ...interface{}) {
 	m.Called(msg, fields)
 }
 
-func (m *MockLogger) Error(msg string, fields ...zap.Field) {
+func (m *MockLogger) Error(msg string, fields ...interface{}) {
 	m.Called(msg, fields)
 }
 
-func (m *MockLogger) Warn(msg string, fields ...zap.Field) {
+func (m *MockLogger) Warn(msg string, fields ...interface{}) {
 	m.Called(msg, fields)
 }
 
-func (m *MockLogger) Debug(msg string, fields ...zap.Field) {
+func (m *MockLogger) Debug(msg string, fields ...interface{}) {
 	m.Called(msg, fields)
 }
 
-func (m *MockLogger) Fatal(msg string, fields ...zap.Field) {
+func (m *MockLogger) Fatal(msg string, fields ...interface{}) {
 	m.Called(msg, fields)
 }
 

@@ -15,6 +15,32 @@ import (
 	"go.uber.org/zap"
 )
 
+// FarmerResponse represents a simple farmer response
+type FarmerResponse struct {
+	Success   bool        `json:"success"`
+	Message   string      `json:"message"`
+	RequestID string      `json:"request_id"`
+	Data      interface{} `json:"data"`
+}
+
+// FarmerListResponse represents a simple farmer list response
+type FarmerListResponse struct {
+	Success   bool          `json:"success"`
+	Message   string        `json:"message"`
+	RequestID string        `json:"request_id"`
+	Data      []interface{} `json:"data"`
+	Page      int           `json:"page"`
+	PageSize  int           `json:"page_size"`
+	Total     int           `json:"total"`
+}
+
+// SimpleResponse represents a simple success response
+type SimpleResponse struct {
+	Success   bool   `json:"success"`
+	Message   string `json:"message"`
+	RequestID string `json:"request_id"`
+}
+
 // FarmerHandler handles HTTP requests for farmer operations
 type FarmerHandler struct {
 	farmerService services.FarmerService
@@ -35,11 +61,11 @@ func NewFarmerHandler(farmerService services.FarmerService, logger interfaces.Lo
 // @Tags identity
 // @Accept json
 // @Produce json
-// @Param farmer body object true "Farmer data"
-// @Success 201 {object} object
-// @Failure 400 {object} object
-// @Failure 409 {object} object
-// @Failure 500 {object} object
+// @Param farmer body farmerReq.CreateFarmerRequest true "Farmer data"
+// @Success 201 {object} FarmerResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 409 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /identity/farmers [post]
 func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
 	var req farmerReq.CreateFarmerRequest
@@ -92,10 +118,10 @@ func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
 // @Produce json
 // @Param aaa_user_id path string true "AAA User ID"
 // @Param aaa_org_id path string true "AAA Org ID"
-// @Success 200 {object} object
-// @Failure 400 {object} object
-// @Failure 404 {object} object
-// @Failure 500 {object} object
+// @Success 200 {object} FarmerResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [get]
 func (h *FarmerHandler) GetFarmer(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")
@@ -146,9 +172,9 @@ func (h *FarmerHandler) GetFarmer(c *gin.Context) {
 // @Param page_size query int false "Page size" default(10)
 // @Param aaa_org_id query string false "AAA Org ID filter"
 // @Param kisan_sathi_user_id query string false "KisanSathi User ID filter"
-// @Success 200 {object} object
-// @Failure 400 {object} object
-// @Failure 500 {object} object
+// @Success 200 {object} FarmerListResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /identity/farmers [get]
 func (h *FarmerHandler) ListFarmers(c *gin.Context) {
 	h.logger.Info("Listing farmers with filters",
@@ -214,11 +240,11 @@ func (h *FarmerHandler) ListFarmers(c *gin.Context) {
 // @Produce json
 // @Param aaa_user_id path string true "AAA User ID"
 // @Param aaa_org_id path string true "AAA Org ID"
-// @Param farmer body object true "Farmer update data"
-// @Success 200 {object} object
-// @Failure 400 {object} object
-// @Failure 404 {object} object
-// @Failure 500 {object} object
+// @Param farmer body farmerReq.UpdateFarmerRequest true "Farmer update data"
+// @Success 200 {object} FarmerResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [put]
 func (h *FarmerHandler) UpdateFarmer(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")
@@ -274,10 +300,10 @@ func (h *FarmerHandler) UpdateFarmer(c *gin.Context) {
 // @Produce json
 // @Param aaa_user_id path string true "AAA User ID"
 // @Param aaa_org_id path string true "AAA Org ID"
-// @Success 200 {object} object
-// @Failure 400 {object} object
-// @Failure 404 {object} object
-// @Failure 500 {object} object
+// @Success 200 {object} SimpleResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [delete]
 func (h *FarmerHandler) DeleteFarmer(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")

@@ -9,6 +9,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// FarmActivityResponse represents a simple farm activity response
+type FarmActivityResponse struct {
+	Success   bool        `json:"success"`
+	Message   string      `json:"message"`
+	RequestID string      `json:"request_id"`
+	Data      interface{} `json:"data"`
+}
+
+// FarmActivityListResponse represents a simple farm activity list response
+type FarmActivityListResponse struct {
+	Success   bool          `json:"success"`
+	Message   string        `json:"message"`
+	RequestID string        `json:"request_id"`
+	Data      []interface{} `json:"data"`
+	Page      int           `json:"page"`
+	PageSize  int           `json:"page_size"`
+	Total     int           `json:"total"`
+}
+
 // CreateFarmActivity handles W14: Create farm activity
 // @Summary Create a new farm activity
 // @Description Create a new farm activity within a crop cycle
@@ -16,11 +35,11 @@ import (
 // @Accept json
 // @Produce json
 // @Param activity body requests.CreateActivityRequest true "Farm activity data"
-// @Success 201 {object} responses.FarmActivityResponse
-// @Failure 400 {object} responses.BaseError
-// @Failure 401 {object} responses.BaseError
-// @Failure 403 {object} responses.BaseError
-// @Failure 500 {object} responses.BaseError
+// @Success 201 {object} FarmActivityResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 403 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /activities [post]
 func CreateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -75,12 +94,12 @@ func CreateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 // @Produce json
 // @Param id path string true "Activity ID"
 // @Param activity body requests.CompleteActivityRequest true "Complete activity data"
-// @Success 200 {object} responses.FarmActivityResponse
-// @Failure 400 {object} responses.BaseError
-// @Failure 401 {object} responses.BaseError
-// @Failure 403 {object} responses.BaseError
-// @Failure 404 {object} responses.BaseError
-// @Failure 500 {object} responses.BaseError
+// @Success 200 {object} FarmActivityResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 403 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /activities/{id}/complete [put]
 func CompleteFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -143,12 +162,12 @@ func CompleteFarmActivity(service services.FarmActivityService) gin.HandlerFunc 
 // @Produce json
 // @Param id path string true "Activity ID"
 // @Param activity body requests.UpdateActivityRequest true "Update activity data"
-// @Success 200 {object} responses.FarmActivityResponse
-// @Failure 400 {object} responses.BaseError
-// @Failure 401 {object} responses.BaseError
-// @Failure 403 {object} responses.BaseError
-// @Failure 404 {object} responses.BaseError
-// @Failure 500 {object} responses.BaseError
+// @Success 200 {object} FarmActivityResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 403 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /activities/{id} [put]
 func UpdateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -216,11 +235,11 @@ func UpdateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 // @Param date_to query string false "Filter by date to (YYYY-MM-DD)"
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(10)
-// @Success 200 {object} responses.FarmActivityListResponse
-// @Failure 400 {object} responses.BaseError
-// @Failure 401 {object} responses.BaseError
-// @Failure 403 {object} responses.BaseError
-// @Failure 500 {object} responses.BaseError
+// @Success 200 {object} FarmActivityListResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 403 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /activities [get]
 func ListFarmActivities(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -281,12 +300,12 @@ func ListFarmActivities(service services.FarmActivityService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param id path string true "Activity ID"
-// @Success 200 {object} responses.FarmActivityResponse
-// @Failure 400 {object} responses.BaseError
-// @Failure 401 {object} responses.BaseError
-// @Failure 403 {object} responses.BaseError
-// @Failure 404 {object} responses.BaseError
-// @Failure 500 {object} responses.BaseError
+// @Success 200 {object} FarmActivityResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 403 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /activities/{id} [get]
 func GetFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {

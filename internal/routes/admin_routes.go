@@ -13,13 +13,13 @@ func RegisterAdminRoutes(router *gin.RouterGroup, services *services.ServiceFact
 	admin := router.Group("/admin")
 	{
 		// W18: Seed roles and permissions
-		admin.POST("/seed", handlers.SeedRolesAndPermissions(services.AAAService))
+		admin.POST("/seed", handlers.SeedRolesAndPermissions(services.AdministrativeService))
 
 		// W19: Check permission (for testing)
 		admin.POST("/check-permission", handlers.CheckPermission(services.AAAService))
 
 		// Health check
-		admin.GET("/health", handlers.HealthCheck())
+		admin.GET("/health", handlers.HealthCheck(services.AdministrativeService))
 
 		// Audit trail
 		admin.GET("/audit", handlers.GetAuditTrail())

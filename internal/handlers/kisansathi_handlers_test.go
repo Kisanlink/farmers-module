@@ -55,11 +55,11 @@ func (m *MockFarmerLinkageService) CreateKisanSathiUser(ctx context.Context, req
 // SimpleLogger is a simple logger implementation for testing
 type SimpleLogger struct{}
 
-func (s *SimpleLogger) Debug(msg string, fields ...zap.Field)      {}
-func (s *SimpleLogger) Info(msg string, fields ...zap.Field)       {}
-func (s *SimpleLogger) Warn(msg string, fields ...zap.Field)       {}
-func (s *SimpleLogger) Error(msg string, fields ...zap.Field)      {}
-func (s *SimpleLogger) Fatal(msg string, fields ...zap.Field)      {}
+func (s *SimpleLogger) Debug(msg string, fields ...interface{})    {}
+func (s *SimpleLogger) Info(msg string, fields ...interface{})     {}
+func (s *SimpleLogger) Warn(msg string, fields ...interface{})     {}
+func (s *SimpleLogger) Error(msg string, fields ...interface{})    {}
+func (s *SimpleLogger) Fatal(msg string, fields ...interface{})    {}
 func (s *SimpleLogger) With(fields ...zap.Field) interfaces.Logger { return s }
 func (s *SimpleLogger) Named(name string) interfaces.Logger        { return s }
 func (s *SimpleLogger) Sync() error                                { return nil }

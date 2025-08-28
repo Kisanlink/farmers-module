@@ -38,9 +38,7 @@ func TestFarmActivityService_CreateActivity_BusinessLogic(t *testing.T) {
 				ActivityType: "planting",
 			},
 			setupMocks: func(aaa *MockAAAService) {
-				aaa.On("CheckPermission", mock.Anything, mock.MatchedBy(func(req map[string]interface{}) bool {
-					return req["resource"] == "activity" && req["action"] == "create"
-				})).Return(false, nil)
+				aaa.On("CheckPermission", mock.Anything, "user123", "activity", "create", "cycle123", "org123").Return(false, nil)
 			},
 			expectedError: common.ErrForbidden,
 		},
@@ -94,9 +92,7 @@ func TestFarmActivityService_CompleteActivity_BusinessLogic(t *testing.T) {
 				CompletedAt: time.Now(),
 			},
 			setupMocks: func(aaa *MockAAAService) {
-				aaa.On("CheckPermission", mock.Anything, mock.MatchedBy(func(req map[string]interface{}) bool {
-					return req["resource"] == "activity" && req["action"] == "complete"
-				})).Return(false, nil)
+				aaa.On("CheckPermission", mock.Anything, "user123", "activity", "complete", "activity123", "org123").Return(false, nil)
 			},
 			expectedError: common.ErrForbidden,
 		},
@@ -148,9 +144,7 @@ func TestFarmActivityService_UpdateActivity_BusinessLogic(t *testing.T) {
 				ID: "activity123",
 			},
 			setupMocks: func(aaa *MockAAAService) {
-				aaa.On("CheckPermission", mock.Anything, mock.MatchedBy(func(req map[string]interface{}) bool {
-					return req["resource"] == "activity" && req["action"] == "update"
-				})).Return(false, nil)
+				aaa.On("CheckPermission", mock.Anything, "user123", "activity", "update", "activity123", "org123").Return(false, nil)
 			},
 			expectedError: common.ErrForbidden,
 		},
@@ -203,9 +197,7 @@ func TestFarmActivityService_ListActivities_BusinessLogic(t *testing.T) {
 				PageSize: 10,
 			},
 			setupMocks: func(aaa *MockAAAService) {
-				aaa.On("CheckPermission", mock.Anything, mock.MatchedBy(func(req map[string]interface{}) bool {
-					return req["resource"] == "activity" && req["action"] == "list"
-				})).Return(false, nil)
+				aaa.On("CheckPermission", mock.Anything, "user123", "activity", "list", "", "org123").Return(false, nil)
 			},
 			expectedError: common.ErrForbidden,
 		},
@@ -234,7 +226,7 @@ func TestFarmActivityService_ListActivities_BusinessLogic(t *testing.T) {
 // TestFarmActivityService_DateFiltering tests date filtering logic
 func TestFarmActivityService_DateFiltering(t *testing.T) {
 	mockAAAService := &MockAAAService{}
-	mockAAAService.On("CheckPermission", mock.Anything, mock.Anything).Return(true, nil)
+	mockAAAService.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 
 	service := &FarmActivityServiceImpl{
 		aaaService: mockAAAService,

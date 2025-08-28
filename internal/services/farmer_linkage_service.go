@@ -45,15 +45,7 @@ func (s *FarmerLinkageServiceImpl) LinkFarmerToFPO(ctx context.Context, req inte
 	}
 
 	// Check 'farmer.link' permission on the target organization
-	permissionReq := map[string]interface{}{
-		"subject":  linkReq.AAAUserID, // Subject from context in real implementation
-		"resource": "farmer",
-		"action":   "link",
-		"object":   linkReq.AAAUserID,
-		"org_id":   linkReq.AAAOrgID,
-	}
-
-	hasPermission, err := s.aaaService.CheckPermission(ctx, permissionReq)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, linkReq.AAAUserID, "farmer", "link", linkReq.AAAUserID, linkReq.AAAOrgID)
 	if err != nil {
 		return fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -111,15 +103,7 @@ func (s *FarmerLinkageServiceImpl) UnlinkFarmerFromFPO(ctx context.Context, req 
 	}
 
 	// Check 'farmer.unlink' permission on the target organization
-	permissionReq := map[string]interface{}{
-		"subject":  unlinkReq.AAAUserID, // Subject from context in real implementation
-		"resource": "farmer",
-		"action":   "unlink",
-		"object":   unlinkReq.AAAUserID,
-		"org_id":   unlinkReq.AAAOrgID,
-	}
-
-	hasPermission, err := s.aaaService.CheckPermission(ctx, permissionReq)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, unlinkReq.AAAUserID, "farmer", "unlink", unlinkReq.AAAUserID, unlinkReq.AAAOrgID)
 	if err != nil {
 		return fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -151,15 +135,7 @@ func (s *FarmerLinkageServiceImpl) UnlinkFarmerFromFPO(ctx context.Context, req 
 // GetFarmerLinkage gets farmer linkage status
 func (s *FarmerLinkageServiceImpl) GetFarmerLinkage(ctx context.Context, farmerID, orgID string) (interface{}, error) {
 	// Check 'farmer.read' permission
-	permissionReq := map[string]interface{}{
-		"subject":  farmerID, // Subject from context in real implementation
-		"resource": "farmer",
-		"action":   "read",
-		"object":   farmerID,
-		"org_id":   orgID,
-	}
-
-	hasPermission, err := s.aaaService.CheckPermission(ctx, permissionReq)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, farmerID, "farmer", "read", farmerID, orgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -206,15 +182,7 @@ func (s *FarmerLinkageServiceImpl) AssignKisanSathi(ctx context.Context, req int
 	}
 
 	// Check 'kisansathi.assign' permission
-	permissionReq := map[string]interface{}{
-		"subject":  assignReq.KisanSathiUserID, // Subject from context in real implementation
-		"resource": "kisansathi",
-		"action":   "assign",
-		"object":   assignReq.AAAUserID,
-		"org_id":   assignReq.AAAOrgID,
-	}
-
-	hasPermission, err := s.aaaService.CheckPermission(ctx, permissionReq)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, assignReq.KisanSathiUserID, "kisansathi", "assign", assignReq.AAAUserID, assignReq.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -281,15 +249,7 @@ func (s *FarmerLinkageServiceImpl) ReassignOrRemoveKisanSathi(ctx context.Contex
 	}
 
 	// Check 'kisansathi.reassign' permission
-	permissionReq := map[string]interface{}{
-		"subject":  reassignReq.AAAUserID, // Subject from context in real implementation
-		"resource": "kisansathi",
-		"action":   "reassign",
-		"object":   reassignReq.AAAUserID,
-		"org_id":   reassignReq.AAAOrgID,
-	}
-
-	hasPermission, err := s.aaaService.CheckPermission(ctx, permissionReq)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, reassignReq.AAAUserID, "kisansathi", "reassign", reassignReq.AAAUserID, reassignReq.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -364,15 +324,7 @@ func (s *FarmerLinkageServiceImpl) CreateKisanSathiUser(ctx context.Context, req
 	}
 
 	// Check 'user.create' permission
-	permissionReq := map[string]interface{}{
-		"subject":  createReq.Username, // Subject from context in real implementation
-		"resource": "user",
-		"action":   "create",
-		"object":   "",
-		"org_id":   "",
-	}
-
-	hasPermission, err := s.aaaService.CheckPermission(ctx, permissionReq)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, createReq.Username, "user", "create", "", "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}

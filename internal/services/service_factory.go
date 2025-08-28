@@ -26,6 +26,15 @@ type ServiceFactory struct {
 	CropCycleService    CropCycleService
 	FarmActivityService FarmActivityService
 
+	// Data Quality Services
+	DataQualityService DataQualityService
+
+	// Reporting Services
+	ReportingService ReportingService
+
+	// Administrative Services
+	AdministrativeService AdministrativeService
+
 	// AAA Integration Service
 	AAAService AAAService
 
@@ -63,15 +72,28 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	cropCycleService := NewCropCycleService(repoFactory.CropCycleRepo, aaaService)
 	farmActivityService := NewFarmActivityService(repoFactory.FarmActivityRepo, repoFactory.CropCycleRepo, aaaService)
 
+	// Initialize data quality service
+	dataQualityService := NewDataQualityService(gormDB, repoFactory.FarmRepo, repoFactory.FarmerLinkageRepo, aaaService)
+
+	// Initialize reporting service
+	reportingService := NewReportingService(repoFactory, gormDB, aaaService)
+
+	// Initialize administrative service
+	concreteAdminService := NewAdministrativeService(postgresManager, gormDB, aaaService)
+	administrativeService := NewAdministrativeServiceWrapper(concreteAdminService)
+
 	return &ServiceFactory{
-		FarmerService:        farmerService,
-		FarmerLinkageService: farmerLinkageService,
-		FPOService:           fpoService,
-		KisanSathiService:    kisanSathiService,
-		FarmService:          farmService,
-		CropCycleService:     cropCycleService,
-		FarmActivityService:  farmActivityService,
-		AAAService:           aaaService,
-		AAAClient:            aaaClient,
+		FarmerService:         farmerService,
+		FarmerLinkageService:  farmerLinkageService,
+		FPOService:            fpoService,
+		KisanSathiService:     kisanSathiService,
+		FarmService:           farmService,
+		CropCycleService:      cropCycleService,
+		FarmActivityService:   farmActivityService,
+		DataQualityService:    dataQualityService,
+		ReportingService:      reportingService,
+		AdministrativeService: administrativeService,
+		AAAService:            aaaService,
+		AAAClient:             aaaClient,
 	}
 }

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/Kisanlink/farmers-module/internal/clients/aaa"
@@ -276,17 +277,9 @@ func TestAAAService_CheckPermission_Success(t *testing.T) {
 	service := createTestAAAService(mockClient)
 	ctx := context.Background()
 
-	req := map[string]interface{}{
-		"subject":  "user123",
-		"resource": "farm",
-		"action":   "create",
-		"object":   "farm456",
-		"org_id":   "org789",
-	}
-
 	mockClient.On("CheckPermission", ctx, "user123", "farm", "create", "farm456", "org789").Return(true, nil)
 
-	allowed, err := service.CheckPermission(ctx, req)
+	allowed, err := service.CheckPermission(ctx, "user123", "farm", "create", "farm456", "org789")
 
 	assert.NoError(t, err)
 	assert.True(t, allowed)
@@ -295,34 +288,36 @@ func TestAAAService_CheckPermission_Success(t *testing.T) {
 
 func TestAAAService_CheckPermission_InvalidRequest(t *testing.T) {
 	mockClient := &MockAAAClient{}
+
+	// Setup mock to return error for invalid request
+	mockClient.On("CheckPermission", mock.Anything, "", "farm", "create", "farm456", "org789").Return(false, fmt.Errorf("missing permission parameters"))
+
 	service := createTestAAAService(mockClient)
 	ctx := context.Background()
 
-	// Invalid request format
-	req := "invalid request"
-
-	allowed, err := service.CheckPermission(ctx, req)
+	// Test with empty subject
+	allowed, err := service.CheckPermission(ctx, "", "farm", "create", "farm456", "org789")
 
 	assert.Error(t, err)
 	assert.False(t, allowed)
-	assert.Contains(t, err.Error(), "invalid request format")
+	mockClient.AssertExpectations(t)
 }
 
 func TestAAAService_CheckPermission_MissingSubject(t *testing.T) {
 	mockClient := &MockAAAClient{}
+
+	// Setup mock to return error for missing subject
+	mockClient.On("CheckPermission", mock.Anything, "", "farm", "create", "farm456", "org789").Return(false, fmt.Errorf("missing permission parameters"))
+
 	service := createTestAAAService(mockClient)
 	ctx := context.Background()
 
-	req := map[string]interface{}{
-		"resource": "farm",
-		"action":   "create",
-	}
-
-	allowed, err := service.CheckPermission(ctx, req)
+	// Test with empty subject
+	allowed, err := service.CheckPermission(ctx, "", "farm", "create", "farm456", "org789")
 
 	assert.Error(t, err)
 	assert.False(t, allowed)
-	assert.Contains(t, err.Error(), "subject is required")
+	mockClient.AssertExpectations(t)
 }
 
 func TestAAAService_CheckPermission_ClientUnavailable(t *testing.T) {
@@ -332,13 +327,7 @@ func TestAAAService_CheckPermission_ClientUnavailable(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	req := map[string]interface{}{
-		"subject":  "user123",
-		"resource": "farm",
-		"action":   "create",
-	}
-
-	allowed, err := service.CheckPermission(ctx, req)
+	allowed, err := service.CheckPermission(ctx, "user123", "farm", "create", "farm456", "org789")
 
 	assert.NoError(t, err) // Should allow when client unavailable
 	assert.True(t, allowed)
@@ -493,7 +482,9 @@ func TestAAAService_ValidateToken_Success(t *testing.T) {
 	tokenData, err := service.ValidateToken(ctx, token)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expectedTokenData, tokenData)
+	assert.NotNil(t, tokenData)
+	assert.Equal(t, "user123", tokenData.UserID)
+	assert.Equal(t, "org456", tokenData.OrgID)
 	mockClient.AssertExpectations(t)
 }
 

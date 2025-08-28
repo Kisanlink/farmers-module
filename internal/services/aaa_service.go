@@ -7,6 +7,7 @@ import (
 
 	"github.com/Kisanlink/farmers-module/internal/clients/aaa"
 	"github.com/Kisanlink/farmers-module/internal/config"
+	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -64,35 +65,11 @@ func (s *AAAServiceImpl) SeedRolesAndPermissions(ctx context.Context) error {
 }
 
 // CheckPermission implements W19: Check permission
-func (s *AAAServiceImpl) CheckPermission(ctx context.Context, req interface{}) (bool, error) {
+func (s *AAAServiceImpl) CheckPermission(ctx context.Context, subject, resource, action, object, orgID string) (bool, error) {
 	if s.client == nil {
 		log.Println("AAA client not available, allowing operation")
 		return true, nil
 	}
-
-	// Type assert the request to get the required fields
-	permissionReq, ok := req.(map[string]interface{})
-	if !ok {
-		return false, fmt.Errorf("invalid request format")
-	}
-
-	subject, ok := permissionReq["subject"].(string)
-	if !ok {
-		return false, fmt.Errorf("subject is required")
-	}
-
-	resource, ok := permissionReq["resource"].(string)
-	if !ok {
-		return false, fmt.Errorf("resource is required")
-	}
-
-	action, ok := permissionReq["action"].(string)
-	if !ok {
-		return false, fmt.Errorf("action is required")
-	}
-
-	object, _ := permissionReq["object"].(string)
-	orgID, _ := permissionReq["org_id"].(string)
 
 	return s.client.CheckPermission(ctx, subject, resource, action, object, orgID)
 }
@@ -347,7 +324,54 @@ func (s *AAAServiceImpl) AssignPermissionToGroup(ctx context.Context, groupID, r
 }
 
 // ValidateToken validates a JWT token with the AAA service
-func (s *AAAServiceImpl) ValidateToken(ctx context.Context, token string) (map[string]interface{}, error) {
+func (s *AAAServiceImpl) ValidateToken(ctx context.Context, token string) (*interfaces.UserInfo, error) {
+	if s.client == nil {
+		return nil, fmt.Errorf("AAA client not available")
+	}
+
+	tokenData, err := s.client.ValidateToken(ctx, token)
+	if err != nil {
+		return nil, s.mapGRPCError(err, "validate token")
+	}
+
+	// Convert the map response to UserInfo struct
+	userInfo := &interfaces.UserInfo{}
+
+	if userID, ok := tokenData["user_id"].(string); ok {
+		userInfo.UserID = userID
+	}
+	if username, ok := tokenData["username"].(string); ok {
+		userInfo.Username = username
+	}
+	if email, ok := tokenData["email"].(string); ok {
+		userInfo.Email = email
+	}
+	if phone, ok := tokenData["phone"].(string); ok {
+		userInfo.Phone = phone
+	}
+	if roles, ok := tokenData["roles"].([]interface{}); ok {
+		userInfo.Roles = make([]string, len(roles))
+		for i, role := range roles {
+			if roleStr, ok := role.(string); ok {
+				userInfo.Roles[i] = roleStr
+			}
+		}
+	}
+	if orgID, ok := tokenData["org_id"].(string); ok {
+		userInfo.OrgID = orgID
+	}
+	if orgName, ok := tokenData["org_name"].(string); ok {
+		userInfo.OrgName = orgName
+	}
+	if orgType, ok := tokenData["org_type"].(string); ok {
+		userInfo.OrgType = orgType
+	}
+
+	return userInfo, nil
+}
+
+// ValidateTokenRaw validates a JWT token and returns raw map data (for backward compatibility)
+func (s *AAAServiceImpl) ValidateTokenRaw(ctx context.Context, token string) (map[string]interface{}, error) {
 	if s.client == nil {
 		return nil, fmt.Errorf("AAA client not available")
 	}

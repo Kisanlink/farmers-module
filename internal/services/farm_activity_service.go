@@ -41,13 +41,7 @@ func (s *FarmActivityServiceImpl) CreateActivity(ctx context.Context, req interf
 	}
 
 	// Check permission for activity.create
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  createReq.UserID,
-		"resource": "activity",
-		"action":   "create",
-		"object":   createReq.CropCycleID,
-		"org_id":   createReq.OrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, createReq.UserID, "activity", "create", createReq.CropCycleID, createReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -117,13 +111,7 @@ func (s *FarmActivityServiceImpl) CompleteActivity(ctx context.Context, req inte
 	}
 
 	// Check permission for activity.complete first
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  completeReq.UserID,
-		"resource": "activity",
-		"action":   "complete",
-		"object":   completeReq.ID,
-		"org_id":   completeReq.OrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, completeReq.UserID, "activity", "complete", completeReq.ID, completeReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -182,13 +170,7 @@ func (s *FarmActivityServiceImpl) UpdateActivity(ctx context.Context, req interf
 	}
 
 	// Check permission for activity.update first
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  updateReq.UserID,
-		"resource": "activity",
-		"action":   "update",
-		"object":   updateReq.ID,
-		"org_id":   updateReq.OrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, updateReq.UserID, "activity", "update", updateReq.ID, updateReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -256,12 +238,7 @@ func (s *FarmActivityServiceImpl) ListActivities(ctx context.Context, req interf
 	}
 
 	// Check permission for activity.list
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  listReq.UserID,
-		"resource": "activity",
-		"action":   "list",
-		"org_id":   listReq.OrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, listReq.UserID, "activity", "list", "", listReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}

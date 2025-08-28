@@ -39,9 +39,7 @@ func TestCropCycleService_StartCycle_BusinessLogic(t *testing.T) {
 				PlannedCrops: []string{"wheat", "barley"},
 			},
 			setupMocks: func(aaa *MockAAAServiceShared) {
-				aaa.On("CheckPermission", mock.Anything, mock.MatchedBy(func(req map[string]interface{}) bool {
-					return req["resource"] == "cycle" && req["action"] == "start"
-				})).Return(false, nil)
+				aaa.On("CheckPermission", mock.Anything, "user123", "cycle", "start", "farm123", "org123").Return(false, nil)
 			},
 			expectedError: common.ErrForbidden,
 		},
@@ -58,9 +56,7 @@ func TestCropCycleService_StartCycle_BusinessLogic(t *testing.T) {
 				PlannedCrops: []string{"wheat", "barley"},
 			},
 			setupMocks: func(aaa *MockAAAServiceShared) {
-				aaa.On("CheckPermission", mock.Anything, mock.MatchedBy(func(req map[string]interface{}) bool {
-					return req["resource"] == "cycle" && req["action"] == "start"
-				})).Return(true, nil)
+				aaa.On("CheckPermission", mock.Anything, "user123", "cycle", "start", "", "org123").Return(true, nil)
 			},
 			expectedError: common.ErrInvalidCropCycleData,
 		},
@@ -118,9 +114,7 @@ func TestCropCycleService_UpdateCycle_BusinessLogic(t *testing.T) {
 				Season: stringPtrCrop("KHARIF"),
 			},
 			setupMocks: func(aaa *MockAAAServiceShared) {
-				aaa.On("CheckPermission", mock.Anything, mock.MatchedBy(func(req map[string]interface{}) bool {
-					return req["resource"] == "cycle" && req["action"] == "update"
-				})).Return(false, nil)
+				aaa.On("CheckPermission", mock.Anything, "user123", "cycle", "update", "cycle123", "org123").Return(false, nil)
 			},
 			expectedError: common.ErrForbidden,
 		},
@@ -181,9 +175,7 @@ func TestCropCycleService_EndCycle_BusinessLogic(t *testing.T) {
 				EndDate: time.Now(),
 			},
 			setupMocks: func(aaa *MockAAAServiceShared) {
-				aaa.On("CheckPermission", mock.Anything, mock.MatchedBy(func(req map[string]interface{}) bool {
-					return req["resource"] == "cycle" && req["action"] == "end"
-				})).Return(false, nil)
+				aaa.On("CheckPermission", mock.Anything, "user123", "cycle", "end", "cycle123", "org123").Return(false, nil)
 			},
 			expectedError: common.ErrForbidden,
 		},
@@ -247,9 +239,7 @@ func TestCropCycleService_ListCycles_BusinessLogic(t *testing.T) {
 				},
 			},
 			setupMocks: func(aaa *MockAAAServiceShared) {
-				aaa.On("CheckPermission", mock.Anything, mock.MatchedBy(func(req map[string]interface{}) bool {
-					return req["resource"] == "cycle" && req["action"] == "list"
-				})).Return(false, nil)
+				aaa.On("CheckPermission", mock.Anything, "user123", "cycle", "list", "", "org123").Return(false, nil)
 			},
 			expectedError: common.ErrForbidden,
 		},

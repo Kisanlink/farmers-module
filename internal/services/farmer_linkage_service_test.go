@@ -29,7 +29,7 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 			},
 			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
 				// Permission check passes
-				aaa.On("CheckPermission", mock.Anything, mock.Anything).Return(true, nil)
+				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				// User and org exist
 				aaa.On("GetUser", mock.Anything, "user123").Return(map[string]interface{}{"id": "user123"}, nil)
 				aaa.On("GetOrganization", mock.Anything, "org456").Return(map[string]interface{}{"id": "org456"}, nil)
@@ -59,7 +59,7 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 			},
 			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
 				// Permission check fails
-				aaa.On("CheckPermission", mock.Anything, mock.Anything).Return(false, nil)
+				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false, nil)
 			},
 			expectedError: "insufficient permissions to link farmer to FPO",
 		},
@@ -71,7 +71,7 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 			},
 			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
 				// Permission check passes
-				aaa.On("CheckPermission", mock.Anything, mock.Anything).Return(true, nil)
+				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				// User not found
 				aaa.On("GetUser", mock.Anything, "user123").Return(nil, errors.New("user not found"))
 			},
@@ -85,7 +85,7 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 			},
 			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
 				// Permission check passes
-				aaa.On("CheckPermission", mock.Anything, mock.Anything).Return(true, nil)
+				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				// User and org exist
 				aaa.On("GetUser", mock.Anything, "user123").Return(map[string]interface{}{"id": "user123"}, nil)
 				aaa.On("GetOrganization", mock.Anything, "org456").Return(map[string]interface{}{"id": "org456"}, nil)
@@ -149,7 +149,7 @@ func TestFarmerLinkageServiceImpl_AssignKisanSathi(t *testing.T) {
 			},
 			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
 				// Permission check passes
-				aaa.On("CheckPermission", mock.Anything, mock.Anything).Return(true, nil)
+				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				// KisanSathi user exists
 				aaa.On("GetUser", mock.Anything, "ks789").Return(map[string]interface{}{"id": "ks789"}, nil)
 				// Role check passes
@@ -187,7 +187,7 @@ func TestFarmerLinkageServiceImpl_AssignKisanSathi(t *testing.T) {
 			},
 			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
 				// Permission check passes
-				aaa.On("CheckPermission", mock.Anything, mock.Anything).Return(true, nil)
+				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				// KisanSathi user exists
 				aaa.On("GetUser", mock.Anything, "ks789").Return(map[string]interface{}{"id": "ks789"}, nil)
 				// Role check fails initially
@@ -217,7 +217,7 @@ func TestFarmerLinkageServiceImpl_AssignKisanSathi(t *testing.T) {
 			},
 			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
 				// Permission check passes
-				aaa.On("CheckPermission", mock.Anything, mock.Anything).Return(true, nil)
+				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				// KisanSathi user exists
 				aaa.On("GetUser", mock.Anything, "ks789").Return(map[string]interface{}{"id": "ks789"}, nil)
 				// Role check passes
@@ -290,7 +290,7 @@ func TestFarmerLinkageServiceImpl_CreateKisanSathiUser(t *testing.T) {
 			},
 			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
 				// Permission check passes
-				aaa.On("CheckPermission", mock.Anything, mock.Anything).Return(true, nil)
+				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				// User doesn't exist by phone
 				aaa.On("GetUserByMobile", mock.Anything, "+919876543210").Return(nil, errors.New("user not found"))
 				// User doesn't exist by email
@@ -334,7 +334,7 @@ func TestFarmerLinkageServiceImpl_CreateKisanSathiUser(t *testing.T) {
 			},
 			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
 				// Permission check passes
-				aaa.On("CheckPermission", mock.Anything, mock.Anything).Return(true, nil)
+				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				// User exists by phone
 				existingUser := map[string]interface{}{
 					"id":         "existing_user_id",

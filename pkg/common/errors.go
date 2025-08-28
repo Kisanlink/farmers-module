@@ -1,6 +1,9 @@
 package common
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var (
 	// Farm errors
@@ -20,3 +23,13 @@ var (
 	ErrInvalidInput = errors.New("invalid input")
 	ErrInternal     = errors.New("internal server error")
 )
+
+// ErrorResponse represents a structured error response
+type ErrorResponse struct {
+	Error         string            `json:"error"`
+	Message       string            `json:"message"`
+	Code          string            `json:"code,omitempty"`
+	CorrelationID string            `json:"correlation_id,omitempty"`
+	Details       map[string]string `json:"details,omitempty"`
+	Timestamp     time.Time         `json:"timestamp"`
+}

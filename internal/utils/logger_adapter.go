@@ -18,28 +18,47 @@ func NewLoggerAdapter(logger *zap.Logger) interfaces.Logger {
 }
 
 // Debug logs a debug message
-func (l *LoggerAdapter) Debug(msg string, fields ...zap.Field) {
-	l.logger.Debug(msg, fields...)
+func (l *LoggerAdapter) Debug(msg string, fields ...interface{}) {
+	zapFields := l.convertToZapFields(fields...)
+	l.logger.Debug(msg, zapFields...)
 }
 
 // Info logs an info message
-func (l *LoggerAdapter) Info(msg string, fields ...zap.Field) {
-	l.logger.Info(msg, fields...)
+func (l *LoggerAdapter) Info(msg string, fields ...interface{}) {
+	zapFields := l.convertToZapFields(fields...)
+	l.logger.Info(msg, zapFields...)
 }
 
 // Warn logs a warning message
-func (l *LoggerAdapter) Warn(msg string, fields ...zap.Field) {
-	l.logger.Warn(msg, fields...)
+func (l *LoggerAdapter) Warn(msg string, fields ...interface{}) {
+	zapFields := l.convertToZapFields(fields...)
+	l.logger.Warn(msg, zapFields...)
 }
 
 // Error logs an error message
-func (l *LoggerAdapter) Error(msg string, fields ...zap.Field) {
-	l.logger.Error(msg, fields...)
+func (l *LoggerAdapter) Error(msg string, fields ...interface{}) {
+	zapFields := l.convertToZapFields(fields...)
+	l.logger.Error(msg, zapFields...)
 }
 
 // Fatal logs a fatal message
-func (l *LoggerAdapter) Fatal(msg string, fields ...zap.Field) {
-	l.logger.Fatal(msg, fields...)
+func (l *LoggerAdapter) Fatal(msg string, fields ...interface{}) {
+	zapFields := l.convertToZapFields(fields...)
+	l.logger.Fatal(msg, zapFields...)
+}
+
+// convertToZapFields converts interface{} fields to zap.Field
+func (l *LoggerAdapter) convertToZapFields(fields ...interface{}) []zap.Field {
+	zapFields := make([]zap.Field, 0, len(fields))
+	for i := 0; i < len(fields); i += 2 {
+		if i+1 < len(fields) {
+			key, ok := fields[i].(string)
+			if ok {
+				zapFields = append(zapFields, zap.Any(key, fields[i+1]))
+			}
+		}
+	}
+	return zapFields
 }
 
 // With returns a new logger with the given fields

@@ -33,13 +33,7 @@ func (s *CropCycleServiceImpl) StartCycle(ctx context.Context, req interface{}) 
 	}
 
 	// Check permission for cycle.start
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  startReq.UserID,
-		"resource": "cycle",
-		"action":   "start",
-		"object":   startReq.FarmID,
-		"org_id":   startReq.OrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, startReq.UserID, "cycle", "start", startReq.FarmID, startReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -97,13 +91,7 @@ func (s *CropCycleServiceImpl) UpdateCycle(ctx context.Context, req interface{})
 	}
 
 	// Check permission for cycle.update first
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  updateReq.UserID,
-		"resource": "cycle",
-		"action":   "update",
-		"object":   updateReq.ID,
-		"org_id":   updateReq.OrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, updateReq.UserID, "cycle", "update", updateReq.ID, updateReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -170,13 +158,7 @@ func (s *CropCycleServiceImpl) EndCycle(ctx context.Context, req interface{}) (i
 	}
 
 	// Check permission for cycle.end first
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  endReq.UserID,
-		"resource": "cycle",
-		"action":   "end",
-		"object":   endReq.ID,
-		"org_id":   endReq.OrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, endReq.UserID, "cycle", "end", endReq.ID, endReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -234,12 +216,7 @@ func (s *CropCycleServiceImpl) ListCycles(ctx context.Context, req interface{}) 
 	}
 
 	// Check permission for cycle.list
-	hasPermission, err := s.aaaService.CheckPermission(ctx, map[string]interface{}{
-		"subject":  listReq.UserID,
-		"resource": "cycle",
-		"action":   "list",
-		"org_id":   listReq.OrgID,
-	})
+	hasPermission, err := s.aaaService.CheckPermission(ctx, listReq.UserID, "cycle", "list", "", listReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
