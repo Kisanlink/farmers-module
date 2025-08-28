@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
@@ -19,7 +20,22 @@ func InitializeDatabase() {
 		// Load environment variables
 		config.LoadEnv()
 
-		dsn := config.GetEnv("DATABASE_URL")
+		// Get individual database connection variables from the environment
+		host := config.GetEnv("DB_HOST")
+		user := config.GetEnv("DB_USER")
+		password := config.GetEnv("DB_PASSWORD")
+		dbname := config.GetEnv("DB_NAME")
+		port := config.GetEnv("DB_PORT")
+		sslmode := config.GetEnv("DB_SSLMODE")
+
+		// Check if essential variables are set
+		if host == "" || user == "" || dbname == "" || port == "" {
+			log.Fatal("Error: One or more required database environment variables (DB_HOST, DB_USER, DB_NAME, DB_PORT) are not set.")
+		}
+
+		// Construct the DSN (Data Source Name) string
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+			host, user, password, dbname, port, sslmode)
 
 		// Connect to PostgreSQL
 		var err error
