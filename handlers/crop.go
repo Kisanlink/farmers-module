@@ -41,6 +41,36 @@ func (h *CropHandler) CreateCrop(c *gin.Context) {
 		crop.Stages[i].Order = i + 1
 	}
 
+	// Validate stages: each must have a non-empty StageID and no duplicates
+	if len(crop.Stages) > 0 {
+		seenStageIDs := make(map[string]struct{})
+		for _, stage := range crop.Stages {
+			if stage.StageID == "" {
+				c.JSON(http.StatusBadRequest, models.Response{
+					StatusCode: http.StatusBadRequest,
+					Success:    false,
+					Message:    "Invalid crop stages",
+					Data:       nil,
+					Error:      "each stage must include a non-empty stage_id",
+					TimeStamp:  time.Now().UTC().Format(time.RFC3339),
+				})
+				return
+			}
+			if _, exists := seenStageIDs[stage.StageID]; exists {
+				c.JSON(http.StatusBadRequest, models.Response{
+					StatusCode: http.StatusBadRequest,
+					Success:    false,
+					Message:    "Invalid crop stages",
+					Data:       nil,
+					Error:      "duplicate stage_id found in stages array",
+					TimeStamp:  time.Now().UTC().Format(time.RFC3339),
+				})
+				return
+			}
+			seenStageIDs[stage.StageID] = struct{}{}
+		}
+	}
+
 	// Validate Season if provided
 	if crop.Season != "" && !entities.CROP_SEASONS.IsValid(string(crop.Season)) {
 		c.JSON(http.StatusBadRequest, models.Response{
