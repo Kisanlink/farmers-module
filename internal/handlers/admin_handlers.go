@@ -45,9 +45,9 @@ type ComponentHealth struct {
 // @Accept json
 // @Produce json
 // @Param request body requests.SeedRolesAndPermissionsRequest false "Seed request parameters"
-// @Success 200 {object} AdminSeedResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerAdminSeedResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /admin/seed [post]
 func SeedRolesAndPermissions(service services.AdministrativeService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -139,9 +139,9 @@ type CheckPermissionData struct {
 // @Accept json
 // @Produce json
 // @Param permission body CheckPermissionRequest true "Permission check data"
-// @Success 200 {object} CheckPermissionResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerCheckPermissionResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /admin/permissions/check [post]
 func CheckPermission(service services.AAAService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -194,8 +194,8 @@ func CheckPermission(service services.AAAService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param components query string false "Comma-separated list of components to check"
-// @Success 200 {object} AdminHealthResponse
-// @Failure 503 {object} AdminHealthResponse
+// @Success 200 {object} responses.SwaggerAdminHealthResponse
+// @Failure 503 {object} responses.SwaggerAdminHealthResponse
 // @Router /admin/health [get]
 func HealthCheck(service services.AdministrativeService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -282,8 +282,8 @@ type AuditTrailFilters struct {
 // @Param end_date query string false "End date for audit logs (YYYY-MM-DD)"
 // @Param user_id query string false "Filter by user ID"
 // @Param action query string false "Filter by action"
-// @Success 200 {object} AuditTrailResponse
-// @Failure 400 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerAuditTrailResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
 // @Router /admin/audit [get]
 func GetAuditTrail() gin.HandlerFunc {
 	return func(c *gin.Context) {

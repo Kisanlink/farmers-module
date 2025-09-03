@@ -35,11 +35,11 @@ type FarmActivityListResponse struct {
 // @Accept json
 // @Produce json
 // @Param activity body requests.CreateActivityRequest true "Farm activity data"
-// @Success 201 {object} FarmActivityResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 201 {object} responses.SwaggerFarmActivityResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /activities [post]
 func CreateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -94,12 +94,12 @@ func CreateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 // @Produce json
 // @Param id path string true "Activity ID"
 // @Param activity body requests.CompleteActivityRequest true "Complete activity data"
-// @Success 200 {object} FarmActivityResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerFarmActivityResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /activities/{id}/complete [put]
 func CompleteFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -162,12 +162,12 @@ func CompleteFarmActivity(service services.FarmActivityService) gin.HandlerFunc 
 // @Produce json
 // @Param id path string true "Activity ID"
 // @Param activity body requests.UpdateActivityRequest true "Update activity data"
-// @Success 200 {object} FarmActivityResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerFarmActivityResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /activities/{id} [put]
 func UpdateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -300,12 +300,12 @@ func ListFarmActivities(service services.FarmActivityService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param id path string true "Activity ID"
-// @Success 200 {object} FarmActivityResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerFarmActivityResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /activities/{id} [get]
 func GetFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {

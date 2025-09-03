@@ -6,6 +6,7 @@ import (
 
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
+
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/gin-gonic/gin"
@@ -30,12 +31,12 @@ func NewReportingHandlers(reportingService services.ReportingService) *Reporting
 // @Accept json
 // @Produce json
 // @Param request body requests.ExportFarmerPortfolioRequest true "Export farmer portfolio request"
-// @Success 200 {object} responses.ExportFarmerPortfolioResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerExportFarmerPortfolioResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /api/v1/reports/farmer-portfolio [post]
 func (h *ReportingHandlers) ExportFarmerPortfolio(c *gin.Context) {
 	var req requests.ExportFarmerPortfolioRequest
@@ -85,11 +86,11 @@ func (h *ReportingHandlers) ExportFarmerPortfolio(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body requests.OrgDashboardCountersRequest true "Organization dashboard counters request"
-// @Success 200 {object} responses.OrgDashboardCountersResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerOrgDashboardCountersResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /api/v1/reports/org-dashboard [post]
 func (h *ReportingHandlers) OrgDashboardCounters(c *gin.Context) {
 	var req requests.OrgDashboardCountersRequest
@@ -137,12 +138,12 @@ func (h *ReportingHandlers) OrgDashboardCounters(c *gin.Context) {
 // @Param start_date query string false "Start date filter (RFC3339 format)"
 // @Param end_date query string false "End date filter (RFC3339 format)"
 // @Param format query string false "Export format" Enums(json, csv) default(json)
-// @Success 200 {object} responses.ExportFarmerPortfolioResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerExportFarmerPortfolioResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /api/v1/reports/farmer-portfolio/{farmer_id} [get]
 func (h *ReportingHandlers) ExportFarmerPortfolioByID(c *gin.Context) {
 	farmerID := c.Param("farmer_id")
@@ -215,11 +216,11 @@ func (h *ReportingHandlers) ExportFarmerPortfolioByID(c *gin.Context) {
 // @Param season query string false "Season filter" Enums(RABI, KHARIF, ZAID)
 // @Param start_date query string false "Start date filter (RFC3339 format)"
 // @Param end_date query string false "End date filter (RFC3339 format)"
-// @Success 200 {object} responses.OrgDashboardCountersResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerOrgDashboardCountersResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /api/v1/reports/org-dashboard/{org_id} [get]
 func (h *ReportingHandlers) OrgDashboardCountersByID(c *gin.Context) {
 	orgID := c.Param("org_id")

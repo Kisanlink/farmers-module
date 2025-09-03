@@ -12,8 +12,9 @@ type CreateFarmerRequest struct {
 // UpdateFarmerRequest represents a request to update an existing farmer
 type UpdateFarmerRequest struct {
 	BaseRequest
-	AAAUserID        string            `json:"aaa_user_id" validate:"required"`
-	AAAOrgID         string            `json:"aaa_org_id" validate:"required"`
+	FarmerID         string            `json:"farmer_id,omitempty"`   // Primary key lookup
+	AAAUserID        string            `json:"aaa_user_id,omitempty"` // User ID lookup (no org required)
+	AAAOrgID         string            `json:"aaa_org_id,omitempty"`  // Optional org filter
 	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty"`
 	Profile          FarmerProfileData `json:"profile,omitempty"`
 }
@@ -21,15 +22,17 @@ type UpdateFarmerRequest struct {
 // DeleteFarmerRequest represents a request to delete a farmer
 type DeleteFarmerRequest struct {
 	BaseRequest
-	AAAUserID string `json:"aaa_user_id" validate:"required"`
-	AAAOrgID  string `json:"aaa_org_id" validate:"required"`
+	FarmerID  string `json:"farmer_id,omitempty"`   // Primary key lookup
+	AAAUserID string `json:"aaa_user_id,omitempty"` // User ID lookup (no org required)
+	AAAOrgID  string `json:"aaa_org_id,omitempty"`  // Optional org filter
 }
 
 // GetFarmerRequest represents a request to retrieve a farmer
 type GetFarmerRequest struct {
 	BaseRequest
-	AAAUserID string `json:"aaa_user_id" validate:"required"`
-	AAAOrgID  string `json:"aaa_org_id" validate:"required"`
+	FarmerID  string `json:"farmer_id,omitempty"`   // Primary key lookup
+	AAAUserID string `json:"aaa_user_id,omitempty"` // User ID lookup (no org required)
+	AAAOrgID  string `json:"aaa_org_id,omitempty"`  // Optional org filter
 }
 
 // ListFarmersRequest represents a request to list farmers with filtering

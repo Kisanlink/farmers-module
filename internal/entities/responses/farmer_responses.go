@@ -36,6 +36,7 @@ type FarmerProfileResponse struct {
 
 // FarmerProfileData represents the profile data in responses
 type FarmerProfileData struct {
+	ID               string            `json:"id"` // Farmer ID (primary key)
 	AAAUserID        string            `json:"aaa_user_id"`
 	AAAOrgID         string            `json:"aaa_org_id"`
 	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty"`

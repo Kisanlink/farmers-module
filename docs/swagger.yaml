@@ -1,5 +1,204 @@
 basePath: /api/v1
 definitions:
+  handlers.CheckPermissionRequest:
+    properties:
+      action:
+        type: string
+      object:
+        type: string
+      org_id:
+        type: string
+      resource:
+        type: string
+      subject:
+        type: string
+    required:
+    - action
+    - resource
+    - subject
+    type: object
+  handlers.CompleteActivityData:
+    properties:
+      activity_id:
+        type: string
+      completed_at:
+        type: string
+    type: object
+  handlers.CompleteActivityRequest:
+    properties:
+      completed_at:
+        type: string
+      notes:
+        type: string
+      outcome:
+        type: string
+    required:
+    - completed_at
+    type: object
+  handlers.CompleteActivityResponse:
+    properties:
+      data:
+        $ref: '#/definitions/handlers.CompleteActivityData'
+      message:
+        type: string
+    type: object
+  handlers.CreateActivityData:
+    properties:
+      activity_type:
+        type: string
+      crop_cycle_id:
+        type: string
+      planned_at:
+        type: string
+    type: object
+  handlers.CreateActivityRequest:
+    properties:
+      activity_type:
+        type: string
+      crop_cycle_id:
+        type: string
+      description:
+        type: string
+      metadata:
+        type: string
+      planned_at:
+        type: string
+    required:
+    - activity_type
+    - crop_cycle_id
+    - planned_at
+    type: object
+  handlers.CreateActivityResponse:
+    properties:
+      data:
+        $ref: '#/definitions/handlers.CreateActivityData'
+      message:
+        type: string
+    type: object
+  handlers.DetectFarmOverlapsResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  handlers.FarmActivityListResponse:
+    properties:
+      data:
+        items: {}
+        type: array
+      message:
+        type: string
+      page:
+        type: integer
+      page_size:
+        type: integer
+      request_id:
+        type: string
+      success:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  handlers.GetFarmActivityData:
+    properties:
+      activity_id:
+        type: string
+    type: object
+  handlers.GetFarmActivityResponse:
+    properties:
+      data:
+        $ref: '#/definitions/handlers.GetFarmActivityData'
+      message:
+        type: string
+    type: object
+  handlers.ListActivitiesResponse:
+    properties:
+      data:
+        items: {}
+        type: array
+      message:
+        type: string
+    type: object
+  handlers.RebuildSpatialIndexesResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  handlers.ReconcileAAALinksResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  handlers.SimpleResponse:
+    properties:
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  handlers.UpdateActivityData:
+    properties:
+      activity_id:
+        type: string
+    type: object
+  handlers.UpdateActivityRequest:
+    properties:
+      activity_type:
+        type: string
+      metadata:
+        type: string
+      planned_at:
+        type: string
+    type: object
+  handlers.UpdateActivityResponse:
+    properties:
+      data:
+        $ref: '#/definitions/handlers.UpdateActivityData'
+      message:
+        type: string
+    type: object
+  handlers.ValidateGeometryResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  requests.AddressData:
+    properties:
+      city:
+        type: string
+      coordinates:
+        description: WKT format for PostGIS
+        type: string
+      country:
+        type: string
+      postal_code:
+        type: string
+      state:
+        type: string
+      street_address:
+        type: string
+    type: object
   requests.AssignKisanSathiRequest:
     properties:
       aaa_org_id:
@@ -46,6 +245,60 @@ definitions:
     - password
     - phone_number
     type: object
+  requests.CompleteActivityRequest:
+    properties:
+      completed_at:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      output:
+        additionalProperties:
+          type: string
+        type: object
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - completed_at
+    - id
+    type: object
+  requests.CreateActivityRequest:
+    properties:
+      activity_type:
+        type: string
+      crop_cycle_id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      planned_at:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - activity_type
+    - crop_cycle_id
+    type: object
   requests.CreateFPORequest:
     properties:
       business_config:
@@ -78,6 +331,64 @@ definitions:
     - ceo_user
     - name
     - registration_no
+    type: object
+  requests.CreateFarmRequest:
+    properties:
+      aaa_farmer_user_id:
+        type: string
+      aaa_org_id:
+        type: string
+      area_ha:
+        minimum: 0.01
+        type: number
+      geometry:
+        $ref: '#/definitions/requests.GeometryData'
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - aaa_farmer_user_id
+    - aaa_org_id
+    - area_ha
+    type: object
+  requests.CreateFarmerRequest:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      kisan_sathi_user_id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      profile:
+        $ref: '#/definitions/requests.FarmerProfileData'
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_id
     type: object
   requests.CreateKisanSathiUserRequest:
     properties:
@@ -114,6 +425,135 @@ definitions:
     - phone_number
     - username
     type: object
+  requests.DetectFarmOverlapsRequest:
+    properties:
+      limit:
+        description: Maximum number of overlaps to return
+        type: integer
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      min_overlap_area_ha:
+        description: Minimum overlap area in hectares to report
+        type: number
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    type: object
+  requests.EndCycleRequest:
+    properties:
+      end_date:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      outcome:
+        additionalProperties:
+          type: string
+        type: object
+      request_id:
+        type: string
+      request_type:
+        type: string
+      status:
+        enum:
+        - COMPLETED
+        - CANCELLED
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - end_date
+    - id
+    - status
+    type: object
+  requests.ExportFarmerPortfolioRequest:
+    properties:
+      end_date:
+        type: string
+      farmer_id:
+        type: string
+      format:
+        enum:
+        - json
+        - csv
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      season:
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        type: string
+      start_date:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - farmer_id
+    type: object
+  requests.FarmerProfileData:
+    properties:
+      address:
+        $ref: '#/definitions/requests.AddressData'
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      last_name:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      phone_number:
+        type: string
+      preferences:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  requests.GeometryData:
+    properties:
+      wkb:
+        description: Well-Known Binary format
+        items:
+          type: integer
+        type: array
+      wkt:
+        description: Well-Known Text format
+        type: string
+    type: object
   requests.LinkFarmerRequest:
     properties:
       aaa_org_id:
@@ -137,6 +577,33 @@ definitions:
     required:
     - aaa_org_id
     - aaa_user_id
+    type: object
+  requests.OrgDashboardCountersRequest:
+    properties:
+      end_date:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      season:
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        type: string
+      start_date:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
     type: object
   requests.ReassignKisanSathiRequest:
     properties:
@@ -164,6 +631,43 @@ definitions:
     required:
     - aaa_org_id
     - aaa_user_id
+    type: object
+  requests.RebuildSpatialIndexesRequest:
+    properties:
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    type: object
+  requests.ReconcileAAALinksRequest:
+    properties:
+      dry_run:
+        description: If true, only report what would be fixed without making changes
+        type: boolean
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
     type: object
   requests.RegisterFPORefRequest:
     properties:
@@ -195,6 +699,67 @@ definitions:
     - aaa_org_id
     - name
     type: object
+  requests.SeedRolesAndPermissionsRequest:
+    properties:
+      dry_run:
+        description: DryRun indicates whether to perform a dry run without making
+          changes
+        type: boolean
+      force:
+        description: Force indicates whether to force re-seeding even if already seeded
+        type: boolean
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    type: object
+  requests.StartCycleRequest:
+    properties:
+      farm_id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      planned_crops:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      request_id:
+        type: string
+      request_type:
+        type: string
+      season:
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        type: string
+      start_date:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - farm_id
+    - planned_crops
+    - season
+    - start_date
+    type: object
   requests.UnlinkFarmerRequest:
     properties:
       aaa_org_id:
@@ -219,6 +784,178 @@ definitions:
     - aaa_org_id
     - aaa_user_id
     type: object
+  requests.UpdateActivityRequest:
+    properties:
+      activity_type:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      planned_at:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - id
+    type: object
+  requests.UpdateCycleRequest:
+    properties:
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      planned_crops:
+        items:
+          type: string
+        type: array
+      request_id:
+        type: string
+      request_type:
+        type: string
+      season:
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        type: string
+      start_date:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - id
+    type: object
+  requests.UpdateFarmRequest:
+    properties:
+      aaa_farmer_user_id:
+        type: string
+      aaa_org_id:
+        type: string
+      area_ha:
+        type: number
+      geometry:
+        $ref: '#/definitions/requests.GeometryData'
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - id
+    type: object
+  requests.UpdateFarmerRequest:
+    properties:
+      aaa_org_id:
+        description: Optional org filter
+        type: string
+      aaa_user_id:
+        description: User ID lookup (no org required)
+        type: string
+      farmer_id:
+        description: Primary key lookup
+        type: string
+      kisan_sathi_user_id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      profile:
+        $ref: '#/definitions/requests.FarmerProfileData'
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    type: object
+  requests.ValidateGeometryRequest:
+    properties:
+      check_bounds:
+        description: Whether to check if geometry is within India bounds
+        type: boolean
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+      wkt:
+        type: string
+    required:
+    - wkt
+    type: object
+  responses.AddressData:
+    properties:
+      city:
+        type: string
+      coordinates:
+        type: string
+      country:
+        type: string
+      postal_code:
+        type: string
+      state:
+        type: string
+      street_address:
+        type: string
+    type: object
+  responses.ComponentHealth:
+    properties:
+      details:
+        additionalProperties: true
+        type: object
+      error:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+    type: object
   responses.CreateFPOData:
     properties:
       aaa_org_id:
@@ -237,6 +974,52 @@ definitions:
         items:
           $ref: '#/definitions/responses.UserGroupData'
         type: array
+    type: object
+  responses.CropCycleData:
+    properties:
+      created_at:
+        type: string
+      end_date:
+        type: string
+      farm_id:
+        type: string
+      farmer_id:
+        type: string
+      id:
+        type: string
+      outcome:
+        additionalProperties:
+          type: string
+        type: object
+      planned_crops:
+        items:
+          type: string
+        type: array
+      season:
+        type: string
+      start_date:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  responses.ErrorResponse:
+    properties:
+      code:
+        type: string
+      correlation_id:
+        type: string
+      details:
+        additionalProperties:
+          type: string
+        type: object
+      error:
+        type: string
+      message:
+        type: string
+      timestamp:
+        type: string
     type: object
   responses.FPORefData:
     properties:
@@ -265,6 +1048,58 @@ definitions:
       updated_at:
         type: string
     type: object
+  responses.FarmActivityData:
+    properties:
+      activity_type:
+        type: string
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      crop_cycle_id:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      output:
+        additionalProperties:
+          type: string
+        type: object
+      planned_at:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  responses.FarmData:
+    properties:
+      aaa_farmer_user_id:
+        type: string
+      aaa_org_id:
+        type: string
+      area_ha:
+        type: number
+      created_at:
+        type: string
+      geometry:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
   responses.FarmerLinkageData:
     properties:
       aaa_org_id:
@@ -283,6 +1118,48 @@ definitions:
         type: string
       unlinked_at:
         type: string
+      updated_at:
+        type: string
+    type: object
+  responses.FarmerProfileData:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      address:
+        $ref: '#/definitions/responses.AddressData'
+      created_at:
+        type: string
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      farms:
+        items:
+          $ref: '#/definitions/responses.FarmData'
+        type: array
+      first_name:
+        type: string
+      gender:
+        type: string
+      id:
+        description: Farmer ID (primary key)
+        type: string
+      kisan_sathi_user_id:
+        type: string
+      last_name:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      phone_number:
+        type: string
+      preferences:
+        additionalProperties:
+          type: string
+        type: object
       updated_at:
         type: string
     type: object
@@ -330,10 +1207,130 @@ definitions:
       username:
         type: string
     type: object
+  responses.SwaggerAdminHealthResponse:
+    properties:
+      components:
+        additionalProperties:
+          $ref: '#/definitions/responses.ComponentHealth'
+        type: object
+      duration:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  responses.SwaggerAdminSeedResponse:
+    properties:
+      duration:
+        type: string
+      error:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  responses.SwaggerAuditTrailData:
+    properties:
+      audit_logs:
+        items: {}
+        type: array
+      filters:
+        $ref: '#/definitions/responses.SwaggerAuditTrailFilters'
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total_count:
+        type: integer
+    type: object
+  responses.SwaggerAuditTrailFilters:
+    properties:
+      action:
+        type: string
+      end_date:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+  responses.SwaggerAuditTrailResponse:
+    properties:
+      correlation_id:
+        type: string
+      data:
+        $ref: '#/definitions/responses.SwaggerAuditTrailData'
+      message:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  responses.SwaggerCheckPermissionData:
+    properties:
+      action:
+        type: string
+      allowed:
+        type: boolean
+      object:
+        type: string
+      org_id:
+        type: string
+      resource:
+        type: string
+      subject:
+        type: string
+    type: object
+  responses.SwaggerCheckPermissionResponse:
+    properties:
+      correlation_id:
+        type: string
+      data:
+        $ref: '#/definitions/responses.SwaggerCheckPermissionData'
+      message:
+        type: string
+      timestamp:
+        type: string
+    type: object
   responses.SwaggerCreateFPOResponse:
     properties:
       data:
         $ref: '#/definitions/responses.CreateFPOData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  responses.SwaggerCropCycleListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/responses.CropCycleData'
+        type: array
+      message:
+        type: string
+      page:
+        type: integer
+      page_size:
+        type: integer
+      request_id:
+        type: string
+      success:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  responses.SwaggerCropCycleResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.CropCycleData'
       message:
         type: string
       request_id:
@@ -356,6 +1353,16 @@ definitions:
       request_id:
         type: string
     type: object
+  responses.SwaggerExportFarmerPortfolioResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
   responses.SwaggerFPORefResponse:
     properties:
       data:
@@ -367,10 +1374,81 @@ definitions:
       success:
         type: boolean
     type: object
+  responses.SwaggerFarmActivityResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.FarmActivityData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  responses.SwaggerFarmListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/responses.FarmData'
+        type: array
+      message:
+        type: string
+      page:
+        type: integer
+      page_size:
+        type: integer
+      request_id:
+        type: string
+      success:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  responses.SwaggerFarmResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.FarmData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
   responses.SwaggerFarmerLinkageResponse:
     properties:
       data:
         $ref: '#/definitions/responses.FarmerLinkageData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  responses.SwaggerFarmerListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/responses.FarmerProfileData'
+        type: array
+      message:
+        type: string
+      page:
+        type: integer
+      page_size:
+        type: integer
+      request_id:
+        type: string
+      success:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  responses.SwaggerFarmerResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.FarmerProfileData'
       message:
         type: string
       request_id:
@@ -393,6 +1471,16 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/responses.KisanSathiUserData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  responses.SwaggerOrgDashboardCountersResponse:
+    properties:
+      data: {}
       message:
         type: string
       request_id:
@@ -424,24 +1512,272 @@ info:
   title: Farmers Module API
   version: 1.0.0
 paths:
-  /admin/audit:
+  /activities:
     get:
       consumes:
       - application/json
-      description: Retrieve the audit trail for system activities
+      description: Get a paginated list of farm activities with optional filtering
+      parameters:
+      - description: Filter by crop cycle ID
+        in: query
+        name: crop_cycle_id
+        type: string
+      - description: Filter by activity type
+        in: query
+        name: activity_type
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by date from (YYYY-MM-DD)
+        in: query
+        name: date_from
+        type: string
+      - description: Filter by date to (YYYY-MM-DD)
+        in: query
+        name: date_to
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handlers.FarmActivityListResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: List farm activities
+      tags:
+      - farm-activities
+    post:
+      consumes:
+      - application/json
+      description: Create a new farm activity within a crop cycle
+      parameters:
+      - description: Farm activity data
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmActivityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Create a new farm activity
+      tags:
+      - farm-activities
+  /activities/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific farm activity by its ID
+      parameters:
+      - description: Activity ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmActivityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get a farm activity by ID
+      tags:
+      - farm-activities
+    put:
+      consumes:
+      - application/json
+      description: Update farm activity details (only for non-completed activities)
+      parameters:
+      - description: Activity ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update activity data
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdateActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmActivityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Update a farm activity
+      tags:
+      - farm-activities
+  /activities/{id}/complete:
+    put:
+      consumes:
+      - application/json
+      description: Mark a farm activity as completed with output data
+      parameters:
+      - description: Activity ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Complete activity data
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CompleteActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmActivityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Complete a farm activity
+      tags:
+      - farm-activities
+  /admin/audit:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the audit trail for system activities
+      parameters:
+      - description: Start date for audit logs (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End date for audit logs (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      - description: Filter by user ID
+        in: query
+        name: user_id
+        type: string
+      - description: Filter by action
+        in: query
+        name: action
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerAuditTrailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Get audit trail
       tags:
       - admin
@@ -449,15 +1785,23 @@ paths:
     get:
       consumes:
       - application/json
-      description: Check the health status of the service
+      description: Check the health status of the service and its dependencies
+      parameters:
+      - description: Comma-separated list of components to check
+        in: query
+        name: components
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerAdminHealthResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/responses.SwaggerAdminHealthResponse'
       summary: Health check
       tags:
       - admin
@@ -472,20 +1816,22 @@ paths:
         name: permission
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/handlers.CheckPermissionRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerCheckPermissionResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Check user permission
       tags:
       - admin
@@ -494,22 +1840,387 @@ paths:
       consumes:
       - application/json
       description: Initialize the system with default roles and permissions
+      parameters:
+      - description: Seed request parameters
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/requests.SeedRolesAndPermissionsRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerAdminSeedResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Seed roles and permissions
       tags:
       - admin
+  /api/v1/data-quality/detect-farm-overlaps:
+    post:
+      consumes:
+      - application/json
+      description: Detects spatial intersections between farm boundaries within an
+        organization
+      parameters:
+      - description: Detect farm overlaps request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.DetectFarmOverlapsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DetectFarmOverlapsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Detect farm overlaps
+      tags:
+      - Data Quality
+  /api/v1/data-quality/rebuild-spatial-indexes:
+    post:
+      consumes:
+      - application/json
+      description: Rebuilds GIST indexes for spatial tables for database maintenance
+      parameters:
+      - description: Rebuild spatial indexes request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RebuildSpatialIndexesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.RebuildSpatialIndexesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Rebuild spatial indexes
+      tags:
+      - Data Quality
+  /api/v1/data-quality/reconcile-aaa-links:
+    post:
+      consumes:
+      - application/json
+      description: Heals broken AAA references in farmer_links by checking against
+        AAA service
+      parameters:
+      - description: Reconcile AAA links request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ReconcileAAALinksRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ReconcileAAALinksResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Reconcile AAA links
+      tags:
+      - Data Quality
+  /api/v1/data-quality/validate-geometry:
+    post:
+      consumes:
+      - application/json
+      description: Validates WKT geometry using PostGIS with SRID enforcement and
+        integrity checks
+      parameters:
+      - description: Validate geometry request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ValidateGeometryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ValidateGeometryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Validate geometry
+      tags:
+      - Data Quality
+  /api/v1/reports/farmer-portfolio:
+    post:
+      consumes:
+      - application/json
+      description: Aggregates farms, cycles, and activities data for a farmer with
+        proper scope validation
+      parameters:
+      - description: Export farmer portfolio request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ExportFarmerPortfolioRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerExportFarmerPortfolioResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Export farmer portfolio
+      tags:
+      - Reporting
+  /api/v1/reports/farmer-portfolio/{farmer_id}:
+    get:
+      consumes:
+      - application/json
+      description: Exports farmer portfolio data for a specific farmer ID from URL
+        path
+      parameters:
+      - description: Farmer ID
+        in: path
+        name: farmer_id
+        required: true
+        type: string
+      - description: Season filter
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        in: query
+        name: season
+        type: string
+      - description: Start date filter (RFC3339 format)
+        in: query
+        name: start_date
+        type: string
+      - description: End date filter (RFC3339 format)
+        in: query
+        name: end_date
+        type: string
+      - default: json
+        description: Export format
+        enum:
+        - json
+        - csv
+        in: query
+        name: format
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerExportFarmerPortfolioResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Export farmer portfolio by ID
+      tags:
+      - Reporting
+  /api/v1/reports/org-dashboard:
+    post:
+      consumes:
+      - application/json
+      description: Provides org-level KPIs including counts and areas by season/status
+        with proper scope validation
+      parameters:
+      - description: Organization dashboard counters request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.OrgDashboardCountersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerOrgDashboardCountersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get organization dashboard counters
+      tags:
+      - Reporting
+  /api/v1/reports/org-dashboard/{org_id}:
+    get:
+      consumes:
+      - application/json
+      description: Gets organization dashboard counters for a specific org ID from
+        URL path
+      parameters:
+      - description: Organization ID
+        in: path
+        name: org_id
+        required: true
+        type: string
+      - description: Season filter
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        in: query
+        name: season
+        type: string
+      - description: Start date filter (RFC3339 format)
+        in: query
+        name: start_date
+        type: string
+      - description: End date filter (RFC3339 format)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerOrgDashboardCountersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get organization dashboard counters by ID
+      tags:
+      - Reporting
   /crops/activities:
     get:
       consumes:
@@ -521,13 +2232,11 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handlers.ListActivitiesResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: List farm activities
       tags:
       - farm-activities
@@ -541,20 +2250,18 @@ paths:
         name: activity
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/handlers.CreateActivityRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handlers.CreateActivityResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Create a new farm activity
       tags:
       - farm-activities
@@ -575,13 +2282,11 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handlers.GetFarmActivityResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Get farm activity by ID
       tags:
       - farm-activities
@@ -600,20 +2305,18 @@ paths:
         name: activity
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/handlers.UpdateActivityRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handlers.UpdateActivityResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Update a farm activity
       tags:
       - farm-activities
@@ -633,20 +2336,18 @@ paths:
         name: activity
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/handlers.CompleteActivityRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handlers.CompleteActivityResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Complete a farm activity
       tags:
       - farm-activities
@@ -654,20 +2355,66 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve a list of all crop cycles
+      description: Retrieve a list of all crop cycles with filtering
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Filter by farm ID
+        in: query
+        name: farm_id
+        type: string
+      - description: Filter by farmer ID
+        in: query
+        name: farmer_id
+        type: string
+      - description: Filter by season
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        in: query
+        name: season
+        type: string
+      - description: Filter by status
+        enum:
+        - PLANNED
+        - ACTIVE
+        - COMPLETED
+        - CANCELLED
+        in: query
+        name: status
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerCropCycleListResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: List crop cycles
       tags:
       - crop-cycles
@@ -681,20 +2428,30 @@ paths:
         name: cycle
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/requests.StartCycleRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerCropCycleResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Start a new crop cycle
       tags:
       - crop-cycles
@@ -715,13 +2472,27 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerCropCycleResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Get crop cycle by ID
       tags:
       - crop-cycles
@@ -740,20 +2511,34 @@ paths:
         name: cycle
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/requests.UpdateCycleRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerCropCycleResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Update a crop cycle
       tags:
       - crop-cycles
@@ -773,20 +2558,34 @@ paths:
         name: cycle
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/requests.EndCycleRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerCropCycleResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: End a crop cycle
       tags:
       - crop-cycles
@@ -795,19 +2594,48 @@ paths:
       consumes:
       - application/json
       description: Retrieve a list of all farms with optional filtering
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Filter by farmer ID
+        in: query
+        name: farmer_id
+        type: string
+      - description: Filter by organization ID
+        in: query
+        name: org_id
+        type: string
+      - description: Minimum area in hectares
+        in: query
+        name: min_area
+        type: number
+      - description: Maximum area in hectares
+        in: query
+        name: max_area
+        type: number
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerFarmListResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: List all farms
       tags:
       - farms
@@ -821,20 +2649,22 @@ paths:
         name: farm
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/requests.CreateFarmRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerFarmResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Create a new farm
       tags:
       - farms
@@ -852,16 +2682,20 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
+        "204":
+          description: Farm deleted successfully
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Delete a farm
       tags:
       - farms
@@ -881,13 +2715,19 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerFarmResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Get farm by ID
       tags:
       - farms
@@ -906,20 +2746,26 @@ paths:
         name: farm
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/requests.UpdateFarmRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerFarmResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Update an existing farm
       tags:
       - farms
@@ -1074,15 +2920,15 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/responses.SwaggerFarmerListResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: List farmers
       tags:
       - identity
@@ -1096,26 +2942,26 @@ paths:
         name: farmer
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/requests.CreateFarmerRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            type: object
+            $ref: '#/definitions/responses.SwaggerFarmerResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "409":
           description: Conflict
           schema:
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Create a new farmer
       tags:
       - identity
@@ -1123,7 +2969,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete a farmer profile
+      description: Delete a farmer profile by user ID and org ID
       parameters:
       - description: AAA User ID
         in: path
@@ -1141,20 +2987,20 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/handlers.SimpleResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "404":
           description: Not Found
           schema:
-            type: object
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: object
-      summary: Delete farmer
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Delete farmer by user ID and org ID
       tags:
       - identity
     get:
@@ -1178,26 +3024,26 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/responses.SwaggerFarmerResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "404":
           description: Not Found
           schema:
-            type: object
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: object
-      summary: Get farmer by ID
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get farmer by user ID and org ID
       tags:
       - identity
     put:
       consumes:
       - application/json
-      description: Update an existing farmer profile
+      description: Update an existing farmer profile by user ID and org ID
       parameters:
       - description: AAA User ID
         in: path
@@ -1214,27 +3060,233 @@ paths:
         name: farmer
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/requests.UpdateFarmerRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/responses.SwaggerFarmerResponse'
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "404":
           description: Not Found
           schema:
-            type: object
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: object
-      summary: Update farmer
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Update farmer by user ID and org ID
+      tags:
+      - identity
+  /identity/farmers/id/{farmer_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a farmer profile by farmer ID (primary key)
+      parameters:
+      - description: Farmer ID
+        in: path
+        name: farmer_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SimpleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Delete farmer by farmer ID
+      tags:
+      - identity
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a farmer profile by farmer ID (primary key)
+      parameters:
+      - description: Farmer ID
+        in: path
+        name: farmer_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get farmer by farmer ID
+      tags:
+      - identity
+    put:
+      consumes:
+      - application/json
+      description: Update an existing farmer profile by farmer ID (primary key)
+      parameters:
+      - description: Farmer ID
+        in: path
+        name: farmer_id
+        required: true
+        type: string
+      - description: Farmer update data
+        in: body
+        name: farmer
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdateFarmerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Update farmer by farmer ID
+      tags:
+      - identity
+  /identity/farmers/user/{aaa_user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a farmer profile by user ID (no org required)
+      parameters:
+      - description: AAA User ID
+        in: path
+        name: aaa_user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SimpleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Delete farmer by user ID only
+      tags:
+      - identity
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a farmer profile by AAA user ID (no org required)
+      parameters:
+      - description: AAA User ID
+        in: path
+        name: aaa_user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get farmer by user ID only
+      tags:
+      - identity
+    put:
+      consumes:
+      - application/json
+      description: Update an existing farmer profile by user ID (no org required)
+      parameters:
+      - description: AAA User ID
+        in: path
+        name: aaa_user_id
+        required: true
+        type: string
+      - description: Farmer update data
+        in: body
+        name: farmer
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdateFarmerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Update farmer by user ID only
       tags:
       - identity
   /identity/link-farmer:

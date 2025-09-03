@@ -289,7 +289,7 @@ func TestCheckPermission_Success(t *testing.T) {
 		Allowed: true,
 	}
 
-	mockAuthzClient.On("Check", ctx, expectedRequest).Return(expectedResponse, nil)
+	mockAuthzClient.On("Check", mock.Anything, expectedRequest).Return(expectedResponse, nil)
 
 	allowed, err := client.CheckPermission(ctx, subject, resource, action, object, orgID)
 
@@ -319,7 +319,7 @@ func TestCheckPermission_Denied(t *testing.T) {
 		Allowed: false,
 	}
 
-	mockAuthzClient.On("Check", ctx, expectedRequest).Return(expectedResponse, nil)
+	mockAuthzClient.On("Check", mock.Anything, expectedRequest).Return(expectedResponse, nil)
 
 	allowed, err := client.CheckPermission(ctx, subject, resource, action, object, orgID)
 
@@ -372,7 +372,7 @@ func TestCheckPermission_WildcardObject(t *testing.T) {
 		Allowed: true,
 	}
 
-	mockAuthzClient.On("Check", ctx, expectedRequest).Return(expectedResponse, nil)
+	mockAuthzClient.On("Check", mock.Anything, expectedRequest).Return(expectedResponse, nil)
 
 	allowed, err := client.CheckPermission(ctx, subject, resource, action, object, orgID)
 
@@ -382,67 +382,64 @@ func TestCheckPermission_WildcardObject(t *testing.T) {
 }
 
 func TestHealthCheck_Success(t *testing.T) {
-	client, _, mockAuthzClient := createTestClient()
+	client, mockUserClient, _ := createTestClient()
 	ctx := context.Background()
 
-	expectedRequest := &proto.CheckRequest{
-		PrincipalId:  "health-check",
-		ResourceType: "system",
-		ResourceId:   "health",
-		Action:       "check",
+	expectedRequest := &proto.GetUserRequestV2{
+		Id: "health-check-user-id",
 	}
 
-	expectedResponse := &proto.CheckResponse{
-		Allowed: false, // Permission denied is OK for health check
-	}
-
-	mockAuthzClient.On("Check", mock.AnythingOfType("*context.timerCtx"), expectedRequest).Return(expectedResponse, nil)
+	// Mock GetUser to return NotFound error, which indicates service is healthy
+	mockUserClient.On("GetUser", mock.Anything, expectedRequest).Return(
+		(*proto.GetUserResponseV2)(nil),
+		status.Error(codes.NotFound, "user not found"),
+	)
 
 	err := client.HealthCheck(ctx)
 
 	assert.NoError(t, err)
-	mockAuthzClient.AssertExpectations(t)
+	mockUserClient.AssertExpectations(t)
 }
 
 func TestHealthCheck_PermissionDeniedIsHealthy(t *testing.T) {
-	client, _, mockAuthzClient := createTestClient()
+	client, mockUserClient, _ := createTestClient()
 	ctx := context.Background()
 
-	expectedRequest := &proto.CheckRequest{
-		PrincipalId:  "health-check",
-		ResourceType: "system",
-		ResourceId:   "health",
-		Action:       "check",
+	expectedRequest := &proto.GetUserRequestV2{
+		Id: "health-check-user-id",
 	}
 
-	mockAuthzClient.On("Check", mock.AnythingOfType("*context.timerCtx"), expectedRequest).Return(
-		(*proto.CheckResponse)(nil), status.Error(codes.PermissionDenied, "permission denied"))
+	// Mock GetUser to return PermissionDenied error, which indicates service is healthy
+	mockUserClient.On("GetUser", mock.Anything, expectedRequest).Return(
+		(*proto.GetUserResponseV2)(nil),
+		status.Error(codes.PermissionDenied, "permission denied"),
+	)
 
 	err := client.HealthCheck(ctx)
 
 	assert.NoError(t, err) // Permission denied means service is healthy
-	mockAuthzClient.AssertExpectations(t)
+	mockUserClient.AssertExpectations(t)
 }
 
 func TestHealthCheck_ServiceUnavailable(t *testing.T) {
-	client, _, mockAuthzClient := createTestClient()
+	client, mockUserClient, _ := createTestClient()
 	ctx := context.Background()
 
-	expectedRequest := &proto.CheckRequest{
-		PrincipalId:  "health-check",
-		ResourceType: "system",
-		ResourceId:   "health",
-		Action:       "check",
+	expectedRequest := &proto.GetUserRequestV2{
+		Id: "health-check-user-id",
 	}
 
-	mockAuthzClient.On("Check", mock.AnythingOfType("*context.timerCtx"), expectedRequest).Return(
-		(*proto.CheckResponse)(nil), status.Error(codes.Unavailable, "service unavailable"))
+	// Mock GetUser to return Unavailable error, which indicates service is unhealthy
+	mockUserClient.On("GetUser", mock.Anything, expectedRequest).Return(
+		(*proto.GetUserResponseV2)(nil),
+		status.Error(codes.Unavailable, "service unavailable"),
+	)
 
 	err := client.HealthCheck(ctx)
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "AAA service health check failed")
-	mockAuthzClient.AssertExpectations(t)
+	mockUserClient.AssertExpectations(t)
 }
 
 func TestAddRequestMetadata(t *testing.T) {

@@ -25,13 +25,31 @@ func RegisterIdentityRoutes(router *gin.RouterGroup, services *services.ServiceF
 			// List farmers with filtering and pagination
 			farmers.GET("", handlers.ListFarmers(services.FarmerService, logger))
 
-			// Get farmer by ID
+			// Get farmer by farmer ID (primary key)
+			farmers.GET("/id/:farmer_id", handlers.GetFarmerByID(services.FarmerService, logger))
+
+			// Get farmer by user ID only (no org required)
+			farmers.GET("/user/:aaa_user_id", handlers.GetFarmerByUserID(services.FarmerService, logger))
+
+			// Get farmer by user ID and org ID (legacy endpoint)
 			farmers.GET("/:aaa_user_id/:aaa_org_id", handlers.GetFarmer(services.FarmerService, logger))
 
-			// Update farmer with validation
+			// Update farmer by farmer ID (primary key)
+			farmers.PUT("/id/:farmer_id", validationMiddleware.ValidateFarmerCreation(), handlers.UpdateFarmerByID(services.FarmerService, logger))
+
+			// Update farmer by user ID only (no org required)
+			farmers.PUT("/user/:aaa_user_id", validationMiddleware.ValidateFarmerCreation(), handlers.UpdateFarmerByUserID(services.FarmerService, logger))
+
+			// Update farmer by user ID and org ID (legacy endpoint)
 			farmers.PUT("/:aaa_user_id/:aaa_org_id", validationMiddleware.ValidateFarmerCreation(), handlers.UpdateFarmer(services.FarmerService, logger))
 
-			// Delete farmer
+			// Delete farmer by farmer ID (primary key)
+			farmers.DELETE("/id/:farmer_id", handlers.DeleteFarmerByID(services.FarmerService, logger))
+
+			// Delete farmer by user ID only (no org required)
+			farmers.DELETE("/user/:aaa_user_id", handlers.DeleteFarmerByUserID(services.FarmerService, logger))
+
+			// Delete farmer by user ID and org ID (legacy endpoint)
 			farmers.DELETE("/:aaa_user_id/:aaa_org_id", handlers.DeleteFarmer(services.FarmerService, logger))
 		}
 

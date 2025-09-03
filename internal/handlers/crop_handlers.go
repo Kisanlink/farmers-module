@@ -38,11 +38,11 @@ type CropCycleListResponse struct {
 // @Accept json
 // @Produce json
 // @Param cycle body requests.StartCycleRequest true "Crop cycle data"
-// @Success 201 {object} CropCycleResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 201 {object} responses.SwaggerCropCycleResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /crops/cycles [post]
 func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -86,12 +86,12 @@ func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Produce json
 // @Param cycle_id path string true "Crop Cycle ID"
 // @Param cycle body requests.UpdateCycleRequest true "Crop cycle update data"
-// @Success 200 {object} CropCycleResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerCropCycleResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /crops/cycles/{cycle_id} [put]
 func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -139,12 +139,12 @@ func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Produce json
 // @Param cycle_id path string true "Crop Cycle ID"
 // @Param cycle body requests.EndCycleRequest true "Crop cycle end data"
-// @Success 200 {object} CropCycleResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerCropCycleResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /crops/cycles/{cycle_id}/end [post]
 func EndCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -196,11 +196,11 @@ func EndCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Param farmer_id query string false "Filter by farmer ID"
 // @Param season query string false "Filter by season" Enums(RABI, KHARIF, ZAID)
 // @Param status query string false "Filter by status" Enums(PLANNED, ACTIVE, COMPLETED, CANCELLED)
-// @Success 200 {object} CropCycleListResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerCropCycleListResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /crops/cycles [get]
 func ListCycles(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -246,12 +246,12 @@ func ListCycles(service services.CropCycleService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param cycle_id path string true "Crop Cycle ID"
-// @Success 200 {object} CropCycleResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerCropCycleResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
 // @Router /crops/cycles/{cycle_id} [get]
 func GetCropCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -307,7 +307,7 @@ type CreateActivityData struct {
 // @Produce json
 // @Param activity body CreateActivityRequest true "Farm activity data"
 // @Success 200 {object} CreateActivityResponse
-// @Failure 400 {object} responses.ErrorResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
 // @Router /crops/activities [post]
 func CreateActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -364,7 +364,7 @@ type CompleteActivityData struct {
 // @Param activity_id path string true "Activity ID"
 // @Param activity body CompleteActivityRequest true "Activity completion data"
 // @Success 200 {object} CompleteActivityResponse
-// @Failure 400 {object} responses.ErrorResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
 // @Router /crops/activities/{activity_id}/complete [post]
 func CompleteActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -420,7 +420,7 @@ type UpdateActivityData struct {
 // @Param activity_id path string true "Activity ID"
 // @Param activity body UpdateActivityRequest true "Activity update data"
 // @Success 200 {object} UpdateActivityResponse
-// @Failure 400 {object} responses.ErrorResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
 // @Router /crops/activities/{activity_id} [put]
 func UpdateActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -461,7 +461,7 @@ type ListActivitiesResponse struct {
 // @Accept json
 // @Produce json
 // @Success 200 {object} ListActivitiesResponse
-// @Failure 400 {object} responses.ErrorResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
 // @Router /crops/activities [get]
 func ListActivities(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -492,7 +492,7 @@ type GetFarmActivityData struct {
 // @Produce json
 // @Param activity_id path string true "Activity ID"
 // @Success 200 {object} GetFarmActivityResponse
-// @Failure 400 {object} responses.ErrorResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
 // @Router /crops/activities/{activity_id} [get]
 func GetCropFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {

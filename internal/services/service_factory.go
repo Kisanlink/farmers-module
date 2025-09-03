@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"log"
 
 	"github.com/Kisanlink/farmers-module/internal/clients/aaa"
 	"github.com/Kisanlink/farmers-module/internal/config"
@@ -44,18 +45,27 @@ type ServiceFactory struct {
 
 // NewServiceFactory creates a new service factory
 func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.PostgresManager, cfg *config.Config, logger interfaces.Logger) *ServiceFactory {
-	// Initialize AAA client first as it's used by other services
-	aaaClient, err := aaa.NewClient(cfg)
-	if err != nil {
-		// Log warning but continue - services will handle nil client gracefully
-		// log.Printf("Warning: Failed to create AAA client: %v", err)
+	var aaaClient *aaa.Client
+	var err error
+
+	// Initialize AAA client only if enabled
+	if cfg.AAA.Enabled {
+		aaaClient, err = aaa.NewClient(cfg)
+		if err != nil {
+			log.Printf("Warning: Failed to create AAA client: %v", err)
+			log.Printf("Services will run in degraded mode without AAA integration")
+			aaaClient = nil
+		}
+	} else {
+		log.Printf("AAA service integration is disabled")
+		aaaClient = nil
 	}
 
 	// Initialize AAA service
 	aaaService := NewAAAService(cfg)
 
 	// Initialize identity services
-	farmerService := NewFarmerService(postgresManager, aaaService)
+	farmerService := NewFarmerService(repoFactory.FarmerRepo, aaaService)
 	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo, aaaService)
 	fpoService := NewFPOService(repoFactory.FPORefRepo, aaaService)
 	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo, aaaService)

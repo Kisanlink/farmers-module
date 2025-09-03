@@ -42,10 +42,20 @@ type AAAServiceImpl struct {
 
 // NewAAAService creates a new AAA service
 func NewAAAService(cfg *config.Config) AAAService {
-	client, err := aaa.NewClient(cfg)
-	if err != nil {
-		log.Printf("Warning: Failed to create AAA client: %v", err)
-		// Continue without client for now
+	var client AAAClientInterface
+	var err error
+
+	// Only create client if AAA is enabled
+	if cfg.AAA.Enabled {
+		client, err = aaa.NewClient(cfg)
+		if err != nil {
+			log.Printf("Warning: Failed to create AAA client: %v", err)
+			log.Printf("AAA service will run in degraded mode without external integration")
+			client = nil
+		}
+	} else {
+		log.Printf("AAA service integration is disabled")
+		client = nil
 	}
 
 	return &AAAServiceImpl{

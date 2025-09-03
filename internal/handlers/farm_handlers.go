@@ -6,6 +6,7 @@ import (
 
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
+
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/gin-gonic/gin"
 )
@@ -36,9 +37,9 @@ type FarmListResponse struct {
 // @Accept json
 // @Produce json
 // @Param farm body requests.CreateFarmRequest true "Farm data"
-// @Success 201 {object} FarmResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
+// @Success 201 {object} responses.SwaggerFarmResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
 // @Router /farms [post]
 func CreateFarm(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -79,10 +80,10 @@ func CreateFarm(service services.FarmService) gin.HandlerFunc {
 // @Produce json
 // @Param farm_id path string true "Farm ID"
 // @Param farm body requests.UpdateFarmRequest true "Farm update data"
-// @Success 200 {object} FarmResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerFarmResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
 // @Router /farms/{farm_id} [put]
 func UpdateFarm(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -125,9 +126,9 @@ func UpdateFarm(service services.FarmService) gin.HandlerFunc {
 // @Produce json
 // @Param farm_id path string true "Farm ID"
 // @Success 204 "Farm deleted successfully"
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
 // @Router /farms/{farm_id} [delete]
 func DeleteFarm(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -163,9 +164,9 @@ func DeleteFarm(service services.FarmService) gin.HandlerFunc {
 // @Param org_id query string false "Filter by organization ID"
 // @Param min_area query number false "Minimum area in hectares"
 // @Param max_area query number false "Maximum area in hectares"
-// @Success 200 {object} FarmListResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerFarmListResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
 // @Router /farms [get]
 func ListFarms(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -228,10 +229,10 @@ func ListFarms(service services.FarmService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param farm_id path string true "Farm ID"
-// @Success 200 {object} responses.FarmResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerFarmResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
 // @Router /farms/{farm_id} [get]
 func GetFarm(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {

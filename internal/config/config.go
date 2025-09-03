@@ -43,6 +43,7 @@ type AAAConfig struct {
 	RetryAttempts  int
 	RetryBackoff   string
 	RequestTimeout string
+	Enabled        bool
 }
 
 // ObservabilityConfig holds observability configuration
@@ -77,11 +78,12 @@ func Load() *Config {
 			Host: getEnv("HOST", "0.0.0.0"),
 		},
 		AAA: AAAConfig{
-			GRPCEndpoint:   getEnv("AAA_GRPC_ADDR", "localhost:50052"),
+			GRPCEndpoint:   getEnv("AAA_GRPC_ADDR", "localhost:50051"),
 			Token:          getEnv("AAA_TOKEN", ""),
 			RetryAttempts:  getEnvAsInt("AAA_RETRY_ATTEMPTS", 3),
 			RetryBackoff:   getEnv("AAA_RETRY_BACKOFF", "100ms"),
 			RequestTimeout: getEnv("AAA_REQUEST_TIMEOUT", "5s"),
+			Enabled:        getEnvAsBool("AAA_ENABLED", true),
 		},
 		Observability: ObservabilityConfig{
 			LogLevel:                 getEnv("LOG_LEVEL", "info"),
