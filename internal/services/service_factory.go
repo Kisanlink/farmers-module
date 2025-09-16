@@ -36,6 +36,9 @@ type ServiceFactory struct {
 	// Administrative Services
 	AdministrativeService AdministrativeService
 
+	// Bulk Operations Services
+	BulkFarmerService BulkFarmerService
+
 	// AAA Integration Service
 	AAAService AAAService
 
@@ -92,6 +95,16 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	concreteAdminService := NewAdministrativeService(postgresManager, gormDB, aaaService)
 	administrativeService := NewAdministrativeServiceWrapper(concreteAdminService)
 
+	// Initialize bulk farmer service
+	bulkFarmerService := NewBulkFarmerService(
+		repoFactory.BulkOperationRepo,
+		repoFactory.ProcessingDetailRepo,
+		farmerService,
+		farmerLinkageService,
+		aaaService,
+		logger,
+	)
+
 	return &ServiceFactory{
 		FarmerService:         farmerService,
 		FarmerLinkageService:  farmerLinkageService,
@@ -103,6 +116,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		DataQualityService:    dataQualityService,
 		ReportingService:      reportingService,
 		AdministrativeService: administrativeService,
+		BulkFarmerService:     bulkFarmerService,
 		AAAService:            aaaService,
 		AAAClient:             aaaClient,
 	}

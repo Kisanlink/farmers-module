@@ -1072,6 +1072,386 @@
                 }
             }
         },
+        "/bulk/cancel/{operation_id}": {
+            "post": {
+                "description": "Cancel an in-progress bulk operation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bulk Operations"
+                ],
+                "summary": "Cancel bulk operation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Operation ID",
+                        "name": "operation_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/bulk/farmers/add": {
+            "post": {
+                "description": "Add multiple farmers to an FPO in a single operation",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bulk Operations"
+                ],
+                "summary": "Bulk add farmers to FPO",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FPO Organization ID",
+                        "name": "fpo_org_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Input format (csv, excel, json)",
+                        "name": "input_format",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Processing mode (sync, async, batch)",
+                        "name": "processing_mode",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "File containing farmer data",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Processing options as JSON string",
+                        "name": "options",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/responses.BulkOperationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/bulk/results/{operation_id}": {
+            "get": {
+                "description": "Download a file containing the results of a bulk operation",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Bulk Operations"
+                ],
+                "summary": "Download bulk operation results",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Operation ID",
+                        "name": "operation_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Output format (csv, excel, json)",
+                        "name": "format",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Include all records or just failures",
+                        "name": "include_all",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/bulk/retry/{operation_id}": {
+            "post": {
+                "description": "Retry processing of failed records from a bulk operation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bulk Operations"
+                ],
+                "summary": "Retry failed records",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Original operation ID",
+                        "name": "operation_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Retry request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.RetryBulkOperationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/responses.BulkOperationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/bulk/status/{operation_id}": {
+            "get": {
+                "description": "Get the current status and progress of a bulk operation",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bulk Operations"
+                ],
+                "summary": "Get bulk operation status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Operation ID",
+                        "name": "operation_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.BulkOperationStatusResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/bulk/template": {
+            "get": {
+                "description": "Download a template file for bulk farmer upload",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Bulk Operations"
+                ],
+                "summary": "Get bulk upload template",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Template format (csv, excel)",
+                        "name": "format",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Include sample data",
+                        "name": "include_sample",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/bulk/validate": {
+            "post": {
+                "description": "Validate farmer data without actually processing it",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bulk Operations"
+                ],
+                "summary": "Validate bulk data",
+                "parameters": [
+                    {
+                        "description": "Validation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.ValidateBulkDataRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.BulkValidationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/crops/activities": {
             "get": {
                 "description": "Retrieve a list of all farm activities",
@@ -3406,6 +3786,58 @@
                 }
             }
         },
+        "requests.BulkProcessingOptions": {
+            "type": "object",
+            "properties": {
+                "assign_kisan_sathi": {
+                    "description": "Auto-assign KisanSathi if available",
+                    "type": "boolean"
+                },
+                "chunk_size": {
+                    "description": "Size of processing chunks (default: 100)",
+                    "type": "integer"
+                },
+                "continue_on_error": {
+                    "description": "Continue processing on individual failures",
+                    "type": "boolean"
+                },
+                "credential_method": {
+                    "description": "sms, email, both",
+                    "type": "string"
+                },
+                "deduplication_mode": {
+                    "description": "How to handle duplicates: skip, update, error",
+                    "type": "string"
+                },
+                "kisan_sathi_user_id": {
+                    "description": "Specific KisanSathi to assign",
+                    "type": "string"
+                },
+                "max_concurrency": {
+                    "description": "Max parallel workers (default: 10)",
+                    "type": "integer"
+                },
+                "metadata": {
+                    "description": "Additional metadata",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "notification_webhook": {
+                    "description": "Webhook for completion notification",
+                    "type": "string"
+                },
+                "send_credentials": {
+                    "description": "Send login credentials to farmers",
+                    "type": "boolean"
+                },
+                "validate_only": {
+                    "description": "Dry run mode",
+                    "type": "boolean"
+                }
+            }
+        },
         "requests.CEOUserData": {
             "type": "object",
             "required": [
@@ -3837,6 +4269,75 @@
                 }
             }
         },
+        "requests.FarmerBulkData": {
+            "type": "object",
+            "required": [
+                "first_name",
+                "last_name",
+                "phone_number"
+            ],
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "custom_fields": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "date_of_birth": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "external_id": {
+                    "description": "For tracking and idempotency",
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "gender": {
+                    "type": "string",
+                    "enum": [
+                        "male",
+                        "female",
+                        "other"
+                    ]
+                },
+                "land_ownership_type": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "password": {
+                    "description": "Optional password, will be generated if not provided",
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "postal_code": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "street_address": {
+                    "type": "string"
+                }
+            }
+        },
         "requests.FarmerProfileData": {
             "type": "object",
             "properties": {
@@ -4099,6 +4600,50 @@
                 },
                 "request_type": {
                     "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.RetryBulkOperationRequest": {
+            "type": "object",
+            "required": [
+                "operation_id"
+            ],
+            "properties": {
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "operation_id": {
+                    "type": "string"
+                },
+                "options": {
+                    "$ref": "#/definitions/requests.BulkProcessingOptions"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "record_indices": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "retry_all": {
+                    "type": "boolean"
                 },
                 "timestamp": {
                     "type": "string"
@@ -4406,6 +4951,59 @@
                 }
             }
         },
+        "requests.ValidateBulkDataRequest": {
+            "type": "object",
+            "required": [
+                "fpo_org_id",
+                "input_format"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "farmers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/requests.FarmerBulkData"
+                    }
+                },
+                "fpo_org_id": {
+                    "type": "string"
+                },
+                "input_format": {
+                    "type": "string",
+                    "enum": [
+                        "csv",
+                        "excel",
+                        "json"
+                    ]
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "requests.ValidateGeometryRequest": {
             "type": "object",
             "required": [
@@ -4461,6 +5059,170 @@
                     "type": "string"
                 },
                 "street_address": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.BulkOperationData": {
+            "type": "object",
+            "properties": {
+                "estimated_completion": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "operation_id": {
+                    "type": "string"
+                },
+                "result_url": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "status_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.BulkOperationResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.BulkOperationData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.BulkOperationStatusData": {
+            "type": "object",
+            "properties": {
+                "can_retry": {
+                    "type": "boolean"
+                },
+                "current_batch": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "error_summary": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "estimated_completion": {
+                    "type": "string"
+                },
+                "fpo_org_id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "operation_id": {
+                    "type": "string"
+                },
+                "processing_time": {
+                    "type": "string"
+                },
+                "progress": {
+                    "$ref": "#/definitions/responses.ProgressInfo"
+                },
+                "result_file_url": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "total_batches": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.BulkOperationStatusResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.BulkOperationStatusData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.BulkValidationData": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.ValidationError"
+                    }
+                },
+                "is_valid": {
+                    "type": "boolean"
+                },
+                "summary": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "total_records": {
+                    "type": "integer"
+                },
+                "valid_records": {
+                    "type": "integer"
+                },
+                "warnings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.ValidationWarning"
+                    }
+                }
+            }
+        },
+        "responses.BulkValidationResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.BulkValidationData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "timestamp": {
                     "type": "string"
                 }
             }
@@ -4867,6 +5629,29 @@
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "responses.ProgressInfo": {
+            "type": "object",
+            "properties": {
+                "failed": {
+                    "type": "integer"
+                },
+                "percentage": {
+                    "type": "number"
+                },
+                "processed": {
+                    "type": "integer"
+                },
+                "skipped": {
+                    "type": "integer"
+                },
+                "successful": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -5324,6 +6109,41 @@
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "responses.ValidationError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "record_index": {
+                    "type": "integer"
+                },
+                "value": {}
+            }
+        },
+        "responses.ValidationWarning": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "record_index": {
+                    "type": "integer"
                 }
             }
         }

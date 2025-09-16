@@ -226,6 +226,44 @@ definitions:
     - aaa_user_id
     - kisan_sathi_user_id
     type: object
+  requests.BulkProcessingOptions:
+    properties:
+      assign_kisan_sathi:
+        description: Auto-assign KisanSathi if available
+        type: boolean
+      chunk_size:
+        description: 'Size of processing chunks (default: 100)'
+        type: integer
+      continue_on_error:
+        description: Continue processing on individual failures
+        type: boolean
+      credential_method:
+        description: sms, email, both
+        type: string
+      deduplication_mode:
+        description: 'How to handle duplicates: skip, update, error'
+        type: string
+      kisan_sathi_user_id:
+        description: Specific KisanSathi to assign
+        type: string
+      max_concurrency:
+        description: 'Max parallel workers (default: 10)'
+        type: integer
+      metadata:
+        additionalProperties:
+          type: string
+        description: Additional metadata
+        type: object
+      notification_webhook:
+        description: Webhook for completion notification
+        type: string
+      send_credentials:
+        description: Send login credentials to farmers
+        type: boolean
+      validate_only:
+        description: Dry run mode
+        type: boolean
+    type: object
   requests.CEOUserData:
     properties:
       email:
@@ -518,6 +556,55 @@ definitions:
     required:
     - farmer_id
     type: object
+  requests.FarmerBulkData:
+    properties:
+      city:
+        type: string
+      country:
+        type: string
+      custom_fields:
+        additionalProperties:
+          type: string
+        type: object
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      external_id:
+        description: For tracking and idempotency
+        type: string
+      first_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      gender:
+        enum:
+        - male
+        - female
+        - other
+        type: string
+      land_ownership_type:
+        type: string
+      last_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      password:
+        description: Optional password, will be generated if not provided
+        type: string
+      phone_number:
+        type: string
+      postal_code:
+        type: string
+      state:
+        type: string
+      street_address:
+        type: string
+    required:
+    - first_name
+    - last_name
+    - phone_number
+    type: object
   requests.FarmerProfileData:
     properties:
       address:
@@ -698,6 +785,35 @@ definitions:
     required:
     - aaa_org_id
     - name
+    type: object
+  requests.RetryBulkOperationRequest:
+    properties:
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      operation_id:
+        type: string
+      options:
+        $ref: '#/definitions/requests.BulkProcessingOptions'
+      org_id:
+        type: string
+      record_indices:
+        items:
+          type: integer
+        type: array
+      request_id:
+        type: string
+      request_type:
+        type: string
+      retry_all:
+        type: boolean
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - operation_id
     type: object
   requests.SeedRolesAndPermissionsRequest:
     properties:
@@ -901,6 +1017,42 @@ definitions:
       user_id:
         type: string
     type: object
+  requests.ValidateBulkDataRequest:
+    properties:
+      data:
+        items:
+          type: integer
+        type: array
+      farmers:
+        items:
+          $ref: '#/definitions/requests.FarmerBulkData'
+        type: array
+      fpo_org_id:
+        type: string
+      input_format:
+        enum:
+        - csv
+        - excel
+        - json
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      org_id:
+        type: string
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    required:
+    - fpo_org_id
+    - input_format
+    type: object
   requests.ValidateGeometryRequest:
     properties:
       check_bounds:
@@ -938,6 +1090,114 @@ definitions:
       state:
         type: string
       street_address:
+        type: string
+    type: object
+  responses.BulkOperationData:
+    properties:
+      estimated_completion:
+        type: string
+      message:
+        type: string
+      operation_id:
+        type: string
+      result_url:
+        type: string
+      status:
+        type: string
+      status_url:
+        type: string
+    type: object
+  responses.BulkOperationResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.BulkOperationData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  responses.BulkOperationStatusData:
+    properties:
+      can_retry:
+        type: boolean
+      current_batch:
+        type: integer
+      end_time:
+        type: string
+      error_summary:
+        additionalProperties:
+          type: integer
+        type: object
+      estimated_completion:
+        type: string
+      fpo_org_id:
+        type: string
+      metadata:
+        additionalProperties: true
+        type: object
+      operation_id:
+        type: string
+      processing_time:
+        type: string
+      progress:
+        $ref: '#/definitions/responses.ProgressInfo'
+      result_file_url:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      total_batches:
+        type: integer
+    type: object
+  responses.BulkOperationStatusResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.BulkOperationStatusData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  responses.BulkValidationData:
+    properties:
+      errors:
+        items:
+          $ref: '#/definitions/responses.ValidationError'
+        type: array
+      is_valid:
+        type: boolean
+      summary:
+        additionalProperties: true
+        type: object
+      total_records:
+        type: integer
+      valid_records:
+        type: integer
+      warnings:
+        items:
+          $ref: '#/definitions/responses.ValidationWarning'
+        type: array
+    type: object
+  responses.BulkValidationResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.BulkValidationData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
         type: string
     type: object
   responses.ComponentHealth:
@@ -1206,6 +1466,21 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  responses.ProgressInfo:
+    properties:
+      failed:
+        type: integer
+      percentage:
+        type: number
+      processed:
+        type: integer
+      skipped:
+        type: integer
+      successful:
+        type: integer
+      total:
+        type: integer
     type: object
   responses.SwaggerAdminHealthResponse:
     properties:
@@ -1504,6 +1779,29 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  responses.ValidationError:
+    properties:
+      code:
+        type: string
+      field:
+        type: string
+      message:
+        type: string
+      record_index:
+        type: integer
+      value: {}
+    type: object
+  responses.ValidationWarning:
+    properties:
+      code:
+        type: string
+      field:
+        type: string
+      message:
+        type: string
+      record_index:
+        type: integer
     type: object
 host: localhost:8000
 info:
@@ -2221,6 +2519,258 @@ paths:
       summary: Get organization dashboard counters by ID
       tags:
       - Reporting
+  /bulk/cancel/{operation_id}:
+    post:
+      consumes:
+      - application/json
+      description: Cancel an in-progress bulk operation
+      parameters:
+      - description: Operation ID
+        in: path
+        name: operation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Cancel bulk operation
+      tags:
+      - Bulk Operations
+  /bulk/farmers/add:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Add multiple farmers to an FPO in a single operation
+      parameters:
+      - description: FPO Organization ID
+        in: formData
+        name: fpo_org_id
+        required: true
+        type: string
+      - description: Input format (csv, excel, json)
+        in: formData
+        name: input_format
+        required: true
+        type: string
+      - description: Processing mode (sync, async, batch)
+        in: formData
+        name: processing_mode
+        required: true
+        type: string
+      - description: File containing farmer data
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Processing options as JSON string
+        in: formData
+        name: options
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/responses.BulkOperationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Bulk add farmers to FPO
+      tags:
+      - Bulk Operations
+  /bulk/results/{operation_id}:
+    get:
+      description: Download a file containing the results of a bulk operation
+      parameters:
+      - description: Operation ID
+        in: path
+        name: operation_id
+        required: true
+        type: string
+      - description: Output format (csv, excel, json)
+        in: query
+        name: format
+        type: string
+      - description: Include all records or just failures
+        in: query
+        name: include_all
+        type: boolean
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Download bulk operation results
+      tags:
+      - Bulk Operations
+  /bulk/retry/{operation_id}:
+    post:
+      consumes:
+      - application/json
+      description: Retry processing of failed records from a bulk operation
+      parameters:
+      - description: Original operation ID
+        in: path
+        name: operation_id
+        required: true
+        type: string
+      - description: Retry request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RetryBulkOperationRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/responses.BulkOperationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Retry failed records
+      tags:
+      - Bulk Operations
+  /bulk/status/{operation_id}:
+    get:
+      description: Get the current status and progress of a bulk operation
+      parameters:
+      - description: Operation ID
+        in: path
+        name: operation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.BulkOperationStatusResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get bulk operation status
+      tags:
+      - Bulk Operations
+  /bulk/template:
+    get:
+      description: Download a template file for bulk farmer upload
+      parameters:
+      - description: Template format (csv, excel)
+        in: query
+        name: format
+        required: true
+        type: string
+      - description: Include sample data
+        in: query
+        name: include_sample
+        type: boolean
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get bulk upload template
+      tags:
+      - Bulk Operations
+  /bulk/validate:
+    post:
+      consumes:
+      - application/json
+      description: Validate farmer data without actually processing it
+      parameters:
+      - description: Validation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ValidateBulkDataRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.BulkValidationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Validate bulk data
+      tags:
+      - Bulk Operations
   /crops/activities:
     get:
       consumes:
