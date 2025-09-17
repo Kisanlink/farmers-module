@@ -16,6 +16,10 @@ type FarmActivityServiceInterface interface {
 	GetActivitiesByDateRange(farmID string, start, end time.Time) ([]*models.FarmActivity, error)
 	UpdateActivity(activity *models.FarmActivity) error
 	DeleteActivity(id string) error
+
+	// Batch methods
+	GetActivitiesByFarmIDsBatch(farmIDs []string) (map[string]interface{}, map[string]string)
+	GetActivitiesByDateRangeBatch(farmIDs []string, start, end time.Time) (map[string]interface{}, map[string]string)
 }
 
 // FarmActivityService implements FarmActivityServiceInterface.
@@ -63,4 +67,38 @@ func (s *FarmActivityService) UpdateActivity(activity *models.FarmActivity) erro
 // DeleteActivity deletes a farm activity by its ID.
 func (s *FarmActivityService) DeleteActivity(id string) error {
 	return s.repo.DeleteActivity(id)
+}
+
+// GetActivitiesByFarmIDsBatch retrieves activities for multiple farms
+func (s *FarmActivityService) GetActivitiesByFarmIDsBatch(farmIDs []string) (map[string]interface{}, map[string]string) {
+	data := make(map[string]interface{})
+	errors := make(map[string]string)
+
+	for _, farmID := range farmIDs {
+		activities, err := s.GetActivitiesByFarmID(farmID)
+		if err != nil {
+			errors[farmID] = err.Error()
+		} else {
+			data[farmID] = activities
+		}
+	}
+
+	return data, errors
+}
+
+// GetActivitiesByDateRangeBatch retrieves activities for multiple farms within a date range
+func (s *FarmActivityService) GetActivitiesByDateRangeBatch(farmIDs []string, start, end time.Time) (map[string]interface{}, map[string]string) {
+	data := make(map[string]interface{})
+	errors := make(map[string]string)
+
+	for _, farmID := range farmIDs {
+		activities, err := s.GetActivitiesByDateRange(farmID, start, end)
+		if err != nil {
+			errors[farmID] = err.Error()
+		} else {
+			data[farmID] = activities
+		}
+	}
+
+	return data, errors
 }
