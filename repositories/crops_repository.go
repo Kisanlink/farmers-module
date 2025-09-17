@@ -28,34 +28,36 @@ type CropRepositoryInterface interface {
 	DeleteCrop(id string) error
 }
 
-// CreateCrop creates a new crop record.
 func (r *CropRepository) CreateCrop(crop *models.Crop) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		// The BeforeCreate hook will generate the ID and set timestamps.
+
+		// 1. We store the stages from the request in a temporary variable.
+		// This prevents GORM's default behavior of trying to create new master Stage records.
+		stagesToLink := crop.Stages
+		// We MUST set crop.Stages to nil before creating the crop to avoid the cascade.
+		crop.Stages = nil
+
+		// 2. Create the Crop record itself, without any associations.
 		if err := tx.Create(crop).Error; err != nil {
 			return fmt.Errorf("failed to create crop: %w", err)
 		}
 
-		// in repositories/crops_repository.go
-		// Make sure you have "log" and "fmt" imported
-
-		// in repositories/crops_repository.go
-
-		if len(crop.Stages) > 0 {
-			// We still need to assign the new CropID to each stage link.
-			for i := range crop.Stages {
-				crop.Stages[i].CropID = crop.Id
+		// 3. If there are stages to link from the request, create the association records now.
+		if len(stagesToLink) > 0 {
+			// Now that the crop exists and has an ID, we assign that ID to each association record.
+			for i := range stagesToLink {
+				stagesToLink[i].CropID = crop.Id
 			}
 
-			// NEW APPROACH: Use GORM's Association Mode.
-			// This tells GORM to work with the "Stages" relationship of the crop model.
-			if err := tx.Model(&crop).Association("Stages").Append(&crop.Stages); err != nil {
+			// Create the records in the 'crop_stages' join table.
+			if err := tx.Create(&stagesToLink).Error; err != nil {
 				return fmt.Errorf("failed to create crop stage associations: %w", err)
 			}
 		}
 
-		// Re-fetch the crop with preloaded stages to return the full object.
-		// We need to preload the nested Stage details within CropStage.
+		// 4. Re-fetch the entire crop, now with its stages properly preloaded.
+		// This ensures the data returned to the user is complete.
 		return tx.Preload("Stages.Stage").Preload("Stages", func(db *gorm.DB) *gorm.DB {
 			return db.Order("crop_stages.\"order\" ASC")
 		}).First(crop, "id = ?", crop.Id).Error
