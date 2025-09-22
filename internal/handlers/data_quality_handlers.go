@@ -5,7 +5,6 @@ import (
 
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
-
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/gin-gonic/gin"

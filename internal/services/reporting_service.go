@@ -69,9 +69,13 @@ func (s *ReportingServiceImpl) ExportFarmerPortfolio(ctx context.Context, req in
 	totalAreaHa := 0.0
 
 	for _, farm := range farms {
+		farmName := ""
+		if farm.Name != nil {
+			farmName = *farm.Name
+		}
 		farmSummaries = append(farmSummaries, responses.FarmSummary{
 			FarmID: farm.ID,
-			Name:   farm.Name,
+			Name:   farmName,
 			AreaHa: farm.AreaHa,
 		})
 		farmIDs = append(farmIDs, farm.ID)

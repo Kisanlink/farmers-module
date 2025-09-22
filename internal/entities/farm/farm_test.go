@@ -3,6 +3,7 @@ package farm
 import (
 	"testing"
 
+	"github.com/Kisanlink/farmers-module/internal/testutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +18,7 @@ func TestFarmValidate(t *testing.T) {
 			farm: &Farm{
 				AAAFarmerUserID: "user123",
 				AAAOrgID:        "org123",
-				Name:            "Test Farm",
+				Name:            testutils.StringPtr("Test Farm"),
 				Geometry:        "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 			},
 			wantErr: false,
@@ -26,7 +27,7 @@ func TestFarmValidate(t *testing.T) {
 			name: "missing AAA farmer user ID",
 			farm: &Farm{
 				AAAOrgID: "org123",
-				Name:     "Test Farm",
+				Name:     testutils.StringPtr("Test Farm"),
 				Geometry: "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 			},
 			wantErr: true,
@@ -35,7 +36,7 @@ func TestFarmValidate(t *testing.T) {
 			name: "missing AAA org ID",
 			farm: &Farm{
 				AAAFarmerUserID: "user123",
-				Name:            "Test Farm",
+				Name:            testutils.StringPtr("Test Farm"),
 				Geometry:        "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 			},
 			wantErr: true,
@@ -45,7 +46,7 @@ func TestFarmValidate(t *testing.T) {
 			farm: &Farm{
 				AAAFarmerUserID: "user123",
 				AAAOrgID:        "org123",
-				Name:            "Test Farm",
+				Name:            testutils.StringPtr("Test Farm"),
 			},
 			wantErr: true,
 		},

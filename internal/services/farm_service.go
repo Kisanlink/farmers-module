@@ -61,17 +61,28 @@ func (s *FarmServiceImpl) CreateFarm(ctx context.Context, req interface{}) (inte
 	}
 
 	// Create farm entity
-	farm := &farmEntity.Farm{
-		AAAFarmerUserID: createReq.AAAFarmerUserID,
-		AAAOrgID:        createReq.AAAOrgID,
-		Name:            fmt.Sprintf("Farm-%s", createReq.AAAFarmerUserID[:8]),
-		Geometry:        geometryWKT,
-		Metadata:        createReq.Metadata,
+	// Generate default name if not provided
+	var defaultName *string
+	if createReq.Name != nil {
+		defaultName = createReq.Name
 	}
 
-	// Set name if provided in metadata
-	if name, exists := createReq.Metadata["name"]; exists {
-		farm.Name = name
+	farm := &farmEntity.Farm{
+		AAAFarmerUserID:           createReq.AAAFarmerUserID,
+		AAAOrgID:                  createReq.AAAOrgID,
+		Name:                      defaultName,
+		OwnershipType:             farmEntity.OwnershipType(createReq.OwnershipType),
+		Geometry:                  geometryWKT,
+		SoilTypeID:                createReq.SoilTypeID,
+		PrimaryIrrigationSourceID: createReq.PrimaryIrrigationSourceID,
+		BoreWellCount:             createReq.BoreWellCount,
+		OtherIrrigationDetails:    createReq.OtherIrrigationDetails,
+		Metadata:                  createReq.Metadata,
+	}
+
+	// Set name from metadata if provided (legacy support)
+	if name, exists := createReq.Metadata["name"]; exists && defaultName == nil {
+		farm.Name = &name
 	}
 
 	// Create farm in database
@@ -128,11 +139,41 @@ func (s *FarmServiceImpl) UpdateFarm(ctx context.Context, req interface{}) (inte
 		existingFarm.Geometry = updateReq.Geometry.WKT
 	}
 
+	// Update name if provided
+	if updateReq.Name != nil {
+		existingFarm.Name = updateReq.Name
+	}
+
+	// Update ownership type if provided
+	if updateReq.OwnershipType != nil {
+		existingFarm.OwnershipType = farmEntity.OwnershipType(*updateReq.OwnershipType)
+	}
+
+	// Update soil type if provided
+	if updateReq.SoilTypeID != nil {
+		existingFarm.SoilTypeID = updateReq.SoilTypeID
+	}
+
+	// Update irrigation source if provided
+	if updateReq.PrimaryIrrigationSourceID != nil {
+		existingFarm.PrimaryIrrigationSourceID = updateReq.PrimaryIrrigationSourceID
+	}
+
+	// Update bore well count if provided
+	if updateReq.BoreWellCount != nil {
+		existingFarm.BoreWellCount = *updateReq.BoreWellCount
+	}
+
+	// Update other irrigation details if provided
+	if updateReq.OtherIrrigationDetails != nil {
+		existingFarm.OtherIrrigationDetails = updateReq.OtherIrrigationDetails
+	}
+
 	if updateReq.Metadata != nil {
 		existingFarm.Metadata = updateReq.Metadata
-		// Update name if provided in metadata
-		if name, exists := updateReq.Metadata["name"]; exists {
-			existingFarm.Name = name
+		// Update name if provided in metadata (legacy support)
+		if name, exists := updateReq.Metadata["name"]; exists && updateReq.Name == nil {
+			existingFarm.Name = &name
 		}
 	}
 
@@ -439,11 +480,15 @@ func (s *FarmServiceImpl) filterFarmsByArea(farms []*farmEntity.Farm, minArea, m
 }
 
 func (s *FarmServiceImpl) convertFarmToData(farm *farmEntity.Farm) *responses.FarmData {
+	farmName := ""
+	if farm.Name != nil {
+		farmName = *farm.Name
+	}
 	return &responses.FarmData{
 		ID:              farm.ID,
 		AAAFarmerUserID: farm.AAAFarmerUserID,
 		AAAOrgID:        farm.AAAOrgID,
-		Name:            farm.Name,
+		Name:            farmName,
 		Geometry:        farm.Geometry,
 		AreaHa:          farm.AreaHa,
 		Metadata:        farm.Metadata,

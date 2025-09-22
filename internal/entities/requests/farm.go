@@ -3,22 +3,36 @@ package requests
 // CreateFarmRequest represents a request to create a new farm
 type CreateFarmRequest struct {
 	BaseRequest
-	AAAFarmerUserID string            `json:"aaa_farmer_user_id" validate:"required"`
-	AAAOrgID        string            `json:"aaa_org_id" validate:"required"`
-	AreaHa          float64           `json:"area_ha" validate:"required,min=0.01"`
-	Geometry        GeometryData      `json:"geometry,omitempty"`
-	Metadata        map[string]string `json:"metadata,omitempty"`
+	AAAFarmerUserID           string                    `json:"aaa_farmer_user_id" validate:"required"`
+	AAAOrgID                  string                    `json:"aaa_org_id" validate:"required"`
+	Name                      *string                   `json:"name,omitempty"`
+	OwnershipType             string                    `json:"ownership_type,omitempty" validate:"omitempty,oneof=OWN LEASE SHARED"`
+	AreaHa                    float64                   `json:"area_ha" validate:"required,min=0.01"`
+	Geometry                  GeometryData              `json:"geometry,omitempty"`
+	SoilTypeID                *string                   `json:"soil_type_id,omitempty"`
+	PrimaryIrrigationSourceID *string                   `json:"primary_irrigation_source_id,omitempty"`
+	BoreWellCount             int                       `json:"bore_well_count,omitempty" validate:"min=0"`
+	OtherIrrigationDetails    *string                   `json:"other_irrigation_details,omitempty"`
+	IrrigationSources         []IrrigationSourceRequest `json:"irrigation_sources,omitempty"`
+	Metadata                  map[string]string         `json:"metadata,omitempty"`
 }
 
 // UpdateFarmRequest represents a request to update an existing farm
 type UpdateFarmRequest struct {
 	BaseRequest
-	ID              string            `json:"id" validate:"required"`
-	AAAFarmerUserID string            `json:"aaa_farmer_user_id,omitempty"`
-	AAAOrgID        string            `json:"aaa_org_id,omitempty"`
-	AreaHa          *float64          `json:"area_ha,omitempty"`
-	Geometry        *GeometryData     `json:"geometry,omitempty"`
-	Metadata        map[string]string `json:"metadata,omitempty"`
+	ID                        string                    `json:"id" validate:"required"`
+	AAAFarmerUserID           string                    `json:"aaa_farmer_user_id,omitempty"`
+	AAAOrgID                  string                    `json:"aaa_org_id,omitempty"`
+	Name                      *string                   `json:"name,omitempty"`
+	OwnershipType             *string                   `json:"ownership_type,omitempty" validate:"omitempty,oneof=OWN LEASE SHARED"`
+	AreaHa                    *float64                  `json:"area_ha,omitempty"`
+	Geometry                  *GeometryData             `json:"geometry,omitempty"`
+	SoilTypeID                *string                   `json:"soil_type_id,omitempty"`
+	PrimaryIrrigationSourceID *string                   `json:"primary_irrigation_source_id,omitempty"`
+	BoreWellCount             *int                      `json:"bore_well_count,omitempty" validate:"omitempty,min=0"`
+	OtherIrrigationDetails    *string                   `json:"other_irrigation_details,omitempty"`
+	IrrigationSources         []IrrigationSourceRequest `json:"irrigation_sources,omitempty"`
+	Metadata                  map[string]string         `json:"metadata,omitempty"`
 }
 
 // DeleteFarmRequest represents a request to delete a farm
@@ -74,6 +88,14 @@ type BoundingBox struct {
 type GeometryData struct {
 	WKT string `json:"wkt,omitempty"` // Well-Known Text format
 	WKB []byte `json:"wkb,omitempty"` // Well-Known Binary format
+}
+
+// IrrigationSourceRequest represents irrigation source data in farm requests
+type IrrigationSourceRequest struct {
+	IrrigationSourceID string  `json:"irrigation_source_id" validate:"required"`
+	Count              int     `json:"count,omitempty" validate:"min=0"`
+	Details            *string `json:"details,omitempty"`
+	IsPrimary          bool    `json:"is_primary,omitempty"`
 }
 
 // NewCreateFarmRequest creates a new create farm request

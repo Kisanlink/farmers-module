@@ -6,6 +6,7 @@ import (
 
 	farmEntity "github.com/Kisanlink/farmers-module/internal/entities/farm"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
+	"github.com/Kisanlink/farmers-module/internal/testutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -132,9 +133,9 @@ func TestFarmService_FilterFarmsByArea(t *testing.T) {
 
 	// Create test farms
 	farms := []*farmEntity.Farm{
-		{Name: "Small Farm", AreaHa: 0.5},
-		{Name: "Medium Farm", AreaHa: 2.0},
-		{Name: "Large Farm", AreaHa: 10.0},
+		{Name: testutils.StringPtr("Small Farm"), AreaHa: 0.5},
+		{Name: testutils.StringPtr("Medium Farm"), AreaHa: 2.0},
+		{Name: testutils.StringPtr("Large Farm"), AreaHa: 10.0},
 	}
 
 	tests := []struct {

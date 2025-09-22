@@ -8,6 +8,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
 	"github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/fpo"
+	"github.com/Kisanlink/farmers-module/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
@@ -83,7 +84,7 @@ func TestModelValidation(t *testing.T) {
 		farm := &farm.Farm{
 			AAAFarmerUserID: "user123",
 			AAAOrgID:        "org123",
-			Name:            "Test Farm",
+			Name:            testutils.StringPtr("Test Farm"),
 			Geometry:        "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 		}
 
@@ -140,7 +141,7 @@ func TestModelRelationships(t *testing.T) {
 	testFarm := &farm.Farm{
 		AAAFarmerUserID: testFarmer.AAAUserID,
 		AAAOrgID:        testFarmer.AAAOrgID,
-		Name:            "Test Farm",
+		Name:            testutils.StringPtr("Test Farm"),
 		Geometry:        "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 	}
 
