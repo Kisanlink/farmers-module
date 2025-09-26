@@ -16,6 +16,11 @@ var (
 	// Farm activity errors
 	ErrInvalidFarmActivityData = errors.New("invalid farm activity data")
 
+	// Crop master data errors
+	ErrInvalidCropData        = errors.New("invalid crop data")
+	ErrInvalidCropVarietyData = errors.New("invalid crop variety data")
+	ErrInvalidCropStageData   = errors.New("invalid crop stage data")
+
 	// General errors
 	ErrNotFound     = errors.New("resource not found")
 	ErrUnauthorized = errors.New("unauthorized")

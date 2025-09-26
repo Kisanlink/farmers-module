@@ -1,6 +1,7 @@
 package parsers
 
 import (
+	"bytes"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -128,7 +129,7 @@ func (p *FileParserImpl) ParseExcel(data []byte) ([]*requests.FarmerBulkData, er
 	}
 
 	// Create a temporary file-like reader
-	file, err := excelize.OpenReader(strings.NewReader(string(data)))
+	file, err := excelize.OpenReader(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("failed to open Excel file: %w", err)
 	}

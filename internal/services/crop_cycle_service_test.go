@@ -35,7 +35,7 @@ func TestCropCycleService_StartCycle_BusinessLogic(t *testing.T) {
 				},
 				FarmID:       "farm123",
 				Season:       "RABI",
-				StartDate:    time.Now(),
+				StartDate:    func() *time.Time { t := time.Now(); return &t }(),
 				PlannedCrops: []string{"wheat", "barley"},
 			},
 			setupMocks: func(aaa *MockAAAServiceShared) {
@@ -52,7 +52,7 @@ func TestCropCycleService_StartCycle_BusinessLogic(t *testing.T) {
 				},
 				FarmID:       "",
 				Season:       "RABI",
-				StartDate:    time.Now(),
+				StartDate:    func() *time.Time { t := time.Now(); return &t }(),
 				PlannedCrops: []string{"wheat", "barley"},
 			},
 			setupMocks: func(aaa *MockAAAServiceShared) {

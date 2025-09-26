@@ -68,6 +68,10 @@ type CropCycleService interface {
 	ListCycles(ctx context.Context, req interface{}) (interface{}, error)
 	// Get crop cycle by ID
 	GetCropCycle(ctx context.Context, cycleID string) (interface{}, error)
+	// Record harvest data
+	RecordHarvest(ctx context.Context, req interface{}) (interface{}, error)
+	// Upload report for crop cycle
+	UploadReport(ctx context.Context, req interface{}) (interface{}, error)
 }
 
 // FarmActivityService handles farm activity workflows

@@ -46,14 +46,30 @@ func (s *CropCycleServiceImpl) StartCycle(ctx context.Context, req interface{}) 
 	// For now, we'll assume the farm validation is done by the permission check
 
 	// Create crop cycle entity
-	cycle := &cropCycleEntity.CropCycle{
-		FarmID:       startReq.FarmID,
-		FarmerID:     startReq.UserID,
-		Season:       startReq.Season,
-		Status:       "PLANNED",
-		StartDate:    &startReq.StartDate,
-		PlannedCrops: startReq.PlannedCrops,
-	}
+	cycle := cropCycleEntity.NewCropCycle()
+	cycle.FarmID = startReq.FarmID
+	cycle.FarmerID = startReq.UserID
+	cycle.Season = startReq.Season
+	cycle.Status = "PLANNED"
+	cycle.StartDate = startReq.StartDate
+
+	// Enhanced crop details
+	cycle.CropID = startReq.CropID
+	cycle.VarietyID = startReq.VarietyID
+	cycle.CropType = startReq.CropType
+	cycle.CropName = startReq.CropName
+	cycle.VarietyName = startReq.VarietyName
+
+	// Area and planting details
+	cycle.Acreage = startReq.Acreage
+	cycle.NumberOfTrees = startReq.NumberOfTrees
+
+	// Date fields
+	cycle.SowingTransplantingDate = startReq.SowingTransplantingDate
+
+	// Additional data
+	cycle.PlannedCrops = startReq.PlannedCrops
+	cycle.Metadata = startReq.Metadata
 
 	// Validate the cycle
 	if err := cycle.Validate(); err != nil {
@@ -310,4 +326,48 @@ func (s *CropCycleServiceImpl) GetCropCycle(ctx context.Context, cycleID string)
 	}
 
 	return responses.NewCropCycleResponse(cycleData, "Crop cycle retrieved successfully"), nil
+}
+
+// RecordHarvest implements harvest recording for crop cycles
+func (s *CropCycleServiceImpl) RecordHarvest(ctx context.Context, req interface{}) (interface{}, error) {
+	harvestReq, ok := req.(*requests.RecordHarvestRequest)
+	if !ok {
+		return nil, common.ErrInvalidInput
+	}
+
+	// Check permission
+	hasPermission, err := s.aaaService.CheckPermission(ctx, harvestReq.UserID, "cycle", "harvest", harvestReq.CycleID, harvestReq.OrgID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check permission: %w", err)
+	}
+	if !hasPermission {
+		return nil, common.ErrForbidden
+	}
+
+	// Get existing cycle
+	// Note: This would require implementing FindByID in the base repository
+	// For now, return an error
+	return nil, fmt.Errorf("FindByID not implemented in base repository")
+}
+
+// UploadReport implements report upload for crop cycles
+func (s *CropCycleServiceImpl) UploadReport(ctx context.Context, req interface{}) (interface{}, error) {
+	reportReq, ok := req.(*requests.UploadReportRequest)
+	if !ok {
+		return nil, common.ErrInvalidInput
+	}
+
+	// Check permission
+	hasPermission, err := s.aaaService.CheckPermission(ctx, reportReq.UserID, "cycle", "report", reportReq.CycleID, reportReq.OrgID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check permission: %w", err)
+	}
+	if !hasPermission {
+		return nil, common.ErrForbidden
+	}
+
+	// Get existing cycle
+	// Note: This would require implementing FindByID in the base repository
+	// For now, return an error
+	return nil, fmt.Errorf("FindByID not implemented in base repository")
 }

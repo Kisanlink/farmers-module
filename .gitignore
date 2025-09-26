@@ -7,6 +7,9 @@ farmers-module
 # Temporary files and directories
 tmp/
 
+# Local files and firectories
+local/
+
 # Binaries
 farmers-module
 farmers-service
@@ -30,6 +33,9 @@ vendor/
 *.swp
 *~
 .DS_Store
+.claude/
+.kiro/
+.cursor/
 
 # OS generated files
 Thumbs.db

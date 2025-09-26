@@ -24,6 +24,7 @@ type ServiceFactory struct {
 	FarmService FarmService
 
 	// Crop Management Services
+	CropService         CropService
 	CropCycleService    CropCycleService
 	FarmActivityService FarmActivityService
 
@@ -68,7 +69,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	aaaService := NewAAAService(cfg)
 
 	// Initialize identity services
-	farmerService := NewFarmerService(repoFactory.FarmerRepo, aaaService)
+	farmerService := NewFarmerService(repoFactory.FarmerRepo, repoFactory.FarmRepo.BaseFilterableRepository, aaaService)
 	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo, aaaService)
 	fpoService := NewFPOService(repoFactory.FPORefRepo, aaaService)
 	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo, aaaService)
@@ -82,6 +83,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	farmService := NewFarmService(repoFactory.FarmRepo, aaaService, gormDB)
 
 	// Initialize crop management services
+	cropService := NewCropService(repoFactory.CropRepo, repoFactory.CropVarietyRepo, repoFactory.CropStageRepo, aaaService)
 	cropCycleService := NewCropCycleService(repoFactory.CropCycleRepo, aaaService)
 	farmActivityService := NewFarmActivityService(repoFactory.FarmActivityRepo, repoFactory.CropCycleRepo, aaaService)
 
@@ -111,6 +113,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		FPOService:            fpoService,
 		KisanSathiService:     kisanSathiService,
 		FarmService:           farmService,
+		CropService:           cropService,
 		CropCycleService:      cropCycleService,
 		FarmActivityService:   farmActivityService,
 		DataQualityService:    dataQualityService,

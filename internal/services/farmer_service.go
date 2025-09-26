@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
+	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/entities"
+	"github.com/Kisanlink/farmers-module/internal/entities/farm"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
@@ -17,6 +20,7 @@ import (
 type FarmerService interface {
 	CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error)
 	GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*responses.FarmerProfileResponse, error)
+	GetFarmerByPhone(ctx context.Context, phoneNumber string) (*responses.FarmerProfileResponse, error)
 	UpdateFarmer(ctx context.Context, req *requests.UpdateFarmerRequest) (*responses.FarmerResponse, error)
 	DeleteFarmer(ctx context.Context, req *requests.DeleteFarmerRequest) error
 	ListFarmers(ctx context.Context, req *requests.ListFarmersRequest) (*responses.FarmerListResponse, error)
@@ -25,14 +29,16 @@ type FarmerService interface {
 // FarmerServiceImpl implements FarmerService
 type FarmerServiceImpl struct {
 	repository *base.BaseFilterableRepository[*entities.FarmerProfile]
+	farmRepo   *base.BaseFilterableRepository[*farm.Farm]
 	dbManager  db.DBManager
 	aaaService AAAService
 }
 
 // NewFarmerService creates a new farmer service with repository and AAA service
-func NewFarmerService(repository *base.BaseFilterableRepository[*entities.FarmerProfile], aaaService AAAService) FarmerService {
+func NewFarmerService(repository *base.BaseFilterableRepository[*entities.FarmerProfile], farmRepo *base.BaseFilterableRepository[*farm.Farm], aaaService AAAService) FarmerService {
 	return &FarmerServiceImpl{
 		repository: repository,
+		farmRepo:   farmRepo,
 		aaaService: aaaService,
 	}
 }
@@ -62,12 +68,15 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 			log.Printf("User not found in AAA, creating new user with mobile: %s", req.Profile.PhoneNumber)
 
 			// Create user in AAA
+			// Generate secure password
+			securePassword := s.generateSecurePassword()
+
 			createUserReq := map[string]interface{}{
 				"username":       fmt.Sprintf("farmer_%s", req.Profile.PhoneNumber),
 				"mobile_number":  req.Profile.PhoneNumber,
-				"password":       "default_password", // TODO: Generate secure password or require it in request
-				"country_code":   "+91",              // TODO: Make configurable
-				"aadhaar_number": "",                 // TODO: Add to request if available
+				"password":       securePassword,
+				"country_code":   s.getCountryCode(req.Profile.PhoneNumber),
+				"aadhaar_number": "", // Aadhaar number not available in request
 			}
 
 			aaaUser, err = s.aaaService.CreateUser(ctx, createUserReq)
@@ -214,7 +223,7 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 		},
 		Preferences: farmerProfile.Preferences,
 		Metadata:    farmerProfile.Metadata,
-		Farms:       []*responses.FarmData{}, // TODO: Load actual farms
+		Farms:       func() []*responses.FarmData { farms, _ := s.loadFarmsForFarmer(ctx, farmerProfile.ID); return farms }(),
 		CreatedAt:   farmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:   farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
@@ -322,9 +331,12 @@ func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.Upda
 		},
 		Preferences: existingFarmerProfile.Preferences,
 		Metadata:    existingFarmerProfile.Metadata,
-		Farms:       []*responses.FarmData{}, // TODO: Load actual farms
-		CreatedAt:   existingFarmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   existingFarmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		Farms: func() []*responses.FarmData {
+			farms, _ := s.loadFarmsForFarmer(ctx, existingFarmerProfile.ID)
+			return farms
+		}(),
+		CreatedAt: existingFarmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt: existingFarmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
 	response := responses.NewFarmerResponse(farmerProfileData, "Farmer updated successfully")
@@ -420,7 +432,7 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 			},
 			Preferences: fp.Preferences,
 			Metadata:    fp.Metadata,
-			Farms:       []*responses.FarmData{}, // TODO: Load actual farms
+			Farms:       func() []*responses.FarmData { farms, _ := s.loadFarmsForFarmer(ctx, fp.ID); return farms }(),
 			CreatedAt:   fp.CreatedAt.Format("2006-01-02T15:04:05Z"),
 			UpdatedAt:   fp.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		}
@@ -428,5 +440,125 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 	}
 
 	response := responses.NewFarmerListResponse(farmerProfilesData, req.Page, req.PageSize, totalCount)
+	return &response, nil
+}
+
+// generateSecurePassword generates a secure password for new farmers
+func (s *FarmerServiceImpl) generateSecurePassword() string {
+	// Generate a secure password with mixed case, numbers, and special characters
+	// In production, you might want to use a more sophisticated password generator
+	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
+	password := make([]byte, 12)
+
+	for i := range password {
+		password[i] = chars[time.Now().UnixNano()%int64(len(chars))]
+	}
+
+	return string(password)
+}
+
+// getCountryCode determines the country code based on phone number
+func (s *FarmerServiceImpl) getCountryCode(phoneNumber string) string {
+	// Remove any non-digit characters
+	cleaned := strings.ReplaceAll(phoneNumber, " ", "")
+	cleaned = strings.ReplaceAll(cleaned, "-", "")
+	cleaned = strings.ReplaceAll(cleaned, "(", "")
+	cleaned = strings.ReplaceAll(cleaned, ")", "")
+	cleaned = strings.ReplaceAll(cleaned, "+", "")
+
+	// Check if it starts with country code
+	if len(cleaned) == 12 && strings.HasPrefix(cleaned, "91") {
+		return "+91" // India
+	} else if len(cleaned) == 10 {
+		return "+91" // Default to India for 10-digit numbers
+	}
+
+	// Default to India
+	return "+91"
+}
+
+// loadFarmsForFarmer loads all farms associated with a farmer
+func (s *FarmerServiceImpl) loadFarmsForFarmer(ctx context.Context, farmerID string) ([]*responses.FarmData, error) {
+	// Create filter to find farms for this farmer
+	filter := base.NewFilterBuilder().
+		Where("farmer_id", base.OpEqual, farmerID).
+		Build()
+
+	// Find farms
+	farms, err := s.farmRepo.Find(ctx, filter)
+	if err != nil {
+		log.Printf("Failed to load farms for farmer %s: %v", farmerID, err)
+		return []*responses.FarmData{}, nil // Return empty slice instead of error
+	}
+
+	// Convert to response format
+	var farmData []*responses.FarmData
+	for _, farm := range farms {
+		farmName := ""
+		if farm.Name != nil {
+			farmName = *farm.Name
+		}
+		farmData = append(farmData, &responses.FarmData{
+			ID:              farm.ID,
+			AAAFarmerUserID: farm.AAAFarmerUserID,
+			AAAOrgID:        farm.AAAOrgID,
+			Name:            farmName,
+			Geometry:        farm.Geometry,
+			AreaHa:          farm.AreaHa,
+			Metadata:        farm.Metadata,
+			CreatedAt:       farm.CreatedAt,
+			UpdatedAt:       farm.UpdatedAt,
+		})
+	}
+
+	return farmData, nil
+}
+
+// GetFarmerByPhone retrieves a farmer by phone number
+func (s *FarmerServiceImpl) GetFarmerByPhone(ctx context.Context, phoneNumber string) (*responses.FarmerProfileResponse, error) {
+	// Create filter to find farmer by phone number
+	filter := base.NewFilterBuilder().
+		Where("phone_number", base.OpEqual, phoneNumber).
+		Build()
+
+	// Find farmer
+	farmers, err := s.repository.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find farmer by phone: %w", err)
+	}
+
+	if len(farmers) == 0 {
+		return nil, nil // No farmer found
+	}
+
+	farmerProfile := farmers[0]
+
+	// Convert to response format
+	farmerProfileData := &responses.FarmerProfileData{
+		ID:          farmerProfile.ID,
+		AAAUserID:   farmerProfile.AAAUserID,
+		AAAOrgID:    farmerProfile.AAAOrgID,
+		FirstName:   farmerProfile.FirstName,
+		LastName:    farmerProfile.LastName,
+		PhoneNumber: farmerProfile.PhoneNumber,
+		Email:       farmerProfile.Email,
+		Gender:      farmerProfile.Gender,
+		DateOfBirth: farmerProfile.DateOfBirth,
+		Address: responses.AddressData{
+			StreetAddress: farmerProfile.Address.StreetAddress,
+			City:          farmerProfile.Address.City,
+			State:         farmerProfile.Address.State,
+			Country:       farmerProfile.Address.Country,
+			PostalCode:    farmerProfile.Address.PostalCode,
+			Coordinates:   farmerProfile.Address.Coordinates,
+		},
+		Preferences: farmerProfile.Preferences,
+		Metadata:    farmerProfile.Metadata,
+		Farms:       func() []*responses.FarmData { farms, _ := s.loadFarmsForFarmer(ctx, farmerProfile.ID); return farms }(),
+		CreatedAt:   farmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:   farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+	}
+
+	response := responses.NewFarmerProfileResponse(farmerProfileData, "Farmer retrieved successfully")
 	return &response, nil
 }

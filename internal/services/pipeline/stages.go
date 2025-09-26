@@ -147,6 +147,7 @@ func (vs *ValidationStage) isValidGender(gender string) bool {
 // FarmerServiceInterface defines the interface for farmer service used by pipeline
 type FarmerServiceInterface interface {
 	CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error)
+	GetFarmerByPhone(ctx context.Context, phoneNumber string) (*responses.FarmerProfileResponse, error)
 	// Add other methods as needed
 }
 
@@ -196,12 +197,21 @@ func (ds *DeduplicationStage) Process(ctx context.Context, data interface{}) (in
 	)
 
 	// Check for existing farmer by phone number
-	// TODO: Implement actual duplicate checking logic
-	// This would involve querying the database for existing farmers with the same phone number
+	// Implement actual duplicate checking logic
+	existingFarmer, err := ds.farmerService.GetFarmerByPhone(ctx, farmerData.PhoneNumber)
+	if err != nil {
+		ds.logger.Error("Failed to check for duplicate farmer", zap.Error(err))
+		// Continue processing even if duplicate check fails
+	}
 
-	isDuplicate := false
+	isDuplicate := existingFarmer != nil
 	duplicateReason := ""
 	existingFarmerID := ""
+
+	if isDuplicate {
+		duplicateReason = "Farmer with this phone number already exists"
+		existingFarmerID = existingFarmer.Data.ID
+	}
 
 	// Placeholder logic - randomly mark some as duplicates for testing
 	if procCtx.RecordIndex%13 == 0 {
@@ -401,10 +411,14 @@ func (frs *FarmerRegistrationStage) Process(ctx context.Context, data interface{
 	}
 
 	// Extract farmer ID from response
-	farmerID := "" // TODO: Extract from farmerResponse
-	if farmerResponse != nil {
-		// Assuming the response has a farmer ID field
-		farmerID = "farmer_" + aaaUserID // Placeholder
+	farmerID := ""
+	if farmerResponse != nil && farmerResponse.Data != nil {
+		farmerID = farmerResponse.Data.ID
+	}
+
+	// Fallback: generate farmer ID if not found in response
+	if farmerID == "" {
+		farmerID = "farmer_" + aaaUserID
 	}
 
 	procCtx.SetStageResult("farmer_registration", map[string]interface{}{

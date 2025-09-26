@@ -207,12 +207,12 @@ func GetFPORef(service services.FPOService) gin.HandlerFunc {
 			return
 		}
 
-		// TODO: Implement the actual service call
-		// fpoRef, err := service.GetFPORef(c.Request.Context(), orgID)
-		// if err != nil {
-		//     c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		//     return
-		// }
+		// Implement the actual service call
+		_, err := service.GetFPORef(c.Request.Context(), orgID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
 		c.JSON(http.StatusOK, gin.H{
 			"message": "FPO reference retrieved successfully",

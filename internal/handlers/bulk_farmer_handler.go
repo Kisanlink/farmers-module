@@ -85,7 +85,20 @@ func (h *BulkFarmerHandler) BulkAddFarmers(c *gin.Context) {
 	}
 
 	// Check if user has permission to add farmers to this FPO
-	// TODO: Add proper permission check using AAA service
+	hasPermission, err := h.bulkService.CheckPermission(c.Request.Context(), req.UserID, "farmer", "bulk_add", req.FPOOrgID, req.OrgID)
+	if err != nil {
+		h.logger.Error("Failed to check permission for bulk farmer addition", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Permission check failed"})
+		return
+	}
+	if !hasPermission {
+		h.logger.Warn("Permission denied for bulk farmer addition",
+			zap.String("user_id", req.UserID),
+			zap.String("fpo_org_id", req.FPOOrgID),
+		)
+		c.JSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions to add farmers to this FPO"})
+		return
+	}
 
 	h.logger.Info("Starting bulk farmer addition",
 		zap.String("request_id", req.RequestID),
@@ -473,8 +486,7 @@ func (h *BulkFarmerHandler) ValidateBulkData(c *gin.Context) {
 
 func (h *BulkFarmerHandler) parseMultipartRequest(c *gin.Context) (*requests.BulkFarmerAdditionRequest, error) {
 	// Parse multipart form
-	if err := c.Request.ParseMultipartForm(50 << 20); // 50 MB max
-	err != nil {
+	if err := c.Request.ParseMultipartForm(50 << 20); err != nil { // 50 MB max
 		return nil, fmt.Errorf("failed to parse multipart form: %w", err)
 	}
 

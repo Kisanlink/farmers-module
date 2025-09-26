@@ -324,15 +324,29 @@ func CreateActivity(service services.FarmActivityService) gin.HandlerFunc {
 			return
 		}
 
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, CreateActivityResponse{
-			Message: "Farm activity created successfully",
-			Data: CreateActivityData{
-				CropCycleID:  req.CropCycleID,
-				ActivityType: req.ActivityType,
-				PlannedAt:    req.PlannedAt,
-			},
-		})
+		// Set request metadata
+		// Note: BaseRequest fields should be set automatically
+
+		// Call service
+		result, err := service.CreateActivity(c.Request.Context(), &req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if response, ok := result.(*responses.FarmActivityResponse); ok {
+			response.RequestID = c.GetString("request_id")
+			c.JSON(http.StatusCreated, response)
+		} else {
+			c.JSON(http.StatusCreated, CreateActivityResponse{
+				Message: "Farm activity created successfully",
+				Data: CreateActivityData{
+					CropCycleID:  req.CropCycleID,
+					ActivityType: req.ActivityType,
+					PlannedAt:    req.PlannedAt,
+				},
+			})
+		}
 	}
 }
 
@@ -382,14 +396,29 @@ func CompleteActivity(service services.FarmActivityService) gin.HandlerFunc {
 			return
 		}
 
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, CompleteActivityResponse{
-			Message: "Farm activity completed successfully",
-			Data: CompleteActivityData{
-				ActivityID:  activityID,
-				CompletedAt: req.CompletedAt,
-			},
-		})
+		// Set request metadata
+		// Note: ID should be set from URL parameter
+		// Note: BaseRequest fields should be set automatically
+
+		// Call service
+		result, err := service.CompleteActivity(c.Request.Context(), &req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if response, ok := result.(*responses.FarmActivityResponse); ok {
+			response.RequestID = c.GetString("request_id")
+			c.JSON(http.StatusOK, response)
+		} else {
+			c.JSON(http.StatusOK, CompleteActivityResponse{
+				Message: "Farm activity completed successfully",
+				Data: CompleteActivityData{
+					ActivityID:  activityID,
+					CompletedAt: req.CompletedAt,
+				},
+			})
+		}
 	}
 }
 
@@ -438,13 +467,28 @@ func UpdateActivity(service services.FarmActivityService) gin.HandlerFunc {
 			return
 		}
 
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, UpdateActivityResponse{
-			Message: "Farm activity updated successfully",
-			Data: UpdateActivityData{
-				ActivityID: activityID,
-			},
-		})
+		// Set request metadata
+		// Note: ID should be set from URL parameter
+		// Note: BaseRequest fields should be set automatically
+
+		// Call service
+		result, err := service.UpdateActivity(c.Request.Context(), &req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if response, ok := result.(*responses.FarmActivityResponse); ok {
+			response.RequestID = c.GetString("request_id")
+			c.JSON(http.StatusOK, response)
+		} else {
+			c.JSON(http.StatusOK, UpdateActivityResponse{
+				Message: "Farm activity updated successfully",
+				Data: UpdateActivityData{
+					ActivityID: activityID,
+				},
+			})
+		}
 	}
 }
 
@@ -465,11 +509,36 @@ type ListActivitiesResponse struct {
 // @Router /crops/activities [get]
 func ListActivities(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, ListActivitiesResponse{
-			Message: "Farm activities retrieved successfully",
-			Data:    []interface{}{},
-		})
+		// Create request with query parameters
+		req := &requests.ListActivitiesRequest{}
+
+		// Parse query parameters
+		if cropCycleID := c.Query("crop_cycle_id"); cropCycleID != "" {
+			req.CropCycleID = cropCycleID
+		}
+		if activityType := c.Query("activity_type"); activityType != "" {
+			req.ActivityType = activityType
+		}
+		if status := c.Query("status"); status != "" {
+			req.Status = status
+		}
+
+		// Call service
+		result, err := service.ListActivities(c.Request.Context(), req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if response, ok := result.(*responses.FarmActivityListResponse); ok {
+			response.RequestID = c.GetString("request_id")
+			c.JSON(http.StatusOK, response)
+		} else {
+			c.JSON(http.StatusOK, ListActivitiesResponse{
+				Message: "Farm activities retrieved successfully",
+				Data:    []interface{}{},
+			})
+		}
 	}
 }
 
@@ -498,12 +567,103 @@ func GetCropFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		activityID := c.Param("activity_id")
 
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, GetFarmActivityResponse{
-			Message: "Farm activity retrieved successfully",
-			Data: GetFarmActivityData{
-				ActivityID: activityID,
-			},
-		})
+		// Call service
+		result, err := service.GetFarmActivity(c.Request.Context(), activityID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if response, ok := result.(*responses.FarmActivityResponse); ok {
+			response.RequestID = c.GetString("request_id")
+			c.JSON(http.StatusOK, response)
+		} else {
+			c.JSON(http.StatusOK, GetFarmActivityResponse{
+				Message: "Farm activity retrieved successfully",
+				Data: GetFarmActivityData{
+					ActivityID: activityID,
+				},
+			})
+		}
+	}
+}
+
+// RecordHarvest handles harvest recording for crop cycles
+func RecordHarvest(cropCycleService services.CropCycleService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		cycleID := c.Param("cycle_id")
+		if cycleID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Cycle ID is required"})
+			return
+		}
+
+		var req requests.RecordHarvestRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+			return
+		}
+
+		// Set request metadata
+		req.CycleID = cycleID
+		// Note: BaseRequest fields should be set automatically
+
+		// Call service
+		result, err := cropCycleService.RecordHarvest(c.Request.Context(), &req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if response, ok := result.(*responses.CropCycleResponse); ok {
+			response.RequestID = c.GetString("request_id")
+			c.JSON(http.StatusOK, response)
+		} else {
+			c.JSON(http.StatusOK, CropCycleResponse{
+				Success:   true,
+				Message:   "Harvest recorded successfully",
+				RequestID: req.RequestID,
+				Data:      result,
+			})
+		}
+	}
+}
+
+// UploadReport handles report upload for crop cycles
+func UploadReport(cropCycleService services.CropCycleService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		cycleID := c.Param("cycle_id")
+		if cycleID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Cycle ID is required"})
+			return
+		}
+
+		var req requests.UploadReportRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+			return
+		}
+
+		// Set request metadata
+		req.CycleID = cycleID
+		// Note: BaseRequest fields should be set automatically
+
+		// Call service
+		result, err := cropCycleService.UploadReport(c.Request.Context(), &req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if response, ok := result.(*responses.CropCycleResponse); ok {
+			response.RequestID = c.GetString("request_id")
+			c.JSON(http.StatusOK, response)
+		} else {
+			c.JSON(http.StatusOK, CropCycleResponse{
+				Success:   true,
+				Message:   "Report uploaded successfully",
+				RequestID: req.RequestID,
+				Data:      result,
+			})
+		}
 	}
 }

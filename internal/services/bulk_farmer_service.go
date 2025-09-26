@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -15,6 +18,7 @@ import (
 	bulkRepo "github.com/Kisanlink/farmers-module/internal/repo/bulk"
 	"github.com/Kisanlink/farmers-module/internal/services/parsers"
 	"github.com/Kisanlink/farmers-module/internal/services/pipeline"
+	"go.uber.org/zap"
 )
 
 // BulkFarmerService defines the interface for bulk farmer operations
@@ -32,6 +36,9 @@ type BulkFarmerService interface {
 
 	// Template operations
 	GetBulkUploadTemplate(ctx context.Context, format string, includeExample bool) (*responses.BulkTemplateData, error)
+
+	// Permission operations
+	CheckPermission(ctx context.Context, userID, resource, action, object, orgID string) (bool, error)
 }
 
 // BulkFarmerServiceImpl implements BulkFarmerService
@@ -45,6 +52,7 @@ type BulkFarmerServiceImpl struct {
 	processingPipeline pipeline.ProcessingPipeline
 	logger             interfaces.Logger
 	config             *BulkServiceConfig
+	progressMutex      sync.RWMutex // Protect progress updates
 }
 
 // BulkServiceConfig contains configuration for bulk service
@@ -134,7 +142,11 @@ func (s *BulkFarmerServiceImpl) BulkAddFarmersToFPO(ctx context.Context, req *re
 	// Create processing details
 	processingDetails := s.createProcessingDetails(bulkOp.ID, farmers)
 	if err := s.processingRepo.CreateBatch(ctx, processingDetails); err != nil {
-		s.logger.Error(fmt.Sprintf("Failed to create processing details: %v", err))
+		s.logger.Error("Failed to create processing details",
+			zap.String("operation_id", bulkOp.ID),
+			zap.Int("details_count", len(processingDetails)),
+			zap.Error(err))
+		// Don't fail the entire operation, but log the error
 	}
 
 	// Determine processing strategy
@@ -167,13 +179,17 @@ func (s *BulkFarmerServiceImpl) processSynchronously(ctx context.Context, bulkOp
 		bulkOp.ID, len(farmers)))
 
 	// Update status to processing
-	_ = s.bulkOpRepo.UpdateStatus(ctx, bulkOp.ID, bulk.StatusProcessing)
+	if err := s.bulkOpRepo.UpdateStatus(ctx, bulkOp.ID, bulk.StatusProcessing); err != nil {
+		s.logger.Error("Failed to update bulk operation status to processing",
+			zap.String("operation_id", bulkOp.ID),
+			zap.Error(err))
+	}
 
 	var processed, successful, failed, skipped int
 
 	for i, farmer := range farmers {
 		// Process individual farmer
-		err := s.processSingleFarmer(ctx, bulkOp, farmer, i, options)
+		farmerID, aaaUserID, err := s.processSingleFarmer(ctx, bulkOp, farmer, i, options)
 
 		processed++
 		if err != nil {
@@ -182,10 +198,20 @@ func (s *BulkFarmerServiceImpl) processSynchronously(ctx context.Context, bulkOp
 				i, farmer.PhoneNumber, err))
 
 			// Update processing detail with error
-			detail, _ := s.getProcessingDetailByIndex(ctx, bulkOp.ID, i)
-			if detail != nil {
+			detail, detailErr := s.getProcessingDetailByIndex(ctx, bulkOp.ID, i)
+			if detailErr != nil {
+				s.logger.Error("Failed to get processing detail for error update",
+					zap.String("operation_id", bulkOp.ID),
+					zap.Int("record_index", i),
+					zap.Error(detailErr))
+			} else if detail != nil {
 				detail.SetFailed(err.Error(), "PROCESSING_ERROR")
-				_ = s.processingRepo.Update(ctx, detail)
+				if updateErr := s.processingRepo.Update(ctx, detail); updateErr != nil {
+					s.logger.Error("Failed to update processing detail with error",
+						zap.String("operation_id", bulkOp.ID),
+						zap.Int("record_index", i),
+						zap.Error(updateErr))
+				}
 			}
 
 			if !options.ContinueOnError {
@@ -195,29 +221,57 @@ func (s *BulkFarmerServiceImpl) processSynchronously(ctx context.Context, bulkOp
 			successful++
 
 			// Update processing detail with success
-			detail, _ := s.getProcessingDetailByIndex(ctx, bulkOp.ID, i)
-			if detail != nil {
-				// TODO: Set actual farmer and AAA user IDs
-				detail.SetSuccess("farmer_id", "aaa_user_id")
-				_ = s.processingRepo.Update(ctx, detail)
+			detail, detailErr := s.getProcessingDetailByIndex(ctx, bulkOp.ID, i)
+			if detailErr != nil {
+				s.logger.Error("Failed to get processing detail for success update",
+					zap.String("operation_id", bulkOp.ID),
+					zap.Int("record_index", i),
+					zap.Error(detailErr))
+			} else if detail != nil {
+				detail.SetSuccess(farmerID, aaaUserID)
+				if updateErr := s.processingRepo.Update(ctx, detail); updateErr != nil {
+					s.logger.Error("Failed to update processing detail with success",
+						zap.String("operation_id", bulkOp.ID),
+						zap.Int("record_index", i),
+						zap.Error(updateErr))
+				}
 			}
 		}
 
 		// Update progress periodically
 		if processed%10 == 0 || processed == len(farmers) {
-			_ = s.bulkOpRepo.UpdateProgress(ctx, bulkOp.ID, processed, successful, failed, skipped)
+			s.progressMutex.Lock()
+			if err := s.bulkOpRepo.UpdateProgress(ctx, bulkOp.ID, processed, successful, failed, skipped); err != nil {
+				s.logger.Error("Failed to update bulk operation progress",
+					zap.String("operation_id", bulkOp.ID),
+					zap.Int("processed", processed),
+					zap.Error(err))
+			}
+			s.progressMutex.Unlock()
 		}
 	}
 
 	// Final progress update
-	_ = s.bulkOpRepo.UpdateProgress(ctx, bulkOp.ID, processed, successful, failed, skipped)
+	s.progressMutex.Lock()
+	if err := s.bulkOpRepo.UpdateProgress(ctx, bulkOp.ID, processed, successful, failed, skipped); err != nil {
+		s.logger.Error("Failed to update final bulk operation progress",
+			zap.String("operation_id", bulkOp.ID),
+			zap.Int("processed", processed),
+			zap.Error(err))
+	}
+	s.progressMutex.Unlock()
 
 	// Update final status
 	finalStatus := bulk.StatusCompleted
 	if failed > 0 && successful == 0 {
 		finalStatus = bulk.StatusFailed
 	}
-	_ = s.bulkOpRepo.UpdateStatus(ctx, bulkOp.ID, finalStatus)
+	if err := s.bulkOpRepo.UpdateStatus(ctx, bulkOp.ID, finalStatus); err != nil {
+		s.logger.Error("Failed to update final bulk operation status",
+			zap.String("operation_id", bulkOp.ID),
+			zap.String("final_status", string(finalStatus)),
+			zap.Error(err))
+	}
 
 	s.logger.Info("Synchronous processing completed",
 		bulkOp.ID,
@@ -283,7 +337,7 @@ func (s *BulkFarmerServiceImpl) processChunk(ctx context.Context, bulkOp *bulk.B
 
 	for i, farmer := range farmers {
 		globalIndex := chunkIndex*options.ChunkSize + i
-		err := s.processSingleFarmer(ctx, bulkOp, farmer, globalIndex, options)
+		farmerID, aaaUserID, err := s.processSingleFarmer(ctx, bulkOp, farmer, globalIndex, options)
 
 		update := progressUpdate{
 			processed: 1,
@@ -297,12 +351,26 @@ func (s *BulkFarmerServiceImpl) processChunk(ctx context.Context, bulkOp *bulk.B
 				err,
 			)
 
+			// Update processing detail with error
+			detail, _ := s.getProcessingDetailByIndex(ctx, bulkOp.ID, globalIndex)
+			if detail != nil {
+				detail.SetFailed(err.Error(), "PROCESSING_ERROR")
+				_ = s.processingRepo.Update(ctx, detail)
+			}
+
 			if !options.ContinueOnError {
 				progressChan <- update
 				return
 			}
 		} else {
 			update.successful = 1
+
+			// Update processing detail with success
+			detail, _ := s.getProcessingDetailByIndex(ctx, bulkOp.ID, globalIndex)
+			if detail != nil {
+				detail.SetSuccess(farmerID, aaaUserID)
+				_ = s.processingRepo.Update(ctx, detail)
+			}
 		}
 
 		progressChan <- update
@@ -310,7 +378,7 @@ func (s *BulkFarmerServiceImpl) processChunk(ctx context.Context, bulkOp *bulk.B
 }
 
 // processSingleFarmer processes a single farmer using the pipeline
-func (s *BulkFarmerServiceImpl) processSingleFarmer(ctx context.Context, bulkOp *bulk.BulkOperation, farmer *requests.FarmerBulkData, index int, options requests.BulkProcessingOptions) error {
+func (s *BulkFarmerServiceImpl) processSingleFarmer(ctx context.Context, bulkOp *bulk.BulkOperation, farmer *requests.FarmerBulkData, index int, options requests.BulkProcessingOptions) (string, string, error) {
 	// Create processing context
 	procCtx := pipeline.NewProcessingContext(
 		bulkOp.ID,
@@ -324,12 +392,32 @@ func (s *BulkFarmerServiceImpl) processSingleFarmer(ctx context.Context, bulkOp 
 	pipe := s.buildProcessingPipeline(options)
 
 	// Execute pipeline
-	_, err := pipe.Execute(ctx, procCtx)
+	result, err := pipe.Execute(ctx, procCtx)
 	if err != nil {
-		return fmt.Errorf("pipeline execution failed: %w", err)
+		return "", "", fmt.Errorf("pipeline execution failed: %w", err)
 	}
 
-	return nil
+	// Extract farmer and AAA user IDs from the processing context
+	procCtx, ok := result.(*pipeline.ProcessingContext)
+	if !ok {
+		return "", "", fmt.Errorf("invalid pipeline result type")
+	}
+
+	// Get farmer ID from processing results
+	farmerID, _ := procCtx.GetProcessingResult("farmer_id")
+	aaaUserID, _ := procCtx.GetProcessingResult("aaa_user_id")
+
+	farmerIDStr := ""
+	aaaUserIDStr := ""
+
+	if farmerID != nil {
+		farmerIDStr = fmt.Sprintf("%v", farmerID)
+	}
+	if aaaUserID != nil {
+		aaaUserIDStr = fmt.Sprintf("%v", aaaUserID)
+	}
+
+	return farmerIDStr, aaaUserIDStr, nil
 }
 
 // buildProcessingPipeline builds the processing pipeline based on options
@@ -448,11 +536,43 @@ func (s *BulkFarmerServiceImpl) RetryFailedRecords(ctx context.Context, req *req
 		return nil, fmt.Errorf("no retryable records found")
 	}
 
-	// TODO: Implement retry logic
-	// This will create a new bulk operation for the failed records
+	// Implement retry logic
+	// Create a new bulk operation for the failed records
+	retryOp := bulk.NewBulkOperation()
+	retryOp.FPOOrgID = originalOp.FPOOrgID
+	retryOp.InitiatedBy = req.UserID
+	retryOp.Status = "PENDING"
+	retryOp.InputFormat = originalOp.InputFormat
+	retryOp.ProcessingMode = "RETRY"
+	retryOp.TotalRecords = len(failedDetails)
+	retryOp.Metadata = map[string]interface{}{
+		"original_operation_id": originalOp.ID,
+		"retry_reason":          "Failed records retry",
+	}
+
+	// Save the retry operation
+	if err := s.bulkOpRepo.Create(ctx, retryOp); err != nil {
+		return nil, fmt.Errorf("failed to create retry operation: %w", err)
+	}
+
+	// Create processing details for failed records
+	for i, detail := range failedDetails {
+		retryDetail := bulk.NewProcessingDetail(retryOp.ID, i)
+		retryDetail.Status = "PENDING"
+		retryDetail.InputData = detail.InputData
+		retryDetail.Error = detail.Error
+		retryDetail.Metadata = map[string]interface{}{
+			"original_detail_id": detail.ID,
+			"original_error":     detail.Error,
+		}
+
+		if err := s.processingRepo.Create(ctx, retryDetail); err != nil {
+			s.logger.Error("Failed to create retry processing detail", zap.Error(err))
+		}
+	}
 
 	return &responses.BulkOperationData{
-		OperationID: "retry_" + originalOp.ID,
+		OperationID: retryOp.ID,
 		Status:      "INITIATED",
 		Message:     fmt.Sprintf("Retry initiated for %d failed records", len(failedDetails)),
 	}, nil
@@ -466,8 +586,24 @@ func (s *BulkFarmerServiceImpl) parseInputData(ctx context.Context, req *request
 	}
 
 	if req.FileURL != "" {
-		// TODO: Download file from URL and parse
-		return nil, fmt.Errorf("file URL processing not yet implemented")
+		// Download file from URL and parse
+		resp, err := http.Get(req.FileURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to download file from URL: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("failed to download file: HTTP %d", resp.StatusCode)
+		}
+
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read downloaded file: %w", err)
+		}
+
+		// Parse the downloaded file
+		return s.ParseBulkFile(ctx, req.InputFormat, data)
 	}
 
 	return nil, fmt.Errorf("no input data provided")
@@ -575,8 +711,81 @@ func (s *BulkFarmerServiceImpl) aggregateProgress(ctx context.Context, operation
 // Placeholder methods for unimplemented features
 
 func (s *BulkFarmerServiceImpl) ValidateBulkData(ctx context.Context, req *requests.ValidateBulkDataRequest) (*responses.BulkValidationData, error) {
-	// TODO: Implement validation logic
-	return nil, fmt.Errorf("not yet implemented")
+	// Parse the bulk data
+	farmers, err := s.ParseBulkFile(ctx, req.InputFormat, req.Data)
+	if err != nil {
+		return &responses.BulkValidationData{
+			IsValid:      false,
+			TotalRecords: 0,
+			ValidRecords: 0,
+			Errors: []responses.ValidationError{{
+				RecordIndex: 0,
+				Field:       "parse",
+				Message:     fmt.Sprintf("Parse error: %v", err),
+				Code:        "PARSE_ERROR",
+			}},
+		}, nil
+	}
+
+	// Validate each farmer record
+	var validationErrors []responses.ValidationError
+	validCount := 0
+
+	for i, farmer := range farmers {
+		// Basic validation
+		if farmer.PhoneNumber == "" {
+			validationErrors = append(validationErrors, responses.ValidationError{
+				RecordIndex: i + 1,
+				Field:       "phone_number",
+				Message:     "Phone number is required",
+				Code:        "REQUIRED",
+			})
+			continue
+		}
+
+		if farmer.FirstName == "" || farmer.LastName == "" {
+			validationErrors = append(validationErrors, responses.ValidationError{
+				RecordIndex: i + 1,
+				Field:       "first_name",
+				Message:     "Full name is required",
+				Code:        "REQUIRED",
+			})
+			continue
+		}
+
+		// Phone number format validation
+		if len(farmer.PhoneNumber) < 10 {
+			validationErrors = append(validationErrors, responses.ValidationError{
+				RecordIndex: i + 1,
+				Field:       "phone_number",
+				Message:     "Invalid phone number format",
+				Code:        "INVALID_FORMAT",
+			})
+			continue
+		}
+
+		// Check for duplicates within the batch
+		for j := i + 1; j < len(farmers); j++ {
+			if farmers[j].PhoneNumber == farmer.PhoneNumber {
+				validationErrors = append(validationErrors, responses.ValidationError{
+					RecordIndex: i + 1,
+					Field:       "phone_number",
+					Message:     fmt.Sprintf("Duplicate phone number found in record %d", j+1),
+					Code:        "DUPLICATE",
+				})
+				break
+			}
+		}
+
+		validCount++
+	}
+
+	return &responses.BulkValidationData{
+		IsValid:      len(validationErrors) == 0,
+		TotalRecords: len(farmers),
+		ValidRecords: validCount,
+		Errors:       validationErrors,
+	}, nil
 }
 
 func (s *BulkFarmerServiceImpl) ParseBulkFile(ctx context.Context, format string, data []byte) ([]*requests.FarmerBulkData, error) {
@@ -612,8 +821,115 @@ func (s *BulkFarmerServiceImpl) ParseBulkFile(ctx context.Context, format string
 }
 
 func (s *BulkFarmerServiceImpl) GenerateResultFile(ctx context.Context, operationID string, format string) ([]byte, error) {
-	// TODO: Implement result file generation
-	return nil, fmt.Errorf("not yet implemented")
+	// Get the bulk operation
+	bulkOp, err := s.bulkOpRepo.GetByID(ctx, operationID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get bulk operation: %w", err)
+	}
+	if bulkOp == nil {
+		return nil, fmt.Errorf("bulk operation not found")
+	}
+
+	// Get all processing details for this operation
+	details, err := s.processingRepo.GetByOperationID(ctx, operationID)
+	if err != nil {
+		s.logger.Error("Failed to get processing details for result generation",
+			zap.String("operation_id", operationID),
+			zap.Error(err))
+		// Return empty details rather than failing completely
+		details = []*bulk.ProcessingDetail{}
+	}
+
+	s.logger.Info("Generating result file",
+		zap.String("operation_id", operationID),
+		zap.String("format", format),
+		zap.Int("details_count", len(details)))
+
+	// Generate result based on format
+	switch strings.ToUpper(format) {
+	case "CSV":
+		return s.generateCSVResult(details)
+	case "JSON":
+		return s.generateJSONResult(details)
+	case "EXCEL":
+		return s.generateExcelResult(details)
+	default:
+		return nil, fmt.Errorf("unsupported format: %s", format)
+	}
+}
+
+func (s *BulkFarmerServiceImpl) generateCSVResult(details []*bulk.ProcessingDetail) ([]byte, error) {
+	var result strings.Builder
+	result.WriteString("Record Index,Status,Farmer ID,AAA User ID,Error Message\n")
+
+	for _, detail := range details {
+		farmerID := ""
+		aaaUserID := ""
+		errorMsg := ""
+
+		if detail.FarmerID != nil {
+			farmerID = *detail.FarmerID
+		}
+		if detail.AAAUserID != nil {
+			aaaUserID = *detail.AAAUserID
+		}
+		if detail.Error != nil {
+			errorMsg = *detail.Error
+		}
+
+		result.WriteString(fmt.Sprintf("%d,%s,%s,%s,%s\n",
+			detail.RecordIndex,
+			detail.Status,
+			farmerID,
+			aaaUserID,
+			strings.ReplaceAll(errorMsg, ",", ";"),
+		))
+	}
+
+	return []byte(result.String()), nil
+}
+
+func (s *BulkFarmerServiceImpl) generateJSONResult(details []*bulk.ProcessingDetail) ([]byte, error) {
+	type ResultRecord struct {
+		RecordIndex  int    `json:"record_index"`
+		Status       string `json:"status"`
+		FarmerID     string `json:"farmer_id"`
+		AAAUserID    string `json:"aaa_user_id"`
+		ErrorMessage string `json:"error_message"`
+	}
+
+	var results []ResultRecord
+	for _, detail := range details {
+		farmerID := ""
+		aaaUserID := ""
+		errorMsg := ""
+
+		if detail.FarmerID != nil {
+			farmerID = *detail.FarmerID
+		}
+		if detail.AAAUserID != nil {
+			aaaUserID = *detail.AAAUserID
+		}
+		if detail.Error != nil {
+			errorMsg = *detail.Error
+		}
+
+		results = append(results, ResultRecord{
+			RecordIndex:  detail.RecordIndex,
+			Status:       string(detail.Status),
+			FarmerID:     farmerID,
+			AAAUserID:    aaaUserID,
+			ErrorMessage: errorMsg,
+		})
+	}
+
+	return json.MarshalIndent(results, "", "  ")
+}
+
+func (s *BulkFarmerServiceImpl) generateExcelResult(details []*bulk.ProcessingDetail) ([]byte, error) {
+	// For Excel generation, we'll return a simple CSV format
+	// In a production environment, you might want to use a proper Excel library
+	return s.generateCSVResult(details)
 }
 
 func (s *BulkFarmerServiceImpl) GetBulkUploadTemplate(ctx context.Context, format string, includeExample bool) (*responses.BulkTemplateData, error) {
@@ -694,10 +1010,73 @@ Tips:
 }
 
 func (s *BulkFarmerServiceImpl) validateFarmers(ctx context.Context, fpoOrgID string, farmers []*requests.FarmerBulkData) (*responses.BulkValidationData, error) {
-	// TODO: Implement validation
+	var validationErrors []responses.ValidationError
+	validCount := 0
+
+	for i, farmer := range farmers {
+		// Basic validation
+		if farmer.PhoneNumber == "" {
+			validationErrors = append(validationErrors, responses.ValidationError{
+				RecordIndex: i + 1,
+				Field:       "phone_number",
+				Message:     "Phone number is required",
+				Code:        "REQUIRED",
+			})
+			continue
+		}
+
+		if farmer.FirstName == "" || farmer.LastName == "" {
+			validationErrors = append(validationErrors, responses.ValidationError{
+				RecordIndex: i + 1,
+				Field:       "first_name",
+				Message:     "Full name is required",
+				Code:        "REQUIRED",
+			})
+			continue
+		}
+
+		// Phone number format validation
+		if len(farmer.PhoneNumber) < 10 {
+			validationErrors = append(validationErrors, responses.ValidationError{
+				RecordIndex: i + 1,
+				Field:       "phone_number",
+				Message:     "Invalid phone number format",
+				Code:        "INVALID_FORMAT",
+			})
+			continue
+		}
+
+		// Check for duplicates within the batch
+		for j := i + 1; j < len(farmers); j++ {
+			if farmers[j].PhoneNumber == farmer.PhoneNumber {
+				validationErrors = append(validationErrors, responses.ValidationError{
+					RecordIndex: i + 1,
+					Field:       "phone_number",
+					Message:     fmt.Sprintf("Duplicate phone number found in record %d", j+1),
+					Code:        "DUPLICATE",
+				})
+				break
+			}
+		}
+
+		validCount++
+	}
+
 	return &responses.BulkValidationData{
-		IsValid:      true,
+		IsValid:      len(validationErrors) == 0,
 		TotalRecords: len(farmers),
-		ValidRecords: len(farmers),
+		ValidRecords: validCount,
+		Errors:       validationErrors,
 	}, nil
+}
+
+// CheckPermission checks if user has permission for the specified action
+func (s *BulkFarmerServiceImpl) CheckPermission(ctx context.Context, userID, resource, action, object, orgID string) (bool, error) {
+	return s.aaaService.CheckPermission(ctx, userID, resource, action, object, orgID)
+}
+
+// isValidEmail validates email format using regex
+func (s *BulkFarmerServiceImpl) isValidEmail(email string) bool {
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return emailRegex.MatchString(email)
 }
