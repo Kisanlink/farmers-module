@@ -91,7 +91,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	dataQualityService := NewDataQualityService(gormDB, repoFactory.FarmRepo, repoFactory.FarmerLinkageRepo, aaaService)
 
 	// Initialize reporting service
-	reportingService := NewReportingService(repoFactory, gormDB, aaaService)
+	reportingService := NewReportingService(repoFactory, aaaService)
 
 	// Initialize administrative service
 	concreteAdminService := NewAdministrativeService(postgresManager, gormDB, aaaService)

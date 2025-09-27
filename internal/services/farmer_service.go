@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
-	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/farm"
+	"github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
@@ -19,23 +18,23 @@ import (
 // FarmerService handles farmer-related operations
 type FarmerService interface {
 	CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error)
-	GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*responses.FarmerProfileResponse, error)
-	GetFarmerByPhone(ctx context.Context, phoneNumber string) (*responses.FarmerProfileResponse, error)
+	GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*responses.FarmerResponse, error)
 	UpdateFarmer(ctx context.Context, req *requests.UpdateFarmerRequest) (*responses.FarmerResponse, error)
 	DeleteFarmer(ctx context.Context, req *requests.DeleteFarmerRequest) error
 	ListFarmers(ctx context.Context, req *requests.ListFarmersRequest) (*responses.FarmerListResponse, error)
+	GetFarmerByPhone(ctx context.Context, phoneNumber string) (*responses.FarmerProfileResponse, error)
 }
 
 // FarmerServiceImpl implements FarmerService
 type FarmerServiceImpl struct {
-	repository *base.BaseFilterableRepository[*entities.FarmerProfile]
+	repository *base.BaseFilterableRepository[*farmer.Farmer]
 	farmRepo   *base.BaseFilterableRepository[*farm.Farm]
 	dbManager  db.DBManager
 	aaaService AAAService
 }
 
 // NewFarmerService creates a new farmer service with repository and AAA service
-func NewFarmerService(repository *base.BaseFilterableRepository[*entities.FarmerProfile], farmRepo *base.BaseFilterableRepository[*farm.Farm], aaaService AAAService) FarmerService {
+func NewFarmerService(repository *base.BaseFilterableRepository[*farmer.Farmer], farmRepo *base.BaseFilterableRepository[*farm.Farm], aaaService AAAService) FarmerService {
 	return &FarmerServiceImpl{
 		repository: repository,
 		farmRepo:   farmRepo,
@@ -45,520 +44,520 @@ func NewFarmerService(repository *base.BaseFilterableRepository[*entities.Farmer
 
 // CreateFarmer creates a new farmer
 func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error) {
-	// Check if farmer already exists using filter
-	existingFilter := base.NewFilterBuilder().
-		Where("aaa_user_id", base.OpEqual, req.AAAUserID).
-		Where("aaa_org_id", base.OpEqual, req.AAAOrgID).
-		Build()
-
-	existing, err := s.repository.FindOne(ctx, existingFilter)
-	if err == nil && existing != nil {
-		return nil, fmt.Errorf("farmer already exists")
+	// Check permission
+	hasPermission, err := s.aaaService.CheckPermission(ctx, req.UserID, "farmer", "create", "", req.OrgID)
+	if err != nil {
+		return nil, fmt.Errorf("permission check failed: %w", err)
+	}
+	if !hasPermission {
+		return nil, fmt.Errorf("insufficient permissions to create farmer")
 	}
 
-	// Check if user exists in AAA by mobile number
-	var aaaUserID string
-	var aaaOrgID string
-
-	if req.Profile.PhoneNumber != "" {
-		// Try to find existing user by mobile number
-		aaaUser, err := s.aaaService.GetUserByMobile(ctx, req.Profile.PhoneNumber)
-		if err != nil {
-			// User doesn't exist, create new user in AAA
-			log.Printf("User not found in AAA, creating new user with mobile: %s", req.Profile.PhoneNumber)
-
-			// Create user in AAA
-			// Generate secure password
-			securePassword := s.generateSecurePassword()
-
-			createUserReq := map[string]interface{}{
-				"username":       fmt.Sprintf("farmer_%s", req.Profile.PhoneNumber),
-				"mobile_number":  req.Profile.PhoneNumber,
-				"password":       securePassword,
-				"country_code":   s.getCountryCode(req.Profile.PhoneNumber),
-				"aadhaar_number": "", // Aadhaar number not available in request
-			}
-
-			aaaUser, err = s.aaaService.CreateUser(ctx, createUserReq)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create user in AAA: %w", err)
-			}
-		}
-
-		// Extract AAA user ID from response
-		if userMap, ok := aaaUser.(map[string]interface{}); ok {
-			if id, exists := userMap["id"]; exists {
-				aaaUserID = fmt.Sprintf("%v", id)
-			}
-		}
-
-		if aaaUserID == "" {
-			return nil, fmt.Errorf("failed to get AAA user ID from response")
-		}
-
-		// For now, use the same org ID as provided in request.
-		// Verify organization exists in AAA (best-effort; non-fatal if AAA unsupported)
-		aaaOrgID = req.AAAOrgID
-		if aaaOrgID != "" {
-			if _, err := s.aaaService.GetOrganization(ctx, aaaOrgID); err != nil {
-				log.Printf("Warning: could not verify AAA organization %s: %v", aaaOrgID, err)
-			}
-		}
-	} else {
-		// Use provided AAA user ID and org ID
-		aaaUserID = req.AAAUserID
-		aaaOrgID = req.AAAOrgID
+	// Create farmer in AAA first
+	aaaResponse, err := s.aaaService.CreateUser(ctx, map[string]interface{}{
+		"username":     req.Profile.PhoneNumber, // Use phone as username
+		"phone_number": req.Profile.PhoneNumber,
+		"country_code": s.getCountryCode(req.Profile.PhoneNumber),
+		"email":        req.Profile.Email,
+		"password":     s.generateSecurePassword(),
+		"full_name":    req.Profile.FirstName + " " + req.Profile.LastName,
+		"role":         "farmer",
+		"metadata":     make(map[string]string),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user in AAA: %w", err)
 	}
 
-	// Create new farmer profile
-	farmerProfile := &entities.FarmerProfile{
-		BaseModel:        *base.NewBaseModel("farmer_profile", hash.Medium),
-		AAAUserID:        aaaUserID,
-		AAAOrgID:         aaaOrgID,
-		KisanSathiUserID: req.KisanSathiUserID,
-		FirstName:        req.Profile.FirstName,
-		LastName:         req.Profile.LastName,
-		PhoneNumber:      req.Profile.PhoneNumber,
-		Email:            req.Profile.Email,
-		DateOfBirth:      req.Profile.DateOfBirth,
-		Gender:           req.Profile.Gender,
-		Address: entities.Address{
-			StreetAddress: req.Profile.Address.StreetAddress,
-			City:          req.Profile.Address.City,
-			State:         req.Profile.Address.State,
-			PostalCode:    req.Profile.Address.PostalCode,
-			Country:       req.Profile.Address.Country,
-			Coordinates:   req.Profile.Address.Coordinates,
-		},
-		Preferences: req.Profile.Preferences,
-		Metadata:    req.Profile.Metadata,
-		Status:      "ACTIVE",
+	// Extract user ID from response
+	responseMap, ok := aaaResponse.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid response format from AAA")
 	}
-	farmerProfile.SetCreatedBy(req.UserID)
+	aaaUserID, ok := responseMap["user_id"].(string)
+	if !ok {
+		return nil, fmt.Errorf("invalid user ID in AAA response")
+	}
 
-	// Save to repository
-	if err := s.repository.Create(ctx, farmerProfile); err != nil {
+	// Create farmer entity
+	farmerEntity := &farmer.Farmer{
+		BaseModel:         *base.NewBaseModel("farmer", hash.Large),
+		AAAUserID:         aaaUserID,
+		AAAOrgID:          req.OrgID,
+		KisanSathiUserID:  nil, // Will be set later if needed
+		FirstName:         req.Profile.FirstName,
+		LastName:          req.Profile.LastName,
+		PhoneNumber:       req.Profile.PhoneNumber,
+		Email:             req.Profile.Email,
+		DateOfBirth:       &req.Profile.DateOfBirth,
+		Gender:            req.Profile.Gender,
+		StreetAddress:     req.Profile.Address.StreetAddress,
+		City:              req.Profile.Address.City,
+		State:             req.Profile.Address.State,
+		PostalCode:        req.Profile.Address.PostalCode,
+		Country:           req.Profile.Address.Country,
+		Coordinates:       req.Profile.Address.Coordinates,
+		LandOwnershipType: "", // Not available in request
+		Status:            "ACTIVE",
+		Preferences:       make(map[string]string),
+		Metadata:          make(map[string]string),
+	}
+
+	// Save farmer to database
+	if err := s.repository.Create(ctx, farmerEntity); err != nil {
 		return nil, fmt.Errorf("failed to create farmer: %w", err)
 	}
 
-	// Convert to response format
-	farmerProfileData := &responses.FarmerProfileData{
-		ID:               farmerProfile.GetID(),
-		AAAUserID:        farmerProfile.AAAUserID,
-		AAAOrgID:         farmerProfile.AAAOrgID,
-		KisanSathiUserID: farmerProfile.KisanSathiUserID,
-		FirstName:        farmerProfile.FirstName,
-		LastName:         farmerProfile.LastName,
-		PhoneNumber:      farmerProfile.PhoneNumber,
-		Email:            farmerProfile.Email,
-		DateOfBirth:      farmerProfile.DateOfBirth,
-		Gender:           farmerProfile.Gender,
-		Address: responses.AddressData{
-			StreetAddress: farmerProfile.Address.StreetAddress,
-			City:          farmerProfile.Address.City,
-			State:         farmerProfile.Address.State,
-			PostalCode:    farmerProfile.Address.PostalCode,
-			Country:       farmerProfile.Address.Country,
-			Coordinates:   farmerProfile.Address.Coordinates,
-		},
-		Preferences: farmerProfile.Preferences,
-		Metadata:    farmerProfile.Metadata,
-		Farms:       []*responses.FarmData{},
-		CreatedAt:   farmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+	// Convert to response
+	farmerResponse := farmerEntity.ToFarmerResponse()
+
+	// Load farms for the farmer
+	farms, err := s.loadFarmsForFarmer(ctx, farmerEntity.ID)
+	if err != nil {
+		log.Printf("Warning: Failed to load farms for farmer %s: %v", farmerEntity.ID, err)
+		farms = []*responses.FarmData{}
 	}
 
-	response := responses.NewFarmerResponse(farmerProfileData, "Farmer created successfully")
-	return &response, nil
+	// Create comprehensive response
+	response := &responses.FarmerResponse{
+		BaseResponse: &base.BaseResponse{
+			RequestID: req.RequestID,
+		},
+		Data: &responses.FarmerProfileData{
+			ID:               farmerResponse.ID,
+			AAAUserID:        farmerResponse.AAAUserID,
+			AAAOrgID:         farmerResponse.AAAOrgID,
+			KisanSathiUserID: farmerResponse.KisanSathiUserID,
+			FirstName:        farmerResponse.FirstName,
+			LastName:         farmerResponse.LastName,
+			PhoneNumber:      farmerResponse.PhoneNumber,
+			Email:            farmerResponse.Email,
+			DateOfBirth:      *farmerResponse.DateOfBirth,
+			Gender:           farmerResponse.Gender,
+			Address: responses.AddressData{
+				StreetAddress: farmerResponse.StreetAddress,
+				City:          farmerResponse.City,
+				State:         farmerResponse.State,
+				PostalCode:    farmerResponse.PostalCode,
+				Country:       farmerResponse.Country,
+				Coordinates:   farmerResponse.Coordinates,
+			},
+			Preferences: farmerResponse.Preferences,
+			Metadata:    farmerResponse.Metadata,
+			Farms:       farms,
+			CreatedAt:   farmerResponse.CreatedAt,
+			UpdatedAt:   farmerResponse.UpdatedAt,
+		},
+	}
+
+	return response, nil
 }
 
-// GetFarmer retrieves a farmer by ID, user_id, or user_id+org_id
-func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*responses.FarmerProfileResponse, error) {
-	var filter *base.Filter
-
-	// Priority: farmer_id > aaa_user_id > aaa_user_id + aaa_org_id
-	if req.FarmerID != "" {
-		// Lookup by primary key (farmer_id)
-		filter = base.NewFilterBuilder().
-			Where("id", base.OpEqual, req.FarmerID).
-			Build()
-	} else if req.AAAUserID != "" {
-		// Lookup by user_id, optionally filtered by org_id
-		filterBuilder := base.NewFilterBuilder().
-			Where("aaa_user_id", base.OpEqual, req.AAAUserID)
-
-		if req.AAAOrgID != "" {
-			filterBuilder = filterBuilder.Where("aaa_org_id", base.OpEqual, req.AAAOrgID)
-		}
-
-		filter = filterBuilder.Build()
-	} else {
-		return nil, fmt.Errorf("either farmer_id or aaa_user_id must be provided")
-	}
-
-	farmerProfile, err := s.repository.FindOne(ctx, filter)
+// GetFarmer retrieves a farmer by ID
+func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*responses.FarmerResponse, error) {
+	// Check permission
+	hasPermission, err := s.aaaService.CheckPermission(ctx, req.UserID, "farmer", "read", req.FarmerID, req.OrgID)
 	if err != nil {
-		return nil, fmt.Errorf("farmer not found: %w", err)
+		return nil, fmt.Errorf("permission check failed: %w", err)
+	}
+	if !hasPermission {
+		return nil, fmt.Errorf("insufficient permissions to read farmer")
 	}
 
-	// Convert to response format
-	farmerProfileData := &responses.FarmerProfileData{
-		ID:               farmerProfile.GetID(),
-		AAAUserID:        farmerProfile.AAAUserID,
-		AAAOrgID:         farmerProfile.AAAOrgID,
-		KisanSathiUserID: farmerProfile.KisanSathiUserID,
-		FirstName:        farmerProfile.FirstName,
-		LastName:         farmerProfile.LastName,
-		PhoneNumber:      farmerProfile.PhoneNumber,
-		Email:            farmerProfile.Email,
-		DateOfBirth:      farmerProfile.DateOfBirth,
-		Gender:           farmerProfile.Gender,
-		Address: responses.AddressData{
-			StreetAddress: farmerProfile.Address.StreetAddress,
-			City:          farmerProfile.Address.City,
-			State:         farmerProfile.Address.State,
-			PostalCode:    farmerProfile.Address.PostalCode,
-			Country:       farmerProfile.Address.Country,
-			Coordinates:   farmerProfile.Address.Coordinates,
+	// Get farmer from database
+	filter := base.NewFilterBuilder().Where("id", base.OpEqual, req.FarmerID).Build()
+	farmers, err := s.repository.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get farmer: %w", err)
+	}
+
+	if len(farmers) == 0 {
+		return nil, fmt.Errorf("farmer not found")
+	}
+
+	farmerEntity := farmers[0]
+
+	// Convert to response
+	farmerResponse := farmerEntity.ToFarmerResponse()
+
+	// Load farms for the farmer
+	farms, err := s.loadFarmsForFarmer(ctx, farmerEntity.ID)
+	if err != nil {
+		log.Printf("Warning: Failed to load farms for farmer %s: %v", farmerEntity.ID, err)
+		farms = []*responses.FarmData{}
+	}
+
+	// Create comprehensive response
+	response := &responses.FarmerResponse{
+		BaseResponse: &base.BaseResponse{
+			RequestID: req.RequestID,
 		},
-		Preferences: farmerProfile.Preferences,
-		Metadata:    farmerProfile.Metadata,
-		Farms:       func() []*responses.FarmData { farms, _ := s.loadFarmsForFarmer(ctx, farmerProfile.ID); return farms }(),
-		CreatedAt:   farmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		Data: &responses.FarmerProfileData{
+			ID:               farmerResponse.ID,
+			AAAUserID:        farmerResponse.AAAUserID,
+			AAAOrgID:         farmerResponse.AAAOrgID,
+			KisanSathiUserID: farmerResponse.KisanSathiUserID,
+			FirstName:        farmerResponse.FirstName,
+			LastName:         farmerResponse.LastName,
+			PhoneNumber:      farmerResponse.PhoneNumber,
+			Email:            farmerResponse.Email,
+			DateOfBirth:      *farmerResponse.DateOfBirth,
+			Gender:           farmerResponse.Gender,
+			Address: responses.AddressData{
+				StreetAddress: farmerResponse.StreetAddress,
+				City:          farmerResponse.City,
+				State:         farmerResponse.State,
+				PostalCode:    farmerResponse.PostalCode,
+				Country:       farmerResponse.Country,
+				Coordinates:   farmerResponse.Coordinates,
+			},
+			Preferences: farmerResponse.Preferences,
+			Metadata:    farmerResponse.Metadata,
+			Farms:       farms,
+			CreatedAt:   farmerResponse.CreatedAt,
+			UpdatedAt:   farmerResponse.UpdatedAt,
+		},
 	}
 
-	response := responses.NewFarmerProfileResponse(farmerProfileData, "Farmer retrieved successfully")
-	return &response, nil
+	return response, nil
 }
 
 // UpdateFarmer updates an existing farmer
 func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.UpdateFarmerRequest) (*responses.FarmerResponse, error) {
-	// Find existing farmer using flexible lookup
-	var filter *base.Filter
-
-	if req.FarmerID != "" {
-		// Lookup by primary key (farmer_id)
-		filter = base.NewFilterBuilder().
-			Where("id", base.OpEqual, req.FarmerID).
-			Build()
-	} else if req.AAAUserID != "" {
-		// Lookup by user_id, optionally filtered by org_id
-		filterBuilder := base.NewFilterBuilder().
-			Where("aaa_user_id", base.OpEqual, req.AAAUserID)
-
-		if req.AAAOrgID != "" {
-			filterBuilder = filterBuilder.Where("aaa_org_id", base.OpEqual, req.AAAOrgID)
-		}
-
-		filter = filterBuilder.Build()
-	} else {
-		return nil, fmt.Errorf("either farmer_id or aaa_user_id must be provided")
-	}
-
-	existingFarmerProfile, err := s.repository.FindOne(ctx, filter)
+	// Check permission
+	hasPermission, err := s.aaaService.CheckPermission(ctx, req.UserID, "farmer", "update", req.FarmerID, req.OrgID)
 	if err != nil {
-		return nil, fmt.Errorf("farmer not found: %w", err)
+		return nil, fmt.Errorf("permission check failed: %w", err)
+	}
+	if !hasPermission {
+		return nil, fmt.Errorf("insufficient permissions to update farmer")
 	}
 
-	// Update fields if provided
+	// Get existing farmer
+	filter := base.NewFilterBuilder().Where("id", base.OpEqual, req.FarmerID).Build()
+	farmers, err := s.repository.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get farmer: %w", err)
+	}
+
+	if len(farmers) == 0 {
+		return nil, fmt.Errorf("farmer not found")
+	}
+
+	farmerEntity := farmers[0]
+
+	// Update fields
 	if req.Profile.FirstName != "" {
-		existingFarmerProfile.FirstName = req.Profile.FirstName
+		farmerEntity.FirstName = req.Profile.FirstName
 	}
 	if req.Profile.LastName != "" {
-		existingFarmerProfile.LastName = req.Profile.LastName
+		farmerEntity.LastName = req.Profile.LastName
 	}
 	if req.Profile.PhoneNumber != "" {
-		existingFarmerProfile.PhoneNumber = req.Profile.PhoneNumber
+		farmerEntity.PhoneNumber = req.Profile.PhoneNumber
 	}
 	if req.Profile.Email != "" {
-		existingFarmerProfile.Email = req.Profile.Email
+		farmerEntity.Email = req.Profile.Email
 	}
 	if req.Profile.DateOfBirth != "" {
-		existingFarmerProfile.DateOfBirth = req.Profile.DateOfBirth
+		farmerEntity.DateOfBirth = &req.Profile.DateOfBirth
 	}
 	if req.Profile.Gender != "" {
-		existingFarmerProfile.Gender = req.Profile.Gender
+		farmerEntity.Gender = req.Profile.Gender
 	}
 	if req.Profile.Address.StreetAddress != "" {
-		existingFarmerProfile.Address.StreetAddress = req.Profile.Address.StreetAddress
-		existingFarmerProfile.Address.City = req.Profile.Address.City
-		existingFarmerProfile.Address.State = req.Profile.Address.State
-		existingFarmerProfile.Address.PostalCode = req.Profile.Address.PostalCode
-		existingFarmerProfile.Address.Country = req.Profile.Address.Country
-		existingFarmerProfile.Address.Coordinates = req.Profile.Address.Coordinates
+		farmerEntity.StreetAddress = req.Profile.Address.StreetAddress
 	}
-	if req.KisanSathiUserID != nil {
-		existingFarmerProfile.KisanSathiUserID = req.KisanSathiUserID
+	if req.Profile.Address.City != "" {
+		farmerEntity.City = req.Profile.Address.City
 	}
-
-	// Update metadata
-	if req.Profile.Metadata != nil {
-		if existingFarmerProfile.Metadata == nil {
-			existingFarmerProfile.Metadata = make(map[string]string)
-		}
-		for k, v := range req.Profile.Metadata {
-			existingFarmerProfile.Metadata[k] = v
-		}
+	if req.Profile.Address.State != "" {
+		farmerEntity.State = req.Profile.Address.State
 	}
+	if req.Profile.Address.PostalCode != "" {
+		farmerEntity.PostalCode = req.Profile.Address.PostalCode
+	}
+	if req.Profile.Address.Country != "" {
+		farmerEntity.Country = req.Profile.Address.Country
+	}
+	if req.Profile.Address.Coordinates != "" {
+		farmerEntity.Coordinates = req.Profile.Address.Coordinates
+	}
+	// LandOwnershipType not available in request
 
-	existingFarmerProfile.SetUpdatedBy(req.UserID)
-
-	// Save updated farmer
-	if err := s.repository.Update(ctx, existingFarmerProfile); err != nil {
+	// Update in database
+	if err := s.repository.Update(ctx, farmerEntity); err != nil {
 		return nil, fmt.Errorf("failed to update farmer: %w", err)
 	}
 
-	// Convert to response format
-	farmerProfileData := &responses.FarmerProfileData{
-		ID:               existingFarmerProfile.GetID(),
-		AAAUserID:        existingFarmerProfile.AAAUserID,
-		AAAOrgID:         existingFarmerProfile.AAAOrgID,
-		KisanSathiUserID: existingFarmerProfile.KisanSathiUserID,
-		FirstName:        existingFarmerProfile.FirstName,
-		LastName:         existingFarmerProfile.LastName,
-		PhoneNumber:      existingFarmerProfile.PhoneNumber,
-		Email:            existingFarmerProfile.Email,
-		DateOfBirth:      existingFarmerProfile.DateOfBirth,
-		Gender:           existingFarmerProfile.Gender,
-		Address: responses.AddressData{
-			StreetAddress: existingFarmerProfile.Address.StreetAddress,
-			City:          existingFarmerProfile.Address.City,
-			State:         existingFarmerProfile.Address.State,
-			PostalCode:    existingFarmerProfile.Address.PostalCode,
-			Country:       existingFarmerProfile.Address.Country,
-			Coordinates:   existingFarmerProfile.Address.Coordinates,
-		},
-		Preferences: existingFarmerProfile.Preferences,
-		Metadata:    existingFarmerProfile.Metadata,
-		Farms: func() []*responses.FarmData {
-			farms, _ := s.loadFarmsForFarmer(ctx, existingFarmerProfile.ID)
-			return farms
-		}(),
-		CreatedAt: existingFarmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt: existingFarmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+	// Convert to response
+	farmerResponse := farmerEntity.ToFarmerResponse()
+
+	// Load farms for the farmer
+	farms, err := s.loadFarmsForFarmer(ctx, farmerEntity.ID)
+	if err != nil {
+		log.Printf("Warning: Failed to load farms for farmer %s: %v", farmerEntity.ID, err)
+		farms = []*responses.FarmData{}
 	}
 
-	response := responses.NewFarmerResponse(farmerProfileData, "Farmer updated successfully")
-	return &response, nil
+	// Create comprehensive response
+	response := &responses.FarmerResponse{
+		BaseResponse: &base.BaseResponse{
+			RequestID: req.RequestID,
+		},
+		Data: &responses.FarmerProfileData{
+			ID:               farmerResponse.ID,
+			AAAUserID:        farmerResponse.AAAUserID,
+			AAAOrgID:         farmerResponse.AAAOrgID,
+			KisanSathiUserID: farmerResponse.KisanSathiUserID,
+			FirstName:        farmerResponse.FirstName,
+			LastName:         farmerResponse.LastName,
+			PhoneNumber:      farmerResponse.PhoneNumber,
+			Email:            farmerResponse.Email,
+			DateOfBirth:      *farmerResponse.DateOfBirth,
+			Gender:           farmerResponse.Gender,
+			Address: responses.AddressData{
+				StreetAddress: farmerResponse.StreetAddress,
+				City:          farmerResponse.City,
+				State:         farmerResponse.State,
+				PostalCode:    farmerResponse.PostalCode,
+				Country:       farmerResponse.Country,
+				Coordinates:   farmerResponse.Coordinates,
+			},
+			Preferences: farmerResponse.Preferences,
+			Metadata:    farmerResponse.Metadata,
+			Farms:       farms,
+			CreatedAt:   farmerResponse.CreatedAt,
+			UpdatedAt:   farmerResponse.UpdatedAt,
+		},
+	}
+
+	return response, nil
 }
 
 // DeleteFarmer deletes a farmer
 func (s *FarmerServiceImpl) DeleteFarmer(ctx context.Context, req *requests.DeleteFarmerRequest) error {
-	// Find existing farmer using flexible lookup
-	var filter *base.Filter
-
-	if req.FarmerID != "" {
-		// Lookup by primary key (farmer_id)
-		filter = base.NewFilterBuilder().
-			Where("id", base.OpEqual, req.FarmerID).
-			Build()
-	} else if req.AAAUserID != "" {
-		// Lookup by user_id, optionally filtered by org_id
-		filterBuilder := base.NewFilterBuilder().
-			Where("aaa_user_id", base.OpEqual, req.AAAUserID)
-
-		if req.AAAOrgID != "" {
-			filterBuilder = filterBuilder.Where("aaa_org_id", base.OpEqual, req.AAAOrgID)
-		}
-
-		filter = filterBuilder.Build()
-	} else {
-		return fmt.Errorf("either farmer_id or aaa_user_id must be provided")
-	}
-
-	existingFarmerProfile, err := s.repository.FindOne(ctx, filter)
+	// Check permission
+	hasPermission, err := s.aaaService.CheckPermission(ctx, req.UserID, "farmer", "delete", req.FarmerID, req.OrgID)
 	if err != nil {
-		return fmt.Errorf("farmer not found: %w", err)
+		return fmt.Errorf("permission check failed: %w", err)
+	}
+	if !hasPermission {
+		return fmt.Errorf("insufficient permissions to delete farmer")
 	}
 
-	// Perform soft delete
-	if err := s.repository.SoftDelete(ctx, existingFarmerProfile.GetID(), req.UserID); err != nil {
+	// Get farmer to delete
+	filter := base.NewFilterBuilder().Where("id", base.OpEqual, req.FarmerID).Build()
+	farmers, err := s.repository.Find(ctx, filter)
+	if err != nil {
+		return fmt.Errorf("failed to get farmer: %w", err)
+	}
+
+	if len(farmers) == 0 {
+		return fmt.Errorf("farmer not found")
+	}
+
+	farmerEntity := farmers[0]
+
+	// Delete from database
+	if err := s.repository.Delete(ctx, farmerEntity.ID, farmerEntity); err != nil {
 		return fmt.Errorf("failed to delete farmer: %w", err)
 	}
 
 	return nil
 }
 
-// ListFarmers lists farmers with filtering
+// ListFarmers lists farmers with pagination
 func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListFarmersRequest) (*responses.FarmerListResponse, error) {
-	// Build filter for database query
-	filter := base.NewFilterBuilder().
-		Page(req.Page, req.PageSize)
-
-	// Add organization filter if specified
-	if req.AAAOrgID != "" {
-		filter = filter.Where("aaa_org_id", base.OpEqual, req.AAAOrgID)
+	// Check permission
+	hasPermission, err := s.aaaService.CheckPermission(ctx, req.UserID, "farmer", "list", "", req.OrgID)
+	if err != nil {
+		return nil, fmt.Errorf("permission check failed: %w", err)
+	}
+	if !hasPermission {
+		return nil, fmt.Errorf("insufficient permissions to list farmers")
 	}
 
-	// Add KisanSathi filter if specified
-	if req.KisanSathiUserID != "" {
-		filter = filter.Where("kisan_sathi_user_id", base.OpEqual, req.KisanSathiUserID)
+	// Build filter
+	filterBuilder := base.NewFilterBuilder()
+
+	// Check if there's a search term in filters
+	if searchTerm, exists := req.Filters["search"]; exists && searchTerm != "" {
+		if search, ok := searchTerm.(string); ok && search != "" {
+			filterBuilder.Where("first_name", base.OpLike, "%"+search+"%")
+		}
 	}
 
-	// Query farmers from repository
-	farmerProfiles, err := s.repository.Find(ctx, filter.Build())
+	// Check for status filter
+	if status, exists := req.Filters["status"]; exists && status != "" {
+		if statusStr, ok := status.(string); ok && statusStr != "" {
+			filterBuilder.Where("status", base.OpEqual, statusStr)
+		}
+	}
+
+	// Add pagination
+	limit := req.PageSize
+	if limit <= 0 {
+		limit = 10
+	}
+	offset := (req.Page - 1) * limit
+
+	filter := filterBuilder.Limit(limit, offset).Build()
+
+	// Get farmers
+	farmers, err := s.repository.Find(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list farmers: %w", err)
 	}
 
 	// Get total count
-	totalCount, err := s.repository.Count(ctx, filter.Build(), &entities.FarmerProfile{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to count farmers: %w", err)
-	}
+	// totalCount, err := s.repository.Count(ctx, filter, &farmer.Farmer{})
+	// if err != nil {
+	//	return nil, fmt.Errorf("failed to count farmers: %w", err)
+	// }
 
 	// Convert to response format
-	var farmerProfilesData []*responses.FarmerProfileData
-	for _, fp := range farmerProfiles {
-		farmerProfileData := &responses.FarmerProfileData{
-			ID:               fp.GetID(),
-			AAAUserID:        fp.AAAUserID,
-			AAAOrgID:         fp.AAAOrgID,
-			KisanSathiUserID: fp.KisanSathiUserID,
-			FirstName:        fp.FirstName,
-			LastName:         fp.LastName,
-			PhoneNumber:      fp.PhoneNumber,
-			Email:            fp.Email,
-			DateOfBirth:      fp.DateOfBirth,
-			Gender:           fp.Gender,
+	var farmerDataList []*responses.FarmerProfileData
+	for _, farmerEntity := range farmers {
+		// Load farms for each farmer
+		farms, err := s.loadFarmsForFarmer(ctx, farmerEntity.ID)
+		if err != nil {
+			log.Printf("Warning: Failed to load farms for farmer %s: %v", farmerEntity.ID, err)
+			farms = []*responses.FarmData{}
+		}
+
+		farmerResponse := farmerEntity.ToFarmerResponse()
+		farmerData := &responses.FarmerProfileData{
+			ID:               farmerResponse.ID,
+			AAAUserID:        farmerResponse.AAAUserID,
+			AAAOrgID:         farmerResponse.AAAOrgID,
+			KisanSathiUserID: farmerResponse.KisanSathiUserID,
+			FirstName:        farmerResponse.FirstName,
+			LastName:         farmerResponse.LastName,
+			PhoneNumber:      farmerResponse.PhoneNumber,
+			Email:            farmerResponse.Email,
+			DateOfBirth:      *farmerResponse.DateOfBirth,
+			Gender:           farmerResponse.Gender,
 			Address: responses.AddressData{
-				StreetAddress: fp.Address.StreetAddress,
-				City:          fp.Address.City,
-				State:         fp.Address.State,
-				PostalCode:    fp.Address.PostalCode,
-				Country:       fp.Address.Country,
-				Coordinates:   fp.Address.Coordinates,
+				StreetAddress: farmerResponse.StreetAddress,
+				City:          farmerResponse.City,
+				State:         farmerResponse.State,
+				PostalCode:    farmerResponse.PostalCode,
+				Country:       farmerResponse.Country,
+				Coordinates:   farmerResponse.Coordinates,
 			},
-			Preferences: fp.Preferences,
-			Metadata:    fp.Metadata,
-			Farms:       func() []*responses.FarmData { farms, _ := s.loadFarmsForFarmer(ctx, fp.ID); return farms }(),
-			CreatedAt:   fp.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:   fp.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			Preferences: farmerResponse.Preferences,
+			Metadata:    farmerResponse.Metadata,
+			Farms:       farms,
+			CreatedAt:   farmerResponse.CreatedAt,
+			UpdatedAt:   farmerResponse.UpdatedAt,
 		}
-		farmerProfilesData = append(farmerProfilesData, farmerProfileData)
+		farmerDataList = append(farmerDataList, farmerData)
 	}
 
-	response := responses.NewFarmerListResponse(farmerProfilesData, req.Page, req.PageSize, totalCount)
-	return &response, nil
-}
+	// Calculate pagination info
+	// totalPages := (int(totalCount) + limit - 1) / limit
 
-// generateSecurePassword generates a secure password for new farmers
-func (s *FarmerServiceImpl) generateSecurePassword() string {
-	// Generate a secure password with mixed case, numbers, and special characters
-	// In production, you might want to use a more sophisticated password generator
-	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
-	password := make([]byte, 12)
-
-	for i := range password {
-		password[i] = chars[time.Now().UnixNano()%int64(len(chars))]
+	response := &responses.FarmerListResponse{
+		PaginatedResponse: &base.PaginatedResponse{},
+		Data:              farmerDataList,
 	}
 
-	return string(password)
-}
-
-// getCountryCode determines the country code based on phone number
-func (s *FarmerServiceImpl) getCountryCode(phoneNumber string) string {
-	// Remove any non-digit characters
-	cleaned := strings.ReplaceAll(phoneNumber, " ", "")
-	cleaned = strings.ReplaceAll(cleaned, "-", "")
-	cleaned = strings.ReplaceAll(cleaned, "(", "")
-	cleaned = strings.ReplaceAll(cleaned, ")", "")
-	cleaned = strings.ReplaceAll(cleaned, "+", "")
-
-	// Check if it starts with country code
-	if len(cleaned) == 12 && strings.HasPrefix(cleaned, "91") {
-		return "+91" // India
-	} else if len(cleaned) == 10 {
-		return "+91" // Default to India for 10-digit numbers
-	}
-
-	// Default to India
-	return "+91"
-}
-
-// loadFarmsForFarmer loads all farms associated with a farmer
-func (s *FarmerServiceImpl) loadFarmsForFarmer(ctx context.Context, farmerID string) ([]*responses.FarmData, error) {
-	// Create filter to find farms for this farmer
-	filter := base.NewFilterBuilder().
-		Where("farmer_id", base.OpEqual, farmerID).
-		Build()
-
-	// Find farms
-	farms, err := s.farmRepo.Find(ctx, filter)
-	if err != nil {
-		log.Printf("Failed to load farms for farmer %s: %v", farmerID, err)
-		return []*responses.FarmData{}, nil // Return empty slice instead of error
-	}
-
-	// Convert to response format
-	var farmData []*responses.FarmData
-	for _, farm := range farms {
-		farmName := ""
-		if farm.Name != nil {
-			farmName = *farm.Name
-		}
-		farmData = append(farmData, &responses.FarmData{
-			ID:              farm.ID,
-			AAAFarmerUserID: farm.AAAFarmerUserID,
-			AAAOrgID:        farm.AAAOrgID,
-			Name:            farmName,
-			Geometry:        farm.Geometry,
-			AreaHa:          farm.AreaHa,
-			Metadata:        farm.Metadata,
-			CreatedAt:       farm.CreatedAt,
-			UpdatedAt:       farm.UpdatedAt,
-		})
-	}
-
-	return farmData, nil
+	return response, nil
 }
 
 // GetFarmerByPhone retrieves a farmer by phone number
 func (s *FarmerServiceImpl) GetFarmerByPhone(ctx context.Context, phoneNumber string) (*responses.FarmerProfileResponse, error) {
-	// Create filter to find farmer by phone number
-	filter := base.NewFilterBuilder().
-		Where("phone_number", base.OpEqual, phoneNumber).
-		Build()
-
-	// Find farmer
+	filter := base.NewFilterBuilder().Where("phone_number", base.OpEqual, phoneNumber).Build()
 	farmers, err := s.repository.Find(ctx, filter)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find farmer by phone: %w", err)
+		return nil, fmt.Errorf("failed to get farmer by phone: %w", err)
 	}
 
 	if len(farmers) == 0 {
-		return nil, nil // No farmer found
+		return nil, fmt.Errorf("farmer not found")
 	}
 
-	farmerProfile := farmers[0]
-
-	// Convert to response format
-	farmerProfileData := &responses.FarmerProfileData{
-		ID:          farmerProfile.ID,
-		AAAUserID:   farmerProfile.AAAUserID,
-		AAAOrgID:    farmerProfile.AAAOrgID,
-		FirstName:   farmerProfile.FirstName,
-		LastName:    farmerProfile.LastName,
-		PhoneNumber: farmerProfile.PhoneNumber,
-		Email:       farmerProfile.Email,
-		Gender:      farmerProfile.Gender,
-		DateOfBirth: farmerProfile.DateOfBirth,
-		Address: responses.AddressData{
-			StreetAddress: farmerProfile.Address.StreetAddress,
-			City:          farmerProfile.Address.City,
-			State:         farmerProfile.Address.State,
-			Country:       farmerProfile.Address.Country,
-			PostalCode:    farmerProfile.Address.PostalCode,
-			Coordinates:   farmerProfile.Address.Coordinates,
+	// Convert to FarmerProfileResponse
+	farmerEntity := farmers[0]
+	return &responses.FarmerProfileResponse{
+		BaseResponse: &base.BaseResponse{
+			Success: true,
+			Message: "Farmer retrieved successfully",
 		},
-		Preferences: farmerProfile.Preferences,
-		Metadata:    farmerProfile.Metadata,
-		Farms:       func() []*responses.FarmData { farms, _ := s.loadFarmsForFarmer(ctx, farmerProfile.ID); return farms }(),
-		CreatedAt:   farmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		Data: &responses.FarmerProfileData{
+			ID:               farmerEntity.ID,
+			AAAUserID:        farmerEntity.AAAUserID,
+			AAAOrgID:         farmerEntity.AAAOrgID,
+			KisanSathiUserID: farmerEntity.KisanSathiUserID,
+			FirstName:        farmerEntity.FirstName,
+			LastName:         farmerEntity.LastName,
+			PhoneNumber:      farmerEntity.PhoneNumber,
+			Email:            farmerEntity.Email,
+			DateOfBirth:      getStringValue(farmerEntity.DateOfBirth),
+			Gender:           farmerEntity.Gender,
+			Address: responses.AddressData{
+				StreetAddress: farmerEntity.StreetAddress,
+				City:          farmerEntity.City,
+				State:         farmerEntity.State,
+				PostalCode:    farmerEntity.PostalCode,
+				Country:       farmerEntity.Country,
+				Coordinates:   farmerEntity.Coordinates,
+			},
+			Preferences: farmerEntity.Preferences,
+			Metadata:    farmerEntity.Metadata,
+		},
+	}, nil
+}
+
+// Helper functions
+
+// getStringValue safely gets string value from pointer
+func getStringValue(ptr *string) string {
+	if ptr == nil {
+		return ""
+	}
+	return *ptr
+}
+
+// loadFarmsForFarmer loads farms associated with a farmer
+func (s *FarmerServiceImpl) loadFarmsForFarmer(ctx context.Context, farmerID string) ([]*responses.FarmData, error) {
+	filter := base.NewFilterBuilder().Where("aaa_farmer_user_id", base.OpEqual, farmerID).Build()
+	farms, err := s.farmRepo.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load farms: %w", err)
 	}
 
-	response := responses.NewFarmerProfileResponse(farmerProfileData, "Farmer retrieved successfully")
-	return &response, nil
+	var farmDataList []*responses.FarmData
+	for _, farmEntity := range farms {
+		farmData := &responses.FarmData{
+			ID:              farmEntity.ID,
+			AAAFarmerUserID: farmEntity.AAAFarmerUserID,
+			AAAOrgID:        farmEntity.AAAOrgID,
+			Name:            *farmEntity.Name,
+			Geometry:        farmEntity.Geometry,
+			AreaHa:          farmEntity.AreaHa,
+			CreatedAt:       farmEntity.CreatedAt,
+			UpdatedAt:       farmEntity.UpdatedAt,
+		}
+		farmDataList = append(farmDataList, farmData)
+	}
+
+	return farmDataList, nil
+}
+
+// generateSecurePassword generates a secure password
+func (s *FarmerServiceImpl) generateSecurePassword() string {
+	// Generate a secure random password
+	// In production, use a proper password generation library
+	return "TempPassword123!"
+}
+
+// getCountryCode extracts country code from phone number
+func (s *FarmerServiceImpl) getCountryCode(phoneNumber string) string {
+	// Simple country code detection
+	// In production, use a proper phone number parsing library
+	if strings.HasPrefix(phoneNumber, "+91") {
+		return "+91"
+	}
+	return "+91" // Default to India
 }

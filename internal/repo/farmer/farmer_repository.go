@@ -2,12 +2,13 @@ package farmer
 
 import (
 	"github.com/Kisanlink/farmers-module/internal/entities"
+	"github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
 // NewFarmerRepository creates a new farmer repository using BaseFilterableRepository
-func NewFarmerRepository(dbManager interface{}) *base.BaseFilterableRepository[*entities.FarmerProfile] {
-	repo := base.NewBaseFilterableRepository[*entities.FarmerProfile]()
+func NewFarmerRepository(dbManager interface{}) *base.BaseFilterableRepository[*farmer.Farmer] {
+	repo := base.NewBaseFilterableRepository[*farmer.Farmer]()
 	repo.SetDBManager(dbManager)
 	return repo
 }

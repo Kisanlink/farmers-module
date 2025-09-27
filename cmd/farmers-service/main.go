@@ -66,7 +66,11 @@ func main() {
 	logger := utils.NewLoggerAdapter(zapLogger)
 
 	// Initialize service factory
-	serviceFactory := services.NewServiceFactory(repoFactory, dbManager, cfg, logger)
+	postgresManager, ok := dbManager.(*kisanlinkDB.PostgresManager)
+	if !ok {
+		log.Fatal("Failed to cast dbManager to PostgresManager")
+	}
+	serviceFactory := services.NewServiceFactory(repoFactory, postgresManager, cfg, logger)
 
 	// Initialize router
 	router := gin.Default()
