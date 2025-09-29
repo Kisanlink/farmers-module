@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"log"
+	"math/big"
 	"strings"
 
 	"github.com/Kisanlink/farmers-module/internal/entities/farm"
@@ -13,6 +15,7 @@ import (
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
+	"go.uber.org/zap"
 )
 
 // FarmerService handles farmer-related operations
@@ -31,42 +34,67 @@ type FarmerServiceImpl struct {
 	farmRepo   *base.BaseFilterableRepository[*farm.Farm]
 	dbManager  db.DBManager
 	aaaService AAAService
+	logger     *zap.Logger
 }
 
 // NewFarmerService creates a new farmer service with repository and AAA service
 func NewFarmerService(repository *base.BaseFilterableRepository[*farmer.Farmer], farmRepo *base.BaseFilterableRepository[*farm.Farm], aaaService AAAService) FarmerService {
+	logger, _ := zap.NewProduction() // Use production logger configuration
 	return &FarmerServiceImpl{
 		repository: repository,
 		farmRepo:   farmRepo,
 		aaaService: aaaService,
+		logger:     logger,
 	}
 }
 
 // CreateFarmer creates a new farmer
 func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error) {
+	s.logger.Info("Creating new farmer",
+		zap.String("user_id", req.UserID),
+		zap.String("org_id", req.OrgID),
+		zap.String("phone", req.Profile.PhoneNumber))
+
 	// Check permission
 	hasPermission, err := s.aaaService.CheckPermission(ctx, req.UserID, "farmer", "create", "", req.OrgID)
 	if err != nil {
+		s.logger.Error("Permission check failed",
+			zap.String("user_id", req.UserID),
+			zap.Error(err))
 		return nil, fmt.Errorf("permission check failed: %w", err)
 	}
 	if !hasPermission {
+		s.logger.Warn("Insufficient permissions to create farmer",
+			zap.String("user_id", req.UserID),
+			zap.String("org_id", req.OrgID))
 		return nil, fmt.Errorf("insufficient permissions to create farmer")
 	}
 
 	// Create farmer in AAA first
+	securePassword := s.generateSecurePassword()
+	s.logger.Info("Creating AAA user for farmer",
+		zap.String("phone", req.Profile.PhoneNumber),
+		zap.String("email", req.Profile.Email))
+
 	aaaResponse, err := s.aaaService.CreateUser(ctx, map[string]interface{}{
 		"username":     req.Profile.PhoneNumber, // Use phone as username
 		"phone_number": req.Profile.PhoneNumber,
 		"country_code": s.getCountryCode(req.Profile.PhoneNumber),
 		"email":        req.Profile.Email,
-		"password":     s.generateSecurePassword(),
+		"password":     securePassword,
 		"full_name":    req.Profile.FirstName + " " + req.Profile.LastName,
 		"role":         "farmer",
 		"metadata":     make(map[string]string),
 	})
 	if err != nil {
+		s.logger.Error("Failed to create AAA user",
+			zap.String("phone", req.Profile.PhoneNumber),
+			zap.Error(err))
 		return nil, fmt.Errorf("failed to create user in AAA: %w", err)
 	}
+
+	s.logger.Info("Successfully created AAA user",
+		zap.String("phone", req.Profile.PhoneNumber))
 
 	// Extract user ID from response
 	responseMap, ok := aaaResponse.(map[string]interface{})
@@ -545,19 +573,99 @@ func (s *FarmerServiceImpl) loadFarmsForFarmer(ctx context.Context, farmerID str
 	return farmDataList, nil
 }
 
-// generateSecurePassword generates a secure password
+// generateSecurePassword generates a cryptographically secure password for new farmers
 func (s *FarmerServiceImpl) generateSecurePassword() string {
-	// Generate a secure random password
-	// In production, use a proper password generation library
-	return "TempPassword123!"
+	const (
+		lowercase = "abcdefghijklmnopqrstuvwxyz"
+		uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		digits    = "0123456789"
+		symbols   = "!@#$%^&*_+-="
+		allChars  = lowercase + uppercase + digits + symbols
+	)
+
+	// Generate a 12-character password with at least one character from each category
+	password := make([]byte, 12)
+
+	// Add one lowercase letter
+	if randInt, err := rand.Int(rand.Reader, big.NewInt(int64(len(lowercase)))); err == nil {
+		password[0] = lowercase[randInt.Int64()]
+	} else {
+		// Fallback to first character if random generation fails
+		password[0] = lowercase[0]
+	}
+
+	// Add one uppercase letter
+	if randInt, err := rand.Int(rand.Reader, big.NewInt(int64(len(uppercase)))); err == nil {
+		password[1] = uppercase[randInt.Int64()]
+	} else {
+		password[1] = uppercase[0]
+	}
+
+	// Add one digit
+	if randInt, err := rand.Int(rand.Reader, big.NewInt(int64(len(digits)))); err == nil {
+		password[2] = digits[randInt.Int64()]
+	} else {
+		password[2] = digits[0]
+	}
+
+	// Add one symbol
+	if randInt, err := rand.Int(rand.Reader, big.NewInt(int64(len(symbols)))); err == nil {
+		password[3] = symbols[randInt.Int64()]
+	} else {
+		password[3] = symbols[0]
+	}
+
+	// Fill remaining positions with random characters from all categories
+	for i := 4; i < len(password); i++ {
+		if randInt, err := rand.Int(rand.Reader, big.NewInt(int64(len(allChars)))); err == nil {
+			password[i] = allChars[randInt.Int64()]
+		} else {
+			// Fallback to a default character if random generation fails
+			password[i] = allChars[i%len(allChars)]
+		}
+	}
+
+	// Shuffle the password using Fisher-Yates algorithm to randomize positions
+	for i := len(password) - 1; i > 0; i-- {
+		if randInt, err := rand.Int(rand.Reader, big.NewInt(int64(i+1))); err == nil {
+			j := randInt.Int64()
+			password[i], password[j] = password[j], password[i]
+		}
+	}
+
+	return string(password)
 }
 
 // getCountryCode extracts country code from phone number
 func (s *FarmerServiceImpl) getCountryCode(phoneNumber string) string {
-	// Simple country code detection
-	// In production, use a proper phone number parsing library
-	if strings.HasPrefix(phoneNumber, "+91") {
+	// Remove any whitespace and normalize the phone number
+	phoneNumber = strings.TrimSpace(phoneNumber)
+
+	// Handle different phone number formats
+	if strings.HasPrefix(phoneNumber, "+") {
+		// International format: +91XXXXXXXXXX
+		if strings.HasPrefix(phoneNumber, "+91") && len(phoneNumber) == 13 {
+			return "+91"
+		}
+		if strings.HasPrefix(phoneNumber, "+1") && len(phoneNumber) == 12 {
+			return "+1"
+		}
+		if strings.HasPrefix(phoneNumber, "+44") && len(phoneNumber) == 13 {
+			return "+44"
+		}
+		// Add more country codes as needed
+	} else if strings.HasPrefix(phoneNumber, "91") && len(phoneNumber) == 12 {
+		// Indian format without +: 91XXXXXXXXXX
+		return "+91"
+	} else if strings.HasPrefix(phoneNumber, "0") && len(phoneNumber) == 11 {
+		// Indian format with leading 0: 0XXXXXXXXXX
+		return "+91"
+	} else if len(phoneNumber) == 10 {
+		// Indian format without country code: XXXXXXXXXX
 		return "+91"
 	}
-	return "+91" // Default to India
+
+	// Default to India for unrecognized formats
+	// In production, consider logging unknown formats for analysis
+	return "+91"
 }

@@ -5,11 +5,20 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Kisanlink/farmers-module/internal/entities"
+	"github.com/Kisanlink/farmers-module/internal/entities/bulk"
+	"github.com/Kisanlink/farmers-module/internal/entities/crop"
 	"github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
+	"github.com/Kisanlink/farmers-module/internal/entities/crop_stage"
+	"github.com/Kisanlink/farmers-module/internal/entities/crop_variety"
 	"github.com/Kisanlink/farmers-module/internal/entities/farm"
 	"github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
+	"github.com/Kisanlink/farmers-module/internal/entities/farm_irrigation_source"
+	"github.com/Kisanlink/farmers-module/internal/entities/farm_soil_type"
 	"github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/fpo"
+	"github.com/Kisanlink/farmers-module/internal/entities/irrigation_source"
+	"github.com/Kisanlink/farmers-module/internal/entities/soil_type"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
 	"go.uber.org/zap"
 )
@@ -37,11 +46,27 @@ func SetupDatabase(dbManager db.DBManager) error {
 		log.Println("PostGIS not available - skipping spatial features")
 		// For now, skip the farm entity that requires PostGIS
 		models := []interface{}{
+			// Core entities
 			&fpo.FPORef{},
 			&farmer.FarmerLink{},
-			&farmer.Farmer{}, // Add the main Farmer model
+			&farmer.Farmer{},          // Main Farmer model
+			&entities.FarmerProfile{}, // Farmer profile
+			&entities.FarmerLinkage{}, // Farmer linkage
+
+			// Crop management
+			&crop.Crop{},
+			&crop_variety.CropVariety{},
+			&crop_stage.CropStage{},
 			&crop_cycle.CropCycle{},
 			&farm_activity.FarmActivity{},
+
+			// Soil and irrigation
+			&soil_type.SoilType{},
+			&irrigation_source.IrrigationSource{},
+
+			// Bulk operations
+			&bulk.BulkOperation{},
+			&bulk.ProcessingDetail{},
 		}
 
 		if err := dbManager.AutoMigrateModels(ctx, models...); err != nil {
@@ -50,12 +75,32 @@ func SetupDatabase(dbManager db.DBManager) error {
 	} else {
 		// AutoMigrate all models including farm
 		models := []interface{}{
+			// Core entities
 			&fpo.FPORef{},
 			&farmer.FarmerLink{},
-			&farmer.Farmer{}, // Add the main Farmer model
+			&farmer.Farmer{},          // Main Farmer model
+			&entities.FarmerProfile{}, // Farmer profile
+			&entities.FarmerLinkage{}, // Farmer linkage
+
+			// Farm management
 			&farm.Farm{},
+			&farm_soil_type.FarmSoilType{},
+			&farm_irrigation_source.FarmIrrigationSource{},
+
+			// Crop management
+			&crop.Crop{},
+			&crop_variety.CropVariety{},
+			&crop_stage.CropStage{},
 			&crop_cycle.CropCycle{},
 			&farm_activity.FarmActivity{},
+
+			// Soil and irrigation
+			&soil_type.SoilType{},
+			&irrigation_source.IrrigationSource{},
+
+			// Bulk operations
+			&bulk.BulkOperation{},
+			&bulk.ProcessingDetail{},
 		}
 
 		if err := dbManager.AutoMigrateModels(ctx, models...); err != nil {

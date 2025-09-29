@@ -21,6 +21,7 @@ type MockBulkFarmerService struct {
 	ParseBulkFileFunc          func(ctx context.Context, format string, data []byte) ([]*requests.FarmerBulkData, error)
 	GenerateResultFileFunc     func(ctx context.Context, operationID string, format string) ([]byte, error)
 	GetBulkUploadTemplateFunc  func(ctx context.Context, format string, includeExample bool) (*responses.BulkTemplateData, error)
+	CheckPermissionFunc        func(ctx context.Context, userID, resource, action, object, orgID string) (bool, error)
 }
 
 func (m *MockBulkFarmerService) BulkAddFarmersToFPO(ctx context.Context, req *requests.BulkFarmerAdditionRequest) (*responses.BulkOperationData, error) {
@@ -77,6 +78,13 @@ func (m *MockBulkFarmerService) GetBulkUploadTemplate(ctx context.Context, forma
 		return m.GetBulkUploadTemplateFunc(ctx, format, includeExample)
 	}
 	return &responses.BulkTemplateData{}, nil
+}
+
+func (m *MockBulkFarmerService) CheckPermission(ctx context.Context, userID, resource, action, object, orgID string) (bool, error) {
+	if m.CheckPermissionFunc != nil {
+		return m.CheckPermissionFunc(ctx, userID, resource, action, object, orgID)
+	}
+	return true, nil // Default to allowing permission for tests
 }
 
 // MockBulkOperationRepository provides a mock implementation for testing
