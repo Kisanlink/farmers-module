@@ -9,6 +9,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // MockBulkFarmerService provides a mock implementation for testing
@@ -169,11 +170,12 @@ func (m *MockFarmerService) CreateFarmer(ctx context.Context, farmer *farmer.Far
 
 // MockLogger provides a mock logger implementation for testing
 type MockLogger struct {
-	DebugFunc func(msg string, fields ...interface{})
-	InfoFunc  func(msg string, fields ...interface{})
-	WarnFunc  func(msg string, fields ...interface{})
-	ErrorFunc func(msg string, fields ...interface{})
-	FatalFunc func(msg string, fields ...interface{})
+	DebugFunc        func(msg string, fields ...interface{})
+	InfoFunc         func(msg string, fields ...interface{})
+	WarnFunc         func(msg string, fields ...interface{})
+	ErrorFunc        func(msg string, fields ...interface{})
+	FatalFunc        func(msg string, fields ...interface{})
+	GetZapLoggerFunc func() *zap.Logger
 }
 
 func (m *MockLogger) Debug(msg string, fields ...interface{}) {
@@ -204,6 +206,14 @@ func (m *MockLogger) Fatal(msg string, fields ...interface{}) {
 	if m.FatalFunc != nil {
 		m.FatalFunc(msg, fields...)
 	}
+}
+
+func (m *MockLogger) GetZapLogger() *zap.Logger {
+	if m.GetZapLoggerFunc != nil {
+		return m.GetZapLoggerFunc()
+	}
+	// Return a no-op logger for tests
+	return zap.NewNop()
 }
 
 // SetupTestRouter creates a basic gin router for testing

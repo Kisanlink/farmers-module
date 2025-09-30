@@ -9,6 +9,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
+	"github.com/Kisanlink/farmers-module/internal/utils"
 	"go.uber.org/zap"
 )
 
@@ -227,7 +228,8 @@ func (ds *DeduplicationStage) Process(ctx context.Context, data interface{}) (in
 // AAAUserCreationStage creates users in the AAA service
 type AAAUserCreationStage struct {
 	*BasePipelineStage
-	aaaService AAAServiceInterface
+	aaaService  AAAServiceInterface
+	passwordGen *utils.PasswordGenerator
 }
 
 // NewAAAUserCreationStage creates a new AAA user creation stage
@@ -235,6 +237,7 @@ func NewAAAUserCreationStage(aaaService AAAServiceInterface, logger interfaces.L
 	return &AAAUserCreationStage{
 		BasePipelineStage: NewBasePipelineStage("aaa_user_creation", 30*time.Second, true, logger),
 		aaaService:        aaaService,
+		passwordGen:       utils.NewPasswordGenerator(),
 	}
 }
 
@@ -316,11 +319,25 @@ func (aus *AAAUserCreationStage) Process(ctx context.Context, data interface{}) 
 }
 
 func (aus *AAAUserCreationStage) generatePassword(farmer *requests.FarmerBulkData) string {
-	// Generate a simple password based on farmer data
-	// In production, this should be more secure
-	return fmt.Sprintf("%s%s123",
-		strings.ToTitle(farmer.FirstName[:min(3, len(farmer.FirstName))]),
-		farmer.PhoneNumber[len(farmer.PhoneNumber)-4:])
+	// Generate a cryptographically secure password
+	password, err := aus.passwordGen.GenerateSecurePassword()
+	if err != nil {
+		// Fallback to a more secure pattern if generation fails
+		aus.logger.Error("Failed to generate secure password, using fallback",
+			zap.Error(err),
+			zap.String("phone", farmer.PhoneNumber))
+
+		// Generate a more secure fallback than the original
+		return fmt.Sprintf("%s%s!%d",
+			strings.ToTitle(farmer.FirstName[:min(3, len(farmer.FirstName))]),
+			farmer.PhoneNumber[len(farmer.PhoneNumber)-4:],
+			time.Now().Unix()%10000)
+	}
+
+	aus.logger.Debug("Generated secure password for farmer",
+		zap.String("phone", farmer.PhoneNumber))
+
+	return password
 }
 
 // FarmerRegistrationStage registers the farmer in the local database

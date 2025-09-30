@@ -18,14 +18,43 @@ func (p Permission) String() string {
 
 // RoutePermissionMap maps HTTP routes to required permissions
 var RoutePermissionMap = map[string]Permission{
-	// Farmer management routes
+	// Identity - Farmer management routes
+	"POST /api/v1/identity/farmers":            {Resource: "farmer", Action: "create"},
+	"GET /api/v1/identity/farmers":             {Resource: "farmer", Action: "list"},
+	"GET /api/v1/identity/farmers/id/:id":      {Resource: "farmer", Action: "read"},
+	"GET /api/v1/identity/farmers/user/:id":    {Resource: "farmer", Action: "read"},
+	"GET /api/v1/identity/farmers/:id":         {Resource: "farmer", Action: "read"},
+	"PUT /api/v1/identity/farmers/id/:id":      {Resource: "farmer", Action: "update"},
+	"PUT /api/v1/identity/farmers/user/:id":    {Resource: "farmer", Action: "update"},
+	"PUT /api/v1/identity/farmers/:id":         {Resource: "farmer", Action: "update"},
+	"DELETE /api/v1/identity/farmers/id/:id":   {Resource: "farmer", Action: "delete"},
+	"DELETE /api/v1/identity/farmers/user/:id": {Resource: "farmer", Action: "delete"},
+	"DELETE /api/v1/identity/farmers/:id":      {Resource: "farmer", Action: "delete"},
+
+	// Legacy farmer management routes (if any)
 	"POST /api/v1/farmers":       {Resource: "farmer", Action: "create"},
 	"GET /api/v1/farmers/:id":    {Resource: "farmer", Action: "read"},
 	"PUT /api/v1/farmers/:id":    {Resource: "farmer", Action: "update"},
 	"DELETE /api/v1/farmers/:id": {Resource: "farmer", Action: "delete"},
 	"GET /api/v1/farmers":        {Resource: "farmer", Action: "list"},
 
-	// FPO management routes
+	// Identity - Farmer linkage routes
+	"POST /api/v1/identity/farmer/link":       {Resource: "farmer", Action: "link"},
+	"DELETE /api/v1/identity/farmer/unlink":   {Resource: "farmer", Action: "unlink"},
+	"GET /api/v1/identity/farmer/linkage/:id": {Resource: "farmer", Action: "read"},
+
+	// Identity - KisanSathi routes
+	"POST /api/v1/identity/kisansathi/assign":        {Resource: "farmer", Action: "assign_kisan_sathi"},
+	"PUT /api/v1/identity/kisansathi/reassign":       {Resource: "farmer", Action: "assign_kisan_sathi"},
+	"POST /api/v1/identity/kisansathi/create-user":   {Resource: "kisansathi", Action: "create"},
+	"GET /api/v1/identity/kisansathi/assignment/:id": {Resource: "farmer", Action: "read"},
+
+	// Identity - FPO routes
+	"POST /api/v1/identity/fpo/create":       {Resource: "fpo", Action: "create"},
+	"POST /api/v1/identity/fpo/register":     {Resource: "fpo", Action: "create"},
+	"GET /api/v1/identity/fpo/reference/:id": {Resource: "fpo", Action: "read"},
+
+	// Legacy FPO management routes
 	"POST /api/v1/fpos":       {Resource: "fpo", Action: "create"},
 	"GET /api/v1/fpos/:id":    {Resource: "fpo", Action: "read"},
 	"PUT /api/v1/fpos/:id":    {Resource: "fpo", Action: "update"},
@@ -84,12 +113,40 @@ func GetPermissionForRoute(method, path string) (Permission, bool) {
 }
 
 // normalizePath converts actual paths to route patterns
-// e.g., "/api/v1/farmers/123" -> "/api/v1/farmers/:id"
+// e.g., "/api/v1/identity/farmers/123" -> "/api/v1/identity/farmers/:id"
 func normalizePath(path string) string {
 	// Split path into segments
 	segments := strings.Split(path, "/")
 
-	// Simple approach: if we have more than expected segments, assume it's an ID
+	// Handle identity routes: /api/v1/identity/resource/...
+	if len(segments) >= 5 && segments[1] == "api" && segments[2] == "v1" && segments[3] == "identity" {
+		resource := segments[4] // farmers, fpo, etc.
+
+		if len(segments) == 5 {
+			// Pattern: /api/v1/identity/farmers -> /api/v1/identity/farmers (no normalization needed)
+			return path
+		}
+		if len(segments) == 6 {
+			// Pattern: /api/v1/identity/farmers/123 -> /api/v1/identity/farmers/:id
+			return fmt.Sprintf("/api/v1/identity/%s/:id", resource)
+		}
+		if len(segments) == 7 {
+			subPath := segments[5] // id, user, etc.
+			if subPath == "id" || subPath == "user" || subPath == "reference" {
+				// Pattern: /api/v1/identity/farmers/id/123 -> /api/v1/identity/farmers/id/:id
+				return fmt.Sprintf("/api/v1/identity/%s/%s/:id", resource, subPath)
+			}
+			// Pattern: /api/v1/identity/farmers/123/action -> /api/v1/identity/farmers/:id/action
+			return fmt.Sprintf("/api/v1/identity/%s/:id/%s", resource, segments[6])
+		}
+		if len(segments) == 8 {
+			subPath := segments[5] // id, user, etc.
+			// Pattern: /api/v1/identity/farmers/id/123/action -> /api/v1/identity/farmers/id/:id/action
+			return fmt.Sprintf("/api/v1/identity/%s/%s/:id/%s", resource, subPath, segments[7])
+		}
+	}
+
+	// Handle other routes
 	if len(segments) >= 4 {
 		// Check for common API patterns
 		if len(segments) == 5 && segments[1] == "api" && segments[2] == "v1" {
@@ -108,9 +165,11 @@ func normalizePath(path string) string {
 // IsPublicRoute checks if a route is public and doesn't require authentication
 func IsPublicRoute(method, path string) bool {
 	publicRoutes := []string{
-		"GET /api/v1/health",
+		"GET /health",
 		"GET /docs",
+		"GET /docs/swagger.json",
 		"GET /swagger",
+		"GET /",
 	}
 
 	routeKey := fmt.Sprintf("%s %s", method, path)

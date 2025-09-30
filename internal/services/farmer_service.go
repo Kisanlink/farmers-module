@@ -8,9 +8,9 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
+	"github.com/Kisanlink/farmers-module/internal/utils"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
-	"github.com/Kisanlink/kisanlink-db/pkg/db"
 )
 
 // FarmerService handles farmer-related operations
@@ -24,16 +24,17 @@ type FarmerService interface {
 
 // FarmerServiceImpl implements FarmerService
 type FarmerServiceImpl struct {
-	repository *base.BaseFilterableRepository[*entities.FarmerProfile]
-	dbManager  db.DBManager
-	aaaService AAAService
+	repository  *base.BaseFilterableRepository[*entities.FarmerProfile]
+	aaaService  AAAService
+	passwordGen *utils.PasswordGenerator
 }
 
 // NewFarmerService creates a new farmer service with repository and AAA service
 func NewFarmerService(repository *base.BaseFilterableRepository[*entities.FarmerProfile], aaaService AAAService) FarmerService {
 	return &FarmerServiceImpl{
-		repository: repository,
-		aaaService: aaaService,
+		repository:  repository,
+		aaaService:  aaaService,
+		passwordGen: utils.NewPasswordGenerator(),
 	}
 }
 
@@ -61,13 +62,22 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 			// User doesn't exist, create new user in AAA
 			log.Printf("User not found in AAA, creating new user with mobile: %s", req.Profile.PhoneNumber)
 
+			// Generate secure password
+			password, err := s.passwordGen.GenerateSecurePassword()
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate secure password: %w", err)
+			}
+
+			// Log password generation (remove in production)
+			log.Printf("Generated secure password for farmer %s", req.Profile.PhoneNumber)
+
 			// Create user in AAA
 			createUserReq := map[string]interface{}{
 				"username":       fmt.Sprintf("farmer_%s", req.Profile.PhoneNumber),
 				"mobile_number":  req.Profile.PhoneNumber,
-				"password":       "default_password", // TODO: Generate secure password or require it in request
-				"country_code":   "+91",              // TODO: Make configurable
-				"aadhaar_number": "",                 // TODO: Add to request if available
+				"password":       password,
+				"country_code":   "+91", // TODO: Make configurable
+				"aadhaar_number": "",    // TODO: Add to request if available
 			}
 
 			aaaUser, err = s.aaaService.CreateUser(ctx, createUserReq)

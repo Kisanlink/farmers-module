@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/pkg/proto"
 	"github.com/stretchr/testify/assert"
@@ -108,11 +109,15 @@ func createTestClient() (*Client, *MockUserServiceV2Client, *MockAuthorizationSe
 	mockUserClient := &MockUserServiceV2Client{}
 	mockAuthzClient := &MockAuthorizationServiceClient{}
 
+	// Create a test token validator
+	tokenValidator, _ := auth.NewTokenValidator("test-secret", nil)
+
 	client := &Client{
-		conn:        nil, // Not needed for unit tests
-		config:      &config.Config{},
-		userClient:  mockUserClient,
-		authzClient: mockAuthzClient,
+		conn:           nil, // Not needed for unit tests
+		config:         &config.Config{},
+		userClient:     mockUserClient,
+		authzClient:    mockAuthzClient,
+		tokenValidator: tokenValidator,
 	}
 
 	return client, mockUserClient, mockAuthzClient
@@ -456,15 +461,16 @@ func TestAddRequestMetadata(t *testing.T) {
 	// This requires access to grpc metadata package functionality
 }
 
-func TestValidateToken_NotImplemented(t *testing.T) {
+func TestValidateToken_InvalidToken(t *testing.T) {
 	client, _, _ := createTestClient()
 	ctx := context.Background()
 
-	tokenData, err := client.ValidateToken(ctx, "some-token")
+	// Test with invalid token
+	tokenData, err := client.ValidateToken(ctx, "invalid-token")
 
 	assert.Error(t, err)
 	assert.Nil(t, tokenData)
-	assert.Contains(t, err.Error(), "ValidateToken not implemented")
+	assert.Contains(t, err.Error(), "failed to parse token")
 }
 
 func TestValidateToken_EmptyToken(t *testing.T) {

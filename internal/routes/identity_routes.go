@@ -4,23 +4,29 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/internal/handlers"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
+	"github.com/Kisanlink/farmers-module/internal/middleware"
 	"github.com/Kisanlink/farmers-module/internal/services"
-	"github.com/Kisanlink/farmers-module/middleware"
+	validationMiddleware "github.com/Kisanlink/farmers-module/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterIdentityRoutes registers routes for Identity & Organization Linkage workflows
 func RegisterIdentityRoutes(router *gin.RouterGroup, services *services.ServiceFactory, cfg *config.Config, logger interfaces.Logger) {
 	// Initialize validation middleware
-	validationMiddleware := middleware.NewValidationMiddleware(services.AAAClient, cfg)
+	validation := validationMiddleware.NewValidationMiddleware(services.AAAClient, cfg)
+
+	// Initialize authentication and authorization middleware
+	authenticationMW := middleware.AuthenticationMiddleware(services.AAAService, logger)
+	authorizationMW := middleware.AuthorizationMiddleware(services.AAAService, logger)
 
 	identity := router.Group("/identity")
+	identity.Use(authenticationMW, authorizationMW) // Apply auth middleware to all identity routes
 	{
 		// Farmer management endpoints
 		farmers := identity.Group("/farmers")
 		{
 			// Create a new farmer with validation
-			farmers.POST("", validationMiddleware.ValidateFarmerCreation(), handlers.CreateFarmer(services.FarmerService, logger))
+			farmers.POST("", validation.ValidateFarmerCreation(), handlers.CreateFarmer(services.FarmerService, logger))
 
 			// List farmers with filtering and pagination
 			farmers.GET("", handlers.ListFarmers(services.FarmerService, logger))
@@ -35,13 +41,13 @@ func RegisterIdentityRoutes(router *gin.RouterGroup, services *services.ServiceF
 			farmers.GET("/:aaa_user_id/:aaa_org_id", handlers.GetFarmer(services.FarmerService, logger))
 
 			// Update farmer by farmer ID (primary key)
-			farmers.PUT("/id/:farmer_id", validationMiddleware.ValidateFarmerCreation(), handlers.UpdateFarmerByID(services.FarmerService, logger))
+			farmers.PUT("/id/:farmer_id", validation.ValidateFarmerCreation(), handlers.UpdateFarmerByID(services.FarmerService, logger))
 
 			// Update farmer by user ID only (no org required)
-			farmers.PUT("/user/:aaa_user_id", validationMiddleware.ValidateFarmerCreation(), handlers.UpdateFarmerByUserID(services.FarmerService, logger))
+			farmers.PUT("/user/:aaa_user_id", validation.ValidateFarmerCreation(), handlers.UpdateFarmerByUserID(services.FarmerService, logger))
 
 			// Update farmer by user ID and org ID (legacy endpoint)
-			farmers.PUT("/:aaa_user_id/:aaa_org_id", validationMiddleware.ValidateFarmerCreation(), handlers.UpdateFarmer(services.FarmerService, logger))
+			farmers.PUT("/:aaa_user_id/:aaa_org_id", validation.ValidateFarmerCreation(), handlers.UpdateFarmer(services.FarmerService, logger))
 
 			// Delete farmer by farmer ID (primary key)
 			farmers.DELETE("/id/:farmer_id", handlers.DeleteFarmerByID(services.FarmerService, logger))

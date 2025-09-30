@@ -22,6 +22,6 @@ func RegisterAdminRoutes(router *gin.RouterGroup, services *services.ServiceFact
 		admin.GET("/health", handlers.HealthCheck(services.AdministrativeService))
 
 		// Audit trail
-		admin.GET("/audit", handlers.GetAuditTrail())
+		admin.GET("/audit", handlers.GetAuditTrail(services.AuditService))
 	}
 }

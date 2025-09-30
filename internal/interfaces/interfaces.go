@@ -3,6 +3,8 @@ package interfaces
 import (
 	"context"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // Logger interface for structured logging
@@ -12,6 +14,7 @@ type Logger interface {
 	Warn(msg string, fields ...interface{})
 	Error(msg string, fields ...interface{})
 	Fatal(msg string, fields ...interface{})
+	GetZapLogger() *zap.Logger
 }
 
 // EventEmitter interface for emitting audit and business events

@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/services"
+	"github.com/Kisanlink/farmers-module/internal/services/audit"
 	"github.com/gin-gonic/gin"
 )
 
@@ -285,32 +287,91 @@ type AuditTrailFilters struct {
 // @Success 200 {object} responses.SwaggerAuditTrailResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Router /admin/audit [get]
-func GetAuditTrail() gin.HandlerFunc {
+func GetAuditTrail(auditService *audit.AuditService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Get query parameters for filtering
+		// Parse query parameters
 		startDate := c.Query("start_date")
 		endDate := c.Query("end_date")
 		userID := c.Query("user_id")
 		action := c.Query("action")
+		resourceType := c.Query("resource_type")
+		page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+		pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "50"))
 
-		// TODO: Add validation for date formats
-		// TODO: Call audit service to retrieve filtered audit logs
-		// TODO: Implement proper audit trail functionality
+		// Validate dates
+		var startTime, endTime *time.Time
+		if startDate != "" {
+			t, err := time.Parse(time.RFC3339, startDate)
+			if err != nil {
+				// Try alternative format
+				t, err = time.Parse("2006-01-02", startDate)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"error": "Invalid start_date format. Use YYYY-MM-DD or RFC3339",
+					})
+					return
+				}
+			}
+			startTime = &t
+		}
 
-		// For now return empty result with proper structure
+		if endDate != "" {
+			t, err := time.Parse(time.RFC3339, endDate)
+			if err != nil {
+				// Try alternative format
+				t, err = time.Parse("2006-01-02", endDate)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"error": "Invalid end_date format. Use YYYY-MM-DD or RFC3339",
+					})
+					return
+				}
+				// Set to end of day if using date format
+				t = t.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+			}
+			endTime = &t
+		}
+
+		// Create filters
+		filters := &audit.AuditFilters{
+			StartTime:    startTime,
+			EndTime:      endTime,
+			UserID:       userID,
+			Action:       action,
+			ResourceType: resourceType,
+			Page:         page,
+			PageSize:     pageSize,
+		}
+
+		// Query audit trail
+		events, err := auditService.QueryAuditTrail(c, filters)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to retrieve audit trail",
+			})
+			return
+		}
+
+		// Convert to interface{} for compatibility with existing response structure
+		auditLogs := make([]interface{}, len(events))
+		for i, event := range events {
+			auditLogs[i] = event
+		}
+
+		// Return response
 		c.JSON(http.StatusOK, AuditTrailResponse{
 			Message: "Audit trail retrieved successfully",
 			Data: AuditTrailData{
-				AuditLogs: []interface{}{},
+				AuditLogs: auditLogs,
 				Filters: AuditTrailFilters{
 					StartDate: startDate,
 					EndDate:   endDate,
 					UserID:    userID,
 					Action:    action,
 				},
-				TotalCount: 0,
-				Page:       1,
-				PageSize:   50,
+				TotalCount: len(events),
+				Page:       page,
+				PageSize:   pageSize,
 			},
 			CorrelationID: c.GetString("correlation_id"),
 			Timestamp:     time.Now(),

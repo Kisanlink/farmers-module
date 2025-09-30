@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 // MockLogger implements interfaces.Logger for testing
@@ -40,6 +41,14 @@ func (m *MockLogger) Fatal(msg string, fields ...interface{}) {
 func (m *MockLogger) With(fields ...interface{}) interfaces.Logger {
 	args := m.Called(fields)
 	return args.Get(0).(interfaces.Logger)
+}
+
+func (m *MockLogger) GetZapLogger() *zap.Logger {
+	args := m.Called()
+	if args.Get(0) != nil {
+		return args.Get(0).(*zap.Logger)
+	}
+	return zap.NewNop()
 }
 
 // MockPipelineStage implements PipelineStage for testing

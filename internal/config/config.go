@@ -44,6 +44,8 @@ type AAAConfig struct {
 	RetryBackoff   string
 	RequestTimeout string
 	Enabled        bool
+	JWTSecret      string
+	JWTPublicKey   string
 }
 
 // ObservabilityConfig holds observability configuration
@@ -84,6 +86,8 @@ func Load() *Config {
 			RetryBackoff:   getEnv("AAA_RETRY_BACKOFF", "100ms"),
 			RequestTimeout: getEnv("AAA_REQUEST_TIMEOUT", "5s"),
 			Enabled:        getEnvAsBool("AAA_ENABLED", true),
+			JWTSecret:      getEnv("JWT_SECRET", "dev-secret-change-in-production"),
+			JWTPublicKey:   getEnv("JWT_PUBLIC_KEY", ""),
 		},
 		Observability: ObservabilityConfig{
 			LogLevel:                 getEnv("LOG_LEVEL", "info"),

@@ -8,6 +8,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/farmers-module/internal/repo"
+	"github.com/Kisanlink/farmers-module/internal/services/audit"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
 	"gorm.io/gorm"
 )
@@ -41,6 +42,9 @@ type ServiceFactory struct {
 
 	// AAA Integration Service
 	AAAService AAAService
+
+	// Audit Service
+	AuditService *audit.AuditService
 
 	// AAA Client for direct integration
 	AAAClient *aaa.Client
@@ -105,6 +109,9 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		logger,
 	)
 
+	// Initialize audit service
+	auditService := audit.NewAuditService(logger.GetZapLogger(), nil) // No remote client for now
+
 	return &ServiceFactory{
 		FarmerService:         farmerService,
 		FarmerLinkageService:  farmerLinkageService,
@@ -118,6 +125,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		AdministrativeService: administrativeService,
 		BulkFarmerService:     bulkFarmerService,
 		AAAService:            aaaService,
+		AuditService:          auditService,
 		AAAClient:             aaaClient,
 	}
 }

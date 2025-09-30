@@ -79,3 +79,8 @@ func (l *LoggerAdapter) Named(name string) interfaces.Logger {
 func (l *LoggerAdapter) Sync() error {
 	return l.logger.Sync()
 }
+
+// GetZapLogger returns the underlying zap logger
+func (l *LoggerAdapter) GetZapLogger() *zap.Logger {
+	return l.logger
+}

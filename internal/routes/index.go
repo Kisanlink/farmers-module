@@ -5,6 +5,7 @@ import (
 
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
+	"github.com/Kisanlink/farmers-module/internal/middleware"
 	"github.com/Kisanlink/farmers-module/internal/services"
 	scalar "github.com/MarceloPetrucio/go-scalar-api-reference"
 	"github.com/gin-gonic/gin"
@@ -45,9 +46,18 @@ func RegisterAllRoutes(router *gin.Engine, services *services.ServiceFactory, cf
 
 // SetupRoutes sets up all routes with proper handlers and middleware
 func SetupRoutes(router *gin.Engine, services *services.ServiceFactory, cfg *config.Config, logger interfaces.Logger) {
-	// Add middleware
+	// Add core middleware
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+
+	// Add audit middleware for all routes
+	if services.AuditService != nil {
+		auditMW := middleware.AuditMiddleware(logger)
+		router.Use(auditMW)
+	}
+
+	// Add request ID middleware
+	router.Use(middleware.RequestIDMiddleware())
 
 	// Register all routes
 	RegisterAllRoutes(router, services, cfg, logger)

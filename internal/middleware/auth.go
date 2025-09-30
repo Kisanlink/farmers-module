@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -16,11 +17,27 @@ import (
 // AuthenticationMiddleware handles JWT token validation and user context setup
 func AuthenticationMiddleware(aaaService services.AAAService, logger interfaces.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Debug logging with print statements as backup
+		fmt.Printf("🔐 AUTHENTICATION MIDDLEWARE CALLED: %s %s\n", c.Request.Method, c.Request.URL.Path)
+		logger.Debug("Authentication middleware called",
+			zap.String("path", c.Request.URL.Path),
+			zap.String("method", c.Request.Method),
+		)
+
 		// Skip authentication for public routes
 		if auth.IsPublicRoute(c.Request.Method, c.Request.URL.Path) {
+			logger.Debug("Skipping authentication for public route",
+				zap.String("path", c.Request.URL.Path),
+				zap.String("method", c.Request.Method),
+			)
 			c.Next()
 			return
 		}
+
+		logger.Debug("Authentication required for route",
+			zap.String("path", c.Request.URL.Path),
+			zap.String("method", c.Request.Method),
+		)
 
 		// Extract token from Authorization header
 		authHeader := c.GetHeader("Authorization")
@@ -79,6 +96,25 @@ func AuthenticationMiddleware(aaaService services.AAAService, logger interfaces.
 		ctx := context.Background()
 		userInfo, err := aaaService.ValidateToken(ctx, token)
 		if err != nil {
+			// Check if error is due to AAA service unavailability
+			if strings.Contains(err.Error(), "AAA client not available") {
+				logger.Error("AAA service unavailable",
+					zap.String("path", c.Request.URL.Path),
+					zap.String("method", c.Request.Method),
+					zap.String("request_id", getRequestIDFromGin(c)),
+					zap.Error(err),
+				)
+				c.JSON(http.StatusServiceUnavailable, common.ErrorResponse{
+					Error:         "service_unavailable",
+					Message:       "Authentication service is currently unavailable",
+					Code:          "AUTH_SERVICE_UNAVAILABLE",
+					CorrelationID: getRequestIDFromGin(c),
+				})
+				c.Abort()
+				return
+			}
+
+			// Handle token validation errors as unauthorized
 			logger.Warn("Token validation failed",
 				zap.String("path", c.Request.URL.Path),
 				zap.String("method", c.Request.Method),
@@ -202,6 +238,29 @@ func AuthorizationMiddleware(aaaService services.AAAService, logger interfaces.L
 		ctx := context.Background()
 		hasPermission, err := aaaService.CheckPermission(ctx, userContext.AAAUserID, permission.Resource, permission.Action, "", orgID)
 		if err != nil {
+			// Check if error is due to AAA service unavailability
+			if strings.Contains(err.Error(), "AAA client not available") {
+				logger.Error("AAA service unavailable for permission check",
+					zap.String("user_id", userContext.AAAUserID),
+					zap.String("resource", permission.Resource),
+					zap.String("action", permission.Action),
+					zap.String("org_id", orgID),
+					zap.String("path", c.Request.URL.Path),
+					zap.String("method", c.Request.Method),
+					zap.String("request_id", getRequestIDFromGin(c)),
+					zap.Error(err),
+				)
+				c.JSON(http.StatusServiceUnavailable, common.ErrorResponse{
+					Error:         "service_unavailable",
+					Message:       "Authorization service is currently unavailable",
+					Code:          "AUTH_SERVICE_UNAVAILABLE",
+					CorrelationID: getRequestIDFromGin(c),
+				})
+				c.Abort()
+				return
+			}
+
+			// Handle other permission check errors
 			logger.Error("Permission check failed",
 				zap.String("user_id", userContext.AAAUserID),
 				zap.String("resource", permission.Resource),

@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"go.uber.org/zap"
 )
 
 // MockAAAService for testing
@@ -126,6 +127,14 @@ func (m *MockLogger) Fatal(msg string, fields ...interface{}) {
 	m.Called(msg, fields)
 }
 
+func (m *MockLogger) GetZapLogger() *zap.Logger {
+	args := m.Called()
+	if args.Get(0) != nil {
+		return args.Get(0).(*zap.Logger)
+	}
+	return zap.NewNop()
+}
+
 func TestAuthenticationMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -139,11 +148,13 @@ func TestAuthenticationMiddleware(t *testing.T) {
 		expectedBody   string
 	}{
 		{
-			name:           "Public route - no auth required",
-			path:           "/api/v1/health",
-			method:         "GET",
-			authHeader:     "",
-			setupMocks:     func(aaa *MockAAAService, logger *MockLogger) {},
+			name:       "Public route - no auth required",
+			path:       "/api/v1/health",
+			method:     "GET",
+			authHeader: "",
+			setupMocks: func(aaa *MockAAAService, logger *MockLogger) {
+				logger.On("Debug", mock.AnythingOfType("string"), mock.Anything).Return()
+			},
 			expectedStatus: http.StatusOK,
 		},
 		{
@@ -152,6 +163,7 @@ func TestAuthenticationMiddleware(t *testing.T) {
 			method:     "GET",
 			authHeader: "",
 			setupMocks: func(aaa *MockAAAService, logger *MockLogger) {
+				logger.On("Debug", mock.AnythingOfType("string"), mock.Anything).Return()
 				logger.On("Warn", mock.AnythingOfType("string"), mock.Anything).Return()
 			},
 			expectedStatus: http.StatusUnauthorized,
@@ -162,6 +174,7 @@ func TestAuthenticationMiddleware(t *testing.T) {
 			method:     "GET",
 			authHeader: "InvalidFormat token123",
 			setupMocks: func(aaa *MockAAAService, logger *MockLogger) {
+				logger.On("Debug", mock.AnythingOfType("string"), mock.Anything).Return()
 				logger.On("Warn", mock.AnythingOfType("string"), mock.Anything).Return()
 			},
 			expectedStatus: http.StatusUnauthorized,
@@ -172,6 +185,7 @@ func TestAuthenticationMiddleware(t *testing.T) {
 			method:     "GET",
 			authHeader: "Bearer ",
 			setupMocks: func(aaa *MockAAAService, logger *MockLogger) {
+				logger.On("Debug", mock.AnythingOfType("string"), mock.Anything).Return()
 				logger.On("Warn", mock.AnythingOfType("string"), mock.Anything).Return()
 			},
 			expectedStatus: http.StatusUnauthorized,
@@ -204,6 +218,7 @@ func TestAuthenticationMiddleware(t *testing.T) {
 			authHeader: "Bearer invalid_token",
 			setupMocks: func(aaa *MockAAAService, logger *MockLogger) {
 				aaa.On("ValidateToken", mock.Anything, "invalid_token").Return(nil, assert.AnError)
+				logger.On("Debug", mock.AnythingOfType("string"), mock.Anything).Return()
 				logger.On("Warn", mock.AnythingOfType("string"), mock.Anything).Return()
 			},
 			expectedStatus: http.StatusUnauthorized,
