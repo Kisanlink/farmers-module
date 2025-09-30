@@ -16,7 +16,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param request body requests.StartCycleRequest true "Start cycle request"
-// @Success 201 {object} responses.CropCycleResponse
+// @Success 201 {object} responses.SwaggerCropCycleResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
@@ -64,7 +64,7 @@ func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Produce json
 // @Param cycle_id path string true "Cycle ID"
 // @Param request body requests.UpdateCycleRequest true "Update cycle request"
-// @Success 200 {object} responses.CropCycleResponse
+// @Success 201 {object} responses.SwaggerCropCycleResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
@@ -116,7 +116,7 @@ func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Produce json
 // @Param cycle_id path string true "Cycle ID"
 // @Param request body requests.EndCycleRequest true "End cycle request"
-// @Success 200 {object} responses.CropCycleResponse
+// @Success 201 {object} responses.SwaggerCropCycleResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
@@ -165,7 +165,7 @@ func EndCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Param farm_id query string false "Filter by farm ID"
 // @Param status query string false "Filter by status"
 // @Param season query string false "Filter by season"
-// @Success 200 {object} responses.CropCycleListResponse
+// @Success 200 {object} responses.SwaggerCropCycleListResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
@@ -215,7 +215,7 @@ func ListCycles(service services.CropCycleService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param cycle_id path string true "Cycle ID"
-// @Success 200 {object} responses.CropCycleResponse
+// @Success 201 {object} responses.SwaggerCropCycleResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse

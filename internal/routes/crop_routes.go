@@ -68,8 +68,8 @@ func RegisterCropRoutes(router *gin.RouterGroup, services *services.ServiceFacto
 		varieties.DELETE("/:id", handlers.DeleteCropVariety(services.CropService))
 	}
 
-	// Get varieties for a specific crop
-	crops.GET("/:crop_id/varieties", handlers.ListCropVarieties(services.CropService))
+	// Get varieties for a specific crop using nested route under /crop-varieties
+	router.GET("/crop-varieties/:crop_id", handlers.ListCropVarieties(services.CropService))
 
 	// Lookup/Dropdown data
 	lookups := router.Group("/lookups")
