@@ -17,7 +17,6 @@ import (
 type FarmerService interface {
 	CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error)
 	GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*responses.FarmerProfileResponse, error)
-	// TODO: Add GetFarmerByPhone method for duplicate checking
 	UpdateFarmer(ctx context.Context, req *requests.UpdateFarmerRequest) (*responses.FarmerResponse, error)
 	DeleteFarmer(ctx context.Context, req *requests.DeleteFarmerRequest) error
 	ListFarmers(ctx context.Context, req *requests.ListFarmersRequest) (*responses.FarmerListResponse, error)
@@ -37,28 +36,6 @@ func NewFarmerService(repository *base.BaseFilterableRepository[*entities.Farmer
 		aaaService:  aaaService,
 		passwordGen: utils.NewPasswordGenerator(),
 	}
-}
-
-// generateSecurePassword generates a cryptographically secure password
-func (s *FarmerServiceImpl) generateSecurePassword() string {
-	// TODO: Implement cryptographically secure password generation
-	// Should use crypto/rand instead of math/rand for security
-	// Should ensure password complexity requirements
-	return "temp_password_123" // Placeholder - not secure
-}
-
-// getCountryCode extracts country code from phone number
-func (s *FarmerServiceImpl) getCountryCode(phoneNumber string) string {
-	// TODO: Implement proper phone number parsing and country code detection
-	// Should handle various international formats
-	return "+91" // Default to India for now
-}
-
-// loadFarmsForFarmer loads all farms associated with a farmer
-func (s *FarmerServiceImpl) loadFarmsForFarmer(ctx context.Context, farmerID string) ([]*responses.FarmData, error) {
-	// TODO: Implement farm loading for farmer profiles
-	// Should fetch actual farm data from database instead of returning empty array
-	return []*responses.FarmData{}, nil // Placeholder - returns empty array
 }
 
 // CreateFarmer creates a new farmer
@@ -247,17 +224,10 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 		},
 		Preferences: farmerProfile.Preferences,
 		Metadata:    farmerProfile.Metadata,
+		Farms:       []*responses.FarmData{}, // TODO: Load actual farms
 		CreatedAt:   farmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:   farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
-
-	// Load actual farms for the farmer
-	farms, err := s.loadFarmsForFarmer(ctx, farmerProfile.GetID())
-	if err != nil {
-		log.Printf("Warning: Failed to load farms for farmer %s: %v", farmerProfile.GetID(), err)
-		farms = []*responses.FarmData{} // Use empty array as fallback
-	}
-	farmerProfileData.Farms = farms
 
 	response := responses.NewFarmerProfileResponse(farmerProfileData, "Farmer retrieved successfully")
 	return &response, nil
@@ -362,17 +332,10 @@ func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.Upda
 		},
 		Preferences: existingFarmerProfile.Preferences,
 		Metadata:    existingFarmerProfile.Metadata,
+		Farms:       []*responses.FarmData{}, // TODO: Load actual farms
 		CreatedAt:   existingFarmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:   existingFarmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
-
-	// Load actual farms for the farmer
-	farms, err := s.loadFarmsForFarmer(ctx, existingFarmerProfile.GetID())
-	if err != nil {
-		log.Printf("Warning: Failed to load farms for farmer %s: %v", existingFarmerProfile.GetID(), err)
-		farms = []*responses.FarmData{} // Use empty array as fallback
-	}
-	farmerProfileData.Farms = farms
 
 	response := responses.NewFarmerResponse(farmerProfileData, "Farmer updated successfully")
 	return &response, nil
@@ -467,18 +430,10 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 			},
 			Preferences: fp.Preferences,
 			Metadata:    fp.Metadata,
+			Farms:       []*responses.FarmData{}, // TODO: Load actual farms
 			CreatedAt:   fp.CreatedAt.Format("2006-01-02T15:04:05Z"),
 			UpdatedAt:   fp.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		}
-
-		// Load actual farms for the farmer
-		farms, err := s.loadFarmsForFarmer(ctx, fp.GetID())
-		if err != nil {
-			log.Printf("Warning: Failed to load farms for farmer %s: %v", fp.GetID(), err)
-			farms = []*responses.FarmData{} // Use empty array as fallback
-		}
-		farmerProfileData.Farms = farms
-
 		farmerProfilesData = append(farmerProfilesData, farmerProfileData)
 	}
 

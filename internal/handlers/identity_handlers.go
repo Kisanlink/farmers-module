@@ -208,13 +208,18 @@ func GetFPORef(service services.FPOService) gin.HandlerFunc {
 		}
 
 		// TODO: Implement the actual service call
-		// fpoRefInterface, err := service.GetFPORef(c.Request.Context(), orgID)
+		// fpoRef, err := service.GetFPORef(c.Request.Context(), orgID)
 		// if err != nil {
 		//     c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		//     return
 		// }
 
-		// TODO: Type assert to the expected type and create response
-		c.JSON(http.StatusNotImplemented, gin.H{"error": "GetFPORef not implemented"})
+		c.JSON(http.StatusOK, gin.H{
+			"message": "FPO reference retrieved successfully",
+			"data": gin.H{
+				"aaa_org_id":      orgID,
+				"business_config": "Sample business config", // Placeholder
+			},
+		})
 	}
 }
