@@ -84,8 +84,29 @@ func (h *BulkFarmerHandler) BulkAddFarmers(c *gin.Context) {
 		return
 	}
 
-	// Check if user has permission to add farmers to this FPO
-	// TODO: Add proper permission check using AAA service
+	// TODO: Check if user has permission to add farmers to this FPO
+	// hasPermission, err := h.aaaService.CheckPermission(
+	//     c.Request.Context(),
+	//     req.UserID,
+	//     "farmer",
+	//     "create",
+	//     req.FPOOrgID,
+	//     req.OrgID,
+	// )
+	// if err != nil {
+	//     h.logger.Error("Failed to check permission", zap.Error(err))
+	//     c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify permissions"})
+	//     return
+	// }
+
+	// if !hasPermission {
+	//     h.logger.Warn("Permission denied for bulk farmer addition",
+	//         zap.String("user_id", req.UserID),
+	//         zap.String("fpo_org_id", req.FPOOrgID),
+	//         zap.String("org_id", req.OrgID))
+	//     c.JSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions to add farmers to this FPO"})
+	//     return
+	// }
 
 	h.logger.Info("Starting bulk farmer addition",
 		zap.String("request_id", req.RequestID),

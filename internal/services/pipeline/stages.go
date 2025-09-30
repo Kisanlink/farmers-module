@@ -148,6 +148,7 @@ func (vs *ValidationStage) isValidGender(gender string) bool {
 // FarmerServiceInterface defines the interface for farmer service used by pipeline
 type FarmerServiceInterface interface {
 	CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error)
+	GetFarmerByPhone(ctx context.Context, phoneNumber string) (*responses.FarmerResponse, error)
 	// Add other methods as needed
 }
 
@@ -197,18 +198,31 @@ func (ds *DeduplicationStage) Process(ctx context.Context, data interface{}) (in
 	)
 
 	// Check for existing farmer by phone number
-	// TODO: Implement actual duplicate checking logic
-	// This would involve querying the database for existing farmers with the same phone number
-
 	isDuplicate := false
 	duplicateReason := ""
 	existingFarmerID := ""
 
-	// Placeholder logic - randomly mark some as duplicates for testing
-	if procCtx.RecordIndex%13 == 0 {
+	// Check if farmer already exists by phone number
+	existingFarmer, err := ds.farmerService.GetFarmerByPhone(ctx, farmerData.PhoneNumber)
+	if err == nil && existingFarmer != nil {
+		// Farmer exists - this is a duplicate
 		isDuplicate = true
 		duplicateReason = "Phone number already exists"
-		existingFarmerID = "existing_farmer_123"
+		existingFarmerID = existingFarmer.Data.ID
+
+		ds.logger.Info("Duplicate farmer found",
+			zap.String("operation_id", procCtx.OperationID),
+			zap.Int("record_index", procCtx.RecordIndex),
+			zap.String("phone", farmerData.PhoneNumber),
+			zap.String("existing_farmer_id", existingFarmerID),
+		)
+	} else {
+		// No existing farmer found - not a duplicate
+		ds.logger.Debug("No duplicate found",
+			zap.String("operation_id", procCtx.OperationID),
+			zap.Int("record_index", procCtx.RecordIndex),
+			zap.String("phone", farmerData.PhoneNumber),
+		)
 	}
 
 	procCtx.SetStageResult("deduplication", map[string]interface{}{
@@ -418,10 +432,9 @@ func (frs *FarmerRegistrationStage) Process(ctx context.Context, data interface{
 	}
 
 	// Extract farmer ID from response
-	farmerID := "" // TODO: Extract from farmerResponse
-	if farmerResponse != nil {
-		// Assuming the response has a farmer ID field
-		farmerID = "farmer_" + aaaUserID // Placeholder
+	farmerID := ""
+	if farmerResponse != nil && farmerResponse.Data != nil {
+		farmerID = farmerResponse.Data.ID
 	}
 
 	procCtx.SetStageResult("farmer_registration", map[string]interface{}{

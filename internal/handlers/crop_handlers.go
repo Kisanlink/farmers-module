@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"time"
+	"strconv"
 
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
@@ -10,500 +10,653 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CropCycleResponse represents a simple crop cycle response
-type CropCycleResponse struct {
-	Success   bool        `json:"success"`
-	Message   string      `json:"message"`
-	RequestID string      `json:"request_id"`
-	Data      interface{} `json:"data"`
-}
+// Crop Handlers
 
-// CropCycleListResponse represents a simple crop cycle list response
-type CropCycleListResponse struct {
-	Success   bool          `json:"success"`
-	Message   string        `json:"message"`
-	RequestID string        `json:"request_id"`
-	Data      []interface{} `json:"data"`
-	Page      int           `json:"page"`
-	PageSize  int           `json:"page_size"`
-	Total     int           `json:"total"`
-}
-
-// Crop Cycle Handlers (W10-W13)
-
-// StartCycle handles W10: Start crop cycle
-// @Summary Start a new crop cycle
-// @Description Start a new crop cycle for a specific farm
-// @Tags crop-cycles
+// CreateCrop handles crop creation
+// @Summary Create a new crop
+// @Description Create a new crop with master data
+// @Tags Crop Master Data
 // @Accept json
 // @Produce json
-// @Param cycle body requests.StartCycleRequest true "Crop cycle data"
-// @Success 201 {object} responses.SwaggerCropCycleResponse
+// @Param crop body requests.CreateCropRequest true "Crop data"
+// @Success 201 {object} responses.SwaggerCropResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /crops/cycles [post]
-func StartCycle(service services.CropCycleService) gin.HandlerFunc {
+// @Router /crops [post]
+func CreateCrop(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req requests.StartCycleRequest
-
+		var req requests.CreateCropRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, responses.NewValidationError("Invalid request data", err.Error()))
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		// Set user context from middleware
-		if userID, exists := c.Get("aaa_subject"); exists {
-			req.UserID = userID.(string)
+		// Set context information
+		req.RequestID = c.GetString("request_id")
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
 		}
-		if orgID, exists := c.Get("aaa_org"); exists {
-			req.OrgID = orgID.(string)
-		}
-
-		// Set request metadata
-		req.SetRequestID(c.GetString("request_id"))
-		req.SetRequestType("start_cycle")
+		req.UserID = c.GetString("user_id")
+		req.OrgID = c.GetString("org_id")
 
 		// Call service
-		result, err := service.StartCycle(c.Request.Context(), &req)
+		result, err := service.CreateCrop(c.Request.Context(), &req)
 		if err != nil {
 			handleServiceError(c, err)
 			return
 		}
 
-		response := result.(responses.CropCycleResponse)
-		response.SetRequestID(req.RequestID)
+		response, ok := result.(*responses.CropResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
 		c.JSON(http.StatusCreated, response)
 	}
 }
 
-// UpdateCycle handles W11: Update crop cycle
-// @Summary Update a crop cycle
-// @Description Update an existing crop cycle details
-// @Tags crop-cycles
+// ListCrops handles crop listing with filtering
+// @Summary List crops
+// @Description List crops with optional filtering by category, season, etc.
+// @Tags Crop Master Data
 // @Accept json
 // @Produce json
-// @Param cycle_id path string true "Crop Cycle ID"
-// @Param cycle body requests.UpdateCycleRequest true "Crop cycle update data"
-// @Success 200 {object} responses.SwaggerCropCycleResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 401 {object} responses.SwaggerErrorResponse
-// @Failure 403 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /crops/cycles/{cycle_id} [put]
-func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		cycleID := c.Param("cycle_id")
-		var req requests.UpdateCycleRequest
-
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, responses.NewValidationError("Invalid request data", err.Error()))
-			return
-		}
-
-		// Set cycle ID from path parameter
-		req.ID = cycleID
-
-		// Set user context from middleware
-		if userID, exists := c.Get("aaa_subject"); exists {
-			req.UserID = userID.(string)
-		}
-		if orgID, exists := c.Get("aaa_org"); exists {
-			req.OrgID = orgID.(string)
-		}
-
-		// Set request metadata
-		req.SetRequestID(c.GetString("request_id"))
-		req.SetRequestType("update_cycle")
-
-		// Call service
-		result, err := service.UpdateCycle(c.Request.Context(), &req)
-		if err != nil {
-			handleServiceError(c, err)
-			return
-		}
-
-		response := result.(responses.CropCycleResponse)
-		response.SetRequestID(req.RequestID)
-		c.JSON(http.StatusOK, response)
-	}
-}
-
-// EndCycle handles W12: End crop cycle
-// @Summary End a crop cycle
-// @Description End an active crop cycle with status and outcome
-// @Tags crop-cycles
-// @Accept json
-// @Produce json
-// @Param cycle_id path string true "Crop Cycle ID"
-// @Param cycle body requests.EndCycleRequest true "Crop cycle end data"
-// @Success 200 {object} responses.SwaggerCropCycleResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 401 {object} responses.SwaggerErrorResponse
-// @Failure 403 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /crops/cycles/{cycle_id}/end [post]
-func EndCycle(service services.CropCycleService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		cycleID := c.Param("cycle_id")
-		var req requests.EndCycleRequest
-
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, responses.NewValidationError("Invalid request data", err.Error()))
-			return
-		}
-
-		// Set cycle ID from path parameter
-		req.ID = cycleID
-
-		// Set user context from middleware
-		if userID, exists := c.Get("aaa_subject"); exists {
-			req.UserID = userID.(string)
-		}
-		if orgID, exists := c.Get("aaa_org"); exists {
-			req.OrgID = orgID.(string)
-		}
-
-		// Set request metadata
-		req.SetRequestID(c.GetString("request_id"))
-		req.SetRequestType("end_cycle")
-
-		// Call service
-		result, err := service.EndCycle(c.Request.Context(), &req)
-		if err != nil {
-			handleServiceError(c, err)
-			return
-		}
-
-		response := result.(responses.CropCycleResponse)
-		response.SetRequestID(req.RequestID)
-		c.JSON(http.StatusOK, response)
-	}
-}
-
-// ListCycles handles W13: List crop cycles
-// @Summary List crop cycles
-// @Description Retrieve a list of all crop cycles with filtering
-// @Tags crop-cycles
-// @Accept json
-// @Produce json
+// @Param category query string false "Filter by category"
+// @Param season query string false "Filter by season"
+// @Param search query string false "Search in name or scientific name"
 // @Param page query int false "Page number" default(1)
-// @Param page_size query int false "Page size" default(10)
-// @Param farm_id query string false "Filter by farm ID"
-// @Param farmer_id query string false "Filter by farmer ID"
-// @Param season query string false "Filter by season" Enums(RABI, KHARIF, ZAID)
-// @Param status query string false "Filter by status" Enums(PLANNED, ACTIVE, COMPLETED, CANCELLED)
-// @Success 200 {object} responses.SwaggerCropCycleListResponse
+// @Param page_size query int false "Page size" default(20)
+// @Success 200 {object} responses.SwaggerCropListResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /crops/cycles [get]
-func ListCycles(service services.CropCycleService) gin.HandlerFunc {
+// @Router /crops [get]
+func ListCrops(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req requests.ListCyclesRequest
+		req := requests.NewListCropsRequest()
 
 		// Parse query parameters
-		req.Page = parseIntQuery(c, "page", 1)
-		req.PageSize = parseIntQuery(c, "page_size", 10)
-		req.FarmID = c.Query("farm_id")
-		req.FarmerID = c.Query("farmer_id")
-		req.Season = c.Query("season")
-		req.Status = c.Query("status")
-
-		// Set user context from middleware
-		if userID, exists := c.Get("aaa_subject"); exists {
-			req.UserID = userID.(string)
+		if category := c.Query("category"); category != "" {
+			req.Category = category
 		}
-		if orgID, exists := c.Get("aaa_org"); exists {
-			req.OrgID = orgID.(string)
+		if season := c.Query("season"); season != "" {
+			req.Season = season
+		}
+		if search := c.Query("search"); search != "" {
+			req.Search = search
+		}
+		if pageStr := c.Query("page"); pageStr != "" {
+			if page, err := strconv.Atoi(pageStr); err == nil && page > 0 {
+				req.Page = page
+			}
+		}
+		if pageSizeStr := c.Query("page_size"); pageSizeStr != "" {
+			if pageSize, err := strconv.Atoi(pageSizeStr); err == nil && pageSize > 0 && pageSize <= 100 {
+				req.PageSize = pageSize
+			}
 		}
 
-		// Set request metadata
-		req.SetRequestID(c.GetString("request_id"))
-		req.SetRequestType("list_cycles")
+		// Set context information
+		req.RequestID = c.GetString("request_id")
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+		req.UserID = c.GetString("user_id")
+		req.OrgID = c.GetString("org_id")
 
 		// Call service
-		result, err := service.ListCycles(c.Request.Context(), &req)
+		result, err := service.ListCrops(c.Request.Context(), &req)
 		if err != nil {
 			handleServiceError(c, err)
 			return
 		}
 
-		response := result.(responses.CropCycleListResponse)
-		response.SetRequestID(req.RequestID)
+		response, ok := result.(*responses.CropListResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
 		c.JSON(http.StatusOK, response)
 	}
 }
 
-// GetCropCycle handles getting crop cycle by ID
-// @Summary Get crop cycle by ID
-// @Description Retrieve a specific crop cycle by its ID
-// @Tags crop-cycles
+// GetCrop handles getting a crop by ID
+// @Summary Get crop by ID
+// @Description Get detailed information about a specific crop
+// @Tags Crop Master Data
 // @Accept json
 // @Produce json
-// @Param cycle_id path string true "Crop Cycle ID"
-// @Success 200 {object} responses.SwaggerCropCycleResponse
+// @Param id path string true "Crop ID"
+// @Success 200 {object} responses.SwaggerCropResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /crops/cycles/{cycle_id} [get]
-func GetCropCycle(service services.CropCycleService) gin.HandlerFunc {
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Router /crops/{id} [get]
+func GetCrop(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		cycleID := c.Param("cycle_id")
-
-		if cycleID == "" {
-			c.JSON(http.StatusBadRequest, responses.NewValidationError("Cycle ID is required", "cycle_id parameter is missing"))
+		cropID := c.Param("id")
+		if cropID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "crop ID is required"})
 			return
 		}
 
+		req := requests.NewGetCropRequest()
+		req.ID = cropID
+		req.RequestID = c.GetString("request_id")
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+		req.UserID = c.GetString("user_id")
+		req.OrgID = c.GetString("org_id")
+
 		// Call service
-		result, err := service.GetCropCycle(c.Request.Context(), cycleID)
+		result, err := service.GetCrop(c.Request.Context(), &req)
 		if err != nil {
 			handleServiceError(c, err)
 			return
 		}
 
-		response := result.(responses.CropCycleResponse)
-		response.SetRequestID(c.GetString("request_id"))
+		response, ok := result.(*responses.CropResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
 		c.JSON(http.StatusOK, response)
 	}
 }
 
-// Farm Activity Handlers (W14-W17)
-
-// CreateActivityRequest represents a request to create a farm activity
-type CreateActivityRequest struct {
-	CropCycleID  string    `json:"crop_cycle_id" binding:"required"`
-	ActivityType string    `json:"activity_type" binding:"required"`
-	PlannedAt    time.Time `json:"planned_at" binding:"required"`
-	Description  string    `json:"description"`
-	Metadata     string    `json:"metadata"`
-}
-
-// CreateActivityResponse represents a response for creating a farm activity
-type CreateActivityResponse struct {
-	Message string             `json:"message"`
-	Data    CreateActivityData `json:"data"`
-}
-
-// CreateActivityData represents the data returned when creating a farm activity
-type CreateActivityData struct {
-	CropCycleID  string    `json:"crop_cycle_id"`
-	ActivityType string    `json:"activity_type"`
-	PlannedAt    time.Time `json:"planned_at"`
-}
-
-// CreateActivity handles W14: Create farm activity
-// @Summary Create a new farm activity
-// @Description Create a new farm activity for a crop cycle
-// @Tags farm-activities
+// UpdateCrop handles crop updates
+// @Summary Update crop
+// @Description Update crop master data
+// @Tags Crop Master Data
 // @Accept json
 // @Produce json
-// @Param activity body CreateActivityRequest true "Farm activity data"
-// @Success 200 {object} CreateActivityResponse
+// @Param id path string true "Crop ID"
+// @Param crop body requests.UpdateCropRequest true "Crop update data"
+// @Success 200 {object} responses.SwaggerCropResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
-// @Router /crops/activities [post]
-func CreateActivity(service services.FarmActivityService) gin.HandlerFunc {
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Router /crops/{id} [put]
+func UpdateCrop(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req CreateActivityRequest
-
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, responses.ErrorResponse{
-				Error:         "Invalid request format",
-				Message:       err.Error(),
-				Code:          "INVALID_REQUEST",
-				CorrelationID: c.GetString("correlation_id"),
-				Timestamp:     time.Now(),
-			})
+		cropID := c.Param("id")
+		if cropID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "crop ID is required"})
 			return
 		}
 
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, CreateActivityResponse{
-			Message: "Farm activity created successfully",
-			Data: CreateActivityData{
-				CropCycleID:  req.CropCycleID,
-				ActivityType: req.ActivityType,
-				PlannedAt:    req.PlannedAt,
-			},
-		})
-	}
-}
-
-// CompleteActivityRequest represents a request to complete a farm activity
-type CompleteActivityRequest struct {
-	CompletedAt time.Time `json:"completed_at" binding:"required"`
-	Notes       *string   `json:"notes,omitempty"`
-	Outcome     *string   `json:"outcome,omitempty"`
-}
-
-// CompleteActivityResponse represents a response for completing a farm activity
-type CompleteActivityResponse struct {
-	Message string               `json:"message"`
-	Data    CompleteActivityData `json:"data"`
-}
-
-// CompleteActivityData represents the data returned when completing a farm activity
-type CompleteActivityData struct {
-	ActivityID  string    `json:"activity_id"`
-	CompletedAt time.Time `json:"completed_at"`
-}
-
-// CompleteActivity handles W15: Complete farm activity
-// @Summary Complete a farm activity
-// @Description Mark a farm activity as completed
-// @Tags farm-activities
-// @Accept json
-// @Produce json
-// @Param activity_id path string true "Activity ID"
-// @Param activity body CompleteActivityRequest true "Activity completion data"
-// @Success 200 {object} CompleteActivityResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Router /crops/activities/{activity_id}/complete [post]
-func CompleteActivity(service services.FarmActivityService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		activityID := c.Param("activity_id")
-		var req CompleteActivityRequest
-
+		var req requests.UpdateCropRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, responses.ErrorResponse{
-				Error:         "Invalid request format",
-				Message:       err.Error(),
-				Code:          "INVALID_REQUEST",
-				CorrelationID: c.GetString("correlation_id"),
-				Timestamp:     time.Now(),
-			})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, CompleteActivityResponse{
-			Message: "Farm activity completed successfully",
-			Data: CompleteActivityData{
-				ActivityID:  activityID,
-				CompletedAt: req.CompletedAt,
-			},
-		})
-	}
-}
+		// Set ID from path parameter
+		req.ID = cropID
+		req.RequestID = c.GetString("request_id")
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+		req.UserID = c.GetString("user_id")
+		req.OrgID = c.GetString("org_id")
 
-// UpdateActivityRequest represents a request to update a farm activity
-type UpdateActivityRequest struct {
-	ActivityType *string    `json:"activity_type,omitempty"`
-	PlannedAt    *time.Time `json:"planned_at,omitempty"`
-	Metadata     *string    `json:"metadata,omitempty"`
-}
-
-// UpdateActivityResponse represents a response for updating a farm activity
-type UpdateActivityResponse struct {
-	Message string             `json:"message"`
-	Data    UpdateActivityData `json:"data"`
-}
-
-// UpdateActivityData represents the data returned when updating a farm activity
-type UpdateActivityData struct {
-	ActivityID string `json:"activity_id"`
-}
-
-// UpdateActivity handles W16: Update farm activity
-// @Summary Update a farm activity
-// @Description Update an existing farm activity details
-// @Tags farm-activities
-// @Accept json
-// @Produce json
-// @Param activity_id path string true "Activity ID"
-// @Param activity body UpdateActivityRequest true "Activity update data"
-// @Success 200 {object} UpdateActivityResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Router /crops/activities/{activity_id} [put]
-func UpdateActivity(service services.FarmActivityService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		activityID := c.Param("activity_id")
-		var req UpdateActivityRequest
-
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, responses.ErrorResponse{
-				Error:         "Invalid request format",
-				Message:       err.Error(),
-				Code:          "INVALID_REQUEST",
-				CorrelationID: c.GetString("correlation_id"),
-				Timestamp:     time.Now(),
-			})
+		// Call service
+		result, err := service.UpdateCrop(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
 			return
 		}
 
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, UpdateActivityResponse{
-			Message: "Farm activity updated successfully",
-			Data: UpdateActivityData{
-				ActivityID: activityID,
-			},
-		})
+		response, ok := result.(*responses.CropResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
 	}
 }
 
-// ListActivitiesResponse represents a response for listing farm activities
-type ListActivitiesResponse struct {
-	Message string        `json:"message"`
-	Data    []interface{} `json:"data"`
-}
-
-// ListActivities handles W17: List farm activities
-// @Summary List farm activities
-// @Description Retrieve a list of all farm activities
-// @Tags farm-activities
+// DeleteCrop handles crop deletion
+// @Summary Delete crop
+// @Description Soft delete a crop (marks as inactive)
+// @Tags Crop Master Data
 // @Accept json
 // @Produce json
-// @Success 200 {object} ListActivitiesResponse
+// @Param id path string true "Crop ID"
+// @Success 200 {object} responses.SwaggerCropResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
-// @Router /crops/activities [get]
-func ListActivities(service services.FarmActivityService) gin.HandlerFunc {
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Router /crops/{id} [delete]
+func DeleteCrop(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, ListActivitiesResponse{
-			Message: "Farm activities retrieved successfully",
-			Data:    []interface{}{},
-		})
+		cropID := c.Param("id")
+		if cropID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "crop ID is required"})
+			return
+		}
+
+		req := requests.NewDeleteCropRequest()
+		req.ID = cropID
+		req.RequestID = c.GetString("request_id")
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+		req.UserID = c.GetString("user_id")
+		req.OrgID = c.GetString("org_id")
+
+		// Call service
+		result, err := service.DeleteCrop(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response, ok := result.(*responses.CropResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
 	}
 }
 
-// GetFarmActivityResponse represents a response for getting a farm activity
-type GetFarmActivityResponse struct {
-	Message string              `json:"message"`
-	Data    GetFarmActivityData `json:"data"`
-}
+// Crop Variety Handlers
 
-// GetFarmActivityData represents the data returned when getting a farm activity
-type GetFarmActivityData struct {
-	ActivityID string `json:"activity_id"`
-}
-
-// GetFarmActivity handles getting farm activity by ID
-// @Summary Get farm activity by ID
-// @Description Retrieve a specific farm activity by its ID
-// @Tags farm-activities
+// CreateCropVariety handles crop variety creation
+// @Summary Create crop variety
+// @Description Create a new variety for a specific crop
+// @Tags Crop Master Data
 // @Accept json
 // @Produce json
-// @Param activity_id path string true "Activity ID"
-// @Success 200 {object} GetFarmActivityResponse
+// @Param variety body requests.CreateCropVarietyRequest true "Crop variety data"
+// @Success 201 {object} responses.SwaggerCropVarietyResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
-// @Router /crops/activities/{activity_id} [get]
-func GetCropFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Router /varieties [post]
+func CreateCropVariety(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		activityID := c.Param("activity_id")
+		var req requests.CreateCropVarietyRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-		// TODO: Implement the actual service call
-		c.JSON(http.StatusOK, GetFarmActivityResponse{
-			Message: "Farm activity retrieved successfully",
-			Data: GetFarmActivityData{
-				ActivityID: activityID,
-			},
-		})
+		// Set context information
+		req.RequestID = c.GetString("request_id")
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+		req.UserID = c.GetString("user_id")
+		req.OrgID = c.GetString("org_id")
+
+		// Call service
+		result, err := service.CreateCropVariety(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response, ok := result.(*responses.CropVarietyResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
+		c.JSON(http.StatusCreated, response)
+	}
+}
+
+// ListCropVarieties handles crop variety listing
+// @Summary List crop varieties
+// @Description List crop varieties with optional filtering
+// @Tags Crop Master Data
+// @Accept json
+// @Produce json
+// @Param crop_id query string false "Filter by crop ID"
+// @Param search query string false "Search in name or description"
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(20)
+// @Success 200 {object} responses.CropVarietyListResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Router /varieties [get]
+func ListCropVarieties(service services.CropService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		req := requests.NewListCropVarietiesRequest()
+
+		// Parse query parameters
+		if cropID := c.Query("crop_id"); cropID != "" {
+			req.CropID = cropID
+		}
+		if search := c.Query("search"); search != "" {
+			req.Search = search
+		}
+		if pageStr := c.Query("page"); pageStr != "" {
+			if page, err := strconv.Atoi(pageStr); err == nil && page > 0 {
+				req.Page = page
+			}
+		}
+		if pageSizeStr := c.Query("page_size"); pageSizeStr != "" {
+			if pageSize, err := strconv.Atoi(pageSizeStr); err == nil && pageSize > 0 && pageSize <= 100 {
+				req.PageSize = pageSize
+			}
+		}
+
+		// Set context information
+		req.RequestID = c.GetString("request_id")
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+		req.UserID = c.GetString("user_id")
+		req.OrgID = c.GetString("org_id")
+
+		// Call service
+		result, err := service.ListCropVarieties(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response, ok := result.(*responses.CropVarietyListResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
+	}
+}
+
+// GetCropVariety handles getting a crop variety by ID
+// @Summary Get crop variety by ID
+// @Description Get detailed information about a specific crop variety
+// @Tags Crop Master Data
+// @Accept json
+// @Produce json
+// @Param id path string true "Crop variety ID"
+// @Success 200 {object} responses.SwaggerCropVarietyResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Router /varieties/{id} [get]
+func GetCropVariety(service services.CropService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		varietyID := c.Param("id")
+		if varietyID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "variety ID is required"})
+			return
+		}
+
+		req := requests.NewGetCropVarietyRequest()
+		req.ID = varietyID
+		req.RequestID = c.GetString("request_id")
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+		req.UserID = c.GetString("user_id")
+		req.OrgID = c.GetString("org_id")
+
+		// Call service
+		result, err := service.GetCropVariety(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response, ok := result.(*responses.CropVarietyResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
+	}
+}
+
+// UpdateCropVariety handles crop variety updates
+// @Summary Update crop variety
+// @Description Update crop variety data
+// @Tags Crop Master Data
+// @Accept json
+// @Produce json
+// @Param id path string true "Crop variety ID"
+// @Param variety body requests.UpdateCropVarietyRequest true "Crop variety update data"
+// @Success 200 {object} responses.SwaggerCropVarietyResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Router /varieties/{id} [put]
+func UpdateCropVariety(service services.CropService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		varietyID := c.Param("id")
+		if varietyID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "variety ID is required"})
+			return
+		}
+
+		var req requests.UpdateCropVarietyRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Set ID from path parameter
+		req.ID = varietyID
+		req.RequestID = c.GetString("request_id")
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+		req.UserID = c.GetString("user_id")
+		req.OrgID = c.GetString("org_id")
+
+		// Call service
+		result, err := service.UpdateCropVariety(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response, ok := result.(*responses.CropVarietyResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
+	}
+}
+
+// DeleteCropVariety handles crop variety deletion
+// @Summary Delete crop variety
+// @Description Soft delete a crop variety (marks as inactive)
+// @Tags Crop Master Data
+// @Accept json
+// @Produce json
+// @Param id path string true "Crop variety ID"
+// @Success 200 {object} responses.SwaggerCropVarietyResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Router /varieties/{id} [delete]
+func DeleteCropVariety(service services.CropService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		varietyID := c.Param("id")
+		if varietyID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "variety ID is required"})
+			return
+		}
+
+		req := requests.NewDeleteCropVarietyRequest()
+		req.ID = varietyID
+		req.RequestID = c.GetString("request_id")
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+		req.UserID = c.GetString("user_id")
+		req.OrgID = c.GetString("org_id")
+
+		// Call service
+		result, err := service.DeleteCropVariety(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response, ok := result.(*responses.CropVarietyResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
+	}
+}
+
+// Lookup/Dropdown Handlers
+
+// GetCropLookupData handles crop lookup data for dropdowns
+// @Summary Get crop lookup data
+// @Description Get simplified crop data for dropdown/lookup purposes
+// @Tags Crop Master Data
+// @Accept json
+// @Produce json
+// @Param category query string false "Filter by category"
+// @Param season query string false "Filter by season"
+// @Success 200 {object} responses.SwaggerCropLookupResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Router /lookups/crops [get]
+func GetCropLookupData(service services.CropService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		req := requests.NewGetCropLookupRequest()
+
+		// Parse query parameters
+		if category := c.Query("category"); category != "" {
+			req.Category = category
+		}
+		if season := c.Query("season"); season != "" {
+			req.Season = season
+		}
+
+		req.RequestID = c.GetString("request_id")
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+
+		// Call service
+		result, err := service.GetCropLookupData(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response, ok := result.(*responses.CropLookupResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
+	}
+}
+
+// GetVarietyLookupData handles crop variety lookup data
+// @Summary Get variety lookup data
+// @Description Get simplified variety data for dropdown/lookup purposes
+// @Tags Crop Master Data
+// @Accept json
+// @Produce json
+// @Param crop_id path string true "Crop ID"
+// @Success 200 {object} responses.CropVarietyLookupResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Router /lookups/varieties/{crop_id} [get]
+func GetVarietyLookupData(service services.CropService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		cropID := c.Param("crop_id")
+		if cropID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "crop ID is required"})
+			return
+		}
+
+		req := requests.NewGetVarietyLookupRequest()
+		req.CropID = cropID
+		req.RequestID = c.GetString("request_id")
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+
+		// Call service
+		result, err := service.GetVarietyLookupData(c.Request.Context(), &req)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response, ok := result.(*responses.CropVarietyLookupResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
+	}
+}
+
+// GetCropCategories handles getting available crop categories
+// @Summary Get crop categories
+// @Description Get list of available crop categories
+// @Tags Crop Master Data
+// @Accept json
+// @Produce json
+// @Success 200 {object} responses.CropCategoriesResponse
+// @Router /lookups/crop-categories [get]
+func GetCropCategories(service services.CropService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Call service
+		result, err := service.GetCropCategories(c.Request.Context())
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response, ok := result.(*responses.CropCategoriesResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
+	}
+}
+
+// GetCropSeasons handles getting available crop seasons
+// @Summary Get crop seasons
+// @Description Get list of available crop seasons
+// @Tags Crop Master Data
+// @Accept json
+// @Produce json
+// @Success 200 {object} responses.CropSeasonsResponse
+// @Router /lookups/crop-seasons [get]
+func GetCropSeasons(service services.CropService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Call service
+		result, err := service.GetCropSeasons(c.Request.Context())
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		response, ok := result.(*responses.CropSeasonsResponse)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid response type"})
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
 	}
 }

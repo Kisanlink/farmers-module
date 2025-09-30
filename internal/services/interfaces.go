@@ -84,6 +84,32 @@ type FarmActivityService interface {
 	GetFarmActivity(ctx context.Context, activityID string) (interface{}, error)
 }
 
+// CropService handles crop master data operations
+type CropService interface {
+	// CRUD operations for crops
+	CreateCrop(ctx context.Context, req interface{}) (interface{}, error)
+	GetCrop(ctx context.Context, req interface{}) (interface{}, error)
+	UpdateCrop(ctx context.Context, req interface{}) (interface{}, error)
+	DeleteCrop(ctx context.Context, req interface{}) (interface{}, error)
+	ListCrops(ctx context.Context, req interface{}) (interface{}, error)
+
+	// CRUD operations for crop varieties
+	CreateCropVariety(ctx context.Context, req interface{}) (interface{}, error)
+	GetCropVariety(ctx context.Context, req interface{}) (interface{}, error)
+	UpdateCropVariety(ctx context.Context, req interface{}) (interface{}, error)
+	DeleteCropVariety(ctx context.Context, req interface{}) (interface{}, error)
+	ListCropVarieties(ctx context.Context, req interface{}) (interface{}, error)
+
+	// Lookup/dropdown data
+	GetCropLookupData(ctx context.Context, req interface{}) (interface{}, error)
+	GetVarietyLookupData(ctx context.Context, req interface{}) (interface{}, error)
+	GetCropCategories(ctx context.Context) (interface{}, error)
+	GetCropSeasons(ctx context.Context) (interface{}, error)
+
+	// Seed operations
+	SeedInitialCropData(ctx context.Context) error
+}
+
 // AAAService handles AAA integration workflows
 type AAAService interface {
 	// W18: Seed roles and permissions

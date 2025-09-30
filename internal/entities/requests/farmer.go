@@ -46,15 +46,16 @@ type ListFarmersRequest struct {
 
 // FarmerProfileData represents the profile data for a farmer
 type FarmerProfileData struct {
-	FirstName   string            `json:"first_name,omitempty"`
-	LastName    string            `json:"last_name,omitempty"`
-	PhoneNumber string            `json:"phone_number,omitempty"`
-	Email       string            `json:"email,omitempty"`
-	DateOfBirth string            `json:"date_of_birth,omitempty"`
-	Gender      string            `json:"gender,omitempty"`
-	Address     AddressData       `json:"address,omitempty"`
-	Preferences map[string]string `json:"preferences,omitempty"`
-	Metadata    map[string]string `json:"metadata,omitempty"`
+	FirstName     string            `json:"first_name,omitempty"`
+	LastName      string            `json:"last_name,omitempty"`
+	PhoneNumber   string            `json:"phone_number,omitempty"`
+	Email         string            `json:"email,omitempty"`
+	DateOfBirth   string            `json:"date_of_birth,omitempty"`
+	Gender        string            `json:"gender,omitempty"`
+	AadhaarNumber string            `json:"aadhaar_number,omitempty"`
+	Address       AddressData       `json:"address,omitempty"`
+	Preferences   map[string]string `json:"preferences,omitempty"`
+	Metadata      map[string]string `json:"metadata,omitempty"`
 }
 
 // AddressData represents address information

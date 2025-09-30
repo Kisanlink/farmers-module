@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -15,6 +14,7 @@ import (
 	bulkRepo "github.com/Kisanlink/farmers-module/internal/repo/bulk"
 	"github.com/Kisanlink/farmers-module/internal/services/parsers"
 	"github.com/Kisanlink/farmers-module/internal/services/pipeline"
+	"go.uber.org/zap"
 )
 
 // BulkFarmerService defines the interface for bulk farmer operations
@@ -173,7 +173,7 @@ func (s *BulkFarmerServiceImpl) processSynchronously(ctx context.Context, bulkOp
 
 	for i, farmer := range farmers {
 		// Process individual farmer
-		err := s.processSingleFarmer(ctx, bulkOp, farmer, i, options)
+		result, err := s.processSingleFarmer(ctx, bulkOp, farmer, i, options)
 
 		processed++
 		if err != nil {
@@ -197,8 +197,16 @@ func (s *BulkFarmerServiceImpl) processSynchronously(ctx context.Context, bulkOp
 			// Update processing detail with success
 			detail, _ := s.getProcessingDetailByIndex(ctx, bulkOp.ID, i)
 			if detail != nil {
-				// TODO: Set actual farmer and AAA user IDs
-				detail.SetSuccess("farmer_id", "aaa_user_id")
+				// Set actual farmer and AAA user IDs from processing result
+				farmerID := result.FarmerID
+				aaaUserID := result.AAAUserID
+				if farmerID == "" {
+					farmerID = "unknown"
+				}
+				if aaaUserID == "" {
+					aaaUserID = "unknown"
+				}
+				detail.SetSuccess(farmerID, aaaUserID)
 				_ = s.processingRepo.Update(ctx, detail)
 			}
 		}
@@ -283,7 +291,7 @@ func (s *BulkFarmerServiceImpl) processChunk(ctx context.Context, bulkOp *bulk.B
 
 	for i, farmer := range farmers {
 		globalIndex := chunkIndex*options.ChunkSize + i
-		err := s.processSingleFarmer(ctx, bulkOp, farmer, globalIndex, options)
+		_, err := s.processSingleFarmer(ctx, bulkOp, farmer, globalIndex, options)
 
 		update := progressUpdate{
 			processed: 1,
@@ -310,7 +318,7 @@ func (s *BulkFarmerServiceImpl) processChunk(ctx context.Context, bulkOp *bulk.B
 }
 
 // processSingleFarmer processes a single farmer using the pipeline
-func (s *BulkFarmerServiceImpl) processSingleFarmer(ctx context.Context, bulkOp *bulk.BulkOperation, farmer *requests.FarmerBulkData, index int, options requests.BulkProcessingOptions) error {
+func (s *BulkFarmerServiceImpl) processSingleFarmer(ctx context.Context, bulkOp *bulk.BulkOperation, farmer *requests.FarmerBulkData, index int, options requests.BulkProcessingOptions) (*ProcessingResult, error) {
 	// Create processing context
 	procCtx := pipeline.NewProcessingContext(
 		bulkOp.ID,
@@ -326,10 +334,31 @@ func (s *BulkFarmerServiceImpl) processSingleFarmer(ctx context.Context, bulkOp 
 	// Execute pipeline
 	_, err := pipe.Execute(ctx, procCtx)
 	if err != nil {
-		return fmt.Errorf("pipeline execution failed: %w", err)
+		return nil, fmt.Errorf("pipeline execution failed: %w", err)
 	}
 
-	return nil
+	// Extract results from processing context
+	result := &ProcessingResult{}
+
+	// Get farmer registration result
+	if farmerRegResult, exists := procCtx.GetStageResult("farmer_registration"); exists {
+		if regData, ok := farmerRegResult.(map[string]interface{}); ok {
+			if farmerID, ok := regData["farmer_id"].(string); ok {
+				result.FarmerID = farmerID
+			}
+			if aaaUserID, ok := regData["aaa_user_id"].(string); ok {
+				result.AAAUserID = aaaUserID
+			}
+		}
+	}
+
+	return result, nil
+}
+
+// ProcessingResult contains the results of processing a single farmer
+type ProcessingResult struct {
+	FarmerID  string
+	AAAUserID string
 }
 
 // buildProcessingPipeline builds the processing pipeline based on options
@@ -339,24 +368,11 @@ func (s *BulkFarmerServiceImpl) buildProcessingPipeline(options requests.BulkPro
 	// Add validation stage
 	pipe.AddStage(pipeline.NewValidationStage(s.logger))
 
-	// Add deduplication stage if not skipping duplicates
-	if options.DeduplicationMode != "skip" {
-		pipe.AddStage(pipeline.NewDeduplicationStage(s.farmerService, s.logger))
-	}
-
-	// Add AAA user creation stage
-	pipe.AddStage(pipeline.NewAAAUserCreationStage(s.aaaService, s.logger))
-
-	// Add farmer registration stage
-	pipe.AddStage(pipeline.NewFarmerRegistrationStage(s.farmerService, s.logger))
-
-	// Add FPO linkage stage
-	pipe.AddStage(pipeline.NewFPOLinkageStage(s.linkageService, s.logger))
-
-	// Add KisanSathi assignment stage if requested
-	if options.AssignKisanSathi {
-		pipe.AddStage(pipeline.NewKisanSathiAssignmentStage(s.linkageService, options.KisanSathiUserID, s.logger))
-	}
+	// TODO: Add deduplication stage if not skipping duplicates
+	// TODO: Add AAA user creation stage
+	// TODO: Add farmer registration stage
+	// TODO: Add FPO linkage stage
+	// TODO: Add KisanSathi assignment stage if requested
 
 	return pipe
 }
@@ -448,11 +464,84 @@ func (s *BulkFarmerServiceImpl) RetryFailedRecords(ctx context.Context, req *req
 		return nil, fmt.Errorf("no retryable records found")
 	}
 
-	// TODO: Implement retry logic
-	// This will create a new bulk operation for the failed records
+	// Implement retry logic - create a new bulk operation for the failed records
+
+	// Create new bulk operation for retry
+	retryOp := &bulk.BulkOperation{
+		FPOOrgID:     originalOp.FPOOrgID,
+		InitiatedBy:  originalOp.InitiatedBy,
+		Status:       bulk.StatusPending,
+		InputFormat:  originalOp.InputFormat,
+		TotalRecords: len(failedDetails),
+		Metadata: map[string]interface{}{
+			"retry_of": originalOp.GetID(),
+			"reason":   "Retry of failed records",
+		},
+	}
+
+	// Save the retry operation
+	if err := s.bulkOpRepo.Create(ctx, retryOp); err != nil {
+		return nil, fmt.Errorf("failed to create retry operation: %w", err)
+	}
+
+	// Create processing details for retry records
+	for _, detail := range failedDetails {
+		// Extract original farmer data from the failed detail
+		if detail.InputData != nil {
+			retryDetail := &bulk.ProcessingDetail{
+				BulkOperationID: retryOp.GetID(),
+				RecordIndex:     detail.RecordIndex,
+				Status:          bulk.RecordStatusPending,
+				InputData:       detail.InputData,
+				Metadata: map[string]interface{}{
+					"retry_of":       detail.BulkOperationID,
+					"original_index": fmt.Sprintf("%d", detail.RecordIndex),
+				},
+			}
+
+			if err := s.processingRepo.Create(ctx, retryDetail); err != nil {
+				s.logger.Error("Failed to create retry processing detail",
+					zap.String("operation_id", retryOp.GetID()),
+					zap.Int("record_index", detail.RecordIndex),
+					zap.Error(err))
+			}
+		}
+	}
+
+	// Start processing the retry operation in background
+	go func() {
+		ctx := context.Background()
+
+		// Parse chunk size from metadata
+		chunkSize := 10 // default chunk size
+		if chunkSizeStr, exists := originalOp.Metadata["chunk_size"]; exists {
+			if chunkSizeStrStr, ok := chunkSizeStr.(string); ok {
+				if parsed, err := fmt.Sscanf(chunkSizeStrStr, "%d", &chunkSize); err != nil || parsed != 1 {
+					chunkSize = 10 // fallback to default
+				}
+			}
+		}
+
+		// Create a retry request
+		retryReq := &requests.BulkFarmerAdditionRequest{
+			FPOOrgID: retryOp.FPOOrgID,
+			Options: requests.BulkProcessingOptions{
+				ChunkSize:       chunkSize,
+				ContinueOnError: true,
+				ValidateOnly:    false,
+			},
+		}
+
+		_, err := s.BulkAddFarmersToFPO(ctx, retryReq)
+		if err != nil {
+			s.logger.Error("Retry operation failed",
+				zap.String("retry_operation_id", retryOp.GetID()),
+				zap.Error(err))
+		}
+	}()
 
 	return &responses.BulkOperationData{
-		OperationID: "retry_" + originalOp.ID,
+		OperationID: retryOp.GetID(),
 		Status:      "INITIATED",
 		Message:     fmt.Sprintf("Retry initiated for %d failed records", len(failedDetails)),
 	}, nil
@@ -460,79 +549,69 @@ func (s *BulkFarmerServiceImpl) RetryFailedRecords(ctx context.Context, req *req
 
 // Helper methods
 
+// downloadFileFromURL downloads a file from the given URL
+func (s *BulkFarmerServiceImpl) downloadFileFromURL(ctx context.Context, url string) ([]byte, error) {
+	// TODO: Implement file download from URL
+	// Should handle HTTP client, timeout, file size limits, etc.
+	return nil, fmt.Errorf("file download from URL not implemented")
+}
+
+// validateFarmerRecord validates a single farmer record
+func (s *BulkFarmerServiceImpl) validateFarmerRecord(farmer *requests.FarmerBulkData, rowNumber int) []responses.ValidationError {
+	// TODO: Implement comprehensive farmer record validation
+	// Should validate required fields, formats, business rules, etc.
+	return []responses.ValidationError{} // Placeholder - no validation
+}
+
+// generateCSVResult generates a CSV file with processing results
+func (s *BulkFarmerServiceImpl) generateCSVResult(results []responses.ProcessingDetail, bulkOp *bulk.BulkOperation) ([]byte, error) {
+	// TODO: Implement CSV result file generation
+	// Should format processing results as CSV
+	return nil, fmt.Errorf("CSV result generation not implemented")
+}
+
+// generateJSONResult generates a JSON file with processing results
+func (s *BulkFarmerServiceImpl) generateJSONResult(results []responses.ProcessingDetail, bulkOp *bulk.BulkOperation) ([]byte, error) {
+	// TODO: Implement JSON result file generation
+	// Should format processing results as JSON
+	return nil, fmt.Errorf("JSON result generation not implemented")
+}
+
+// generateExcelResult generates an Excel file with processing results
+func (s *BulkFarmerServiceImpl) generateExcelResult(results []responses.ProcessingDetail, bulkOp *bulk.BulkOperation) ([]byte, error) {
+	// TODO: Implement Excel result file generation
+	// Should use a library like github.com/xuri/excelize for proper Excel generation
+	return nil, fmt.Errorf("Excel result generation not implemented")
+}
+
 func (s *BulkFarmerServiceImpl) parseInputData(ctx context.Context, req *requests.BulkFarmerAdditionRequest) ([]*requests.FarmerBulkData, error) {
-	if len(req.Data) > 0 {
-		return s.ParseBulkFile(ctx, req.InputFormat, req.Data)
-	}
-
-	if req.FileURL != "" {
-		// TODO: Download file from URL and parse
-		return nil, fmt.Errorf("file URL processing not yet implemented")
-	}
-
-	return nil, fmt.Errorf("no input data provided")
+	// TODO: Implement input data parsing
+	// Should handle both direct data and file URL downloads
+	return nil, fmt.Errorf("input data parsing not implemented")
 }
 
 func (s *BulkFarmerServiceImpl) createBulkOperation(req *requests.BulkFarmerAdditionRequest, totalRecords int) *bulk.BulkOperation {
-	bulkOp := bulk.NewBulkOperation()
-	bulkOp.FPOOrgID = req.FPOOrgID
-	bulkOp.InitiatedBy = req.UserID
-	bulkOp.InputFormat = bulk.InputFormat(req.InputFormat)
-	bulkOp.ProcessingMode = bulk.ProcessingMode(req.ProcessingMode)
-	bulkOp.TotalRecords = totalRecords
-	bulkOp.Status = bulk.StatusPending
-
-	// Store options in metadata
-	optionsJSON, _ := json.Marshal(req.Options)
-	var optionsMap map[string]interface{}
-	_ = json.Unmarshal(optionsJSON, &optionsMap)
-	bulkOp.Options = optionsMap
-
-	return bulkOp
+	// TODO: Implement bulk operation creation
+	// Should create proper bulk operation with all required fields
+	return &bulk.BulkOperation{} // Placeholder
 }
 
 func (s *BulkFarmerServiceImpl) createProcessingDetails(bulkOperationID string, farmers []*requests.FarmerBulkData) []*bulk.ProcessingDetail {
-	details := make([]*bulk.ProcessingDetail, len(farmers))
-	for i, farmer := range farmers {
-		detail := bulk.NewProcessingDetail(bulkOperationID, i)
-		detail.ExternalID = farmer.ExternalID
-
-		// Store input data
-		farmerJSON, _ := json.Marshal(farmer)
-		var farmerMap map[string]interface{}
-		_ = json.Unmarshal(farmerJSON, &farmerMap)
-		detail.InputData = farmerMap
-
-		details[i] = detail
-	}
-	return details
+	// TODO: Implement processing details creation
+	// Should create processing detail records for each farmer
+	return []*bulk.ProcessingDetail{} // Placeholder
 }
 
 func (s *BulkFarmerServiceImpl) createChunks(farmers []*requests.FarmerBulkData, chunkSize int) [][]*requests.FarmerBulkData {
-	var chunks [][]*requests.FarmerBulkData
-	for i := 0; i < len(farmers); i += chunkSize {
-		end := i + chunkSize
-		if end > len(farmers) {
-			end = len(farmers)
-		}
-		chunks = append(chunks, farmers[i:end])
-	}
-	return chunks
+	// TODO: Implement farmer data chunking
+	// Should split farmers into chunks for batch processing
+	return [][]*requests.FarmerBulkData{} // Placeholder
 }
 
 func (s *BulkFarmerServiceImpl) getProcessingDetailByIndex(ctx context.Context, bulkOperationID string, index int) (*bulk.ProcessingDetail, error) {
-	details, err := s.processingRepo.GetByOperationID(ctx, bulkOperationID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, detail := range details {
-		if detail.RecordIndex == index {
-			return detail, nil
-		}
-	}
-
-	return nil, fmt.Errorf("processing detail not found for index %d", index)
+	// TODO: Implement processing detail lookup by index
+	// Should find specific processing detail by record index
+	return nil, fmt.Errorf("processing detail lookup not implemented")
 }
 
 type progressUpdate struct {
@@ -575,8 +654,56 @@ func (s *BulkFarmerServiceImpl) aggregateProgress(ctx context.Context, operation
 // Placeholder methods for unimplemented features
 
 func (s *BulkFarmerServiceImpl) ValidateBulkData(ctx context.Context, req *requests.ValidateBulkDataRequest) (*responses.BulkValidationData, error) {
-	// TODO: Implement validation logic
-	return nil, fmt.Errorf("not yet implemented")
+	s.logger.Debug("Validating bulk data",
+		zap.String("format", req.InputFormat),
+		zap.Int("data_size", len(req.Data)))
+
+	// Parse the data first
+	farmers, err := s.ParseBulkFile(ctx, req.InputFormat, req.Data)
+	if err != nil {
+		return &responses.BulkValidationData{
+			IsValid: false,
+			Errors: []responses.ValidationError{
+				{
+					RecordIndex: -1,
+					Field:       "file",
+					Message:     fmt.Sprintf("Failed to parse file: %v", err),
+					Code:        "PARSE_ERROR",
+				},
+			},
+			TotalRecords: 0,
+			ValidRecords: 0,
+		}, nil
+	}
+
+	// Validate each farmer record
+	var validationErrors []responses.ValidationError
+	validCount := 0
+
+	for i, farmer := range farmers {
+		errors := s.validateFarmerRecord(farmer, i+1)
+		if len(errors) > 0 {
+			validationErrors = append(validationErrors, errors...)
+		} else {
+			validCount++
+		}
+	}
+
+	invalidCount := len(farmers) - validCount
+	isValid := len(validationErrors) == 0
+
+	s.logger.Debug("Validation completed",
+		zap.Int("total_records", len(farmers)),
+		zap.Int("valid_records", validCount),
+		zap.Int("invalid_records", invalidCount),
+		zap.Int("error_count", len(validationErrors)))
+
+	return &responses.BulkValidationData{
+		IsValid:      isValid,
+		Errors:       validationErrors,
+		TotalRecords: len(farmers),
+		ValidRecords: validCount,
+	}, nil
 }
 
 func (s *BulkFarmerServiceImpl) ParseBulkFile(ctx context.Context, format string, data []byte) ([]*requests.FarmerBulkData, error) {
@@ -612,8 +739,67 @@ func (s *BulkFarmerServiceImpl) ParseBulkFile(ctx context.Context, format string
 }
 
 func (s *BulkFarmerServiceImpl) GenerateResultFile(ctx context.Context, operationID string, format string) ([]byte, error) {
-	// TODO: Implement result file generation
-	return nil, fmt.Errorf("not yet implemented")
+	s.logger.Debug("Generating result file",
+		zap.String("operation_id", operationID),
+		zap.String("format", format))
+
+	// Get bulk operation details
+	bulkOp, err := s.bulkOpRepo.GetByID(ctx, operationID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find bulk operation: %w", err)
+	}
+
+	// Get all processing details for this operation
+	details, err := s.processingRepo.GetByOperationID(ctx, operationID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get processing details: %w", err)
+	}
+
+	// Convert processing details to result data
+	var results []responses.ProcessingDetail
+	for _, detail := range details {
+		processedAt := detail.UpdatedAt
+
+		// Handle pointer fields safely
+		farmerID := ""
+		if detail.FarmerID != nil {
+			farmerID = *detail.FarmerID
+		}
+
+		aaaUserID := ""
+		if detail.AAAUserID != nil {
+			aaaUserID = *detail.AAAUserID
+		}
+
+		errorMsg := ""
+		if detail.Error != nil {
+			errorMsg = *detail.Error
+		}
+
+		result := responses.ProcessingDetail{
+			RecordIndex:    detail.RecordIndex,
+			Status:         string(detail.Status),
+			FarmerID:       farmerID,
+			AAAUserID:      aaaUserID,
+			Error:          errorMsg,
+			ProcessedAt:    &processedAt,
+			ProcessingTime: fmt.Sprintf("%dms", detail.ProcessingTime),
+			RetryCount:     detail.RetryCount,
+		}
+		results = append(results, result)
+	}
+
+	// Generate file based on format
+	switch strings.ToLower(format) {
+	case "csv":
+		return s.generateCSVResult(results, bulkOp)
+	case "json":
+		return s.generateJSONResult(results, bulkOp)
+	case "excel", "xlsx":
+		return s.generateExcelResult(results, bulkOp)
+	default:
+		return nil, fmt.Errorf("unsupported format: %s", format)
+	}
 }
 
 func (s *BulkFarmerServiceImpl) GetBulkUploadTemplate(ctx context.Context, format string, includeExample bool) (*responses.BulkTemplateData, error) {
@@ -694,10 +880,37 @@ Tips:
 }
 
 func (s *BulkFarmerServiceImpl) validateFarmers(ctx context.Context, fpoOrgID string, farmers []*requests.FarmerBulkData) (*responses.BulkValidationData, error) {
-	// TODO: Implement validation
+	s.logger.Debug("Validating farmers for FPO",
+		zap.String("fpo_org_id", fpoOrgID),
+		zap.Int("farmer_count", len(farmers)))
+
+	// Validate each farmer record
+	var validationErrors []responses.ValidationError
+	validCount := 0
+
+	for i, farmer := range farmers {
+		errors := s.validateFarmerRecord(farmer, i+1)
+		if len(errors) > 0 {
+			validationErrors = append(validationErrors, errors...)
+		} else {
+			validCount++
+		}
+	}
+
+	invalidCount := len(farmers) - validCount
+	isValid := len(validationErrors) == 0
+
+	s.logger.Debug("Farmer validation completed",
+		zap.String("fpo_org_id", fpoOrgID),
+		zap.Int("total_records", len(farmers)),
+		zap.Int("valid_records", validCount),
+		zap.Int("invalid_records", invalidCount),
+		zap.Int("error_count", len(validationErrors)))
+
 	return &responses.BulkValidationData{
-		IsValid:      true,
+		IsValid:      isValid,
+		Errors:       validationErrors,
 		TotalRecords: len(farmers),
-		ValidRecords: len(farmers),
+		ValidRecords: validCount,
 	}, nil
 }

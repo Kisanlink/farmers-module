@@ -1,23 +1,28 @@
 package requests
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // StartCycleRequest represents a request to start a new crop cycle
 type StartCycleRequest struct {
 	BaseRequest
-	FarmID       string    `json:"farm_id" validate:"required"`
-	Season       string    `json:"season" validate:"required,oneof=RABI KHARIF ZAID"`
-	StartDate    time.Time `json:"start_date" validate:"required"`
-	PlannedCrops []string  `json:"planned_crops" validate:"required,min=1"`
+	FarmID    string    `json:"farm_id" validate:"required"`
+	Season    string    `json:"season" validate:"required,oneof=RABI KHARIF ZAID"`
+	StartDate time.Time `json:"start_date" validate:"required"`
+	CropID    string    `json:"crop_id" validate:"required"`
+	VarietyID *string   `json:"variety_id,omitempty"`
 }
 
 // UpdateCycleRequest represents a request to update an existing crop cycle
 type UpdateCycleRequest struct {
 	BaseRequest
-	ID           string     `json:"id" validate:"required"`
-	Season       *string    `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID"`
-	StartDate    *time.Time `json:"start_date,omitempty"`
-	PlannedCrops []string   `json:"planned_crops,omitempty"`
+	ID        string     `json:"id" validate:"required"`
+	Season    *string    `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID"`
+	StartDate *time.Time `json:"start_date,omitempty"`
+	CropID    *string    `json:"crop_id,omitempty"`
+	VarietyID *string    `json:"variety_id,omitempty"`
 }
 
 // EndCycleRequest represents a request to end a crop cycle
@@ -80,4 +85,18 @@ func NewGetCycleRequest() GetCycleRequest {
 	return GetCycleRequest{
 		BaseRequest: NewBaseRequest(),
 	}
+}
+
+// Validate validates the start cycle request
+func (req *StartCycleRequest) Validate() error {
+	if req.CropID == "" {
+		return fmt.Errorf("crop_id is required")
+	}
+	return nil
+}
+
+// Validate validates the update cycle request
+func (req *UpdateCycleRequest) Validate() error {
+	// For updates, we don't enforce the crop requirement as the existing data might be valid
+	return nil
 }
