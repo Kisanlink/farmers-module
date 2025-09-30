@@ -5,13 +5,18 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Kisanlink/farmers-module/internal/entities/bulk"
 	"github.com/Kisanlink/farmers-module/internal/entities/crop"
 	"github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
 	"github.com/Kisanlink/farmers-module/internal/entities/crop_variety"
 	"github.com/Kisanlink/farmers-module/internal/entities/farm"
 	"github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
+	"github.com/Kisanlink/farmers-module/internal/entities/farm_irrigation_source"
+	"github.com/Kisanlink/farmers-module/internal/entities/farm_soil_type"
 	"github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/fpo"
+	"github.com/Kisanlink/farmers-module/internal/entities/irrigation_source"
+	"github.com/Kisanlink/farmers-module/internal/entities/soil_type"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -99,6 +104,12 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 			&crop_variety.CropVariety{},
 			&crop_cycle.CropCycle{},
 			&farm_activity.FarmActivity{},
+			&bulk.BulkOperation{},
+			&bulk.ProcessingDetail{},
+			&soil_type.SoilType{},
+			&irrigation_source.IrrigationSource{},
+			&farm_soil_type.FarmSoilType{},
+			&farm_irrigation_source.FarmIrrigationSource{},
 		}
 
 		if err := postgresManager.AutoMigrateModels(ctx, models...); err != nil {
