@@ -18,6 +18,13 @@ type CropData struct {
 	VarietyCount   int               `json:"variety_count,omitempty"` // Count of active varieties
 }
 
+// YieldByAgeData represents yield information for a specific tree age range in responses
+type YieldByAgeData struct {
+	AgeFrom      int     `json:"age_from"`
+	AgeTo        int     `json:"age_to"`
+	YieldPerTree float64 `json:"yield_per_tree"`
+}
+
 // CropVarietyData represents crop variety data in responses
 type CropVarietyData struct {
 	ID           string            `json:"id"`
@@ -28,6 +35,7 @@ type CropVarietyData struct {
 	DurationDays *int              `json:"duration_days,omitempty"`
 	YieldPerAcre *float64          `json:"yield_per_acre,omitempty"`
 	YieldPerTree *float64          `json:"yield_per_tree,omitempty"`
+	YieldByAge   []YieldByAgeData  `json:"yield_by_age,omitempty"`
 	Properties   map[string]string `json:"properties,omitempty"`
 	IsActive     bool              `json:"is_active"`
 	CreatedAt    time.Time         `json:"created_at"`

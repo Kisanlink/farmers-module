@@ -48,29 +48,38 @@ type ListCropsRequest struct {
 	Seasons  []string `json:"seasons,omitempty" validate:"omitempty,dive,oneof=RABI KHARIF ZAID"`
 }
 
+// YieldByAgeRequest represents yield information for a specific tree age range
+type YieldByAgeRequest struct {
+	AgeFrom      int     `json:"age_from" validate:"min=0"`
+	AgeTo        int     `json:"age_to" validate:"gtfield=AgeFrom"`
+	YieldPerTree float64 `json:"yield_per_tree" validate:"min=0"`
+}
+
 // CreateCropVarietyRequest represents a request to create a new crop variety
 type CreateCropVarietyRequest struct {
 	BaseRequest
-	CropID       string            `json:"crop_id" validate:"required"`
-	Name         string            `json:"name" validate:"required,min=2,max=255"`
-	Description  *string           `json:"description,omitempty"`
-	DurationDays *int              `json:"duration_days,omitempty" validate:"omitempty,min=1,max=365"`
-	YieldPerAcre *float64          `json:"yield_per_acre,omitempty" validate:"omitempty,min=0"`
-	YieldPerTree *float64          `json:"yield_per_tree,omitempty" validate:"omitempty,min=0"`
-	Properties   map[string]string `json:"properties,omitempty"`
+	CropID       string               `json:"crop_id" validate:"required"`
+	Name         string               `json:"name" validate:"required,min=2,max=255"`
+	Description  *string              `json:"description,omitempty"`
+	DurationDays *int                 `json:"duration_days,omitempty" validate:"omitempty,min=1,max=365"`
+	YieldPerAcre *float64             `json:"yield_per_acre,omitempty" validate:"omitempty,min=0"`
+	YieldPerTree *float64             `json:"yield_per_tree,omitempty" validate:"omitempty,min=0"`
+	YieldByAge   []YieldByAgeRequest  `json:"yield_by_age,omitempty"`
+	Properties   map[string]string    `json:"properties,omitempty"`
 }
 
 // UpdateCropVarietyRequest represents a request to update an existing crop variety
 type UpdateCropVarietyRequest struct {
 	BaseRequest
-	ID           string            `json:"id" validate:"required"`
-	Name         *string           `json:"name,omitempty" validate:"omitempty,min=2,max=255"`
-	Description  *string           `json:"description,omitempty"`
-	DurationDays *int              `json:"duration_days,omitempty" validate:"omitempty,min=1,max=365"`
-	YieldPerAcre *float64          `json:"yield_per_acre,omitempty" validate:"omitempty,min=0"`
-	YieldPerTree *float64          `json:"yield_per_tree,omitempty" validate:"omitempty,min=0"`
-	Properties   map[string]string `json:"properties,omitempty"`
-	IsActive     *bool             `json:"is_active,omitempty"`
+	ID           string               `json:"id" validate:"required"`
+	Name         *string              `json:"name,omitempty" validate:"omitempty,min=2,max=255"`
+	Description  *string              `json:"description,omitempty"`
+	DurationDays *int                 `json:"duration_days,omitempty" validate:"omitempty,min=1,max=365"`
+	YieldPerAcre *float64             `json:"yield_per_acre,omitempty" validate:"omitempty,min=0"`
+	YieldPerTree *float64             `json:"yield_per_tree,omitempty" validate:"omitempty,min=0"`
+	YieldByAge   []YieldByAgeRequest  `json:"yield_by_age,omitempty"`
+	Properties   map[string]string    `json:"properties,omitempty"`
+	IsActive     *bool                `json:"is_active,omitempty"`
 }
 
 // DeleteCropVarietyRequest represents a request to delete a crop variety
