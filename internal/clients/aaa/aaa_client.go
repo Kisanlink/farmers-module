@@ -411,9 +411,9 @@ func (c *Client) CheckPermission(ctx context.Context, subject, resource, action,
 		Action:       action,
 	}
 
-	// Use a short per-RPC timeout to keep checks fast
-	rpcTimeout := 2 * time.Second
-	if d, err := time.ParseDuration(c.config.AAA.RequestTimeout); err == nil && d > 0 && d < rpcTimeout {
+	// Use a longer timeout for permission checks
+	rpcTimeout := 10 * time.Second
+	if d, err := time.ParseDuration(c.config.AAA.RequestTimeout); err == nil && d > 0 {
 		rpcTimeout = d
 	}
 	rpcCtx, cancel := context.WithTimeout(ctx, rpcTimeout)
@@ -426,6 +426,10 @@ func (c *Client) CheckPermission(ctx context.Context, subject, resource, action,
 			case codes.Unimplemented, codes.Unavailable:
 				// Maintain permissive fallback when authz is not served
 				log.Printf("Authz service %v; allowing by default", st.Code())
+				return true, nil
+			case codes.DeadlineExceeded:
+				// Handle timeout - allow by default to prevent blocking
+				log.Printf("Warning: Permission check timed out; allowing by default")
 				return true, nil
 			case codes.PermissionDenied:
 				return false, nil

@@ -4,13 +4,19 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/internal/handlers"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
+	"github.com/Kisanlink/farmers-module/internal/middleware"
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterCropRoutes registers routes for Crop Management workflows
 func RegisterCropRoutes(router *gin.RouterGroup, services *services.ServiceFactory, cfg *config.Config, logger interfaces.Logger) {
+	// Initialize authentication and authorization middleware
+	authenticationMW := middleware.AuthenticationMiddleware(services.AAAService, logger)
+	authorizationMW := middleware.AuthorizationMiddleware(services.AAAService, logger)
+
 	crops := router.Group("/crops")
+	crops.Use(authenticationMW, authorizationMW) // Apply auth middleware to all crop routes
 	{
 		// Crop Master Data (CRUD operations)
 		crops.POST("/", handlers.CreateCrop(services.CropService))
@@ -60,6 +66,7 @@ func RegisterCropRoutes(router *gin.RouterGroup, services *services.ServiceFacto
 
 	// Crop Varieties
 	varieties := router.Group("/varieties")
+	varieties.Use(authenticationMW, authorizationMW) // Apply auth middleware to variety routes
 	{
 		varieties.POST("/", handlers.CreateCropVariety(services.CropService))
 		varieties.GET("/", handlers.ListCropVarieties(services.CropService))
@@ -69,10 +76,15 @@ func RegisterCropRoutes(router *gin.RouterGroup, services *services.ServiceFacto
 	}
 
 	// Get varieties for a specific crop using nested route under /crop-varieties
-	router.GET("/crop-varieties/:crop_id", handlers.ListCropVarieties(services.CropService))
+	cropVarieties := router.Group("/crop-varieties")
+	cropVarieties.Use(authenticationMW, authorizationMW)
+	{
+		cropVarieties.GET("/:crop_id", handlers.ListCropVarieties(services.CropService))
+	}
 
 	// Lookup/Dropdown data
 	lookups := router.Group("/lookups")
+	lookups.Use(authenticationMW, authorizationMW) // Apply auth middleware to lookup routes
 	{
 		lookups.GET("/crops", handlers.GetCropLookupData(services.CropService))
 		lookups.GET("/varieties/:crop_id", handlers.GetVarietyLookupData(services.CropService))
