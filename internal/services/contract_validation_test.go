@@ -285,15 +285,28 @@ func TestEdgeCaseBehavior(t *testing.T) {
 	t.Run("null and empty string handling", func(t *testing.T) {
 		mock := NewMockAAAServiceShared(true)
 
-		// Test with empty strings
-		_, err := mock.CheckPermission(ctx, "", "", "", "", "")
-		if err == nil {
+		// Test with empty strings - should deny but not error
+		allowed, err := mock.CheckPermission(ctx, "", "", "", "", "")
+
+		// Empty parameters should be denied (returned false) but not cause an error
+		// This is the correct behavior - the permission check validates and returns false
+		if err != nil {
 			detector.RecordViolation(BehaviorViolation{
 				TestName:         "empty_parameters",
-				ExpectedBehavior: "should handle empty parameters gracefully",
-				ActualBehavior:   "did not error on empty parameters",
+				ExpectedBehavior: "should deny empty parameters without error",
+				ActualBehavior:   "returned error for empty parameters",
 				Severity:         "low",
-				Description:      "Edge case handling may differ from real service",
+				Description:      "Permission check should deny gracefully, not error",
+			})
+		}
+
+		if allowed {
+			detector.RecordViolation(BehaviorViolation{
+				TestName:         "empty_parameters",
+				ExpectedBehavior: "should deny empty parameters",
+				ActualBehavior:   "allowed empty parameters",
+				Severity:         "medium",
+				Description:      "Empty parameters should always be denied for security",
 			})
 		}
 	})

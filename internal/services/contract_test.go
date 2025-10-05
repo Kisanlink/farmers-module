@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/stretchr/testify/assert"
@@ -166,7 +167,7 @@ var CacheContractTests = []struct {
 			ctx := context.Background()
 			testValue := "test_value"
 
-			err := cache.Set(ctx, "test_key", testValue, 0)
+			err := cache.Set(ctx, "test_key", testValue, time.Duration(0))
 			require.NoError(t, err, "Set should succeed")
 
 			val, err := cache.Get(ctx, "test_key")
@@ -181,7 +182,7 @@ var CacheContractTests = []struct {
 			ctx := context.Background()
 
 			// Set a value
-			err := cache.Set(ctx, "delete_key", "value", 0)
+			err := cache.Set(ctx, "delete_key", "value", time.Duration(0))
 			require.NoError(t, err)
 
 			// Delete it
@@ -200,8 +201,8 @@ var CacheContractTests = []struct {
 			ctx := context.Background()
 
 			// Set some values
-			cache.Set(ctx, "key1", "value1", 0)
-			cache.Set(ctx, "key2", "value2", 0)
+			cache.Set(ctx, "key1", "value1", time.Duration(0))
+			cache.Set(ctx, "key2", "value2", time.Duration(0))
 
 			// Clear cache
 			err := cache.Clear(ctx)
@@ -234,13 +235,13 @@ func TestMockCacheContract(t *testing.T) {
 	// Configure mock behavior
 	ctx := context.Background()
 	mock.On("Get", ctx, "nonexistent_key").Return(nil, assert.AnError)
-	mock.On("Set", ctx, "test_key", "test_value", int64(0)).Return(nil)
+	mock.On("Set", ctx, "test_key", "test_value", time.Duration(0)).Return(nil)
 	mock.On("Get", ctx, "test_key").Return("test_value", nil)
-	mock.On("Set", ctx, "delete_key", "value", int64(0)).Return(nil)
+	mock.On("Set", ctx, "delete_key", "value", time.Duration(0)).Return(nil)
 	mock.On("Delete", ctx, "delete_key").Return(nil)
 	mock.On("Get", ctx, "delete_key").Return(nil, assert.AnError)
-	mock.On("Set", ctx, "key1", "value1", int64(0)).Return(nil)
-	mock.On("Set", ctx, "key2", "value2", int64(0)).Return(nil)
+	mock.On("Set", ctx, "key1", "value1", time.Duration(0)).Return(nil)
+	mock.On("Set", ctx, "key2", "value2", time.Duration(0)).Return(nil)
 	mock.On("Clear", ctx).Return(nil)
 	mock.On("Get", ctx, "key1").Return(nil, assert.AnError)
 

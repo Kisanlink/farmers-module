@@ -24,6 +24,11 @@ type Client struct {
 	config         *config.Config
 	userClient     proto.UserServiceV2Client
 	authzClient    proto.AuthorizationServiceClient
+	orgClient      proto.OrganizationServiceClient
+	groupClient    proto.GroupServiceClient
+	roleClient     proto.RoleServiceClient
+	permClient     proto.PermissionServiceClient
+	catalogClient  proto.CatalogServiceClient
 	tokenValidator *auth.TokenValidator
 }
 
@@ -127,6 +132,11 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	// Initialize gRPC clients
 	userClient := proto.NewUserServiceV2Client(conn)
 	authzClient := proto.NewAuthorizationServiceClient(conn)
+	orgClient := proto.NewOrganizationServiceClient(conn)
+	groupClient := proto.NewGroupServiceClient(conn)
+	roleClient := proto.NewRoleServiceClient(conn)
+	permClient := proto.NewPermissionServiceClient(conn)
+	catalogClient := proto.NewCatalogServiceClient(conn)
 
 	// Initialize token validator
 	tokenValidator, err := auth.NewTokenValidator(
@@ -142,6 +152,11 @@ func NewClient(cfg *config.Config) (*Client, error) {
 		config:         cfg,
 		userClient:     userClient,
 		authzClient:    authzClient,
+		orgClient:      orgClient,
+		groupClient:    groupClient,
+		roleClient:     roleClient,
+		permClient:     permClient,
+		catalogClient:  catalogClient,
 		tokenValidator: tokenValidator,
 	}, nil
 }
@@ -352,21 +367,43 @@ func (c *Client) CreateOrganization(ctx context.Context, req *CreateOrganization
 		return nil, fmt.Errorf("organization type is required")
 	}
 
-	// NOTE: Organization service is not yet available in AAA service
-	// This is a stub implementation that returns a predictable response for testing
-	// TODO: Implement when OrganizationService proto is available
-	log.Printf("STUB: CreateOrganization called - OrganizationService not yet available")
-
-	// Return stub response with generated ID
-	stubResp := &CreateOrganizationResponse{
-		OrgID:     fmt.Sprintf("org_%s_%d", req.Type, time.Now().Unix()),
-		Name:      req.Name,
-		Status:    "pending_implementation",
-		CreatedAt: time.Now(),
+	// Create gRPC request
+	grpcReq := &proto.CreateOrganizationRequest{
+		Name:        req.Name,
+		DisplayName: req.Name, // Use name as display name if not provided
+		Description: req.Description,
+		Type:        req.Type,
+		OwnerId:     req.CEOUserID,
 	}
 
-	log.Printf("STUB: Returning mock organization ID: %s", stubResp.OrgID)
-	return stubResp, nil
+	// Call the AAA service
+	response, err := c.orgClient.CreateOrganization(ctx, grpcReq)
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.AlreadyExists:
+				return nil, fmt.Errorf("organization already exists")
+			case codes.InvalidArgument:
+				return nil, fmt.Errorf("invalid request: %s", st.Message())
+			default:
+				return nil, fmt.Errorf("failed to create organization: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("failed to create organization: %w", err)
+	}
+
+	if response.StatusCode != 200 && response.StatusCode != 201 {
+		return nil, fmt.Errorf("unexpected status code: %d - %s", response.StatusCode, response.Message)
+	}
+
+	log.Printf("Organization created successfully with ID: %s", response.Organization.Id)
+
+	return &CreateOrganizationResponse{
+		OrgID:     response.Organization.Id,
+		Name:      response.Organization.Name,
+		Status:    response.Organization.Status,
+		CreatedAt: time.Now(), // Use current time since proto uses string for timestamps
+	}, nil
 }
 
 // GetOrganization retrieves an organization from AAA service
@@ -377,22 +414,42 @@ func (c *Client) GetOrganization(ctx context.Context, orgID string) (*Organizati
 		return nil, fmt.Errorf("organization ID is required")
 	}
 
-	// NOTE: Organization service is not yet available in AAA service
-	// TODO: Implement when OrganizationService proto is available
-	log.Printf("STUB: GetOrganization called - OrganizationService not yet available")
-
-	// Return stub response for testing
-	stubData := &OrganizationData{
-		ID:          orgID,
-		Name:        fmt.Sprintf("Stub Organization %s", orgID),
-		Type:        "FPO",
-		Status:      "pending_implementation",
-		Description: "Stub organization for testing",
-		Metadata:    map[string]string{"stub": "true", "created": time.Now().Format(time.RFC3339)},
+	// Create gRPC request
+	grpcReq := &proto.GetOrganizationRequest{
+		Id: orgID,
 	}
 
-	log.Printf("STUB: Returning mock organization data for ID: %s", orgID)
-	return stubData, nil
+	// Call the AAA service
+	response, err := c.orgClient.GetOrganization(ctx, grpcReq)
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return nil, fmt.Errorf("organization not found")
+			default:
+				return nil, fmt.Errorf("failed to get organization: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("failed to get organization: %w", err)
+	}
+
+	if response.StatusCode != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d - %s", response.StatusCode, response.Message)
+	}
+
+	// Convert proto response to OrganizationData
+	org := response.Organization
+	orgData := &OrganizationData{
+		ID:          org.Id,
+		Name:        org.Name,
+		Type:        org.Type,
+		Status:      org.Status,
+		Description: org.Description,
+		Metadata:    make(map[string]string),
+	}
+
+	log.Printf("Organization data retrieved successfully for ID: %s", orgID)
+	return orgData, nil
 }
 
 // CreateUserGroup creates a user group in AAA service
@@ -407,20 +464,37 @@ func (c *Client) CreateUserGroup(ctx context.Context, req *CreateUserGroupReques
 		return nil, fmt.Errorf("organization ID is required")
 	}
 
-	// NOTE: Group service is not yet available in AAA service
-	// TODO: Implement when GroupService proto is available
-	log.Printf("STUB: CreateUserGroup called - GroupService not yet available")
-
-	// Return stub response with generated ID
-	stubResp := &CreateUserGroupResponse{
-		GroupID:   fmt.Sprintf("grp_%s_%d", req.OrgID, time.Now().Unix()),
-		Name:      req.Name,
-		OrgID:     req.OrgID,
-		CreatedAt: time.Now(),
+	// Create gRPC request
+	grpcReq := &proto.CreateGroupRequest{
+		Name:           req.Name,
+		Description:    req.Description,
+		OrganizationId: req.OrgID,
 	}
 
-	log.Printf("STUB: Returning mock group ID: %s", stubResp.GroupID)
-	return stubResp, nil
+	// Call the AAA service
+	response, err := c.groupClient.CreateGroup(ctx, grpcReq)
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.AlreadyExists:
+				return nil, fmt.Errorf("group already exists")
+			case codes.InvalidArgument:
+				return nil, fmt.Errorf("invalid request: %s", st.Message())
+			default:
+				return nil, fmt.Errorf("failed to create group: %s", st.Message())
+			}
+		}
+		return nil, fmt.Errorf("failed to create group: %w", err)
+	}
+
+	log.Printf("Group created successfully with ID: %s", response.Group.Id)
+
+	return &CreateUserGroupResponse{
+		GroupID:   response.Group.Id,
+		Name:      response.Group.Name,
+		OrgID:     response.Group.OrganizationId,
+		CreatedAt: time.Now(),
+	}, nil
 }
 
 // AddUserToGroup adds a user to a group
@@ -435,12 +509,27 @@ func (c *Client) AddUserToGroup(ctx context.Context, userID, groupID string) err
 		return fmt.Errorf("group ID is required")
 	}
 
-	// NOTE: Group service is not yet available in AAA service
-	// TODO: Implement when GroupService proto is available
-	log.Printf("STUB: AddUserToGroup called - GroupService not yet available")
+	// Create gRPC request
+	grpcReq := &proto.AddGroupMemberRequest{
+		GroupId:       groupID,
+		PrincipalId:   userID,
+		PrincipalType: "user",
+	}
 
-	// Simulate successful addition for testing
-	log.Printf("STUB: User %s would be added to group %s", userID, groupID)
+	// Call the AAA service
+	response, err := c.groupClient.AddGroupMember(ctx, grpcReq)
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			return fmt.Errorf("failed to add user to group: %s", st.Message())
+		}
+		return fmt.Errorf("failed to add user to group: %w", err)
+	}
+
+	if response.StatusCode != 200 && response.StatusCode != 201 {
+		return fmt.Errorf("failed to add user to group: %s", response.Message)
+	}
+
+	log.Printf("User %s added to group %s successfully", userID, groupID)
 	return nil
 }
 
@@ -456,12 +545,26 @@ func (c *Client) RemoveUserFromGroup(ctx context.Context, userID, groupID string
 		return fmt.Errorf("group ID is required")
 	}
 
-	// NOTE: Group service is not yet available in AAA service
-	// TODO: Implement when GroupService proto is available
-	log.Printf("STUB: RemoveUserFromGroup called - GroupService not yet available")
+	// Create gRPC request
+	grpcReq := &proto.RemoveGroupMemberRequest{
+		GroupId:     groupID,
+		PrincipalId: userID,
+	}
 
-	// Simulate successful removal for testing
-	log.Printf("STUB: User %s would be removed from group %s", userID, groupID)
+	// Call the AAA service
+	response, err := c.groupClient.RemoveGroupMember(ctx, grpcReq)
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			return fmt.Errorf("failed to remove user from group: %s", st.Message())
+		}
+		return fmt.Errorf("failed to remove user from group: %w", err)
+	}
+
+	if response.StatusCode != 200 {
+		return fmt.Errorf("failed to remove user from group: %s", response.Message)
+	}
+
+	log.Printf("User %s removed from group %s successfully", userID, groupID)
 	return nil
 }
 
@@ -492,12 +595,27 @@ func (c *Client) AssignRole(ctx context.Context, userID, orgID, roleName string)
 		return fmt.Errorf("invalid role name: %s", roleName)
 	}
 
-	// NOTE: Role service is not yet available in AAA service
-	// TODO: Implement when RoleService proto is available
-	log.Printf("STUB: AssignRole called - RoleService not yet available")
+	// Create gRPC request
+	grpcReq := &proto.AssignRoleRequest{
+		UserId:   userID,
+		OrgId:    orgID,
+		RoleName: roleName,
+	}
 
-	// Simulate successful role assignment for testing
-	log.Printf("STUB: Role %s would be assigned to user %s in org %s", roleName, userID, orgID)
+	// Call the AAA service
+	response, err := c.roleClient.AssignRole(ctx, grpcReq)
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			return fmt.Errorf("failed to assign role: %s", st.Message())
+		}
+		return fmt.Errorf("failed to assign role: %w", err)
+	}
+
+	if response.StatusCode != 200 && response.StatusCode != 201 {
+		return fmt.Errorf("failed to assign role: %s", response.Message)
+	}
+
+	log.Printf("Role %s assigned to user %s in org %s successfully", roleName, userID, orgID)
 	return nil
 }
 
@@ -568,12 +686,27 @@ func (c *Client) AssignPermissionToGroup(ctx context.Context, groupID, resource,
 		return fmt.Errorf("invalid action: %s", action)
 	}
 
-	// NOTE: Permission service is not yet available in AAA service
-	// TODO: Implement when PermissionService proto is available
-	log.Printf("STUB: AssignPermissionToGroup called - PermissionService not yet available")
+	// Create gRPC request
+	grpcReq := &proto.AssignPermissionToGroupRequest{
+		GroupId:  groupID,
+		Resource: resource,
+		Action:   action,
+	}
 
-	// Simulate successful permission assignment for testing
-	log.Printf("STUB: Permission %s:%s would be assigned to group %s", resource, action, groupID)
+	// Call the AAA service
+	response, err := c.permClient.AssignPermissionToGroup(ctx, grpcReq)
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			return fmt.Errorf("failed to assign permission to group: %s", st.Message())
+		}
+		return fmt.Errorf("failed to assign permission to group: %w", err)
+	}
+
+	if response.StatusCode != 200 && response.StatusCode != 201 {
+		return fmt.Errorf("failed to assign permission to group: %s", response.Message)
+	}
+
+	log.Printf("Permission %s:%s assigned to group %s successfully", resource, action, groupID)
 	return nil
 }
 
@@ -699,83 +832,26 @@ func (c *Client) remoteValidateToken(ctx context.Context, token string) (map[str
 func (c *Client) SeedRolesAndPermissions(ctx context.Context) error {
 	log.Println("AAA SeedRolesAndPermissions: Seeding roles and permissions")
 
-	// NOTE: Catalog service is not yet available in AAA service
-	// This stub implementation simulates the seeding process for testing
-	// TODO: Implement when CatalogService proto is available
-
-	// Define roles to seed
-	roles := []struct {
-		Name        string
-		Description string
-		Permissions []string
-	}{
-		{
-			Name:        "admin",
-			Description: "Administrator with full access",
-			Permissions: []string{
-				"farmers:*",
-				"farms:*",
-				"fpos:*",
-				"users:*",
-				"reports:*",
-			},
-		},
-		{
-			Name:        "fpo_manager",
-			Description: "FPO Manager with organization management access",
-			Permissions: []string{
-				"farmers:create",
-				"farmers:read",
-				"farmers:update",
-				"farms:*",
-				"fpos:read",
-				"fpos:update",
-				"reports:read",
-			},
-		},
-		{
-			Name:        "kisansathi",
-			Description: "Field agent with farmer management access",
-			Permissions: []string{
-				"farmers:create",
-				"farmers:read",
-				"farmers:update",
-				"farms:create",
-				"farms:read",
-				"farms:update",
-			},
-		},
-		{
-			Name:        "farmer",
-			Description: "Farmer with self-service access",
-			Permissions: []string{
-				"farmers:read:self",
-				"farmers:update:self",
-				"farms:read:self",
-				"farms:update:self",
-			},
-		},
-		{
-			Name:        "readonly",
-			Description: "Read-only access to all resources",
-			Permissions: []string{
-				"farmers:read",
-				"farms:read",
-				"fpos:read",
-				"reports:read",
-			},
-		},
+	// Create gRPC request
+	grpcReq := &proto.SeedRolesAndPermissionsRequest{
+		Force: false, // Don't force reseed if data exists
 	}
 
-	// Simulate seeding process
-	for _, role := range roles {
-		log.Printf("STUB: Would seed role: %s with %d permissions", role.Name, len(role.Permissions))
-		for _, perm := range role.Permissions {
-			log.Printf("  - Permission: %s", perm)
+	// Call the AAA service
+	response, err := c.catalogClient.SeedRolesAndPermissions(ctx, grpcReq)
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			return fmt.Errorf("failed to seed roles and permissions: %s", st.Message())
 		}
+		return fmt.Errorf("failed to seed roles and permissions: %w", err)
 	}
 
-	log.Printf("STUB: SeedRolesAndPermissions completed - %d roles would be seeded", len(roles))
+	if response.StatusCode != 200 && response.StatusCode != 201 {
+		return fmt.Errorf("failed to seed roles and permissions: %s", response.Message)
+	}
+
+	log.Printf("Roles and permissions seeded successfully: %d roles, %d permissions created",
+		response.RolesCreated, response.PermissionsCreated)
 	return nil
 }
 
