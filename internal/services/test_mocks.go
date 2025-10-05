@@ -2,6 +2,9 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"sync"
+	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
@@ -9,12 +12,159 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// PermissionRule represents a single permission rule in the matrix
+type PermissionRule struct {
+	Subject  string // User ID or pattern (* for wildcard)
+	Resource string // Resource type (e.g., "farmer", "farm", "cycle")
+	Action   string // Action (e.g., "create", "read", "update", "delete")
+	Object   string // Object ID or pattern (* for wildcard)
+	OrgID    string // Organization ID or pattern (* for wildcard)
+	Allow    bool   // Whether to allow or deny
+}
+
+// PermissionMatrix represents a set of permission rules for testing
+type PermissionMatrix struct {
+	mu          sync.RWMutex
+	rules       []PermissionRule
+	defaultDeny bool // If true, deny by default unless explicitly allowed
+	logDenials  bool // If true, log permission denials
+}
+
+// NewPermissionMatrix creates a new permission matrix with deny-by-default
+func NewPermissionMatrix(defaultDeny bool) *PermissionMatrix {
+	return &PermissionMatrix{
+		rules:       make([]PermissionRule, 0),
+		defaultDeny: defaultDeny,
+		logDenials:  true,
+	}
+}
+
+// AddRule adds a permission rule to the matrix
+func (pm *PermissionMatrix) AddRule(rule PermissionRule) {
+	pm.mu.Lock()
+	defer pm.mu.Unlock()
+	pm.rules = append(pm.rules, rule)
+}
+
+// AddAllowRule is a convenience method to add an allow rule
+func (pm *PermissionMatrix) AddAllowRule(subject, resource, action, object, orgID string) {
+	pm.AddRule(PermissionRule{
+		Subject:  subject,
+		Resource: resource,
+		Action:   action,
+		Object:   object,
+		OrgID:    orgID,
+		Allow:    true,
+	})
+}
+
+// AddDenyRule is a convenience method to add a deny rule
+func (pm *PermissionMatrix) AddDenyRule(subject, resource, action, object, orgID string) {
+	pm.AddRule(PermissionRule{
+		Subject:  subject,
+		Resource: resource,
+		Action:   action,
+		Object:   object,
+		OrgID:    orgID,
+		Allow:    false,
+	})
+}
+
+// CheckPermission checks if the given permission is allowed based on the matrix
+func (pm *PermissionMatrix) CheckPermission(subject, resource, action, object, orgID string) bool {
+	pm.mu.RLock()
+	defer pm.mu.RUnlock()
+
+	// Convert empty object to wildcard
+	if object == "" {
+		object = "*"
+	}
+
+	// Check rules in order (first match wins)
+	for _, rule := range pm.rules {
+		if pm.ruleMatches(rule, subject, resource, action, object, orgID) {
+			return rule.Allow
+		}
+	}
+
+	// If no rule matched, use default behavior
+	return !pm.defaultDeny
+}
+
+// ruleMatches checks if a rule matches the given parameters
+func (pm *PermissionMatrix) ruleMatches(rule PermissionRule, subject, resource, action, object, orgID string) bool {
+	return pm.matches(rule.Subject, subject) &&
+		pm.matches(rule.Resource, resource) &&
+		pm.matches(rule.Action, action) &&
+		pm.matches(rule.Object, object) &&
+		pm.matches(rule.OrgID, orgID)
+}
+
+// matches checks if a pattern matches a value (supports * wildcard)
+func (pm *PermissionMatrix) matches(pattern, value string) bool {
+	if pattern == "*" {
+		return true
+	}
+	return pattern == value
+}
+
+// Clear removes all rules from the matrix
+func (pm *PermissionMatrix) Clear() {
+	pm.mu.Lock()
+	defer pm.mu.Unlock()
+	pm.rules = make([]PermissionRule, 0)
+}
+
 // MockAAAServiceShared is a shared mock implementation of the AAA service
+// with configurable permission matrix for security testing
 type MockAAAServiceShared struct {
 	mock.Mock
+	permissionMatrix *PermissionMatrix
+	mu               sync.RWMutex
+}
+
+// NewMockAAAServiceShared creates a new mock AAA service with deny-by-default permissions
+func NewMockAAAServiceShared(defaultDeny bool) *MockAAAServiceShared {
+	return &MockAAAServiceShared{
+		permissionMatrix: NewPermissionMatrix(defaultDeny),
+	}
+}
+
+// SetPermissionMatrix sets the permission matrix for this mock
+func (m *MockAAAServiceShared) SetPermissionMatrix(matrix *PermissionMatrix) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.permissionMatrix = matrix
+}
+
+// GetPermissionMatrix returns the permission matrix for configuration
+func (m *MockAAAServiceShared) GetPermissionMatrix() *PermissionMatrix {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.permissionMatrix
 }
 
 func (m *MockAAAServiceShared) CheckPermission(ctx context.Context, subject, resource, action, object, orgID string) (bool, error) {
+	// If permission matrix is configured AND has rules OR default deny is set, use it
+	m.mu.RLock()
+	matrix := m.permissionMatrix
+	m.mu.RUnlock()
+
+	// Use permission matrix if:
+	// 1. Matrix exists AND
+	// 2. Either has rules OR defaultDeny is true (meaning explicit deny-by-default behavior)
+	if matrix != nil && (len(matrix.rules) > 0 || matrix.defaultDeny) {
+		// Use the permission matrix for this check
+		allowed := matrix.CheckPermission(subject, resource, action, object, orgID)
+		if !allowed && matrix.logDenials {
+			// Log denied permissions for debugging
+			fmt.Printf("Permission denied: subject=%s, resource=%s, action=%s, object=%s, orgID=%s\n",
+				subject, resource, action, object, orgID)
+		}
+		return allowed, nil
+	}
+
+	// Fall back to testify mock behavior for backward compatibility
 	args := m.Called(ctx, subject, resource, action, object, orgID)
 	return args.Bool(0), args.Error(1)
 }
@@ -291,4 +441,69 @@ func (m *MockDataQualityService) RebuildSpatialIndexes(ctx context.Context, req 
 func (m *MockDataQualityService) DetectFarmOverlaps(ctx context.Context, req any) (any, error) {
 	args := m.Called(ctx, req)
 	return args.Get(0), args.Error(1)
+}
+
+// MockCache is a mock implementation of Cache interface for testing
+type MockCache struct {
+	mock.Mock
+}
+
+func (m *MockCache) Get(ctx context.Context, key string) (interface{}, error) {
+	args := m.Called(ctx, key)
+	return args.Get(0), args.Error(1)
+}
+
+func (m *MockCache) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+	args := m.Called(ctx, key, value, ttl)
+	return args.Error(0)
+}
+
+func (m *MockCache) Delete(ctx context.Context, key string) error {
+	args := m.Called(ctx, key)
+	return args.Error(0)
+}
+
+func (m *MockCache) Clear(ctx context.Context) error {
+	args := m.Called(ctx)
+	return args.Error(0)
+}
+
+// MockEventEmitter is a mock implementation of EventEmitter interface for testing
+type MockEventEmitter struct {
+	mock.Mock
+}
+
+func (m *MockEventEmitter) EmitAuditEvent(event interface{}) error {
+	args := m.Called(event)
+	return args.Error(0)
+}
+
+func (m *MockEventEmitter) EmitBusinessEvent(eventType string, data interface{}) error {
+	args := m.Called(eventType, data)
+	return args.Error(0)
+}
+
+// MockDatabase is a mock implementation of Database interface for testing
+type MockDatabase struct {
+	mock.Mock
+}
+
+func (m *MockDatabase) Connect() error {
+	args := m.Called()
+	return args.Error(0)
+}
+
+func (m *MockDatabase) Close() error {
+	args := m.Called()
+	return args.Error(0)
+}
+
+func (m *MockDatabase) Ping() error {
+	args := m.Called()
+	return args.Error(0)
+}
+
+func (m *MockDatabase) Migrate() error {
+	args := m.Called()
+	return args.Error(0)
 }
