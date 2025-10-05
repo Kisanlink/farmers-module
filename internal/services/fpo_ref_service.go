@@ -264,7 +264,7 @@ func (s *FPOServiceImpl) RegisterFPORef(ctx context.Context, req interface{}) (i
 		Name:           fpoRef.Name,
 		RegistrationNo: fpoRef.RegistrationNo,
 		BusinessConfig: fpoRef.BusinessConfig,
-		Status:         fpoRef.Status,
+		Status:         fpoRef.Status.String(),
 		Metadata:       registerReq.Metadata,
 		CreatedAt:      fpoRef.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:      fpoRef.UpdatedAt.Format(time.RFC3339),
@@ -310,7 +310,7 @@ func (s *FPOServiceImpl) GetFPORef(ctx context.Context, orgID string) (interface
 		Name:           fpoRef.Name,
 		RegistrationNo: fpoRef.RegistrationNo,
 		BusinessConfig: fpoRef.BusinessConfig,
-		Status:         fpoRef.Status,
+		Status:         fpoRef.Status.String(),
 		CreatedAt:      fpoRef.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:      fpoRef.UpdatedAt.Format(time.RFC3339),
 	}

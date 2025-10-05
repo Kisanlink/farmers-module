@@ -1,10 +1,44 @@
 package fpo
 
 import (
+	"fmt"
+
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
 )
+
+// FPOStatus represents the status of an FPO organization
+type FPOStatus string
+
+const (
+	// FPOStatusActive represents an active FPO with complete setup
+	FPOStatusActive FPOStatus = "ACTIVE"
+
+	// FPOStatusPendingSetup represents an FPO with incomplete setup (partial failure during creation)
+	FPOStatusPendingSetup FPOStatus = "PENDING_SETUP"
+
+	// FPOStatusInactive represents a deactivated FPO
+	FPOStatusInactive FPOStatus = "INACTIVE"
+
+	// FPOStatusSuspended represents a temporarily suspended FPO
+	FPOStatusSuspended FPOStatus = "SUSPENDED"
+)
+
+// IsValid checks if the FPO status is valid
+func (s FPOStatus) IsValid() bool {
+	switch s {
+	case FPOStatusActive, FPOStatusPendingSetup, FPOStatusInactive, FPOStatusSuspended:
+		return true
+	default:
+		return false
+	}
+}
+
+// String returns the string representation of FPO status
+func (s FPOStatus) String() string {
+	return string(s)
+}
 
 // FPORef represents a reference to an FPO organization
 type FPORef struct {
@@ -12,8 +46,9 @@ type FPORef struct {
 	AAAOrgID       string            `json:"aaa_org_id" gorm:"type:varchar(255);unique;not null"`
 	Name           string            `json:"name" gorm:"type:varchar(255);not null"`
 	RegistrationNo string            `json:"registration_no" gorm:"type:varchar(255)"`
-	Status         string            `json:"status" gorm:"type:varchar(50);default:'ACTIVE'"`
+	Status         FPOStatus         `json:"status" gorm:"type:varchar(50);default:'ACTIVE'"`
 	BusinessConfig map[string]string `json:"business_config" gorm:"type:jsonb;default:'{}'"`
+	SetupErrors    map[string]string `json:"setup_errors,omitempty" gorm:"type:jsonb"` // Track partial setup failures
 }
 
 // TableName returns the table name for the FPORef model
@@ -39,5 +74,23 @@ func (f *FPORef) Validate() error {
 	if f.Name == "" {
 		return common.ErrInvalidInput
 	}
+	if f.Status != "" && !f.Status.IsValid() {
+		return fmt.Errorf("%w: invalid FPO status '%s'", common.ErrInvalidInput, f.Status)
+	}
 	return nil
+}
+
+// IsPendingSetup checks if the FPO is in PENDING_SETUP status
+func (f *FPORef) IsPendingSetup() bool {
+	return f.Status == FPOStatusPendingSetup
+}
+
+// IsActive checks if the FPO is in ACTIVE status
+func (f *FPORef) IsActive() bool {
+	return f.Status == FPOStatusActive
+}
+
+// CanRetrySetup checks if the FPO can retry setup operations
+func (f *FPORef) CanRetrySetup() bool {
+	return f.Status == FPOStatusPendingSetup
 }
