@@ -10,7 +10,6 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/pkg/proto"
-	"github.com/golang-jwt/jwt/v4"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -20,16 +19,16 @@ import (
 
 // Client represents the AAA gRPC client
 type Client struct {
-	conn           *grpc.ClientConn
-	config         *config.Config
-	userClient     proto.UserServiceV2Client
-	authzClient    proto.AuthorizationServiceClient
-	orgClient      proto.OrganizationServiceClient
-	groupClient    proto.GroupServiceClient
-	roleClient     proto.RoleServiceClient
-	permClient     proto.PermissionServiceClient
-	catalogClient  proto.CatalogServiceClient
-	tokenValidator *auth.TokenValidator
+	conn          *grpc.ClientConn
+	config        *config.Config
+	userClient    proto.UserServiceV2Client
+	authzClient   proto.AuthorizationServiceClient
+	orgClient     proto.OrganizationServiceClient
+	groupClient   proto.GroupServiceClient
+	roleClient    proto.RoleServiceClient
+	permClient    proto.PermissionServiceClient
+	catalogClient proto.CatalogServiceClient
+	tokenClient   proto.TokenServiceClient
 }
 
 // UserData represents user information from AAA service
@@ -121,6 +120,8 @@ type CreateUserGroupResponse struct {
 
 // NewClient creates a new AAA gRPC client
 func NewClient(cfg *config.Config) (*Client, error) {
+	log.Printf("AAA Client: Connecting to gRPC endpoint: %s", cfg.AAA.GRPCEndpoint)
+
 	conn, err := grpc.NewClient(
 		cfg.AAA.GRPCEndpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -137,27 +138,21 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	roleClient := proto.NewRoleServiceClient(conn)
 	permClient := proto.NewPermissionServiceClient(conn)
 	catalogClient := proto.NewCatalogServiceClient(conn)
+	tokenClient := proto.NewTokenServiceClient(conn)
 
-	// Initialize token validator
-	tokenValidator, err := auth.NewTokenValidator(
-		cfg.AAA.JWTSecret,
-		[]byte(cfg.AAA.JWTPublicKey),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create token validator: %w", err)
-	}
+	log.Printf("AAA Client: Successfully initialized with endpoint %s", cfg.AAA.GRPCEndpoint)
 
 	return &Client{
-		conn:           conn,
-		config:         cfg,
-		userClient:     userClient,
-		authzClient:    authzClient,
-		orgClient:      orgClient,
-		groupClient:    groupClient,
-		roleClient:     roleClient,
-		permClient:     permClient,
-		catalogClient:  catalogClient,
-		tokenValidator: tokenValidator,
+		conn:          conn,
+		config:        cfg,
+		userClient:    userClient,
+		authzClient:   authzClient,
+		orgClient:     orgClient,
+		groupClient:   groupClient,
+		roleClient:    roleClient,
+		permClient:    permClient,
+		catalogClient: catalogClient,
+		tokenClient:   tokenClient,
 	}, nil
 }
 
@@ -747,9 +742,22 @@ func (c *Client) CheckPermission(ctx context.Context, subject, resource, action,
 	rpcCtx, cancel := context.WithTimeout(ctx, rpcTimeout)
 	defer cancel()
 
+	// Extract auth token from context and add to gRPC metadata
+	if token := auth.GetTokenFromContext(ctx); token != "" {
+		md := metadata.New(map[string]string{
+			"authorization": "Bearer " + token,
+		})
+		rpcCtx = metadata.NewOutgoingContext(rpcCtx, md)
+		log.Printf("AAA CheckPermission: Added authorization token to gRPC metadata (token length: %d)", len(token))
+	} else {
+		log.Printf("AAA CheckPermission: Warning - no auth token found in context")
+	}
+
+	log.Printf("AAA CheckPermission: Calling authz service at %s", c.config.AAA.GRPCEndpoint)
 	resp, err := c.authzClient.Check(rpcCtx, req)
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
+			log.Printf("AAA CheckPermission: gRPC error code=%s, message=%s", st.Code(), st.Message())
 			switch st.Code() {
 			case codes.Unimplemented, codes.Unavailable:
 				// Maintain permissive fallback when authz is not served
@@ -761,71 +769,84 @@ func (c *Client) CheckPermission(ctx context.Context, subject, resource, action,
 				return false, fmt.Errorf("permission check failed: %s", st.Message())
 			}
 		}
+		log.Printf("AAA CheckPermission: Non-gRPC error: %v", err)
 		return false, fmt.Errorf("permission check failed: %w", err)
 	}
 
+	log.Printf("AAA CheckPermission: Success, allowed=%v", resp.GetAllowed())
 	return resp.GetAllowed(), nil
 }
 
 // ValidateToken validates a JWT token with the AAA service
 func (c *Client) ValidateToken(ctx context.Context, token string) (map[string]interface{}, error) {
-	log.Printf("AAA ValidateToken: validating token")
+	log.Printf("AAA ValidateToken: validating token via remote service")
 
 	if token == "" {
 		return nil, fmt.Errorf("token is required")
 	}
 
-	// Use local JWT validation first
-	claims, err := c.tokenValidator.ValidateToken(ctx, token)
+	// Call AAA service for token validation
+	req := &proto.ValidateTokenRequest{
+		Token:               token,
+		IncludeUserDetails:  true,
+		IncludePermissions:  true,
+		IncludeOrganization: true,
+		StrictValidation:    true,
+	}
+
+	// Use a timeout for the validation call
+	rpcTimeout := 5 * time.Second
+	if d, err := time.ParseDuration(c.config.AAA.RequestTimeout); err == nil && d > 0 {
+		rpcTimeout = d
+	}
+	rpcCtx, cancel := context.WithTimeout(ctx, rpcTimeout)
+	defer cancel()
+
+	// Add token to gRPC metadata for AAA service authentication
+	md := metadata.New(map[string]string{
+		"authorization": "Bearer " + token,
+	})
+	rpcCtx = metadata.NewOutgoingContext(rpcCtx, md)
+
+	resp, err := c.tokenClient.ValidateToken(rpcCtx, req)
 	if err != nil {
-		// If local validation fails, try remote validation as fallback
-		return c.remoteValidateToken(ctx, token)
+		if st, ok := status.FromError(err); ok {
+			log.Printf("AAA ValidateToken: gRPC error code=%s, message=%s", st.Code(), st.Message())
+			return nil, fmt.Errorf("token validation failed: %s", st.Message())
+		}
+		return nil, fmt.Errorf("token validation failed: %w", err)
+	}
+
+	if !resp.Valid {
+		log.Printf("AAA ValidateToken: Token invalid - %s", resp.Message)
+		return nil, fmt.Errorf("invalid token: %s", resp.Message)
+	}
+
+	if resp.Claims == nil {
+		return nil, fmt.Errorf("no claims returned from token validation")
 	}
 
 	// Convert claims to map for backward compatibility
 	result := map[string]interface{}{
-		"user_id":     claims.UserID,
-		"org_id":      claims.OrgID,
-		"roles":       claims.Roles,
-		"permissions": claims.Permissions,
-		"token_type":  claims.TokenType,
+		"user_id":     resp.Claims.UserId,
+		"username":    resp.Claims.Username,
+		"email":       resp.Claims.Email,
+		"org_id":      resp.Claims.OrganizationId,
+		"org_name":    resp.Claims.OrganizationName,
+		"roles":       resp.Claims.Roles,
+		"permissions": resp.Claims.Permissions,
+		"token_type":  resp.Claims.TokenType,
 	}
 
-	if claims.ExpiresAt != nil {
-		result["exp"] = claims.ExpiresAt.Unix()
+	if resp.Claims.ExpiresAt != nil {
+		result["exp"] = resp.Claims.ExpiresAt.Seconds
 	}
-	if claims.IssuedAt != nil {
-		result["iat"] = claims.IssuedAt.Unix()
+	if resp.Claims.IssuedAt != nil {
+		result["iat"] = resp.Claims.IssuedAt.Seconds
 	}
 
-	log.Printf("Token validated successfully for user: %s", claims.UserID)
+	log.Printf("Token validated successfully for user: %s", resp.Claims.UserId)
 	return result, nil
-}
-
-// remoteValidateToken validates token remotely as fallback
-func (c *Client) remoteValidateToken(ctx context.Context, token string) (map[string]interface{}, error) {
-	// This would call the actual AAA service when available
-	// For now, implement a basic validation for debugging
-	log.Printf("Attempting remote token validation as fallback")
-
-	// Try to decode without verification for debugging
-	parser := jwt.NewParser()
-	claims := jwt.MapClaims{}
-	_, _, err := parser.ParseUnverified(token, claims)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse token: %w", err)
-	}
-
-	// Check expiration
-	if exp, ok := claims["exp"].(float64); ok {
-		if time.Now().Unix() > int64(exp) {
-			return nil, fmt.Errorf("token expired")
-		}
-	}
-
-	// Return claims for debugging (in production, this should call actual AAA service)
-	log.Printf("Remote validation successful (debugging mode)")
-	return claims, nil
 }
 
 // SeedRolesAndPermissions seeds roles and permissions in AAA

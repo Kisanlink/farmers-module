@@ -123,7 +123,7 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		Email:            req.Profile.Email,
 		DateOfBirth:      req.Profile.DateOfBirth,
 		Gender:           req.Profile.Gender,
-		Address: entities.Address{
+		Address: &entities.Address{
 			StreetAddress: req.Profile.Address.StreetAddress,
 			City:          req.Profile.Address.City,
 			State:         req.Profile.Address.State,
@@ -143,6 +143,19 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 	}
 
 	// Convert to response format
+	// Handle address data safely
+	var addressData responses.AddressData
+	if farmerProfile.Address != nil {
+		addressData = responses.AddressData{
+			StreetAddress: farmerProfile.Address.StreetAddress,
+			City:          farmerProfile.Address.City,
+			State:         farmerProfile.Address.State,
+			PostalCode:    farmerProfile.Address.PostalCode,
+			Country:       farmerProfile.Address.Country,
+			Coordinates:   farmerProfile.Address.Coordinates,
+		}
+	}
+
 	farmerProfileData := &responses.FarmerProfileData{
 		ID:               farmerProfile.GetID(),
 		AAAUserID:        farmerProfile.AAAUserID,
@@ -154,19 +167,12 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		Email:            farmerProfile.Email,
 		DateOfBirth:      farmerProfile.DateOfBirth,
 		Gender:           farmerProfile.Gender,
-		Address: responses.AddressData{
-			StreetAddress: farmerProfile.Address.StreetAddress,
-			City:          farmerProfile.Address.City,
-			State:         farmerProfile.Address.State,
-			PostalCode:    farmerProfile.Address.PostalCode,
-			Country:       farmerProfile.Address.Country,
-			Coordinates:   farmerProfile.Address.Coordinates,
-		},
-		Preferences: farmerProfile.Preferences,
-		Metadata:    farmerProfile.Metadata,
-		Farms:       []*responses.FarmData{},
-		CreatedAt:   farmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		Address:          addressData,
+		Preferences:      farmerProfile.Preferences,
+		Metadata:         farmerProfile.Metadata,
+		Farms:            []*responses.FarmData{},
+		CreatedAt:        farmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:        farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
 	response := responses.NewFarmerResponse(farmerProfileData, "Farmer created successfully")
@@ -203,6 +209,19 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 	}
 
 	// Convert to response format
+	// Handle address data safely
+	var addressData responses.AddressData
+	if farmerProfile.Address != nil {
+		addressData = responses.AddressData{
+			StreetAddress: farmerProfile.Address.StreetAddress,
+			City:          farmerProfile.Address.City,
+			State:         farmerProfile.Address.State,
+			PostalCode:    farmerProfile.Address.PostalCode,
+			Country:       farmerProfile.Address.Country,
+			Coordinates:   farmerProfile.Address.Coordinates,
+		}
+	}
+
 	farmerProfileData := &responses.FarmerProfileData{
 		ID:               farmerProfile.GetID(),
 		AAAUserID:        farmerProfile.AAAUserID,
@@ -214,19 +233,12 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 		Email:            farmerProfile.Email,
 		DateOfBirth:      farmerProfile.DateOfBirth,
 		Gender:           farmerProfile.Gender,
-		Address: responses.AddressData{
-			StreetAddress: farmerProfile.Address.StreetAddress,
-			City:          farmerProfile.Address.City,
-			State:         farmerProfile.Address.State,
-			PostalCode:    farmerProfile.Address.PostalCode,
-			Country:       farmerProfile.Address.Country,
-			Coordinates:   farmerProfile.Address.Coordinates,
-		},
-		Preferences: farmerProfile.Preferences,
-		Metadata:    farmerProfile.Metadata,
-		Farms:       []*responses.FarmData{}, // TODO: Load actual farms
-		CreatedAt:   farmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		Address:          addressData,
+		Preferences:      farmerProfile.Preferences,
+		Metadata:         farmerProfile.Metadata,
+		Farms:            []*responses.FarmData{}, // TODO: Load actual farms
+		CreatedAt:        farmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:        farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
 	response := responses.NewFarmerProfileResponse(farmerProfileData, "Farmer retrieved successfully")
@@ -400,15 +412,38 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 		return nil, fmt.Errorf("failed to list farmers: %w", err)
 	}
 
-	// Get total count
-	totalCount, err := s.repository.Count(ctx, filter.Build(), &entities.FarmerProfile{})
+	// Get total count - use a temporary count query
+	countFilter := base.NewFilterBuilder()
+	if req.AAAOrgID != "" {
+		countFilter = countFilter.Where("aaa_org_id", base.OpEqual, req.AAAOrgID)
+	}
+	if req.KisanSathiUserID != "" {
+		countFilter = countFilter.Where("kisan_sathi_user_id", base.OpEqual, req.KisanSathiUserID)
+	}
+
+	// Count without pagination
+	allResults, err := s.repository.Find(ctx, countFilter.Build())
 	if err != nil {
 		return nil, fmt.Errorf("failed to count farmers: %w", err)
 	}
+	totalCount := int64(len(allResults))
 
 	// Convert to response format
 	var farmerProfilesData []*responses.FarmerProfileData
 	for _, fp := range farmerProfiles {
+		// Handle address data safely
+		var addressData responses.AddressData
+		if fp.Address != nil {
+			addressData = responses.AddressData{
+				StreetAddress: fp.Address.StreetAddress,
+				City:          fp.Address.City,
+				State:         fp.Address.State,
+				PostalCode:    fp.Address.PostalCode,
+				Country:       fp.Address.Country,
+				Coordinates:   fp.Address.Coordinates,
+			}
+		}
+
 		farmerProfileData := &responses.FarmerProfileData{
 			ID:               fp.GetID(),
 			AAAUserID:        fp.AAAUserID,
@@ -420,19 +455,12 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 			Email:            fp.Email,
 			DateOfBirth:      fp.DateOfBirth,
 			Gender:           fp.Gender,
-			Address: responses.AddressData{
-				StreetAddress: fp.Address.StreetAddress,
-				City:          fp.Address.City,
-				State:         fp.Address.State,
-				PostalCode:    fp.Address.PostalCode,
-				Country:       fp.Address.Country,
-				Coordinates:   fp.Address.Coordinates,
-			},
-			Preferences: fp.Preferences,
-			Metadata:    fp.Metadata,
-			Farms:       []*responses.FarmData{}, // TODO: Load actual farms
-			CreatedAt:   fp.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:   fp.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			Address:          addressData,
+			Preferences:      fp.Preferences,
+			Metadata:         fp.Metadata,
+			Farms:            []*responses.FarmData{}, // TODO: Load actual farms
+			CreatedAt:        fp.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			UpdatedAt:        fp.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		}
 		farmerProfilesData = append(farmerProfilesData, farmerProfileData)
 	}

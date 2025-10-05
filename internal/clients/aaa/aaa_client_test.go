@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/pkg/proto"
 	"github.com/stretchr/testify/assert"
@@ -260,6 +259,11 @@ type MockCatalogServiceClient struct {
 	mock.Mock
 }
 
+// MockTokenServiceClient is a mock implementation of TokenServiceClient
+type MockTokenServiceClient struct {
+	mock.Mock
+}
+
 func (m *MockCatalogServiceClient) SeedRolesAndPermissions(ctx context.Context, in *proto.SeedRolesAndPermissionsRequest, opts ...grpc.CallOption) (*proto.SeedRolesAndPermissionsResponse, error) {
 	args := m.Called(ctx, in)
 	if args.Get(0) == nil {
@@ -308,6 +312,38 @@ func (m *MockCatalogServiceClient) ListPermissions(ctx context.Context, in *prot
 	return nil, nil
 }
 
+func (m *MockTokenServiceClient) ValidateToken(ctx context.Context, in *proto.ValidateTokenRequest, opts ...grpc.CallOption) (*proto.ValidateTokenResponse, error) {
+	args := m.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.ValidateTokenResponse), args.Error(1)
+}
+
+func (m *MockTokenServiceClient) RefreshAccessToken(ctx context.Context, in *proto.RefreshAccessTokenRequest, opts ...grpc.CallOption) (*proto.RefreshAccessTokenResponse, error) {
+	return nil, nil
+}
+
+func (m *MockTokenServiceClient) RevokeToken(ctx context.Context, in *proto.RevokeTokenRequest, opts ...grpc.CallOption) (*proto.RevokeTokenResponse, error) {
+	return nil, nil
+}
+
+func (m *MockTokenServiceClient) IntrospectToken(ctx context.Context, in *proto.IntrospectTokenRequest, opts ...grpc.CallOption) (*proto.IntrospectTokenResponse, error) {
+	return nil, nil
+}
+
+func (m *MockTokenServiceClient) CreateToken(ctx context.Context, in *proto.CreateTokenRequest, opts ...grpc.CallOption) (*proto.CreateTokenResponse, error) {
+	return nil, nil
+}
+
+func (m *MockTokenServiceClient) ListActiveTokens(ctx context.Context, in *proto.ListActiveTokensRequest, opts ...grpc.CallOption) (*proto.ListActiveTokensResponse, error) {
+	return nil, nil
+}
+
+func (m *MockTokenServiceClient) BlacklistToken(ctx context.Context, in *proto.BlacklistTokenRequest, opts ...grpc.CallOption) (*proto.BlacklistTokenResponse, error) {
+	return nil, nil
+}
+
 func (m *MockAuthorizationServiceClient) BatchCheck(ctx context.Context, in *proto.BatchCheckRequest, opts ...grpc.CallOption) (*proto.BatchCheckResponse, error) {
 	args := m.Called(ctx, in)
 	return args.Get(0).(*proto.BatchCheckResponse), args.Error(1)
@@ -328,13 +364,24 @@ func (m *MockAuthorizationServiceClient) ListAllowedColumns(ctx context.Context,
 	return args.Get(0).(*proto.ListAllowedColumnsResponse), args.Error(1)
 }
 
-func (m *MockAuthorizationServiceClient) Explain(ctx context.Context, in *proto.ExplainRequest, opts ...grpc.CallOption) (*proto.ExplainResponse, error) {
+func (m *MockAuthorizationServiceClient) BulkEvaluatePermissions(ctx context.Context, in *proto.BulkEvaluatePermissionsRequest, opts ...grpc.CallOption) (*proto.BulkEvaluatePermissionsResponse, error) {
 	args := m.Called(ctx, in)
-	return args.Get(0).(*proto.ExplainResponse), args.Error(1)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.BulkEvaluatePermissionsResponse), args.Error(1)
+}
+
+func (m *MockAuthorizationServiceClient) EvaluatePermission(ctx context.Context, in *proto.EvaluatePermissionRequest, opts ...grpc.CallOption) (*proto.EvaluatePermissionResponse, error) {
+	args := m.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.EvaluatePermissionResponse), args.Error(1)
 }
 
 // Helper function to create a test client with mocks
-func createTestClient() (*Client, *MockUserServiceV2Client, *MockAuthorizationServiceClient, *MockOrganizationServiceClient, *MockGroupServiceClient, *MockRoleServiceClient, *MockPermissionServiceClient, *MockCatalogServiceClient) {
+func createTestClient() (*Client, *MockUserServiceV2Client, *MockAuthorizationServiceClient, *MockOrganizationServiceClient, *MockGroupServiceClient, *MockRoleServiceClient, *MockPermissionServiceClient, *MockCatalogServiceClient, *MockTokenServiceClient) {
 	mockUserClient := &MockUserServiceV2Client{}
 	mockAuthzClient := &MockAuthorizationServiceClient{}
 	mockOrgClient := &MockOrganizationServiceClient{}
@@ -342,28 +389,26 @@ func createTestClient() (*Client, *MockUserServiceV2Client, *MockAuthorizationSe
 	mockRoleClient := &MockRoleServiceClient{}
 	mockPermClient := &MockPermissionServiceClient{}
 	mockCatalogClient := &MockCatalogServiceClient{}
-
-	// Create a test token validator
-	tokenValidator, _ := auth.NewTokenValidator("test-secret", nil)
+	mockTokenClient := &MockTokenServiceClient{}
 
 	client := &Client{
-		conn:           nil, // Not needed for unit tests
-		config:         &config.Config{},
-		userClient:     mockUserClient,
-		authzClient:    mockAuthzClient,
-		orgClient:      mockOrgClient,
-		groupClient:    mockGroupClient,
-		roleClient:     mockRoleClient,
-		permClient:     mockPermClient,
-		catalogClient:  mockCatalogClient,
-		tokenValidator: tokenValidator,
+		conn:          nil, // Not needed for unit tests
+		config:        &config.Config{},
+		userClient:    mockUserClient,
+		authzClient:   mockAuthzClient,
+		orgClient:     mockOrgClient,
+		groupClient:   mockGroupClient,
+		roleClient:    mockRoleClient,
+		permClient:    mockPermClient,
+		catalogClient: mockCatalogClient,
+		tokenClient:   mockTokenClient,
 	}
 
-	return client, mockUserClient, mockAuthzClient, mockOrgClient, mockGroupClient, mockRoleClient, mockPermClient, mockCatalogClient
+	return client, mockUserClient, mockAuthzClient, mockOrgClient, mockGroupClient, mockRoleClient, mockPermClient, mockCatalogClient, mockTokenClient
 }
 
 func TestCreateUser_Success(t *testing.T) {
-	client, mockUserClient, _, _, _, _, _, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	req := &CreateUserRequest{
@@ -397,7 +442,7 @@ func TestCreateUser_Success(t *testing.T) {
 }
 
 func TestCreateUser_AlreadyExists(t *testing.T) {
-	client, mockUserClient, _, _, _, _, _, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	req := &CreateUserRequest{
@@ -419,7 +464,7 @@ func TestCreateUser_AlreadyExists(t *testing.T) {
 }
 
 func TestGetUser_Success(t *testing.T) {
-	client, mockUserClient, _, _, _, _, _, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 	userID := "user123"
 
@@ -451,7 +496,7 @@ func TestGetUser_Success(t *testing.T) {
 }
 
 func TestGetUser_NotFound(t *testing.T) {
-	client, mockUserClient, _, _, _, _, _, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 	userID := "nonexistent"
 
@@ -467,7 +512,7 @@ func TestGetUser_NotFound(t *testing.T) {
 }
 
 func TestGetUserByPhone_Success(t *testing.T) {
-	client, mockUserClient, _, _, _, _, _, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 	phoneNumber := "+919876543210"
 
@@ -502,7 +547,7 @@ func TestGetUserByPhone_Success(t *testing.T) {
 }
 
 func TestGetUserByPhone_EmptyPhone(t *testing.T) {
-	client, _, _, _, _, _, _, _ := createTestClient()
+	client, _, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	userData, err := client.GetUserByPhone(ctx, "")
@@ -513,7 +558,7 @@ func TestGetUserByPhone_EmptyPhone(t *testing.T) {
 }
 
 func TestCheckPermission_Success(t *testing.T) {
-	client, _, mockAuthzClient, _, _, _, _, _ := createTestClient()
+	client, _, mockAuthzClient, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	subject := "user123"
@@ -543,7 +588,7 @@ func TestCheckPermission_Success(t *testing.T) {
 }
 
 func TestCheckPermission_Denied(t *testing.T) {
-	client, _, mockAuthzClient, _, _, _, _, _ := createTestClient()
+	client, _, mockAuthzClient, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	subject := "user123"
@@ -573,7 +618,7 @@ func TestCheckPermission_Denied(t *testing.T) {
 }
 
 func TestCheckPermission_MissingParameters(t *testing.T) {
-	client, _, _, _, _, _, _, _ := createTestClient()
+	client, _, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	// Test missing subject
@@ -596,7 +641,7 @@ func TestCheckPermission_MissingParameters(t *testing.T) {
 }
 
 func TestCheckPermission_WildcardObject(t *testing.T) {
-	client, _, mockAuthzClient, _, _, _, _, _ := createTestClient()
+	client, _, mockAuthzClient, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	subject := "user123"
@@ -626,7 +671,7 @@ func TestCheckPermission_WildcardObject(t *testing.T) {
 }
 
 func TestHealthCheck_Success(t *testing.T) {
-	client, mockUserClient, _, _, _, _, _, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	expectedRequest := &proto.GetUserRequestV2{
@@ -646,7 +691,7 @@ func TestHealthCheck_Success(t *testing.T) {
 }
 
 func TestHealthCheck_PermissionDeniedIsHealthy(t *testing.T) {
-	client, mockUserClient, _, _, _, _, _, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	expectedRequest := &proto.GetUserRequestV2{
@@ -666,7 +711,7 @@ func TestHealthCheck_PermissionDeniedIsHealthy(t *testing.T) {
 }
 
 func TestHealthCheck_ServiceUnavailable(t *testing.T) {
-	client, mockUserClient, _, _, _, _, _, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	expectedRequest := &proto.GetUserRequestV2{
@@ -687,7 +732,7 @@ func TestHealthCheck_ServiceUnavailable(t *testing.T) {
 }
 
 func TestAddRequestMetadata(t *testing.T) {
-	client, _, _, _, _, _, _, _ := createTestClient()
+	client, _, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	requestID := "req123"
@@ -701,8 +746,14 @@ func TestAddRequestMetadata(t *testing.T) {
 }
 
 func TestValidateToken_InvalidToken(t *testing.T) {
-	client, _, _, _, _, _, _, _ := createTestClient()
+	client, _, _, _, _, _, _, _, mockTokenClient := createTestClient()
 	ctx := context.Background()
+
+	// Mock token validation failure
+	mockTokenClient.On("ValidateToken", mock.Anything, mock.AnythingOfType("*proto.ValidateTokenRequest")).Return(
+		(*proto.ValidateTokenResponse)(nil),
+		status.Error(codes.InvalidArgument, "failed to parse token"),
+	)
 
 	// Test with invalid token
 	tokenData, err := client.ValidateToken(ctx, "invalid-token")
@@ -710,10 +761,11 @@ func TestValidateToken_InvalidToken(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, tokenData)
 	assert.Contains(t, err.Error(), "failed to parse token")
+	mockTokenClient.AssertExpectations(t)
 }
 
 func TestValidateToken_EmptyToken(t *testing.T) {
-	client, _, _, _, _, _, _, _ := createTestClient()
+	client, _, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	tokenData, err := client.ValidateToken(ctx, "")
@@ -724,7 +776,7 @@ func TestValidateToken_EmptyToken(t *testing.T) {
 }
 
 func TestCreateOrganization_NotImplemented(t *testing.T) {
-	client, _, _, mockOrgClient, _, _, _, _ := createTestClient()
+	client, _, _, mockOrgClient, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	req := &CreateOrganizationRequest{
@@ -758,7 +810,7 @@ func TestCreateOrganization_NotImplemented(t *testing.T) {
 }
 
 func TestCreateUserGroup_NotImplemented(t *testing.T) {
-	client, _, _, _, mockGroupClient, _, _, _ := createTestClient()
+	client, _, _, _, mockGroupClient, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	req := &CreateUserGroupRequest{
@@ -792,7 +844,7 @@ func TestCreateUserGroup_NotImplemented(t *testing.T) {
 }
 
 func TestAssignRole_NotImplemented(t *testing.T) {
-	client, _, _, _, _, mockRoleClient, _, _ := createTestClient()
+	client, _, _, _, _, mockRoleClient, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	expectedResponse := &proto.AssignRoleResponse{
@@ -809,7 +861,7 @@ func TestAssignRole_NotImplemented(t *testing.T) {
 }
 
 func TestCheckUserRole_NotImplemented(t *testing.T) {
-	client, mockUserClient, _, _, _, _, _, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	// Mock GetUser to return a user without the farmer role
@@ -833,7 +885,7 @@ func TestCheckUserRole_NotImplemented(t *testing.T) {
 }
 
 func TestSeedRolesAndPermissions_NotImplemented(t *testing.T) {
-	client, _, _, _, _, _, _, mockCatalogClient := createTestClient()
+	client, _, _, _, _, _, _, mockCatalogClient, _ := createTestClient()
 	ctx := context.Background()
 
 	expectedResponse := &proto.SeedRolesAndPermissionsResponse{
@@ -853,7 +905,7 @@ func TestSeedRolesAndPermissions_NotImplemented(t *testing.T) {
 
 // Test backward compatibility methods
 func TestCreateUserLegacy_Success(t *testing.T) {
-	client, mockUserClient, _, _, _, _, _, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	username := "testuser"
@@ -882,7 +934,7 @@ func TestCreateUserLegacy_Success(t *testing.T) {
 }
 
 func TestGetUserByMobile_Success(t *testing.T) {
-	client, mockUserClient, _, _, _, _, _, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 	mobileNumber := "+919876543210"
 

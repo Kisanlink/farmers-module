@@ -54,6 +54,16 @@ docs: ## Generate Swagger documentation
 	swag init -g cmd/farmers-service/main.go
 	@echo "✅ Swagger documentation generated"
 
+# Protocol Buffers
+proto-gen: ## Regenerate protocol buffer files
+	@echo "Regenerating proto files..."
+	@# Generate all proto files with dependencies resolved
+	cd pkg/proto && protoc --go_out=. --go_opt=paths=source_relative \
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		--proto_path=. \
+		*.proto
+	@echo "✅ Proto files regenerated"
+
 # Development server
 run: ## Run the farmers module server
 	@echo "Starting Farmers Module server..."
