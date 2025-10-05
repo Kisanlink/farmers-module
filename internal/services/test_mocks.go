@@ -145,15 +145,14 @@ func (m *MockAAAServiceShared) GetPermissionMatrix() *PermissionMatrix {
 }
 
 func (m *MockAAAServiceShared) CheckPermission(ctx context.Context, subject, resource, action, object, orgID string) (bool, error) {
-	// If permission matrix is configured AND has rules OR default deny is set, use it
+	// Get the permission matrix
 	m.mu.RLock()
 	matrix := m.permissionMatrix
 	m.mu.RUnlock()
 
-	// Use permission matrix if:
-	// 1. Matrix exists AND
-	// 2. Either has rules OR defaultDeny is true (meaning explicit deny-by-default behavior)
-	if matrix != nil && (len(matrix.rules) > 0 || matrix.defaultDeny) {
+	// Always use permission matrix if it exists
+	// The matrix handles both allow-all and deny-all modes internally
+	if matrix != nil {
 		// Use the permission matrix for this check
 		allowed := matrix.CheckPermission(subject, resource, action, object, orgID)
 		if !allowed && matrix.logDenials {
@@ -164,7 +163,7 @@ func (m *MockAAAServiceShared) CheckPermission(ctx context.Context, subject, res
 		return allowed, nil
 	}
 
-	// Fall back to testify mock behavior for backward compatibility
+	// Fall back to testify mock behavior only if no matrix is configured
 	args := m.Called(ctx, subject, resource, action, object, orgID)
 	return args.Bool(0), args.Error(1)
 }

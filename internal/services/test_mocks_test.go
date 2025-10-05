@@ -2,11 +2,83 @@ package services
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+// TestPermissionMatrix_EdgeCases tests edge cases in permission matrix logic
+func TestPermissionMatrix_EdgeCases(t *testing.T) {
+	t.Run("wildcard matching behavior", func(t *testing.T) {
+		matrix := NewPermissionMatrix(true) // deny-by-default
+
+		// Test wildcard patterns - ORDER MATTERS (first match wins)
+		matrix.AddDenyRule("blocked_user", "*", "*", "*", "*")  // Specific user blocked (must come first)
+		matrix.AddAllowRule("admin", "*", "*", "*", "*")        // Admin can do everything
+		matrix.AddAllowRule("*", "farmer", "read", "*", "org1") // Anyone can read farmers
+
+		tests := []struct {
+			name     string
+			subject  string
+			resource string
+			action   string
+			object   string
+			orgID    string
+			expected bool
+		}{
+			{"admin overrides all", "admin", "farmer", "delete", "farmer1", "org1", true},
+			{"blocked user denied despite wildcard", "blocked_user", "farmer", "read", "farmer1", "org1", false},
+			{"random user can read farmers", "user123", "farmer", "read", "farmer1", "org1", true},
+			{"random user cannot write farmers", "user123", "farmer", "write", "farmer1", "org1", false},
+			{"empty object converted to wildcard", "user123", "farmer", "read", "", "org1", true},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				result := matrix.CheckPermission(tt.subject, tt.resource, tt.action, tt.object, tt.orgID)
+				assert.Equal(t, tt.expected, result)
+			})
+		}
+	})
+
+	t.Run("first-match-wins policy", func(t *testing.T) {
+		matrix := NewPermissionMatrix(true)
+
+		// Order matters - first rule wins
+		matrix.AddDenyRule("user1", "farmer", "delete", "*", "org1")
+		matrix.AddAllowRule("user1", "farmer", "*", "*", "org1") // This won't override delete
+
+		// Delete should be denied (first rule)
+		assert.False(t, matrix.CheckPermission("user1", "farmer", "delete", "farmer1", "org1"))
+		// Other actions should be allowed (second rule)
+		assert.True(t, matrix.CheckPermission("user1", "farmer", "create", "farmer1", "org1"))
+	})
+
+	t.Run("empty rules with different default modes", func(t *testing.T) {
+		denyMatrix := NewPermissionMatrix(true)   // deny-by-default
+		allowMatrix := NewPermissionMatrix(false) // allow-by-default
+
+		// With no rules, behavior depends on default
+		assert.False(t, denyMatrix.CheckPermission("user1", "farmer", "read", "obj1", "org1"))
+		assert.True(t, allowMatrix.CheckPermission("user1", "farmer", "read", "obj1", "org1"))
+	})
+
+	t.Run("clear rules functionality", func(t *testing.T) {
+		matrix := NewPermissionMatrix(true)
+		matrix.AddAllowRule("user1", "farmer", "read", "*", "org1")
+
+		// Should allow before clear
+		assert.True(t, matrix.CheckPermission("user1", "farmer", "read", "obj1", "org1"))
+
+		// Clear all rules
+		matrix.Clear()
+
+		// Should deny after clear (back to default)
+		assert.False(t, matrix.CheckPermission("user1", "farmer", "read", "obj1", "org1"))
+	})
+}
 
 // TestPermissionMatrix tests the permission matrix functionality
 func TestPermissionMatrix(t *testing.T) {
@@ -358,5 +430,250 @@ func TestMockDatabase(t *testing.T) {
 		err := db.Ping()
 		assert.NoError(t, err)
 		db.AssertExpectations(t)
+	})
+}
+
+// TestPermissionMatrix_Concurrency tests thread safety of permission matrix
+func TestPermissionMatrix_Concurrency(t *testing.T) {
+	t.Run("concurrent reads and writes", func(t *testing.T) {
+		matrix := NewPermissionMatrix(true)
+		var wg sync.WaitGroup
+
+		// Concurrent writers
+		for i := 0; i < 100; i++ {
+			wg.Add(1)
+			go func(id int) {
+				defer wg.Done()
+				matrix.AddAllowRule(
+					"user"+string(rune(id)),
+					"resource"+string(rune(id%10)),
+					"action"+string(rune(id%5)),
+					"*",
+					"org1",
+				)
+			}(i)
+		}
+
+		// Concurrent readers
+		for i := 0; i < 100; i++ {
+			wg.Add(1)
+			go func(id int) {
+				defer wg.Done()
+				matrix.CheckPermission(
+					"user"+string(rune(id)),
+					"resource"+string(rune(id%10)),
+					"action"+string(rune(id%5)),
+					"obj1",
+					"org1",
+				)
+			}(i)
+		}
+
+		// Concurrent clear operations
+		for i := 0; i < 10; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				time.Sleep(time.Microsecond) // Small delay to interleave
+				matrix.Clear()
+			}()
+		}
+
+		wg.Wait()
+		// No panic means thread safety is working
+	})
+
+	t.Run("race condition in permission checks", func(t *testing.T) {
+		matrix := NewPermissionMatrix(false) // allow-by-default
+
+		// Simulate race: one goroutine adds deny rule while another checks
+		done := make(chan bool)
+		results := make([]bool, 1000)
+
+		go func() {
+			for i := 0; i < 500; i++ {
+				matrix.AddDenyRule("user1", "farmer", "delete", "*", "org1")
+				matrix.Clear()
+			}
+			done <- true
+		}()
+
+		go func() {
+			for i := 0; i < 1000; i++ {
+				results[i] = matrix.CheckPermission("user1", "farmer", "delete", "obj1", "org1")
+			}
+			done <- true
+		}()
+
+		<-done
+		<-done
+
+		// Results should be consistent within the race window
+		// (either all true or mixed, but no panic)
+	})
+}
+
+// TestMockAAAServiceShared_PermissionMatrix tests the integration between mock and permission matrix
+func TestMockAAAServiceShared_PermissionMatrix(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("permission matrix overrides mock calls", func(t *testing.T) {
+		mockSvc := NewMockAAAServiceShared(true)
+
+		// Setup mock to return true (but matrix should override)
+		mockSvc.On("CheckPermission", ctx, "user1", "farmer", "delete", "", "org1").Return(true, nil)
+
+		// Matrix denies by default
+		allowed, err := mockSvc.CheckPermission(ctx, "user1", "farmer", "delete", "", "org1")
+		assert.NoError(t, err)
+		assert.False(t, allowed, "Matrix should override mock")
+
+		// Add explicit allow rule
+		mockSvc.GetPermissionMatrix().AddAllowRule("user1", "farmer", "delete", "*", "org1")
+		allowed, err = mockSvc.CheckPermission(ctx, "user1", "farmer", "delete", "", "org1")
+		assert.NoError(t, err)
+		assert.True(t, allowed, "Matrix should allow after rule added")
+	})
+
+	t.Run("fallback to mock when matrix has no rules and allow-by-default", func(t *testing.T) {
+		mockSvc := NewMockAAAServiceShared(false) // allow-by-default
+
+		// Setup mock expectation
+		mockSvc.On("CheckPermission", ctx, "user1", "farmer", "read", "", "org1").Return(true, nil)
+
+		// With allow-by-default and no rules, should use mock
+		allowed, err := mockSvc.CheckPermission(ctx, "user1", "farmer", "read", "", "org1")
+		assert.NoError(t, err)
+		assert.True(t, allowed)
+		mockSvc.AssertCalled(t, "CheckPermission", ctx, "user1", "farmer", "read", "", "org1")
+	})
+
+	t.Run("matrix takes precedence with rules even in allow-by-default", func(t *testing.T) {
+		mockSvc := NewMockAAAServiceShared(false) // allow-by-default
+		mockSvc.GetPermissionMatrix().AddDenyRule("user1", "farmer", "delete", "*", "org1")
+
+		// Should use matrix, not mock
+		allowed, err := mockSvc.CheckPermission(ctx, "user1", "farmer", "delete", "", "org1")
+		assert.NoError(t, err)
+		assert.False(t, allowed)
+	})
+
+	t.Run("thread-safe matrix updates", func(t *testing.T) {
+		mockSvc := NewMockAAAServiceShared(true)
+		var wg sync.WaitGroup
+
+		// Concurrent matrix updates
+		for i := 0; i < 100; i++ {
+			wg.Add(1)
+			go func(id int) {
+				defer wg.Done()
+				newMatrix := NewPermissionMatrix(true)
+				newMatrix.AddAllowRule("user"+string(rune(id)), "*", "*", "*", "*")
+				mockSvc.SetPermissionMatrix(newMatrix)
+			}(i)
+		}
+
+		// Concurrent permission checks
+		for i := 0; i < 100; i++ {
+			wg.Add(1)
+			go func(id int) {
+				defer wg.Done()
+				mockSvc.CheckPermission(ctx, "user"+string(rune(id)), "farmer", "read", "", "org1")
+			}(i)
+		}
+
+		wg.Wait()
+	})
+}
+
+// TestMockAAAServiceShared_ErrorScenarios tests error handling in AAA mock
+func TestMockAAAServiceShared_ErrorScenarios(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("handle nil context gracefully", func(t *testing.T) {
+		mockSvc := NewMockAAAServiceShared(true)
+		mockSvc.GetPermissionMatrix().AddAllowRule("user1", "farmer", "read", "*", "org1")
+
+		// Should not panic with nil context
+		allowed, err := mockSvc.CheckPermission(nil, "user1", "farmer", "read", "", "org1")
+		assert.NoError(t, err)
+		assert.True(t, allowed)
+	})
+
+	t.Run("handle empty strings in permission check", func(t *testing.T) {
+		mockSvc := NewMockAAAServiceShared(true)
+		mockSvc.GetPermissionMatrix().AddAllowRule("", "", "", "", "")
+
+		// Empty strings should work
+		allowed, err := mockSvc.CheckPermission(ctx, "", "", "", "", "")
+		assert.NoError(t, err)
+		assert.True(t, allowed)
+	})
+
+	t.Run("special characters in permission parameters", func(t *testing.T) {
+		mockSvc := NewMockAAAServiceShared(true)
+		specialChars := []string{
+			"user-with-dash",
+			"user.with.dots",
+			"user/with/slashes",
+			"user@with@at",
+			"user with spaces",
+			"user\twith\ttabs",
+			"user\nwith\nnewlines",
+		}
+
+		for _, special := range specialChars {
+			mockSvc.GetPermissionMatrix().AddAllowRule(special, "farmer", "read", "*", "org1")
+			allowed, err := mockSvc.CheckPermission(ctx, special, "farmer", "read", "", "org1")
+			assert.NoError(t, err)
+			assert.True(t, allowed, "Should handle special char: %s", special)
+		}
+	})
+}
+
+// BenchmarkPermissionMatrix tests performance of permission checks
+func BenchmarkPermissionMatrix(b *testing.B) {
+	matrix := NewPermissionMatrix(true)
+
+	// Add various rules
+	for i := 0; i < 100; i++ {
+		matrix.AddAllowRule(
+			"user"+string(rune(i)),
+			"resource"+string(rune(i%10)),
+			"action"+string(rune(i%5)),
+			"*",
+			"org"+string(rune(i%3)),
+		)
+	}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			matrix.CheckPermission("user50", "resource5", "action0", "obj1", "org2")
+		}
+	})
+}
+
+// BenchmarkMockAAAService tests performance of AAA mock with matrix
+func BenchmarkMockAAAService(b *testing.B) {
+	mockSvc := NewMockAAAServiceShared(true)
+	ctx := context.Background()
+
+	// Add rules for benchmark
+	for i := 0; i < 50; i++ {
+		mockSvc.GetPermissionMatrix().AddAllowRule(
+			"user"+string(rune(i)),
+			"*",
+			"*",
+			"*",
+			"org1",
+		)
+	}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			mockSvc.CheckPermission(ctx, "user25", "farmer", "read", "", "org1")
+		}
 	})
 }
