@@ -286,93 +286,10 @@ func (m *MockFarmerLinkageRepoShared) SetDBManager(dbManager any) {
 	m.Called(dbManager)
 }
 
-// MockAAAService is a mock implementation of AAAService for testing
-type MockAAAService struct {
-	mock.Mock
-}
-
-func (m *MockAAAService) CheckPermission(ctx context.Context, subject, resource, action, object, orgID string) (bool, error) {
-	args := m.Called(ctx, subject, resource, action, object, orgID)
-	return args.Bool(0), args.Error(1)
-}
-
-func (m *MockAAAService) GetUser(ctx context.Context, userID string) (any, error) {
-	args := m.Called(ctx, userID)
-	return args.Get(0), args.Error(1)
-}
-
-func (m *MockAAAService) GetOrganization(ctx context.Context, orgID string) (any, error) {
-	args := m.Called(ctx, orgID)
-	return args.Get(0), args.Error(1)
-}
-
-func (m *MockAAAService) CheckUserRole(ctx context.Context, userID, roleName string) (bool, error) {
-	args := m.Called(ctx, userID, roleName)
-	return args.Bool(0), args.Error(1)
-}
-
-func (m *MockAAAService) CreateUser(ctx context.Context, req any) (any, error) {
-	args := m.Called(ctx, req)
-	return args.Get(0), args.Error(1)
-}
-
-func (m *MockAAAService) GetUserByMobile(ctx context.Context, mobile string) (any, error) {
-	args := m.Called(ctx, mobile)
-	return args.Get(0), args.Error(1)
-}
-
-func (m *MockAAAService) GetUserByEmail(ctx context.Context, email string) (any, error) {
-	args := m.Called(ctx, email)
-	return args.Get(0), args.Error(1)
-}
-
-func (m *MockAAAService) CreateOrganization(ctx context.Context, req any) (any, error) {
-	args := m.Called(ctx, req)
-	return args.Get(0), args.Error(1)
-}
-
-func (m *MockAAAService) CreateUserGroup(ctx context.Context, req any) (any, error) {
-	args := m.Called(ctx, req)
-	return args.Get(0), args.Error(1)
-}
-
-func (m *MockAAAService) AddUserToGroup(ctx context.Context, userID, groupID string) error {
-	args := m.Called(ctx, userID, groupID)
-	return args.Error(0)
-}
-
-func (m *MockAAAService) RemoveUserFromGroup(ctx context.Context, userID, groupID string) error {
-	args := m.Called(ctx, userID, groupID)
-	return args.Error(0)
-}
-
-func (m *MockAAAService) AssignRole(ctx context.Context, userID, orgID, roleName string) error {
-	args := m.Called(ctx, userID, orgID, roleName)
-	return args.Error(0)
-}
-
-func (m *MockAAAService) AssignPermissionToGroup(ctx context.Context, groupID, resource, action string) error {
-	args := m.Called(ctx, groupID, resource, action)
-	return args.Error(0)
-}
-
-func (m *MockAAAService) ValidateToken(ctx context.Context, token string) (*interfaces.UserInfo, error) {
-	args := m.Called(ctx, token)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*interfaces.UserInfo), args.Error(1)
-}
-
-func (m *MockAAAService) SeedRolesAndPermissions(ctx context.Context) error {
-	args := m.Called(ctx)
-	return args.Error(0)
-}
-
-func (m *MockAAAService) HealthCheck(ctx context.Context) error {
-	args := m.Called(ctx)
-	return args.Error(0)
-}
+// MockAAAService is an alias for MockAAAServiceShared for backward compatibility
+// This ensures all tests can use either MockAAAService or MockAAAServiceShared
+// and get the same enhanced functionality including permission matrix support
+type MockAAAService = MockAAAServiceShared
 
 // MockBaseFilterableRepository is a generic mock for BaseFilterableRepository
 type MockBaseFilterableRepository[T any] struct {
