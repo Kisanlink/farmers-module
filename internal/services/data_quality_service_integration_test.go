@@ -18,11 +18,12 @@ import (
 // DataQualityServiceIntegrationTestSuite is the test suite for data quality service integration tests
 type DataQualityServiceIntegrationTestSuite struct {
 	suite.Suite
-	db                *gorm.DB
-	service           DataQualityService
-	farmRepo          *farmRepo.FarmRepository
-	farmerLinkageRepo *base.BaseFilterableRepository[*entities.FarmerLink]
-	mockAAAService    *MockAAAService
+	db                      *gorm.DB
+	service                 DataQualityService
+	farmRepo                *farmRepo.FarmRepository
+	farmerLinkageRepo       *base.BaseFilterableRepository[*entities.FarmerLink]
+	mockAAAService          *MockAAAService
+	mockNotificationService *MockNotificationService
 }
 
 // SetupSuite sets up the test suite
@@ -42,11 +43,12 @@ func (suite *DataQualityServiceIntegrationTestSuite) SetupSuite() {
 	suite.farmerLinkageRepo = base.NewBaseFilterableRepository[*entities.FarmerLink]()
 	suite.farmerLinkageRepo.SetDBManager(&mockDBManager{db: db})
 
-	// Create mock AAA service
+	// Create mock services
 	suite.mockAAAService = &MockAAAService{}
+	suite.mockNotificationService = &MockNotificationService{}
 
 	// Create service
-	suite.service = NewDataQualityService(db, suite.farmRepo, suite.farmerLinkageRepo, suite.mockAAAService)
+	suite.service = NewDataQualityService(db, suite.farmRepo, suite.farmerLinkageRepo, suite.mockAAAService, suite.mockNotificationService)
 }
 
 // TearDownSuite tears down the test suite

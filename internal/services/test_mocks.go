@@ -359,6 +359,31 @@ func (m *MockDataQualityService) DetectFarmOverlaps(ctx context.Context, req any
 	return args.Get(0), args.Error(1)
 }
 
+// MockNotificationService is a mock implementation of NotificationService for testing
+type MockNotificationService struct {
+	mock.Mock
+}
+
+func (m *MockNotificationService) SendOrphanedLinkAlert(ctx context.Context, fpoOrgID string, orphanedLinks []*entities.FarmerLink) error {
+	args := m.Called(ctx, fpoOrgID, orphanedLinks)
+	return args.Error(0)
+}
+
+func (m *MockNotificationService) SendDataQualityAlert(ctx context.Context, alert DataQualityAlert) error {
+	args := m.Called(ctx, alert)
+	return args.Error(0)
+}
+
+func (m *MockNotificationService) SendNotification(ctx context.Context, req *NotificationRequest) error {
+	args := m.Called(ctx, req)
+	return args.Error(0)
+}
+
+func (m *MockNotificationService) QueueNotification(ctx context.Context, req *NotificationRequest) error {
+	args := m.Called(ctx, req)
+	return args.Error(0)
+}
+
 // MockCache is a mock implementation of Cache interface for testing
 type MockCache struct {
 	mock.Mock

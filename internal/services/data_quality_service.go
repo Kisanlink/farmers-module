@@ -16,10 +16,11 @@ import (
 
 // DataQualityServiceImpl implements DataQualityService
 type DataQualityServiceImpl struct {
-	db                *gorm.DB
-	farmRepo          *farmRepo.FarmRepository
-	farmerLinkageRepo *base.BaseFilterableRepository[*entities.FarmerLink]
-	aaaService        AAAService
+	db                  *gorm.DB
+	farmRepo            *farmRepo.FarmRepository
+	farmerLinkageRepo   *base.BaseFilterableRepository[*entities.FarmerLink]
+	aaaService          AAAService
+	notificationService NotificationService
 }
 
 // NewDataQualityService creates a new data quality service
@@ -28,12 +29,14 @@ func NewDataQualityService(
 	farmRepo *farmRepo.FarmRepository,
 	farmerLinkageRepo *base.BaseFilterableRepository[*entities.FarmerLink],
 	aaaService AAAService,
+	notificationService NotificationService,
 ) DataQualityService {
 	return &DataQualityServiceImpl{
-		db:                db,
-		farmRepo:          farmRepo,
-		farmerLinkageRepo: farmerLinkageRepo,
-		aaaService:        aaaService,
+		db:                  db,
+		farmRepo:            farmRepo,
+		farmerLinkageRepo:   farmerLinkageRepo,
+		aaaService:          aaaService,
+		notificationService: notificationService,
 	}
 }
 
@@ -218,6 +221,9 @@ func (s *DataQualityServiceImpl) ReconcileAAALinks(ctx context.Context, req inte
 	response.ProcessedLinks = len(farmerLinks)
 
 	// Business Rule 6.2: Drift Detection and Recovery
+	// Collect orphaned links for notification
+	orphanedLinks := []*entities.FarmerLink{}
+
 	// Check each link against AAA service
 	for _, link := range farmerLinks {
 		isDrifted := false
@@ -249,8 +255,10 @@ func (s *DataQualityServiceImpl) ReconcileAAALinks(ctx context.Context, req inte
 				link.Status = "ORPHANED"
 				if updateErr := s.farmerLinkageRepo.Update(ctx, link); updateErr != nil {
 					response.Errors = append(response.Errors, fmt.Sprintf("Failed to mark link as ORPHANED: %v", updateErr))
+				} else {
+					// Collect successfully orphaned links for notification
+					orphanedLinks = append(orphanedLinks, link)
 				}
-				// TODO: Notify FPO admin of data inconsistency (Business Rule 6.2)
 			}
 			continue
 		}
@@ -266,6 +274,22 @@ func (s *DataQualityServiceImpl) ReconcileAAALinks(ctx context.Context, req inte
 				}
 			} else {
 				response.FixedLinks++ // Count what would be fixed in dry-run
+			}
+		}
+	}
+
+	// Business Rule 6.2: Notify FPO admin of data inconsistency
+	if len(orphanedLinks) > 0 && !reconcileReq.DryRun {
+		// Group orphaned links by organization for targeted notifications
+		orgOrphanedLinks := make(map[string][]*entities.FarmerLink)
+		for _, link := range orphanedLinks {
+			orgOrphanedLinks[link.AAAOrgID] = append(orgOrphanedLinks[link.AAAOrgID], link)
+		}
+
+		// Send notification to each affected organization
+		for orgID, links := range orgOrphanedLinks {
+			if notifyErr := s.notificationService.SendOrphanedLinkAlert(ctx, orgID, links); notifyErr != nil {
+				response.Errors = append(response.Errors, fmt.Sprintf("Failed to send notification to org %s: %v", orgID, notifyErr))
 			}
 		}
 	}

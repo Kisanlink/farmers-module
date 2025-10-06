@@ -18,12 +18,13 @@ import (
 func TestDataQualityService_ValidateGeometry_Minimal(t *testing.T) {
 	// Create mocks
 	mockAAAService := &MockAAAService{}
+	mockNotificationService := &MockNotificationService{}
 
 	// Setup AAA service mock to allow permission
 	mockAAAService.On("CheckPermission", mock.Anything, "user123", "farm", "audit", "", "org123").Return(true, nil)
 
 	// Create service with nil repositories (will use basic validation)
-	service := NewDataQualityService(nil, nil, nil, mockAAAService)
+	service := NewDataQualityService(nil, nil, nil, mockAAAService, mockNotificationService)
 
 	t.Run("Valid polygon geometry without PostGIS", func(t *testing.T) {
 		req := &requests.ValidateGeometryRequest{
@@ -101,6 +102,7 @@ func TestDataQualityService_ValidateGeometry_Minimal(t *testing.T) {
 func TestDataQualityService_ReconcileAAALinks_Minimal(t *testing.T) {
 	// Create mocks
 	mockAAAService := &MockAAAService{}
+	mockNotificationService := &MockNotificationService{}
 
 	// Setup AAA service mock to allow permission
 	mockAAAService.On("CheckPermission", mock.Anything, "admin123", "admin", "maintain", "", "org123").Return(true, nil)
@@ -118,7 +120,7 @@ func TestDataQualityService_ReconcileAAALinks_Minimal(t *testing.T) {
 	farmerLinkageRepo.SetDBManager(&mockDBManager{db: db})
 
 	// Create service with real repository
-	service := NewDataQualityService(db, nil, farmerLinkageRepo, mockAAAService)
+	service := NewDataQualityService(db, nil, farmerLinkageRepo, mockAAAService, mockNotificationService)
 
 	t.Run("Successful reconciliation with no links", func(t *testing.T) {
 		req := &requests.ReconcileAAALinksRequest{
@@ -151,12 +153,13 @@ func TestDataQualityService_ReconcileAAALinks_Minimal(t *testing.T) {
 func TestDataQualityService_RebuildSpatialIndexes_Minimal(t *testing.T) {
 	// Create mocks
 	mockAAAService := &MockAAAService{}
+	mockNotificationService := &MockNotificationService{}
 
 	// Setup AAA service mock to allow permission
 	mockAAAService.On("CheckPermission", mock.Anything, "admin123", "admin", "maintain", "", "org123").Return(true, nil)
 
 	// Create service with nil repositories (will report no PostGIS)
-	service := NewDataQualityService(nil, nil, nil, mockAAAService)
+	service := NewDataQualityService(nil, nil, nil, mockAAAService, mockNotificationService)
 
 	t.Run("Rebuild without database connection", func(t *testing.T) {
 		req := &requests.RebuildSpatialIndexesRequest{
@@ -187,12 +190,13 @@ func TestDataQualityService_RebuildSpatialIndexes_Minimal(t *testing.T) {
 func TestDataQualityService_DetectFarmOverlaps_Minimal(t *testing.T) {
 	// Create mocks
 	mockAAAService := &MockAAAService{}
+	mockNotificationService := &MockNotificationService{}
 
 	// Setup AAA service mock to allow permission
 	mockAAAService.On("CheckPermission", mock.Anything, "user123", "farm", "audit", "", "org123").Return(true, nil)
 
 	// Create service with nil repositories (will fail without PostGIS)
-	service := NewDataQualityService(nil, nil, nil, mockAAAService)
+	service := NewDataQualityService(nil, nil, nil, mockAAAService, mockNotificationService)
 
 	t.Run("Detect overlaps without database connection", func(t *testing.T) {
 		req := &requests.DetectFarmOverlapsRequest{

@@ -15,6 +15,7 @@ import (
 	bulkRepo "github.com/Kisanlink/farmers-module/internal/repo/bulk"
 	"github.com/Kisanlink/farmers-module/internal/services/parsers"
 	"github.com/Kisanlink/farmers-module/internal/services/pipeline"
+	"github.com/Kisanlink/farmers-module/internal/utils"
 )
 
 // BulkFarmerService defines the interface for bulk farmer operations
@@ -427,7 +428,10 @@ func (s *BulkFarmerServiceImpl) CancelBulkOperation(ctx context.Context, operati
 }
 
 // RetryFailedRecords retries failed records from a bulk operation
+// Uses exponential backoff retry logic with circuit breaker pattern
 func (s *BulkFarmerServiceImpl) RetryFailedRecords(ctx context.Context, req *requests.RetryBulkOperationRequest) (*responses.BulkOperationData, error) {
+	s.logger.Info(fmt.Sprintf("Retrying failed records: operation_id=%s", req.OperationID))
+
 	// Get original operation
 	originalOp, err := s.bulkOpRepo.GetByID(ctx, req.OperationID)
 	if err != nil {
@@ -435,7 +439,7 @@ func (s *BulkFarmerServiceImpl) RetryFailedRecords(ctx context.Context, req *req
 	}
 
 	if !originalOp.CanRetry() {
-		return nil, fmt.Errorf("operation cannot be retried")
+		return nil, fmt.Errorf("operation cannot be retried: status=%s", originalOp.Status)
 	}
 
 	// Get failed records
@@ -448,14 +452,166 @@ func (s *BulkFarmerServiceImpl) RetryFailedRecords(ctx context.Context, req *req
 		return nil, fmt.Errorf("no retryable records found")
 	}
 
-	// TODO: Implement retry logic
-	// This will create a new bulk operation for the failed records
+	// Create new bulk operation for retry
+	retryOp := bulk.NewBulkOperation()
+	retryOp.FPOOrgID = originalOp.FPOOrgID
+	retryOp.InitiatedBy = originalOp.InitiatedBy
+	retryOp.TotalRecords = len(failedDetails)
+	retryOp.Status = bulk.StatusPending
+	retryOp.InputFormat = originalOp.InputFormat
+	retryOp.ProcessingMode = originalOp.ProcessingMode
+	retryOp.Metadata = map[string]interface{}{
+		"retry_of":      originalOp.ID,
+		"retry_attempt": "1",
+	}
+	now := time.Now()
+	retryOp.StartTime = &now
 
+	if err := s.bulkOpRepo.Create(ctx, retryOp); err != nil {
+		return nil, fmt.Errorf("failed to create retry operation: %w", err)
+	}
+
+	s.logger.Info(fmt.Sprintf("Created retry operation: retry_id=%s, original_id=%s, retrying=%d records",
+		retryOp.ID, originalOp.ID, len(failedDetails)))
+
+	// Reconstruct farmer data from failed details
+	farmers := make([]*requests.FarmerBulkData, 0, len(failedDetails))
+	for _, detail := range failedDetails {
+		var farmerData requests.FarmerBulkData
+		// Convert InputData map to FarmerBulkData
+		inputJSON, err := json.Marshal(detail.InputData)
+		if err != nil {
+			s.logger.Error(fmt.Sprintf("Failed to marshal input data: detail_id=%s, error=%v", detail.ID, err))
+			continue
+		}
+		if err := json.Unmarshal(inputJSON, &farmerData); err != nil {
+			s.logger.Error(fmt.Sprintf("Failed to unmarshal farmer data: detail_id=%s, error=%v", detail.ID, err))
+			continue
+		}
+		farmers = append(farmers, &farmerData)
+	}
+
+	// Prepare retry configuration with exponential backoff
+	retryConfig := utils.RetryConfig{
+		MaxAttempts:   s.config.MaxRetries,
+		InitialDelay:  500 * time.Millisecond,
+		MaxDelay:      30 * time.Second,
+		BackoffFactor: 2.0,
+		Jitter:        true,
+	}
+
+	// Process options
+	options := requests.BulkProcessingOptions{
+		ChunkSize:       s.config.DefaultChunkSize,
+		MaxConcurrency:  s.config.MaxConcurrency,
+		ContinueOnError: true,
+	}
+
+	// Process retries asynchronously with exponential backoff
+	if s.config.EnableAsync && len(farmers) > s.config.MaxSyncRecords {
+		go s.processRetriesAsynchronously(context.Background(), retryOp, farmers, options, retryConfig)
+	} else {
+		go s.processRetriesSynchronously(context.Background(), retryOp, farmers, options, retryConfig)
+	}
+
+	// Return operation info
 	return &responses.BulkOperationData{
-		OperationID: "retry_" + originalOp.ID,
-		Status:      "INITIATED",
-		Message:     fmt.Sprintf("Retry initiated for %d failed records", len(failedDetails)),
+		OperationID: retryOp.ID,
+		Status:      string(retryOp.Status),
+		StatusURL:   fmt.Sprintf("/api/v1/bulk/status/%s", retryOp.ID),
+		ResultURL:   fmt.Sprintf("/api/v1/bulk/results/%s", retryOp.ID),
+		Message:     fmt.Sprintf("Retry operation initiated for %d failed records from operation %s", len(farmers), originalOp.ID),
 	}, nil
+}
+
+// processRetriesSynchronously processes retry records with exponential backoff
+func (s *BulkFarmerServiceImpl) processRetriesSynchronously(ctx context.Context, retryOp *bulk.BulkOperation, farmers []*requests.FarmerBulkData, options requests.BulkProcessingOptions, retryConfig utils.RetryConfig) {
+	s.logger.Info(fmt.Sprintf("Starting synchronous retry processing: retry_id=%s, total=%d", retryOp.ID, len(farmers)))
+
+	_ = s.bulkOpRepo.UpdateStatus(ctx, retryOp.ID, bulk.StatusProcessing)
+
+	var processed, successful, failed int
+
+	for i, farmer := range farmers {
+		// Process with retry logic and exponential backoff
+		err := utils.RetryWithBackoff(ctx, retryConfig, func() error {
+			return s.processSingleFarmer(ctx, retryOp, farmer, i, options)
+		})
+
+		processed++
+		if err != nil {
+			failed++
+			s.logger.Error(fmt.Sprintf("Retry failed after %d attempts: index=%d, phone=%s, error=%v",
+				retryConfig.MaxAttempts, i, farmer.PhoneNumber, err))
+		} else {
+			successful++
+			s.logger.Info(fmt.Sprintf("Retry succeeded: index=%d, phone=%s", i, farmer.PhoneNumber))
+		}
+
+		// Update progress
+		if processed%10 == 0 || processed == len(farmers) {
+			_ = s.bulkOpRepo.UpdateProgress(ctx, retryOp.ID, processed, successful, failed, 0)
+		}
+	}
+
+	// Final status
+	finalStatus := bulk.StatusCompleted
+	if failed > 0 && successful == 0 {
+		finalStatus = bulk.StatusFailed
+	}
+	_ = s.bulkOpRepo.UpdateStatus(ctx, retryOp.ID, finalStatus)
+	_ = s.bulkOpRepo.UpdateProgress(ctx, retryOp.ID, processed, successful, failed, 0)
+
+	s.logger.Info(fmt.Sprintf("Retry processing completed: retry_id=%s, successful=%d, failed=%d",
+		retryOp.ID, successful, failed))
+}
+
+// processRetriesAsynchronously processes retry records asynchronously with exponential backoff
+func (s *BulkFarmerServiceImpl) processRetriesAsynchronously(ctx context.Context, retryOp *bulk.BulkOperation, farmers []*requests.FarmerBulkData, options requests.BulkProcessingOptions, retryConfig utils.RetryConfig) {
+	s.logger.Info(fmt.Sprintf("Starting asynchronous retry processing: retry_id=%s, total=%d", retryOp.ID, len(farmers)))
+
+	_ = s.bulkOpRepo.UpdateStatus(ctx, retryOp.ID, bulk.StatusProcessing)
+
+	// Process with worker pool and retry logic
+	chunks := s.createChunks(farmers, options.ChunkSize)
+	var wg sync.WaitGroup
+	semaphore := make(chan struct{}, options.MaxConcurrency)
+
+	progressChan := make(chan progressUpdate, len(farmers))
+	go s.aggregateProgress(ctx, retryOp.ID, progressChan, len(farmers))
+
+	for chunkIdx, chunk := range chunks {
+		wg.Add(1)
+		go func(idx int, farmerChunk []*requests.FarmerBulkData) {
+			defer wg.Done()
+			semaphore <- struct{}{}        // Acquire
+			defer func() { <-semaphore }() // Release
+
+			for i, farmer := range farmerChunk {
+				globalIdx := idx*options.ChunkSize + i
+
+				// Process with retry logic and exponential backoff
+				err := utils.RetryWithBackoff(ctx, retryConfig, func() error {
+					return s.processSingleFarmer(ctx, retryOp, farmer, globalIdx, options)
+				})
+
+				if err != nil {
+					progressChan <- progressUpdate{failed: 1}
+					s.logger.Error(fmt.Sprintf("Retry failed: index=%d, error=%v", globalIdx, err))
+				} else {
+					progressChan <- progressUpdate{successful: 1}
+				}
+			}
+		}(chunkIdx, chunk)
+	}
+
+	wg.Wait()
+	close(progressChan)
+
+	// Wait for progress aggregation to complete
+	time.Sleep(1 * time.Second)
+
+	s.logger.Info(fmt.Sprintf("Asynchronous retry processing completed: retry_id=%s", retryOp.ID))
 }
 
 // Helper methods

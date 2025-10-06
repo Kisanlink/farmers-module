@@ -3,6 +3,7 @@ package testutils
 import (
 	"context"
 
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/bulk"
 	"github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
@@ -297,6 +298,42 @@ func (m *MockAAAService) ValidateToken(ctx context.Context, token string) (*inte
 func (m *MockAAAService) HealthCheck(ctx context.Context) error {
 	if m.HealthCheckFunc != nil {
 		return m.HealthCheckFunc(ctx)
+	}
+	return nil
+}
+
+// MockNotificationService provides a mock notification service implementation for testing
+type MockNotificationService struct {
+	SendOrphanedLinkAlertFunc func(ctx context.Context, fpoOrgID string, orphanedLinks []*entities.FarmerLink) error
+	SendDataQualityAlertFunc  func(ctx context.Context, alert interface{}) error
+	SendNotificationFunc      func(ctx context.Context, req interface{}) error
+	QueueNotificationFunc     func(ctx context.Context, req interface{}) error
+}
+
+func (m *MockNotificationService) SendOrphanedLinkAlert(ctx context.Context, fpoOrgID string, orphanedLinks []*entities.FarmerLink) error {
+	if m.SendOrphanedLinkAlertFunc != nil {
+		return m.SendOrphanedLinkAlertFunc(ctx, fpoOrgID, orphanedLinks)
+	}
+	return nil
+}
+
+func (m *MockNotificationService) SendDataQualityAlert(ctx context.Context, alert interface{}) error {
+	if m.SendDataQualityAlertFunc != nil {
+		return m.SendDataQualityAlertFunc(ctx, alert)
+	}
+	return nil
+}
+
+func (m *MockNotificationService) SendNotification(ctx context.Context, req interface{}) error {
+	if m.SendNotificationFunc != nil {
+		return m.SendNotificationFunc(ctx, req)
+	}
+	return nil
+}
+
+func (m *MockNotificationService) QueueNotification(ctx context.Context, req interface{}) error {
+	if m.QueueNotificationFunc != nil {
+		return m.QueueNotificationFunc(ctx, req)
 	}
 	return nil
 }

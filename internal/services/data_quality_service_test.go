@@ -12,12 +12,13 @@ import (
 func TestDataQualityService_ValidateGeometry(t *testing.T) {
 	// Create mocks
 	mockAAAService := &MockAAAService{}
+	mockNotificationService := &MockNotificationService{}
 
 	// Setup AAA service mock
 	mockAAAService.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 
 	// Create service with nil repositories for testing
-	service := NewDataQualityService(nil, nil, nil, mockAAAService)
+	service := NewDataQualityService(nil, nil, nil, mockAAAService, mockNotificationService)
 
 	req := &requests.ValidateGeometryRequest{
 		BaseRequest: requests.BaseRequest{
