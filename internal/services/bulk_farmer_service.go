@@ -174,7 +174,7 @@ func (s *BulkFarmerServiceImpl) processSynchronously(ctx context.Context, bulkOp
 
 	for i, farmer := range farmers {
 		// Process individual farmer
-		err := s.processSingleFarmer(ctx, bulkOp, farmer, i, options)
+		procCtx, err := s.processSingleFarmer(ctx, bulkOp, farmer, i, options)
 
 		processed++
 		if err != nil {
@@ -198,8 +198,9 @@ func (s *BulkFarmerServiceImpl) processSynchronously(ctx context.Context, bulkOp
 			// Update processing detail with success
 			detail, _ := s.getProcessingDetailByIndex(ctx, bulkOp.ID, i)
 			if detail != nil {
-				// TODO: Set actual farmer and AAA user IDs
-				detail.SetSuccess("farmer_id", "aaa_user_id")
+				// Extract farmer ID and AAA user ID from processing context
+				farmerID, aaaUserID := s.extractIDsFromContext(procCtx)
+				detail.SetSuccess(farmerID, aaaUserID)
 				_ = s.processingRepo.Update(ctx, detail)
 			}
 		}
@@ -284,7 +285,7 @@ func (s *BulkFarmerServiceImpl) processChunk(ctx context.Context, bulkOp *bulk.B
 
 	for i, farmer := range farmers {
 		globalIndex := chunkIndex*options.ChunkSize + i
-		err := s.processSingleFarmer(ctx, bulkOp, farmer, globalIndex, options)
+		procCtx, err := s.processSingleFarmer(ctx, bulkOp, farmer, globalIndex, options)
 
 		update := progressUpdate{
 			processed: 1,
@@ -298,20 +299,69 @@ func (s *BulkFarmerServiceImpl) processChunk(ctx context.Context, bulkOp *bulk.B
 				err,
 			)
 
+			// Update processing detail with error
+			detail, _ := s.getProcessingDetailByIndex(ctx, bulkOp.ID, globalIndex)
+			if detail != nil {
+				detail.SetFailed(err.Error(), "PROCESSING_ERROR")
+				_ = s.processingRepo.Update(ctx, detail)
+			}
+
 			if !options.ContinueOnError {
 				progressChan <- update
 				return
 			}
 		} else {
 			update.successful = 1
+
+			// Update processing detail with success
+			detail, _ := s.getProcessingDetailByIndex(ctx, bulkOp.ID, globalIndex)
+			if detail != nil {
+				// Extract farmer ID and AAA user ID from processing context
+				farmerID, aaaUserID := s.extractIDsFromContext(procCtx)
+				detail.SetSuccess(farmerID, aaaUserID)
+				_ = s.processingRepo.Update(ctx, detail)
+			}
 		}
 
 		progressChan <- update
 	}
 }
 
+// extractIDsFromContext extracts farmer ID and AAA user ID from processing context
+func (s *BulkFarmerServiceImpl) extractIDsFromContext(procCtx *pipeline.ProcessingContext) (string, string) {
+	farmerID := ""
+	aaaUserID := ""
+
+	// Extract from farmer registration stage result
+	if regResult, ok := procCtx.StageResults["farmer_registration"].(map[string]interface{}); ok {
+		if fid, exists := regResult["farmer_id"]; exists {
+			if fidStr, ok := fid.(string); ok {
+				farmerID = fidStr
+			}
+		}
+		if auid, exists := regResult["aaa_user_id"]; exists {
+			if auidStr, ok := auid.(string); ok {
+				aaaUserID = auidStr
+			}
+		}
+	}
+
+	// Fallback to AAA user creation stage if not found
+	if aaaUserID == "" {
+		if aaaResult, ok := procCtx.StageResults["aaa_user_creation"].(map[string]interface{}); ok {
+			if auid, exists := aaaResult["aaa_user_id"]; exists {
+				if auidStr, ok := auid.(string); ok {
+					aaaUserID = auidStr
+				}
+			}
+		}
+	}
+
+	return farmerID, aaaUserID
+}
+
 // processSingleFarmer processes a single farmer using the pipeline
-func (s *BulkFarmerServiceImpl) processSingleFarmer(ctx context.Context, bulkOp *bulk.BulkOperation, farmer *requests.FarmerBulkData, index int, options requests.BulkProcessingOptions) error {
+func (s *BulkFarmerServiceImpl) processSingleFarmer(ctx context.Context, bulkOp *bulk.BulkOperation, farmer *requests.FarmerBulkData, index int, options requests.BulkProcessingOptions) (*pipeline.ProcessingContext, error) {
 	// Create processing context
 	procCtx := pipeline.NewProcessingContext(
 		bulkOp.ID,
@@ -327,10 +377,10 @@ func (s *BulkFarmerServiceImpl) processSingleFarmer(ctx context.Context, bulkOp 
 	// Execute pipeline
 	_, err := pipe.Execute(ctx, procCtx)
 	if err != nil {
-		return fmt.Errorf("pipeline execution failed: %w", err)
+		return nil, fmt.Errorf("pipeline execution failed: %w", err)
 	}
 
-	return nil
+	return procCtx, nil
 }
 
 // buildProcessingPipeline builds the processing pipeline based on options
@@ -534,8 +584,11 @@ func (s *BulkFarmerServiceImpl) processRetriesSynchronously(ctx context.Context,
 
 	for i, farmer := range farmers {
 		// Process with retry logic and exponential backoff
+		var procCtx *pipeline.ProcessingContext
 		err := utils.RetryWithBackoff(ctx, retryConfig, func() error {
-			return s.processSingleFarmer(ctx, retryOp, farmer, i, options)
+			var err error
+			procCtx, err = s.processSingleFarmer(ctx, retryOp, farmer, i, options)
+			return err
 		})
 
 		processed++
@@ -543,9 +596,25 @@ func (s *BulkFarmerServiceImpl) processRetriesSynchronously(ctx context.Context,
 			failed++
 			s.logger.Error(fmt.Sprintf("Retry failed after %d attempts: index=%d, phone=%s, error=%v",
 				retryConfig.MaxAttempts, i, farmer.PhoneNumber, err))
+
+			// Update processing detail with error
+			detail, _ := s.getProcessingDetailByIndex(ctx, retryOp.ID, i)
+			if detail != nil {
+				detail.SetFailed(err.Error(), "RETRY_FAILED")
+				_ = s.processingRepo.Update(ctx, detail)
+			}
 		} else {
 			successful++
 			s.logger.Info(fmt.Sprintf("Retry succeeded: index=%d, phone=%s", i, farmer.PhoneNumber))
+
+			// Update processing detail with success
+			detail, _ := s.getProcessingDetailByIndex(ctx, retryOp.ID, i)
+			if detail != nil {
+				// Extract farmer ID and AAA user ID from processing context
+				farmerID, aaaUserID := s.extractIDsFromContext(procCtx)
+				detail.SetSuccess(farmerID, aaaUserID)
+				_ = s.processingRepo.Update(ctx, detail)
+			}
 		}
 
 		// Update progress
@@ -591,15 +660,34 @@ func (s *BulkFarmerServiceImpl) processRetriesAsynchronously(ctx context.Context
 				globalIdx := idx*options.ChunkSize + i
 
 				// Process with retry logic and exponential backoff
+				var procCtx *pipeline.ProcessingContext
 				err := utils.RetryWithBackoff(ctx, retryConfig, func() error {
-					return s.processSingleFarmer(ctx, retryOp, farmer, globalIdx, options)
+					var err error
+					procCtx, err = s.processSingleFarmer(ctx, retryOp, farmer, globalIdx, options)
+					return err
 				})
 
 				if err != nil {
 					progressChan <- progressUpdate{failed: 1}
 					s.logger.Error(fmt.Sprintf("Retry failed: index=%d, error=%v", globalIdx, err))
+
+					// Update processing detail with error
+					detail, _ := s.getProcessingDetailByIndex(ctx, retryOp.ID, globalIdx)
+					if detail != nil {
+						detail.SetFailed(err.Error(), "RETRY_FAILED")
+						_ = s.processingRepo.Update(ctx, detail)
+					}
 				} else {
 					progressChan <- progressUpdate{successful: 1}
+
+					// Update processing detail with success
+					detail, _ := s.getProcessingDetailByIndex(ctx, retryOp.ID, globalIdx)
+					if detail != nil {
+						// Extract farmer ID and AAA user ID from processing context
+						farmerID, aaaUserID := s.extractIDsFromContext(procCtx)
+						detail.SetSuccess(farmerID, aaaUserID)
+						_ = s.processingRepo.Update(ctx, detail)
+					}
 				}
 			}
 		}(chunkIdx, chunk)

@@ -418,10 +418,13 @@ func (frs *FarmerRegistrationStage) Process(ctx context.Context, data interface{
 	}
 
 	// Extract farmer ID from response
-	farmerID := "" // TODO: Extract from farmerResponse
-	if farmerResponse != nil {
-		// Assuming the response has a farmer ID field
-		farmerID = "farmer_" + aaaUserID // Placeholder
+	farmerID := ""
+	if farmerResponse != nil && farmerResponse.Data != nil {
+		farmerID = farmerResponse.Data.ID
+	}
+
+	if farmerID == "" {
+		return nil, fmt.Errorf("failed to get farmer ID from registration response")
 	}
 
 	procCtx.SetStageResult("farmer_registration", map[string]interface{}{
