@@ -396,6 +396,12 @@ func (s *FarmServiceImpl) validateGeometry(ctx context.Context, wkt string) erro
 		return common.ErrInvalidFarmGeometry
 	}
 
+	// Business Rule 7.1: Farm geometry business validation
+	const (
+		MaxFarmSizeHa = 100.0 // Maximum farm size in hectares
+		MinFarmSizeHa = 0.01  // Minimum farm size in hectares (100 sq meters)
+	)
+
 	// If no database connection, do basic validation
 	if s.db == nil {
 		// Basic WKT format validation without PostGIS
@@ -444,6 +450,22 @@ func (s *FarmServiceImpl) validateGeometry(ctx context.Context, wkt string) erro
 	}
 	if hasIntersections {
 		return fmt.Errorf("geometry has self-intersections")
+	}
+
+	// Business Rule 7.1: Validate farm area size
+	// Calculate area in hectares using ST_Area with geography cast
+	var areaHa float64
+	if err := s.db.Raw(`
+		SELECT ST_Area(ST_GeomFromText(?, 4326)::geography) / 10000.0 AS area_ha
+	`, wkt).Scan(&areaHa).Error; err != nil {
+		return fmt.Errorf("failed to calculate farm area: %w", err)
+	}
+
+	if areaHa > MaxFarmSizeHa {
+		return fmt.Errorf("farm size %.2f ha exceeds maximum allowed size of %.2f ha", areaHa, MaxFarmSizeHa)
+	}
+	if areaHa < MinFarmSizeHa {
+		return fmt.Errorf("farm size %.2f ha is below minimum required size of %.2f ha", areaHa, MinFarmSizeHa)
 	}
 
 	// Optional: Check if geometry is within India bounds (rough check)

@@ -379,17 +379,38 @@ definitions:
       area_ha:
         minimum: 0.01
         type: number
+      bore_well_count:
+        minimum: 0
+        type: integer
       geometry:
         $ref: '#/definitions/requests.GeometryData'
+      irrigation_sources:
+        items:
+          $ref: '#/definitions/requests.IrrigationSourceRequest'
+        type: array
       metadata:
         additionalProperties:
           type: string
         type: object
+      name:
+        type: string
       org_id:
+        type: string
+      other_irrigation_details:
+        type: string
+      ownership_type:
+        enum:
+        - OWN
+        - LEASE
+        - SHARED
+        type: string
+      primary_irrigation_source_id:
         type: string
       request_id:
         type: string
       request_type:
+        type: string
+      soil_type_id:
         type: string
       timestamp:
         type: string
@@ -640,6 +661,20 @@ definitions:
       wkt:
         description: Well-Known Text format
         type: string
+    type: object
+  requests.IrrigationSourceRequest:
+    properties:
+      count:
+        minimum: 0
+        type: integer
+      details:
+        type: string
+      irrigation_source_id:
+        type: string
+      is_primary:
+        type: boolean
+    required:
+    - irrigation_source_id
     type: object
   requests.LinkFarmerRequest:
     properties:
@@ -966,19 +1001,40 @@ definitions:
         type: string
       area_ha:
         type: number
+      bore_well_count:
+        minimum: 0
+        type: integer
       geometry:
         $ref: '#/definitions/requests.GeometryData'
       id:
         type: string
+      irrigation_sources:
+        items:
+          $ref: '#/definitions/requests.IrrigationSourceRequest'
+        type: array
       metadata:
         additionalProperties:
           type: string
         type: object
+      name:
+        type: string
       org_id:
+        type: string
+      other_irrigation_details:
+        type: string
+      ownership_type:
+        enum:
+        - OWN
+        - LEASE
+        - SHARED
+        type: string
+      primary_irrigation_source_id:
         type: string
       request_id:
         type: string
       request_type:
+        type: string
+      soil_type_id:
         type: string
       timestamp:
         type: string

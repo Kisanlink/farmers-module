@@ -68,6 +68,9 @@ func TestFPOService_CreateFPO_Success(t *testing.T) {
 			"created_at": time.Now(),
 		}, nil)
 
+	// Mock CEO role check (Business Rule 1.2: user not already CEO of another FPO)
+	mockAAA.On("CheckUserRole", ctx, "user123", "CEO").Return(false, nil)
+
 	mockAAA.On("CreateOrganization", ctx, mock.AnythingOfType("map[string]interface {}")).Return(
 		map[string]interface{}{
 			"org_id":     "org123",

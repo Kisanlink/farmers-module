@@ -30,6 +30,8 @@ type FPOService interface {
 	RegisterFPORef(ctx context.Context, req interface{}) (interface{}, error)
 	// GetFPORef gets FPO reference
 	GetFPORef(ctx context.Context, orgID string) (interface{}, error)
+	// CompleteFPOSetup retries failed setup operations for PENDING_SETUP FPOs
+	CompleteFPOSetup(ctx context.Context, orgID string) (interface{}, error)
 }
 
 // KisanSathiService handles KisanSathi assignment workflows

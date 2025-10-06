@@ -56,6 +56,7 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 	var aaaOrgID string
 
 	if req.Profile.PhoneNumber != "" {
+		// Business Rule 5.1: RegisterFarmer idempotency - return existing farmer if phone exists
 		// Try to find existing user by mobile number
 		aaaUser, err := s.aaaService.GetUserByMobile(ctx, req.Profile.PhoneNumber)
 		if err != nil {
@@ -84,6 +85,62 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 			if err != nil {
 				return nil, fmt.Errorf("failed to create user in AAA: %w", err)
 			}
+		} else {
+			// User exists in AAA - check if farmer profile exists locally
+			// Extract AAA user ID from existing user
+			if userMap, ok := aaaUser.(map[string]interface{}); ok {
+				if id, exists := userMap["id"]; exists {
+					aaaUserID = fmt.Sprintf("%v", id)
+				}
+			}
+
+			// Try to get existing farmer profile
+			if aaaUserID != "" {
+				existingFarmerFilter := base.NewFilterBuilder().
+					Where("aaa_user_id", base.OpEqual, aaaUserID).
+					Build()
+				existingFarmer, err := s.repository.FindOne(ctx, existingFarmerFilter)
+				if err == nil && existingFarmer != nil {
+					// Farmer profile exists - return it (idempotent operation)
+					log.Printf("Farmer already registered with phone %s, returning existing profile", req.Profile.PhoneNumber)
+
+					// Convert to response format
+					var addressData responses.AddressData
+					if existingFarmer.Address != nil {
+						addressData = responses.AddressData{
+							StreetAddress: existingFarmer.Address.StreetAddress,
+							City:          existingFarmer.Address.City,
+							State:         existingFarmer.Address.State,
+							PostalCode:    existingFarmer.Address.PostalCode,
+							Country:       existingFarmer.Address.Country,
+							Coordinates:   existingFarmer.Address.Coordinates,
+						}
+					}
+
+					farmerProfileData := &responses.FarmerProfileData{
+						ID:               existingFarmer.GetID(),
+						AAAUserID:        existingFarmer.AAAUserID,
+						AAAOrgID:         existingFarmer.AAAOrgID,
+						KisanSathiUserID: existingFarmer.KisanSathiUserID,
+						FirstName:        existingFarmer.FirstName,
+						LastName:         existingFarmer.LastName,
+						PhoneNumber:      existingFarmer.PhoneNumber,
+						Email:            existingFarmer.Email,
+						DateOfBirth:      existingFarmer.DateOfBirth,
+						Gender:           existingFarmer.Gender,
+						Address:          addressData,
+						Preferences:      existingFarmer.Preferences,
+						Metadata:         existingFarmer.Metadata,
+						Farms:            []*responses.FarmData{},
+						CreatedAt:        existingFarmer.CreatedAt.Format("2006-01-02T15:04:05Z"),
+						UpdatedAt:        existingFarmer.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+					}
+
+					response := responses.NewFarmerResponse(farmerProfileData, "Farmer already registered")
+					return &response, nil
+				}
+				log.Printf("AAA user exists but no local farmer profile found, proceeding with registration")
+			}
 		}
 
 		// Extract AAA user ID from response
@@ -111,12 +168,49 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		aaaOrgID = req.AAAOrgID
 	}
 
+	// Business Rule 2.2: Validate KisanSathi if provided
+	// If validation fails, set to NULL and return warning (don't fail registration)
+	var kisanSathiWarning string
+	var validatedKisanSathiID *string
+	if req.KisanSathiUserID != nil && *req.KisanSathiUserID != "" {
+		// Validate KisanSathi user exists and has the kisansathi role
+		_, err := s.aaaService.GetUser(ctx, *req.KisanSathiUserID)
+		if err != nil {
+			log.Printf("Warning: KisanSathi validation failed for user %s: %v", *req.KisanSathiUserID, err)
+			kisanSathiWarning = fmt.Sprintf("KisanSathi validation failed: user not found - %v", err)
+			validatedKisanSathiID = nil
+		} else {
+			// Check if user has kisansathi role
+			hasRole, err := s.aaaService.CheckUserRole(ctx, *req.KisanSathiUserID, "kisansathi")
+			if err != nil {
+				log.Printf("Warning: Failed to check KisanSathi role for user %s: %v", *req.KisanSathiUserID, err)
+				kisanSathiWarning = fmt.Sprintf("KisanSathi role check failed: %v", err)
+				validatedKisanSathiID = nil
+			} else if !hasRole {
+				log.Printf("Warning: User %s does not have kisansathi role", *req.KisanSathiUserID)
+				kisanSathiWarning = "KisanSathi validation failed: user does not have kisansathi role"
+				validatedKisanSathiID = nil
+			} else {
+				// Validation successful
+				validatedKisanSathiID = req.KisanSathiUserID
+				log.Printf("KisanSathi %s validated successfully", *req.KisanSathiUserID)
+			}
+		}
+
+		// Log the warning if validation failed
+		if kisanSathiWarning != "" {
+			log.Printf("Farmer registration proceeding without KisanSathi assignment. User: %s, Warning: %s", aaaUserID, kisanSathiWarning)
+		}
+	} else {
+		validatedKisanSathiID = nil
+	}
+
 	// Create new farmer profile
 	farmerProfile := &entities.FarmerProfile{
 		BaseModel:        *base.NewBaseModel("farmer_profile", hash.Medium),
 		AAAUserID:        aaaUserID,
 		AAAOrgID:         aaaOrgID,
-		KisanSathiUserID: req.KisanSathiUserID,
+		KisanSathiUserID: validatedKisanSathiID,
 		FirstName:        req.Profile.FirstName,
 		LastName:         req.Profile.LastName,
 		PhoneNumber:      req.Profile.PhoneNumber,
@@ -175,7 +269,13 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		UpdatedAt:        farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
-	response := responses.NewFarmerResponse(farmerProfileData, "Farmer created successfully")
+	// Prepare response message with warning if KisanSathi validation failed
+	message := "Farmer created successfully"
+	if kisanSathiWarning != "" {
+		message = fmt.Sprintf("Farmer created successfully (warning: %s)", kisanSathiWarning)
+	}
+
+	response := responses.NewFarmerResponse(farmerProfileData, message)
 	return &response, nil
 }
 

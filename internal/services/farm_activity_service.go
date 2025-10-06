@@ -17,6 +17,7 @@ import (
 type FarmActivityServiceImpl struct {
 	farmActivityRepo *base.BaseFilterableRepository[*farmActivityEntity.FarmActivity]
 	cropCycleRepo    *base.BaseFilterableRepository[*cropCycleEntity.CropCycle]
+	farmerLinkRepo   FarmerLinkRepository
 	aaaService       AAAService
 }
 
@@ -24,11 +25,13 @@ type FarmActivityServiceImpl struct {
 func NewFarmActivityService(
 	farmActivityRepo *base.BaseFilterableRepository[*farmActivityEntity.FarmActivity],
 	cropCycleRepo *base.BaseFilterableRepository[*cropCycleEntity.CropCycle],
+	farmerLinkRepo FarmerLinkRepository,
 	aaaService AAAService,
 ) FarmActivityService {
 	return &FarmActivityServiceImpl{
 		farmActivityRepo: farmActivityRepo,
 		cropCycleRepo:    cropCycleRepo,
+		farmerLinkRepo:   farmerLinkRepo,
 		aaaService:       aaaService,
 	}
 }
@@ -54,6 +57,31 @@ func (s *FarmActivityServiceImpl) CreateActivity(ctx context.Context, req interf
 	_, err = s.cropCycleRepo.GetByID(ctx, createReq.CropCycleID, cropCycle)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get crop cycle: %w", err)
+	}
+
+	// Business Rule 9.2: KisanSathi permission scope check
+	// KisanSathi users can only create activities for farmers they are assigned to
+	isKisanSathi, err := s.aaaService.CheckUserRole(ctx, createReq.UserID, "kisansathi")
+	if err != nil {
+		return nil, fmt.Errorf("failed to check user role: %w", err)
+	}
+
+	if isKisanSathi {
+		// Get farmer link to verify KisanSathi assignment
+		farmerLinkFilter := base.NewFilterBuilder().
+			Where("aaa_user_id", base.OpEqual, cropCycle.FarmerID).
+			Where("status", base.OpEqual, "ACTIVE").
+			Build()
+
+		farmerLinks, err := s.farmerLinkRepo.Find(ctx, farmerLinkFilter)
+		if err != nil || len(farmerLinks) == 0 {
+			return nil, fmt.Errorf("farmer link not found for farmer %s", cropCycle.FarmerID)
+		}
+
+		farmerLink := farmerLinks[0]
+		if farmerLink.KisanSathiUserID == nil || *farmerLink.KisanSathiUserID != createReq.UserID {
+			return nil, fmt.Errorf("KisanSathi can only create activities for assigned farmers")
+		}
 	}
 
 	// Create farm activity entity

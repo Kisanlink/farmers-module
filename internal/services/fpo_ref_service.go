@@ -97,7 +97,17 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 		log.Printf("Using existing CEO user with ID: %s", ceoUserID)
 	}
 
-	// Step 2: Create organization in AAA
+	// Step 2: Validate CEO is not already CEO of another FPO
+	// Business Rule 1.2: A user CANNOT be CEO of multiple FPOs simultaneously
+	isCEO, err := s.aaaService.CheckUserRole(ctx, ceoUserID, "CEO")
+	if err != nil {
+		log.Printf("Warning: Failed to check if user is already CEO: %v", err)
+		// Continue anyway - this is a best-effort check
+	} else if isCEO {
+		return nil, fmt.Errorf("user is already CEO of another FPO - a user cannot be CEO of multiple FPOs simultaneously")
+	}
+
+	// Step 3: Create organization in AAA
 	createOrgReq := map[string]interface{}{
 		"name":        createReq.Name,
 		"description": createReq.Description,
@@ -119,15 +129,16 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 	aaaOrgID := orgRespMap["org_id"].(string)
 	log.Printf("Created organization with ID: %s", aaaOrgID)
 
-	// Step 3: Assign CEO role to user in organization
+	// Step 4: Assign CEO role to user in organization
 	err = s.aaaService.AssignRole(ctx, ceoUserID, aaaOrgID, "CEO")
 	if err != nil {
 		log.Printf("Warning: Failed to assign CEO role: %v", err)
 		// Continue as this might not be critical
 	}
 
-	// Step 4: Create user groups for FPO
+	// Step 5: Create user groups for FPO
 	userGroups := []responses.UserGroupData{}
+	setupErrors := make(map[string]string)
 	groupNames := []string{"directors", "shareholders", "store_staff", "store_managers"}
 
 	for _, groupName := range groupNames {
@@ -141,12 +152,14 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 		groupResp, err := s.aaaService.CreateUserGroup(ctx, createGroupReq)
 		if err != nil {
 			log.Printf("Warning: Failed to create user group %s: %v", groupName, err)
+			setupErrors[fmt.Sprintf("user_group_%s", groupName)] = err.Error()
 			continue
 		}
 
 		groupRespMap, ok := groupResp.(map[string]interface{})
 		if !ok {
 			log.Printf("Warning: Invalid group creation response for %s", groupName)
+			setupErrors[fmt.Sprintf("user_group_%s", groupName)] = "invalid response from AAA service"
 			continue
 		}
 
@@ -166,17 +179,27 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 			err = s.aaaService.AssignPermissionToGroup(ctx, userGroup.GroupID, "fpo", permission)
 			if err != nil {
 				log.Printf("Warning: Failed to assign permission %s to group %s: %v", permission, groupName, err)
+				setupErrors[fmt.Sprintf("permission_%s_%s", groupName, permission)] = err.Error()
 			}
 		}
 	}
 
-	// Step 5: Store FPO reference in local database
+	// Step 6: Determine FPO status based on setup success
+	// Business Rule 1.1: Mark as PENDING_SETUP if any failures occurred
+	fpoStatus := fpo.FPOStatusActive
+	if len(setupErrors) > 0 {
+		fpoStatus = fpo.FPOStatusPendingSetup
+		log.Printf("FPO setup incomplete, marking as PENDING_SETUP. Errors: %v", setupErrors)
+	}
+
+	// Step 7: Store FPO reference in local database
 	fpoRef := &fpo.FPORef{
 		AAAOrgID:       aaaOrgID,
 		Name:           createReq.Name,
 		RegistrationNo: createReq.RegistrationNo,
-		Status:         "ACTIVE",
+		Status:         fpoStatus,
 		BusinessConfig: createReq.BusinessConfig,
+		SetupErrors:    setupErrors,
 	}
 
 	err = s.fpoRefRepo.Create(ctx, fpoRef)
@@ -185,18 +208,22 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 		// Continue as AAA organization is already created
 	}
 
-	// Step 6: Prepare response
+	// Step 8: Prepare response
 	responseData := &responses.CreateFPOData{
 		FPOID:      fpoRef.ID,
 		AAAOrgID:   aaaOrgID,
 		Name:       createReq.Name,
 		CEOUserID:  ceoUserID,
 		UserGroups: userGroups,
-		Status:     "ACTIVE",
+		Status:     fpoStatus.String(),
 		CreatedAt:  time.Now(),
 	}
 
-	log.Printf("Successfully created FPO: %s with org ID: %s", createReq.Name, aaaOrgID)
+	if fpoStatus == fpo.FPOStatusPendingSetup {
+		log.Printf("FPO created with incomplete setup: %s (org ID: %s). Errors: %v", createReq.Name, aaaOrgID, setupErrors)
+	} else {
+		log.Printf("Successfully created FPO: %s with org ID: %s", createReq.Name, aaaOrgID)
+	}
 	return responseData, nil
 }
 
@@ -316,6 +343,105 @@ func (s *FPOServiceImpl) GetFPORef(ctx context.Context, orgID string) (interface
 	}
 
 	log.Printf("Successfully retrieved FPO reference: %s", fpoRef.ID)
+	return responseData, nil
+}
+
+// CompleteFPOSetup retries failed setup operations for PENDING_SETUP FPOs
+// Business Rule 1.1: Allow recovery from partial failure during FPO creation
+func (s *FPOServiceImpl) CompleteFPOSetup(ctx context.Context, orgID string) (interface{}, error) {
+	log.Printf("FPOService: Starting CompleteFPOSetup for org ID: %s", orgID)
+
+	// Get FPO reference from database
+	filter := &base.Filter{
+		Group: base.FilterGroup{
+			Conditions: []base.FilterCondition{
+				{
+					Field:    "aaa_org_id",
+					Operator: base.OpEqual,
+					Value:    orgID,
+				},
+			},
+		},
+	}
+	fpoRef, err := s.fpoRefRepo.FindOne(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("FPO reference not found: %w", err)
+	}
+
+	// Check if FPO is in PENDING_SETUP status
+	if !fpoRef.IsPendingSetup() {
+		return nil, fmt.Errorf("FPO is not in PENDING_SETUP status, current status: %s", fpoRef.Status)
+	}
+
+	// Retry creating missing user groups
+	setupErrors := make(map[string]string)
+	groupNames := []string{"directors", "shareholders", "store_staff", "store_managers"}
+
+	for _, groupName := range groupNames {
+		// Try to create missing group (AAA service will handle duplicates)
+		createGroupReq := map[string]interface{}{
+			"name":        groupName,
+			"description": fmt.Sprintf("%s group for %s", groupName, fpoRef.Name),
+			"org_id":      orgID,
+			"permissions": s.getGroupPermissions(groupName),
+		}
+
+		groupResp, err := s.aaaService.CreateUserGroup(ctx, createGroupReq)
+		if err != nil {
+			log.Printf("Warning: Failed to create user group %s: %v", groupName, err)
+			setupErrors[fmt.Sprintf("user_group_%s", groupName)] = err.Error()
+			continue
+		}
+
+		groupRespMap, ok := groupResp.(map[string]interface{})
+		if !ok {
+			log.Printf("Warning: Invalid group creation response for %s", groupName)
+			setupErrors[fmt.Sprintf("user_group_%s", groupName)] = "invalid response from AAA service"
+			continue
+		}
+
+		groupID := groupRespMap["group_id"].(string)
+		log.Printf("Created user group: %s with ID: %s", groupName, groupID)
+
+		// Assign permissions to group
+		for _, permission := range s.getGroupPermissions(groupName) {
+			err = s.aaaService.AssignPermissionToGroup(ctx, groupID, "fpo", permission)
+			if err != nil {
+				log.Printf("Warning: Failed to assign permission %s to group %s: %v", permission, groupName, err)
+				setupErrors[fmt.Sprintf("permission_%s_%s", groupName, permission)] = err.Error()
+			}
+		}
+	}
+
+	// Update FPO status based on retry results
+	if len(setupErrors) == 0 {
+		fpoRef.Status = fpo.FPOStatusActive
+		fpoRef.SetupErrors = nil
+		log.Printf("FPO setup completed successfully, marking as ACTIVE")
+	} else {
+		// Still has errors, keep PENDING_SETUP status
+		fpoRef.SetupErrors = setupErrors
+		log.Printf("FPO setup still incomplete. Remaining errors: %v", setupErrors)
+	}
+
+	// Update FPO in database
+	if err := s.fpoRefRepo.Create(ctx, fpoRef); err != nil {
+		return nil, fmt.Errorf("failed to update FPO reference: %w", err)
+	}
+
+	// Prepare response
+	responseData := &responses.FPORefData{
+		ID:             fpoRef.ID,
+		AAAOrgID:       fpoRef.AAAOrgID,
+		Name:           fpoRef.Name,
+		RegistrationNo: fpoRef.RegistrationNo,
+		BusinessConfig: fpoRef.BusinessConfig,
+		Status:         fpoRef.Status.String(),
+		CreatedAt:      fpoRef.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:      fpoRef.UpdatedAt.Format(time.RFC3339),
+	}
+
+	log.Printf("CompleteFPOSetup finished for %s with status: %s", orgID, fpoRef.Status)
 	return responseData, nil
 }
 

@@ -4019,8 +4019,18 @@ const docTemplate = `{
                     "type": "number",
                     "minimum": 0.01
                 },
+                "bore_well_count": {
+                    "type": "integer",
+                    "minimum": 0
+                },
                 "geometry": {
                     "$ref": "#/definitions/requests.GeometryData"
+                },
+                "irrigation_sources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/requests.IrrigationSourceRequest"
+                    }
                 },
                 "metadata": {
                     "type": "object",
@@ -4028,13 +4038,33 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "name": {
+                    "type": "string"
+                },
                 "org_id": {
+                    "type": "string"
+                },
+                "other_irrigation_details": {
+                    "type": "string"
+                },
+                "ownership_type": {
+                    "type": "string",
+                    "enum": [
+                        "OWN",
+                        "LEASE",
+                        "SHARED"
+                    ]
+                },
+                "primary_irrigation_source_id": {
                     "type": "string"
                 },
                 "request_id": {
                     "type": "string"
                 },
                 "request_type": {
+                    "type": "string"
+                },
+                "soil_type_id": {
                     "type": "string"
                 },
                 "timestamp": {
@@ -4395,6 +4425,27 @@ const docTemplate = `{
                 "wkt": {
                     "description": "Well-Known Text format",
                     "type": "string"
+                }
+            }
+        },
+        "requests.IrrigationSourceRequest": {
+            "type": "object",
+            "required": [
+                "irrigation_source_id"
+            ],
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "details": {
+                    "type": "string"
+                },
+                "irrigation_source_id": {
+                    "type": "string"
+                },
+                "is_primary": {
+                    "type": "boolean"
                 }
             }
         },
@@ -4884,11 +4935,21 @@ const docTemplate = `{
                 "area_ha": {
                     "type": "number"
                 },
+                "bore_well_count": {
+                    "type": "integer",
+                    "minimum": 0
+                },
                 "geometry": {
                     "$ref": "#/definitions/requests.GeometryData"
                 },
                 "id": {
                     "type": "string"
+                },
+                "irrigation_sources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/requests.IrrigationSourceRequest"
+                    }
                 },
                 "metadata": {
                     "type": "object",
@@ -4896,13 +4957,33 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "name": {
+                    "type": "string"
+                },
                 "org_id": {
+                    "type": "string"
+                },
+                "other_irrigation_details": {
+                    "type": "string"
+                },
+                "ownership_type": {
+                    "type": "string",
+                    "enum": [
+                        "OWN",
+                        "LEASE",
+                        "SHARED"
+                    ]
+                },
+                "primary_irrigation_source_id": {
                     "type": "string"
                 },
                 "request_id": {
                     "type": "string"
                 },
                 "request_type": {
+                    "type": "string"
+                },
+                "soil_type_id": {
                     "type": "string"
                 },
                 "timestamp": {
