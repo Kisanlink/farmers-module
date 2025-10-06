@@ -172,6 +172,9 @@ func (s *DataQualityServiceImpl) ValidateGeometry(ctx context.Context, req inter
 }
 
 // ReconcileAAALinks heals broken AAA references in farmer_links
+// Business Rule 6.1: AAA-Local State Invariants
+// - Every farmer_links with status='ACTIVE' MUST reference valid AAA user and org
+// - Mark as ORPHANED when AAA references become invalid (drift detection)
 func (s *DataQualityServiceImpl) ReconcileAAALinks(ctx context.Context, req interface{}) (interface{}, error) {
 	reconcileReq, ok := req.(*requests.ReconcileAAALinksRequest)
 	if !ok {
@@ -198,10 +201,13 @@ func (s *DataQualityServiceImpl) ReconcileAAALinks(ctx context.Context, req inte
 		Errors:         []string{},
 	}
 
-	// Get all farmer links
-	filter := base.NewFilterBuilder().Build()
+	// Get all farmer links (only ACTIVE ones need strict validation)
+	filter := base.NewFilterBuilder().Where("status", base.OpEqual, "ACTIVE").Build()
 	if reconcileReq.OrgID != "" {
-		filter = base.NewFilterBuilder().Where("aaa_org_id", base.OpEqual, reconcileReq.OrgID).Build()
+		filter = base.NewFilterBuilder().
+			Where("aaa_org_id", base.OpEqual, reconcileReq.OrgID).
+			Where("status", base.OpEqual, "ACTIVE").
+			Build()
 	}
 
 	farmerLinks, err := s.farmerLinkageRepo.Find(ctx, filter)
@@ -211,46 +217,50 @@ func (s *DataQualityServiceImpl) ReconcileAAALinks(ctx context.Context, req inte
 
 	response.ProcessedLinks = len(farmerLinks)
 
+	// Business Rule 6.2: Drift Detection and Recovery
 	// Check each link against AAA service
 	for _, link := range farmerLinks {
-		// Check if user exists in AAA
-		user, err := s.aaaService.GetUser(ctx, link.AAAUserID)
-		if err != nil {
-			response.BrokenLinks++
-			response.Errors = append(response.Errors, fmt.Sprintf("User %s not found in AAA: %v", link.AAAUserID, err))
+		isDrifted := false
+		var driftReason string
 
-			// Mark link as broken if not in dry-run mode
+		// Invariant check: AAA user must exist
+		_, err := s.aaaService.GetUser(ctx, link.AAAUserID)
+		if err != nil {
+			isDrifted = true
+			driftReason = fmt.Sprintf("User %s not found in AAA", link.AAAUserID)
+			response.BrokenLinks++
+			response.Errors = append(response.Errors, driftReason)
+		}
+
+		// Invariant check: AAA organization must exist
+		if !isDrifted {
+			_, err := s.aaaService.GetOrganization(ctx, link.AAAOrgID)
+			if err != nil {
+				isDrifted = true
+				driftReason = fmt.Sprintf("Organization %s not found in AAA", link.AAAOrgID)
+				response.BrokenLinks++
+				response.Errors = append(response.Errors, driftReason)
+			}
+		}
+
+		// Recovery Action: Mark as ORPHANED when drift detected
+		if isDrifted {
 			if !reconcileReq.DryRun {
-				link.Status = "BROKEN"
+				link.Status = "ORPHANED"
 				if updateErr := s.farmerLinkageRepo.Update(ctx, link); updateErr != nil {
-					response.Errors = append(response.Errors, fmt.Sprintf("Failed to mark link as broken: %v", updateErr))
+					response.Errors = append(response.Errors, fmt.Sprintf("Failed to mark link as ORPHANED: %v", updateErr))
 				}
+				// TODO: Notify FPO admin of data inconsistency (Business Rule 6.2)
 			}
 			continue
 		}
 
-		// Check if organization exists in AAA
-		org, err := s.aaaService.GetOrganization(ctx, link.AAAOrgID)
-		if err != nil {
-			response.BrokenLinks++
-			response.Errors = append(response.Errors, fmt.Sprintf("Organization %s not found in AAA: %v", link.AAAOrgID, err))
-
-			// Mark link as broken if not in dry-run mode
-			if !reconcileReq.DryRun {
-				link.Status = "BROKEN"
-				if updateErr := s.farmerLinkageRepo.Update(ctx, link); updateErr != nil {
-					response.Errors = append(response.Errors, fmt.Sprintf("Failed to mark link as broken: %v", updateErr))
-				}
-			}
-			continue
-		}
-
-		// If both exist and link was marked as broken, fix it
-		if link.Status == "BROKEN" {
+		// If both AAA references exist and link was marked as ORPHANED, restore it
+		if link.Status == "ORPHANED" || link.Status == "BROKEN" {
 			if !reconcileReq.DryRun {
 				link.Status = "ACTIVE"
 				if updateErr := s.farmerLinkageRepo.Update(ctx, link); updateErr != nil {
-					response.Errors = append(response.Errors, fmt.Sprintf("Failed to fix broken link: %v", updateErr))
+					response.Errors = append(response.Errors, fmt.Sprintf("Failed to restore link: %v", updateErr))
 				} else {
 					response.FixedLinks++
 				}
@@ -258,17 +268,13 @@ func (s *DataQualityServiceImpl) ReconcileAAALinks(ctx context.Context, req inte
 				response.FixedLinks++ // Count what would be fixed in dry-run
 			}
 		}
-
-		// Validate user and org data (optional additional checks)
-		_ = user // Use the user data for additional validation if needed
-		_ = org  // Use the org data for additional validation if needed
 	}
 
 	if reconcileReq.DryRun {
-		response.Message = fmt.Sprintf("Dry run completed: %d links processed, %d would be fixed, %d broken",
+		response.Message = fmt.Sprintf("Dry run completed: %d links processed, %d would be fixed, %d orphaned",
 			response.ProcessedLinks, response.FixedLinks, response.BrokenLinks)
 	} else {
-		response.Message = fmt.Sprintf("Reconciliation completed: %d links processed, %d fixed, %d broken",
+		response.Message = fmt.Sprintf("Reconciliation completed: %d links processed, %d fixed, %d orphaned",
 			response.ProcessedLinks, response.FixedLinks, response.BrokenLinks)
 	}
 
