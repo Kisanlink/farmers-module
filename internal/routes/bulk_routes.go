@@ -11,8 +11,8 @@ import (
 // RegisterBulkOperationsRoutes registers bulk operations routes
 // Provides endpoints for bulk farmer operations and file processing
 func RegisterBulkOperationsRoutes(router *gin.RouterGroup, services *services.ServiceFactory, cfg *config.Config, logger interfaces.Logger) {
-	// Initialize bulk farmer handler
-	bulkFarmerHandler := handlers.NewBulkFarmerHandler(services.BulkFarmerService, logger)
+	// Initialize bulk farmer handler with AAA service for permission checks
+	bulkFarmerHandler := handlers.NewBulkFarmerHandler(services.BulkFarmerService, services.AAAService, logger)
 
 	// Register bulk operation routes
 	bulkFarmerHandler.RegisterRoutes(router)

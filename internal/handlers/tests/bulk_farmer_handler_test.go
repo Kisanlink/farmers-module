@@ -43,7 +43,8 @@ func TestBulkFarmerHandler_BulkAddFarmers_JSON(t *testing.T) {
 		return expectedResponse, nil
 	}
 
-	handler := handlers.NewBulkFarmerHandler(mockService, mockLogger)
+	mockAAAService := &testutils.MockAAAService{}
+	handler := handlers.NewBulkFarmerHandler(mockService, mockAAAService, mockLogger)
 	router := setupBulkTestRouter(handler)
 
 	// Create request
@@ -88,7 +89,8 @@ func TestBulkFarmerHandler_BulkAddFarmers_Multipart(t *testing.T) {
 		return expectedResponse, nil
 	}
 
-	handler := handlers.NewBulkFarmerHandler(mockService, mockLogger)
+	mockAAAService := &testutils.MockAAAService{}
+	handler := handlers.NewBulkFarmerHandler(mockService, mockAAAService, mockLogger)
 	router := setupBulkTestRouter(handler)
 
 	// Create multipart request
@@ -125,7 +127,8 @@ func TestBulkFarmerHandler_BulkAddFarmers_ValidationError(t *testing.T) {
 	mockService := &testutils.MockBulkFarmerService{}
 	mockLogger := &testutils.MockLogger{}
 
-	handler := handlers.NewBulkFarmerHandler(mockService, mockLogger)
+	mockAAAService := &testutils.MockAAAService{}
+	handler := handlers.NewBulkFarmerHandler(mockService, mockAAAService, mockLogger)
 	router := setupBulkTestRouter(handler)
 
 	// Create request with missing required fields
@@ -154,7 +157,8 @@ func TestBulkFarmerHandler_GetBulkOperationStatus(t *testing.T) {
 	mockService := &testutils.MockBulkFarmerService{}
 	mockLogger := &testutils.MockLogger{}
 
-	handler := handlers.NewBulkFarmerHandler(mockService, mockLogger)
+	mockAAAService := &testutils.MockAAAService{}
+	handler := handlers.NewBulkFarmerHandler(mockService, mockAAAService, mockLogger)
 	router := setupBulkTestRouter(handler)
 
 	// Setup service expectations
@@ -202,7 +206,8 @@ func TestBulkFarmerHandler_GetBulkOperationStatus_NotFound(t *testing.T) {
 		return nil, errors.New("operation not found")
 	}
 
-	handler := handlers.NewBulkFarmerHandler(mockService, mockLogger)
+	mockAAAService := &testutils.MockAAAService{}
+	handler := handlers.NewBulkFarmerHandler(mockService, mockAAAService, mockLogger)
 	router := setupBulkTestRouter(handler)
 
 	req := httptest.NewRequest("GET", "/api/v1/bulk/status/nonexistent", nil)
@@ -217,7 +222,8 @@ func TestBulkFarmerHandler_CancelBulkOperation(t *testing.T) {
 	mockService := &testutils.MockBulkFarmerService{}
 	mockLogger := &testutils.MockLogger{}
 
-	handler := handlers.NewBulkFarmerHandler(mockService, mockLogger)
+	mockAAAService := &testutils.MockAAAService{}
+	handler := handlers.NewBulkFarmerHandler(mockService, mockAAAService, mockLogger)
 	router := setupBulkTestRouter(handler)
 
 	// Setup service expectations
@@ -251,7 +257,8 @@ func TestBulkFarmerHandler_GetBulkUploadTemplate(t *testing.T) {
 	mockService := &testutils.MockBulkFarmerService{}
 	mockLogger := &testutils.MockLogger{}
 
-	handler := handlers.NewBulkFarmerHandler(mockService, mockLogger)
+	mockAAAService := &testutils.MockAAAService{}
+	handler := handlers.NewBulkFarmerHandler(mockService, mockAAAService, mockLogger)
 	router := setupBulkTestRouter(handler)
 
 	// Setup service expectations
@@ -280,7 +287,8 @@ func TestBulkFarmerHandler_ValidateBulkData(t *testing.T) {
 	mockService := &testutils.MockBulkFarmerService{}
 	mockLogger := &testutils.MockLogger{}
 
-	handler := handlers.NewBulkFarmerHandler(mockService, mockLogger)
+	mockAAAService := &testutils.MockAAAService{}
+	handler := handlers.NewBulkFarmerHandler(mockService, mockAAAService, mockLogger)
 	router := setupBulkTestRouter(handler)
 
 	// Setup service expectations
@@ -331,7 +339,8 @@ func TestBulkFarmerHandler_UnsupportedContentType(t *testing.T) {
 	mockService := &testutils.MockBulkFarmerService{}
 	mockLogger := &testutils.MockLogger{}
 
-	handler := handlers.NewBulkFarmerHandler(mockService, mockLogger)
+	mockAAAService := &testutils.MockAAAService{}
+	handler := handlers.NewBulkFarmerHandler(mockService, mockAAAService, mockLogger)
 	router := setupBulkTestRouter(handler)
 
 	req := httptest.NewRequest("POST", "/api/v1/bulk/farmers/add", strings.NewReader("unsupported content"))

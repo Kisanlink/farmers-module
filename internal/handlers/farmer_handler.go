@@ -64,8 +64,11 @@ func NewFarmerHandler(farmerService services.FarmerService, logger interfaces.Lo
 // @Param farmer body requests.CreateFarmerRequest true "Farmer data"
 // @Success 201 {object} responses.SwaggerFarmerResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 409 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /identity/farmers [post]
 func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
 	var req farmerReq.CreateFarmerRequest
@@ -120,8 +123,11 @@ func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
 // @Param aaa_org_id path string true "AAA Org ID"
 // @Success 200 {object} responses.SwaggerFarmerResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [get]
 func (h *FarmerHandler) GetFarmer(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")

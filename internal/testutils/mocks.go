@@ -7,6 +7,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
+	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -166,6 +167,138 @@ func (m *MockFarmerService) CreateFarmer(ctx context.Context, farmer *farmer.Far
 		return m.CreateFarmerFunc(ctx, farmer)
 	}
 	return farmer, nil
+}
+
+// MockAAAService provides a mock AAA service implementation for testing
+type MockAAAService struct {
+	CheckPermissionFunc         func(ctx context.Context, subject, resource, action, object, orgID string) (bool, error)
+	SeedRolesAndPermissionsFunc func(ctx context.Context) error
+	CreateUserFunc              func(ctx context.Context, req interface{}) (interface{}, error)
+	GetUserFunc                 func(ctx context.Context, userID string) (interface{}, error)
+	GetUserByMobileFunc         func(ctx context.Context, mobileNumber string) (interface{}, error)
+	GetUserByEmailFunc          func(ctx context.Context, email string) (interface{}, error)
+	CreateOrganizationFunc      func(ctx context.Context, req interface{}) (interface{}, error)
+	GetOrganizationFunc         func(ctx context.Context, orgID string) (interface{}, error)
+	CreateUserGroupFunc         func(ctx context.Context, req interface{}) (interface{}, error)
+	AddUserToGroupFunc          func(ctx context.Context, userID, groupID string) error
+	RemoveUserFromGroupFunc     func(ctx context.Context, userID, groupID string) error
+	AssignRoleFunc              func(ctx context.Context, userID, orgID, roleName string) error
+	CheckUserRoleFunc           func(ctx context.Context, userID, roleName string) (bool, error)
+	AssignPermissionToGroupFunc func(ctx context.Context, groupID, resource, action string) error
+	ValidateTokenFunc           func(ctx context.Context, token string) (*interfaces.UserInfo, error)
+	HealthCheckFunc             func(ctx context.Context) error
+}
+
+func (m *MockAAAService) CheckPermission(ctx context.Context, subject, resource, action, object, orgID string) (bool, error) {
+	if m.CheckPermissionFunc != nil {
+		return m.CheckPermissionFunc(ctx, subject, resource, action, object, orgID)
+	}
+	return true, nil // Default: allow all permissions for tests
+}
+
+func (m *MockAAAService) SeedRolesAndPermissions(ctx context.Context) error {
+	if m.SeedRolesAndPermissionsFunc != nil {
+		return m.SeedRolesAndPermissionsFunc(ctx)
+	}
+	return nil
+}
+
+func (m *MockAAAService) CreateUser(ctx context.Context, req interface{}) (interface{}, error) {
+	if m.CreateUserFunc != nil {
+		return m.CreateUserFunc(ctx, req)
+	}
+	return nil, nil
+}
+
+func (m *MockAAAService) GetUser(ctx context.Context, userID string) (interface{}, error) {
+	if m.GetUserFunc != nil {
+		return m.GetUserFunc(ctx, userID)
+	}
+	return nil, nil
+}
+
+func (m *MockAAAService) GetUserByMobile(ctx context.Context, mobileNumber string) (interface{}, error) {
+	if m.GetUserByMobileFunc != nil {
+		return m.GetUserByMobileFunc(ctx, mobileNumber)
+	}
+	return nil, nil
+}
+
+func (m *MockAAAService) GetUserByEmail(ctx context.Context, email string) (interface{}, error) {
+	if m.GetUserByEmailFunc != nil {
+		return m.GetUserByEmailFunc(ctx, email)
+	}
+	return nil, nil
+}
+
+func (m *MockAAAService) CreateOrganization(ctx context.Context, req interface{}) (interface{}, error) {
+	if m.CreateOrganizationFunc != nil {
+		return m.CreateOrganizationFunc(ctx, req)
+	}
+	return nil, nil
+}
+
+func (m *MockAAAService) GetOrganization(ctx context.Context, orgID string) (interface{}, error) {
+	if m.GetOrganizationFunc != nil {
+		return m.GetOrganizationFunc(ctx, orgID)
+	}
+	return nil, nil
+}
+
+func (m *MockAAAService) CreateUserGroup(ctx context.Context, req interface{}) (interface{}, error) {
+	if m.CreateUserGroupFunc != nil {
+		return m.CreateUserGroupFunc(ctx, req)
+	}
+	return nil, nil
+}
+
+func (m *MockAAAService) AddUserToGroup(ctx context.Context, userID, groupID string) error {
+	if m.AddUserToGroupFunc != nil {
+		return m.AddUserToGroupFunc(ctx, userID, groupID)
+	}
+	return nil
+}
+
+func (m *MockAAAService) RemoveUserFromGroup(ctx context.Context, userID, groupID string) error {
+	if m.RemoveUserFromGroupFunc != nil {
+		return m.RemoveUserFromGroupFunc(ctx, userID, groupID)
+	}
+	return nil
+}
+
+func (m *MockAAAService) AssignRole(ctx context.Context, userID, orgID, roleName string) error {
+	if m.AssignRoleFunc != nil {
+		return m.AssignRoleFunc(ctx, userID, orgID, roleName)
+	}
+	return nil
+}
+
+func (m *MockAAAService) CheckUserRole(ctx context.Context, userID, roleName string) (bool, error) {
+	if m.CheckUserRoleFunc != nil {
+		return m.CheckUserRoleFunc(ctx, userID, roleName)
+	}
+	return true, nil
+}
+
+func (m *MockAAAService) AssignPermissionToGroup(ctx context.Context, groupID, resource, action string) error {
+	if m.AssignPermissionToGroupFunc != nil {
+		return m.AssignPermissionToGroupFunc(ctx, groupID, resource, action)
+	}
+	return nil
+}
+
+func (m *MockAAAService) ValidateToken(ctx context.Context, token string) (*interfaces.UserInfo, error) {
+	if m.ValidateTokenFunc != nil {
+		return m.ValidateTokenFunc(ctx, token)
+	}
+	return &interfaces.UserInfo{}, nil
+}
+
+func (m *MockAAAService) HealthCheck(ctx context.Context) error {
+	if m.HealthCheckFunc != nil {
+		return m.HealthCheckFunc(ctx)
+	}
+	return nil
 }
 
 // MockLogger provides a mock logger implementation for testing

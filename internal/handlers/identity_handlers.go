@@ -18,8 +18,11 @@ import (
 // @Param linkage body requests.LinkFarmerRequest true "Farmer linkage data"
 // @Success 200 {object} responses.SwaggerFarmerLinkageResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /identity/link-farmer [post]
 func LinkFarmerToFPO(service services.FarmerLinkageService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -79,8 +82,11 @@ func LinkFarmerToFPO(service services.FarmerLinkageService) gin.HandlerFunc {
 // @Param linkage body requests.UnlinkFarmerRequest true "Farmer unlinkage data"
 // @Success 200 {object} responses.SwaggerFarmerLinkageResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /identity/unlink-farmer [post]
 func UnlinkFarmerFromFPO(service services.FarmerLinkageService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -139,10 +145,13 @@ func UnlinkFarmerFromFPO(service services.FarmerLinkageService) gin.HandlerFunc 
 // @Produce json
 // @Param farmer_id path string true "Farmer ID"
 // @Param org_id path string true "Organization ID"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 403 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
+// @Success 200 {object} responses.SwaggerFarmerLinkageResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /identity/linkage/{farmer_id}/{org_id} [get]
 func GetFarmerLinkage(service services.FarmerLinkageService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -169,6 +178,20 @@ func GetFarmerLinkage(service services.FarmerLinkageService) gin.HandlerFunc {
 }
 
 // RegisterFPORef handles W3: Register FPO reference
+// @Summary Register FPO reference
+// @Description Register a new FPO reference with business configuration
+// @Tags identity
+// @Accept json
+// @Produce json
+// @Param fpo body requests.RegisterFPORefRequest true "FPO reference data"
+// @Success 200 {object} responses.SwaggerFPORefResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 409 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /identity/fpo [post]
 func RegisterFPORef(service services.FPOService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req requests.RegisterFPORefRequest
@@ -198,6 +221,20 @@ func RegisterFPORef(service services.FPOService) gin.HandlerFunc {
 }
 
 // GetFPORef handles getting FPO reference
+// @Summary Get FPO reference
+// @Description Retrieve FPO reference configuration by organization ID
+// @Tags identity
+// @Accept json
+// @Produce json
+// @Param org_id path string true "Organization ID"
+// @Success 200 {object} responses.SwaggerFPORefResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /identity/fpo/{org_id} [get]
 func GetFPORef(service services.FPOService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		orgID := c.Param("org_id")

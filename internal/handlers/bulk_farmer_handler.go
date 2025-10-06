@@ -19,13 +19,15 @@ import (
 // BulkFarmerHandler handles bulk farmer-related HTTP requests
 type BulkFarmerHandler struct {
 	bulkService services.BulkFarmerService
+	aaaService  services.AAAService
 	logger      interfaces.Logger
 }
 
 // NewBulkFarmerHandler creates a new bulk farmer handler
-func NewBulkFarmerHandler(bulkService services.BulkFarmerService, logger interfaces.Logger) *BulkFarmerHandler {
+func NewBulkFarmerHandler(bulkService services.BulkFarmerService, aaaService services.AAAService, logger interfaces.Logger) *BulkFarmerHandler {
 	return &BulkFarmerHandler{
 		bulkService: bulkService,
+		aaaService:  aaaService,
 		logger:      logger,
 	}
 }
@@ -42,10 +44,14 @@ func NewBulkFarmerHandler(bulkService services.BulkFarmerService, logger interfa
 // @Param file formData file true "File containing farmer data"
 // @Param options formData string false "Processing options as JSON string"
 // @Success 202 {object} responses.BulkOperationResponse
+// @Success 200 {object} responses.BulkOperationResponse "For synchronous operations"
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 413 {object} responses.SwaggerErrorResponse "File too large"
+// @Failure 415 {object} responses.SwaggerErrorResponse "Unsupported media type"
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /bulk/farmers/add [post]
 func (h *BulkFarmerHandler) BulkAddFarmers(c *gin.Context) {
 	h.logger.Info("Processing bulk farmer addition request")
@@ -84,8 +90,42 @@ func (h *BulkFarmerHandler) BulkAddFarmers(c *gin.Context) {
 		return
 	}
 
-	// Check if user has permission to add farmers to this FPO
-	// TODO: Add proper permission check using AAA service
+	// Check if user has permission to perform bulk operations for this FPO
+	// Resource: farmer, Action: bulk_create
+	hasPermission, err := h.aaaService.CheckPermission(
+		c.Request.Context(),
+		req.UserID,
+		"farmer",
+		"bulk_create",
+		req.FPOOrgID,
+		req.OrgID,
+	)
+	if err != nil {
+		h.logger.Error("Failed to check permission for bulk operation",
+			zap.String("request_id", req.RequestID),
+			zap.String("user_id", req.UserID),
+			zap.String("fpo_org_id", req.FPOOrgID),
+			zap.Error(err),
+		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":      "Failed to verify permissions",
+			"request_id": req.RequestID,
+		})
+		return
+	}
+
+	if !hasPermission {
+		h.logger.Warn("Permission denied for bulk farmer operation",
+			zap.String("request_id", req.RequestID),
+			zap.String("user_id", req.UserID),
+			zap.String("fpo_org_id", req.FPOOrgID),
+		)
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":      "Insufficient permissions to perform bulk farmer operations",
+			"request_id": req.RequestID,
+		})
+		return
+	}
 
 	h.logger.Info("Starting bulk farmer addition",
 		zap.String("request_id", req.RequestID),
@@ -132,8 +172,12 @@ func (h *BulkFarmerHandler) BulkAddFarmers(c *gin.Context) {
 // @Produce json
 // @Param operation_id path string true "Operation ID"
 // @Success 200 {object} responses.BulkOperationStatusResponse
-// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse "Invalid operation ID"
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse "Access denied to this operation"
+// @Failure 404 {object} responses.SwaggerErrorResponse "Operation not found"
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /bulk/status/{operation_id} [get]
 func (h *BulkFarmerHandler) GetBulkOperationStatus(c *gin.Context) {
 	operationID := c.Param("operation_id")

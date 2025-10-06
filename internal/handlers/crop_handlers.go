@@ -42,7 +42,9 @@ type CropCycleListResponse struct {
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 409 {object} responses.SwaggerErrorResponse "Conflict - cycle already exists"
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops/cycles [post]
 func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -91,7 +93,9 @@ func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.ErrorResponse
+// @Failure 409 {object} responses.SwaggerErrorResponse "Conflict - invalid state transition"
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops/cycles/{cycle_id} [put]
 func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -144,7 +148,9 @@ func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.ErrorResponse
+// @Failure 409 {object} responses.SwaggerErrorResponse "Conflict - cycle already ended"
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops/cycles/{cycle_id}/end [post]
 func EndCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
