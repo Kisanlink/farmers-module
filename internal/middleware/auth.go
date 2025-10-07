@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -93,7 +92,7 @@ func AuthenticationMiddleware(aaaService services.AAAService, logger interfaces.
 		}
 
 		// Validate token with AAA service
-		ctx := context.Background()
+		ctx := c.Request.Context()
 		userInfo, err := aaaService.ValidateToken(ctx, token)
 		if err != nil {
 			// Check if error is due to AAA service unavailability
@@ -154,6 +153,15 @@ func AuthenticationMiddleware(aaaService services.AAAService, logger interfaces.
 		c.Set("user_context", userContext)
 		c.Set("org_context", orgContext)
 		c.Set("token", token)
+
+		// Store token in Request context for downstream services (e.g., gRPC calls)
+		ctx = auth.SetTokenInContext(ctx, token)
+		c.Request = c.Request.WithContext(ctx)
+
+		logger.Debug("Token stored in request context",
+			zap.String("token_length", fmt.Sprintf("%d", len(token))),
+			zap.String("request_id", getRequestIDFromGin(c)),
+		)
 
 		logger.Debug("Authentication successful",
 			zap.String("user_id", userContext.AAAUserID),
@@ -235,7 +243,20 @@ func AuthorizationMiddleware(aaaService services.AAAService, logger interfaces.L
 		}
 
 		// Check permission with AAA service
-		ctx := context.Background()
+		ctx := c.Request.Context()
+
+		// Debug: Check if token is in context
+		if token := auth.GetTokenFromContext(ctx); token != "" {
+			logger.Debug("Token found in context before CheckPermission",
+				zap.String("token_length", fmt.Sprintf("%d", len(token))),
+				zap.String("user_id", userContext.AAAUserID),
+			)
+		} else {
+			logger.Warn("Token NOT found in context before CheckPermission",
+				zap.String("user_id", userContext.AAAUserID),
+			)
+		}
+
 		hasPermission, err := aaaService.CheckPermission(ctx, userContext.AAAUserID, permission.Resource, permission.Action, "", orgID)
 		if err != nil {
 			// Check if error is due to AAA service unavailability

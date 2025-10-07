@@ -188,6 +188,7 @@ func normalizePath(path string) string {
 func IsPublicRoute(method, path string) bool {
 	publicRoutes := []string{
 		"GET /health",
+		"GET /api/v1/health",
 		"GET /docs",
 		"GET /docs/swagger.json",
 		"GET /swagger",

@@ -298,6 +298,7 @@ func TestAuthorizationMiddleware(t *testing.T) {
 			setupMocks: func(aaa *MockAAAService, logger *MockLogger) {
 				aaa.On("CheckPermission", mock.Anything, "user123", "farmer", "list", "", "org123").Return(true, nil)
 				logger.On("Debug", mock.AnythingOfType("string"), mock.Anything).Return()
+				logger.On("Warn", mock.AnythingOfType("string"), mock.Anything).Return() // Handle token not found warning
 			},
 			expectedStatus: http.StatusOK,
 		},

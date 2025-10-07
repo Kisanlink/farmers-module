@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/pkg/proto"
 	"github.com/stretchr/testify/assert"
@@ -79,6 +78,272 @@ func (m *MockAuthorizationServiceClient) Check(ctx context.Context, in *proto.Ch
 	return args.Get(0).(*proto.CheckResponse), args.Error(1)
 }
 
+// MockOrganizationServiceClient is a mock implementation of OrganizationServiceClient
+type MockOrganizationServiceClient struct {
+	mock.Mock
+}
+
+func (m *MockOrganizationServiceClient) CreateOrganization(ctx context.Context, in *proto.CreateOrganizationRequest, opts ...grpc.CallOption) (*proto.CreateOrganizationResponse, error) {
+	args := m.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.CreateOrganizationResponse), args.Error(1)
+}
+
+func (m *MockOrganizationServiceClient) GetOrganization(ctx context.Context, in *proto.GetOrganizationRequest, opts ...grpc.CallOption) (*proto.GetOrganizationResponse, error) {
+	args := m.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.GetOrganizationResponse), args.Error(1)
+}
+
+func (m *MockOrganizationServiceClient) ListOrganizations(ctx context.Context, in *proto.ListOrganizationsRequest, opts ...grpc.CallOption) (*proto.ListOrganizationsResponse, error) {
+	return nil, nil
+}
+
+func (m *MockOrganizationServiceClient) UpdateOrganization(ctx context.Context, in *proto.UpdateOrganizationRequest, opts ...grpc.CallOption) (*proto.UpdateOrganizationResponse, error) {
+	return nil, nil
+}
+
+func (m *MockOrganizationServiceClient) DeleteOrganization(ctx context.Context, in *proto.DeleteOrganizationRequest, opts ...grpc.CallOption) (*proto.DeleteOrganizationResponse, error) {
+	return nil, nil
+}
+
+func (m *MockOrganizationServiceClient) AddUserToOrganization(ctx context.Context, in *proto.AddUserToOrganizationRequest, opts ...grpc.CallOption) (*proto.AddUserToOrganizationResponse, error) {
+	return nil, nil
+}
+
+func (m *MockOrganizationServiceClient) RemoveUserFromOrganization(ctx context.Context, in *proto.RemoveUserFromOrganizationRequest, opts ...grpc.CallOption) (*proto.RemoveUserFromOrganizationResponse, error) {
+	return nil, nil
+}
+
+func (m *MockOrganizationServiceClient) ValidateOrganizationAccess(ctx context.Context, in *proto.ValidateOrganizationAccessRequest, opts ...grpc.CallOption) (*proto.ValidateOrganizationAccessResponse, error) {
+	return nil, nil
+}
+
+func (m *MockOrganizationServiceClient) CreateRole(ctx context.Context, in *proto.CreateRoleRequest, opts ...grpc.CallOption) (*proto.CreateRoleResponse, error) {
+	return nil, nil
+}
+
+func (m *MockOrganizationServiceClient) ListRoles(ctx context.Context, in *proto.ListRolesRequest, opts ...grpc.CallOption) (*proto.ListRolesResponse, error) {
+	return nil, nil
+}
+
+func (m *MockOrganizationServiceClient) UpdateRole(ctx context.Context, in *proto.UpdateRoleRequest, opts ...grpc.CallOption) (*proto.UpdateRoleResponse, error) {
+	return nil, nil
+}
+
+func (m *MockOrganizationServiceClient) DeleteRole(ctx context.Context, in *proto.DeleteRoleRequest, opts ...grpc.CallOption) (*proto.DeleteRoleResponse, error) {
+	return nil, nil
+}
+
+// MockGroupServiceClient is a mock implementation of GroupServiceClient
+type MockGroupServiceClient struct {
+	mock.Mock
+}
+
+func (m *MockGroupServiceClient) CreateGroup(ctx context.Context, in *proto.CreateGroupRequest, opts ...grpc.CallOption) (*proto.CreateGroupResponse, error) {
+	args := m.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.CreateGroupResponse), args.Error(1)
+}
+
+func (m *MockGroupServiceClient) GetGroup(ctx context.Context, in *proto.GetGroupRequest, opts ...grpc.CallOption) (*proto.GetGroupResponse, error) {
+	return nil, nil
+}
+
+func (m *MockGroupServiceClient) ListGroups(ctx context.Context, in *proto.ListGroupsRequest, opts ...grpc.CallOption) (*proto.ListGroupsResponse, error) {
+	return nil, nil
+}
+
+func (m *MockGroupServiceClient) UpdateGroup(ctx context.Context, in *proto.UpdateGroupRequest, opts ...grpc.CallOption) (*proto.UpdateGroupResponse, error) {
+	return nil, nil
+}
+
+func (m *MockGroupServiceClient) DeleteGroup(ctx context.Context, in *proto.DeleteGroupRequest, opts ...grpc.CallOption) (*proto.DeleteGroupResponse, error) {
+	return nil, nil
+}
+
+func (m *MockGroupServiceClient) AddGroupMember(ctx context.Context, in *proto.AddGroupMemberRequest, opts ...grpc.CallOption) (*proto.AddGroupMemberResponse, error) {
+	args := m.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.AddGroupMemberResponse), args.Error(1)
+}
+
+func (m *MockGroupServiceClient) RemoveGroupMember(ctx context.Context, in *proto.RemoveGroupMemberRequest, opts ...grpc.CallOption) (*proto.RemoveGroupMemberResponse, error) {
+	args := m.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.RemoveGroupMemberResponse), args.Error(1)
+}
+
+func (m *MockGroupServiceClient) ListGroupMembers(ctx context.Context, in *proto.ListGroupMembersRequest, opts ...grpc.CallOption) (*proto.ListGroupMembersResponse, error) {
+	return nil, nil
+}
+
+func (m *MockGroupServiceClient) LinkGroups(ctx context.Context, in *proto.LinkGroupsRequest, opts ...grpc.CallOption) (*proto.LinkGroupsResponse, error) {
+	return nil, nil
+}
+
+func (m *MockGroupServiceClient) UnlinkGroups(ctx context.Context, in *proto.UnlinkGroupsRequest, opts ...grpc.CallOption) (*proto.UnlinkGroupsResponse, error) {
+	return nil, nil
+}
+
+// MockRoleServiceClient is a mock implementation of RoleServiceClient
+type MockRoleServiceClient struct {
+	mock.Mock
+}
+
+func (m *MockRoleServiceClient) AssignRole(ctx context.Context, in *proto.AssignRoleRequest, opts ...grpc.CallOption) (*proto.AssignRoleResponse, error) {
+	args := m.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.AssignRoleResponse), args.Error(1)
+}
+
+func (m *MockRoleServiceClient) CheckUserRole(ctx context.Context, in *proto.CheckUserRoleRequest, opts ...grpc.CallOption) (*proto.CheckUserRoleResponse, error) {
+	return nil, nil
+}
+
+func (m *MockRoleServiceClient) RemoveRole(ctx context.Context, in *proto.RemoveRoleRequest, opts ...grpc.CallOption) (*proto.RemoveRoleResponse, error) {
+	return nil, nil
+}
+
+func (m *MockRoleServiceClient) GetUserRoles(ctx context.Context, in *proto.GetUserRolesRequest, opts ...grpc.CallOption) (*proto.GetUserRolesResponse, error) {
+	return nil, nil
+}
+
+func (m *MockRoleServiceClient) ListUsersWithRole(ctx context.Context, in *proto.ListUsersWithRoleRequest, opts ...grpc.CallOption) (*proto.ListUsersWithRoleResponse, error) {
+	return nil, nil
+}
+
+// MockPermissionServiceClient is a mock implementation of PermissionServiceClient
+type MockPermissionServiceClient struct {
+	mock.Mock
+}
+
+func (m *MockPermissionServiceClient) AssignPermissionToGroup(ctx context.Context, in *proto.AssignPermissionToGroupRequest, opts ...grpc.CallOption) (*proto.AssignPermissionToGroupResponse, error) {
+	args := m.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.AssignPermissionToGroupResponse), args.Error(1)
+}
+
+func (m *MockPermissionServiceClient) CheckGroupPermission(ctx context.Context, in *proto.CheckGroupPermissionRequest, opts ...grpc.CallOption) (*proto.CheckGroupPermissionResponse, error) {
+	return nil, nil
+}
+
+func (m *MockPermissionServiceClient) ListGroupPermissions(ctx context.Context, in *proto.ListGroupPermissionsRequest, opts ...grpc.CallOption) (*proto.ListGroupPermissionsResponse, error) {
+	return nil, nil
+}
+
+func (m *MockPermissionServiceClient) RemovePermissionFromGroup(ctx context.Context, in *proto.RemovePermissionFromGroupRequest, opts ...grpc.CallOption) (*proto.RemovePermissionFromGroupResponse, error) {
+	return nil, nil
+}
+
+func (m *MockPermissionServiceClient) GetUserEffectivePermissions(ctx context.Context, in *proto.GetUserEffectivePermissionsRequest, opts ...grpc.CallOption) (*proto.GetUserEffectivePermissionsResponse, error) {
+	return nil, nil
+}
+
+// MockCatalogServiceClient is a mock implementation of CatalogServiceClient
+type MockCatalogServiceClient struct {
+	mock.Mock
+}
+
+// MockTokenServiceClient is a mock implementation of TokenServiceClient
+type MockTokenServiceClient struct {
+	mock.Mock
+}
+
+func (m *MockCatalogServiceClient) SeedRolesAndPermissions(ctx context.Context, in *proto.SeedRolesAndPermissionsRequest, opts ...grpc.CallOption) (*proto.SeedRolesAndPermissionsResponse, error) {
+	args := m.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.SeedRolesAndPermissionsResponse), args.Error(1)
+}
+
+func (m *MockCatalogServiceClient) RegisterAction(ctx context.Context, in *proto.RegisterActionRequest, opts ...grpc.CallOption) (*proto.RegisterActionResponse, error) {
+	return nil, nil
+}
+
+func (m *MockCatalogServiceClient) ListActions(ctx context.Context, in *proto.ListActionsRequest, opts ...grpc.CallOption) (*proto.ListActionsResponse, error) {
+	return nil, nil
+}
+
+func (m *MockCatalogServiceClient) RegisterResource(ctx context.Context, in *proto.RegisterResourceRequest, opts ...grpc.CallOption) (*proto.RegisterResourceResponse, error) {
+	return nil, nil
+}
+
+func (m *MockCatalogServiceClient) SetResourceParent(ctx context.Context, in *proto.SetResourceParentRequest, opts ...grpc.CallOption) (*proto.SetResourceParentResponse, error) {
+	return nil, nil
+}
+
+func (m *MockCatalogServiceClient) ListResources(ctx context.Context, in *proto.ListResourcesRequest, opts ...grpc.CallOption) (*proto.ListResourcesResponse, error) {
+	return nil, nil
+}
+
+func (m *MockCatalogServiceClient) CreateRole(ctx context.Context, in *proto.CreateRoleRequest, opts ...grpc.CallOption) (*proto.CreateRoleResponse, error) {
+	return nil, nil
+}
+
+func (m *MockCatalogServiceClient) ListRoles(ctx context.Context, in *proto.ListRolesRequest, opts ...grpc.CallOption) (*proto.ListRolesResponse, error) {
+	return nil, nil
+}
+
+func (m *MockCatalogServiceClient) CreatePermission(ctx context.Context, in *proto.CreatePermissionRequest, opts ...grpc.CallOption) (*proto.CreatePermissionResponse, error) {
+	return nil, nil
+}
+
+func (m *MockCatalogServiceClient) AttachPermissions(ctx context.Context, in *proto.AttachPermissionsRequest, opts ...grpc.CallOption) (*proto.AttachPermissionsResponse, error) {
+	return nil, nil
+}
+
+func (m *MockCatalogServiceClient) ListPermissions(ctx context.Context, in *proto.ListPermissionsRequest, opts ...grpc.CallOption) (*proto.ListPermissionsResponse, error) {
+	return nil, nil
+}
+
+func (m *MockTokenServiceClient) ValidateToken(ctx context.Context, in *proto.ValidateTokenRequest, opts ...grpc.CallOption) (*proto.ValidateTokenResponse, error) {
+	args := m.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.ValidateTokenResponse), args.Error(1)
+}
+
+func (m *MockTokenServiceClient) RefreshAccessToken(ctx context.Context, in *proto.RefreshAccessTokenRequest, opts ...grpc.CallOption) (*proto.RefreshAccessTokenResponse, error) {
+	return nil, nil
+}
+
+func (m *MockTokenServiceClient) RevokeToken(ctx context.Context, in *proto.RevokeTokenRequest, opts ...grpc.CallOption) (*proto.RevokeTokenResponse, error) {
+	return nil, nil
+}
+
+func (m *MockTokenServiceClient) IntrospectToken(ctx context.Context, in *proto.IntrospectTokenRequest, opts ...grpc.CallOption) (*proto.IntrospectTokenResponse, error) {
+	return nil, nil
+}
+
+func (m *MockTokenServiceClient) CreateToken(ctx context.Context, in *proto.CreateTokenRequest, opts ...grpc.CallOption) (*proto.CreateTokenResponse, error) {
+	return nil, nil
+}
+
+func (m *MockTokenServiceClient) ListActiveTokens(ctx context.Context, in *proto.ListActiveTokensRequest, opts ...grpc.CallOption) (*proto.ListActiveTokensResponse, error) {
+	return nil, nil
+}
+
+func (m *MockTokenServiceClient) BlacklistToken(ctx context.Context, in *proto.BlacklistTokenRequest, opts ...grpc.CallOption) (*proto.BlacklistTokenResponse, error) {
+	return nil, nil
+}
+
 func (m *MockAuthorizationServiceClient) BatchCheck(ctx context.Context, in *proto.BatchCheckRequest, opts ...grpc.CallOption) (*proto.BatchCheckResponse, error) {
 	args := m.Called(ctx, in)
 	return args.Get(0).(*proto.BatchCheckResponse), args.Error(1)
@@ -99,32 +364,51 @@ func (m *MockAuthorizationServiceClient) ListAllowedColumns(ctx context.Context,
 	return args.Get(0).(*proto.ListAllowedColumnsResponse), args.Error(1)
 }
 
-func (m *MockAuthorizationServiceClient) Explain(ctx context.Context, in *proto.ExplainRequest, opts ...grpc.CallOption) (*proto.ExplainResponse, error) {
+func (m *MockAuthorizationServiceClient) BulkEvaluatePermissions(ctx context.Context, in *proto.BulkEvaluatePermissionsRequest, opts ...grpc.CallOption) (*proto.BulkEvaluatePermissionsResponse, error) {
 	args := m.Called(ctx, in)
-	return args.Get(0).(*proto.ExplainResponse), args.Error(1)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.BulkEvaluatePermissionsResponse), args.Error(1)
+}
+
+func (m *MockAuthorizationServiceClient) EvaluatePermission(ctx context.Context, in *proto.EvaluatePermissionRequest, opts ...grpc.CallOption) (*proto.EvaluatePermissionResponse, error) {
+	args := m.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*proto.EvaluatePermissionResponse), args.Error(1)
 }
 
 // Helper function to create a test client with mocks
-func createTestClient() (*Client, *MockUserServiceV2Client, *MockAuthorizationServiceClient) {
+func createTestClient() (*Client, *MockUserServiceV2Client, *MockAuthorizationServiceClient, *MockOrganizationServiceClient, *MockGroupServiceClient, *MockRoleServiceClient, *MockPermissionServiceClient, *MockCatalogServiceClient, *MockTokenServiceClient) {
 	mockUserClient := &MockUserServiceV2Client{}
 	mockAuthzClient := &MockAuthorizationServiceClient{}
-
-	// Create a test token validator
-	tokenValidator, _ := auth.NewTokenValidator("test-secret", nil)
+	mockOrgClient := &MockOrganizationServiceClient{}
+	mockGroupClient := &MockGroupServiceClient{}
+	mockRoleClient := &MockRoleServiceClient{}
+	mockPermClient := &MockPermissionServiceClient{}
+	mockCatalogClient := &MockCatalogServiceClient{}
+	mockTokenClient := &MockTokenServiceClient{}
 
 	client := &Client{
-		conn:           nil, // Not needed for unit tests
-		config:         &config.Config{},
-		userClient:     mockUserClient,
-		authzClient:    mockAuthzClient,
-		tokenValidator: tokenValidator,
+		conn:          nil, // Not needed for unit tests
+		config:        &config.Config{},
+		userClient:    mockUserClient,
+		authzClient:   mockAuthzClient,
+		orgClient:     mockOrgClient,
+		groupClient:   mockGroupClient,
+		roleClient:    mockRoleClient,
+		permClient:    mockPermClient,
+		catalogClient: mockCatalogClient,
+		tokenClient:   mockTokenClient,
 	}
 
-	return client, mockUserClient, mockAuthzClient
+	return client, mockUserClient, mockAuthzClient, mockOrgClient, mockGroupClient, mockRoleClient, mockPermClient, mockCatalogClient, mockTokenClient
 }
 
 func TestCreateUser_Success(t *testing.T) {
-	client, mockUserClient, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	req := &CreateUserRequest{
@@ -158,7 +442,7 @@ func TestCreateUser_Success(t *testing.T) {
 }
 
 func TestCreateUser_AlreadyExists(t *testing.T) {
-	client, mockUserClient, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	req := &CreateUserRequest{
@@ -180,7 +464,7 @@ func TestCreateUser_AlreadyExists(t *testing.T) {
 }
 
 func TestGetUser_Success(t *testing.T) {
-	client, mockUserClient, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 	userID := "user123"
 
@@ -212,7 +496,7 @@ func TestGetUser_Success(t *testing.T) {
 }
 
 func TestGetUser_NotFound(t *testing.T) {
-	client, mockUserClient, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 	userID := "nonexistent"
 
@@ -228,7 +512,7 @@ func TestGetUser_NotFound(t *testing.T) {
 }
 
 func TestGetUserByPhone_Success(t *testing.T) {
-	client, mockUserClient, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 	phoneNumber := "+919876543210"
 
@@ -263,7 +547,7 @@ func TestGetUserByPhone_Success(t *testing.T) {
 }
 
 func TestGetUserByPhone_EmptyPhone(t *testing.T) {
-	client, _, _ := createTestClient()
+	client, _, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	userData, err := client.GetUserByPhone(ctx, "")
@@ -274,7 +558,7 @@ func TestGetUserByPhone_EmptyPhone(t *testing.T) {
 }
 
 func TestCheckPermission_Success(t *testing.T) {
-	client, _, mockAuthzClient := createTestClient()
+	client, _, mockAuthzClient, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	subject := "user123"
@@ -304,7 +588,7 @@ func TestCheckPermission_Success(t *testing.T) {
 }
 
 func TestCheckPermission_Denied(t *testing.T) {
-	client, _, mockAuthzClient := createTestClient()
+	client, _, mockAuthzClient, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	subject := "user123"
@@ -334,7 +618,7 @@ func TestCheckPermission_Denied(t *testing.T) {
 }
 
 func TestCheckPermission_MissingParameters(t *testing.T) {
-	client, _, _ := createTestClient()
+	client, _, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	// Test missing subject
@@ -357,7 +641,7 @@ func TestCheckPermission_MissingParameters(t *testing.T) {
 }
 
 func TestCheckPermission_WildcardObject(t *testing.T) {
-	client, _, mockAuthzClient := createTestClient()
+	client, _, mockAuthzClient, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	subject := "user123"
@@ -387,7 +671,7 @@ func TestCheckPermission_WildcardObject(t *testing.T) {
 }
 
 func TestHealthCheck_Success(t *testing.T) {
-	client, mockUserClient, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	expectedRequest := &proto.GetUserRequestV2{
@@ -407,7 +691,7 @@ func TestHealthCheck_Success(t *testing.T) {
 }
 
 func TestHealthCheck_PermissionDeniedIsHealthy(t *testing.T) {
-	client, mockUserClient, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	expectedRequest := &proto.GetUserRequestV2{
@@ -427,7 +711,7 @@ func TestHealthCheck_PermissionDeniedIsHealthy(t *testing.T) {
 }
 
 func TestHealthCheck_ServiceUnavailable(t *testing.T) {
-	client, mockUserClient, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	expectedRequest := &proto.GetUserRequestV2{
@@ -448,7 +732,7 @@ func TestHealthCheck_ServiceUnavailable(t *testing.T) {
 }
 
 func TestAddRequestMetadata(t *testing.T) {
-	client, _, _ := createTestClient()
+	client, _, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	requestID := "req123"
@@ -462,8 +746,14 @@ func TestAddRequestMetadata(t *testing.T) {
 }
 
 func TestValidateToken_InvalidToken(t *testing.T) {
-	client, _, _ := createTestClient()
+	client, _, _, _, _, _, _, _, mockTokenClient := createTestClient()
 	ctx := context.Background()
+
+	// Mock token validation failure
+	mockTokenClient.On("ValidateToken", mock.Anything, mock.AnythingOfType("*proto.ValidateTokenRequest")).Return(
+		(*proto.ValidateTokenResponse)(nil),
+		status.Error(codes.InvalidArgument, "failed to parse token"),
+	)
 
 	// Test with invalid token
 	tokenData, err := client.ValidateToken(ctx, "invalid-token")
@@ -471,10 +761,11 @@ func TestValidateToken_InvalidToken(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, tokenData)
 	assert.Contains(t, err.Error(), "failed to parse token")
+	mockTokenClient.AssertExpectations(t)
 }
 
 func TestValidateToken_EmptyToken(t *testing.T) {
-	client, _, _ := createTestClient()
+	client, _, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	tokenData, err := client.ValidateToken(ctx, "")
@@ -485,7 +776,7 @@ func TestValidateToken_EmptyToken(t *testing.T) {
 }
 
 func TestCreateOrganization_NotImplemented(t *testing.T) {
-	client, _, _ := createTestClient()
+	client, _, _, mockOrgClient, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	req := &CreateOrganizationRequest{
@@ -495,15 +786,31 @@ func TestCreateOrganization_NotImplemented(t *testing.T) {
 		CEOUserID:   "user123",
 	}
 
+	expectedResponse := &proto.CreateOrganizationResponse{
+		StatusCode: 201,
+		Message:    "Organization created successfully",
+		Organization: &proto.Organization{
+			Id:     "org_123",
+			Name:   "Test FPO",
+			Type:   "FPO",
+			Status: "active",
+		},
+	}
+
+	mockOrgClient.On("CreateOrganization", ctx, mock.AnythingOfType("*proto.CreateOrganizationRequest")).Return(expectedResponse, nil)
+
 	response, err := client.CreateOrganization(ctx, req)
 
-	assert.Error(t, err)
-	assert.Nil(t, response)
-	assert.Contains(t, err.Error(), "CreateOrganization not implemented")
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	assert.Equal(t, "Test FPO", response.Name)
+	assert.Equal(t, "active", response.Status)
+	assert.Equal(t, "org_123", response.OrgID)
+	mockOrgClient.AssertExpectations(t)
 }
 
 func TestCreateUserGroup_NotImplemented(t *testing.T) {
-	client, _, _ := createTestClient()
+	client, _, _, _, mockGroupClient, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	req := &CreateUserGroupRequest{
@@ -513,47 +820,92 @@ func TestCreateUserGroup_NotImplemented(t *testing.T) {
 		Permissions: []string{"farm.create", "farm.update"},
 	}
 
+	expectedResponse := &proto.CreateGroupResponse{
+		StatusCode: 201,
+		Message:    "Group created successfully",
+		Group: &proto.Group{
+			Id:             "grp_123",
+			Name:           "Directors",
+			Description:    "FPO Directors Group",
+			OrganizationId: "org123",
+		},
+	}
+
+	mockGroupClient.On("CreateGroup", ctx, mock.AnythingOfType("*proto.CreateGroupRequest")).Return(expectedResponse, nil)
+
 	response, err := client.CreateUserGroup(ctx, req)
 
-	assert.Error(t, err)
-	assert.Nil(t, response)
-	assert.Contains(t, err.Error(), "CreateUserGroup not implemented")
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	assert.Equal(t, "Directors", response.Name)
+	assert.Equal(t, "org123", response.OrgID)
+	assert.Equal(t, "grp_123", response.GroupID)
+	mockGroupClient.AssertExpectations(t)
 }
 
 func TestAssignRole_NotImplemented(t *testing.T) {
-	client, _, _ := createTestClient()
+	client, _, _, _, _, mockRoleClient, _, _, _ := createTestClient()
 	ctx := context.Background()
+
+	expectedResponse := &proto.AssignRoleResponse{
+		StatusCode: 200,
+		Message:    "Role assigned successfully",
+	}
+
+	mockRoleClient.On("AssignRole", ctx, mock.AnythingOfType("*proto.AssignRoleRequest")).Return(expectedResponse, nil)
 
 	err := client.AssignRole(ctx, "user123", "org456", "farmer")
 
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "AssignRole not implemented")
+	assert.NoError(t, err)
+	mockRoleClient.AssertExpectations(t)
 }
 
 func TestCheckUserRole_NotImplemented(t *testing.T) {
-	client, _, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
+
+	// Mock GetUser to return a user without the farmer role
+	mockUserClient.On("GetUser", mock.Anything, mock.Anything).Return(
+		&proto.GetUserResponseV2{
+			User: &proto.UserV2{
+				Id:        "user123",
+				Username:  "testuser",
+				UserRoles: []*proto.UserRoleV2{}, // No roles
+			},
+		},
+		nil,
+	)
 
 	hasRole, err := client.CheckUserRole(ctx, "user123", "farmer")
 
-	assert.Error(t, err)
+	// User doesn't have the role
+	assert.NoError(t, err)
 	assert.False(t, hasRole)
-	assert.Contains(t, err.Error(), "CheckUserRole not implemented")
+	mockUserClient.AssertExpectations(t)
 }
 
 func TestSeedRolesAndPermissions_NotImplemented(t *testing.T) {
-	client, _, _ := createTestClient()
+	client, _, _, _, _, _, _, mockCatalogClient, _ := createTestClient()
 	ctx := context.Background()
+
+	expectedResponse := &proto.SeedRolesAndPermissionsResponse{
+		StatusCode:         200,
+		Message:            "Roles and permissions seeded successfully",
+		RolesCreated:       5,
+		PermissionsCreated: 20,
+	}
+
+	mockCatalogClient.On("SeedRolesAndPermissions", ctx, mock.AnythingOfType("*proto.SeedRolesAndPermissionsRequest")).Return(expectedResponse, nil)
 
 	err := client.SeedRolesAndPermissions(ctx)
 
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "SeedRolesAndPermissions not implemented")
+	assert.NoError(t, err)
+	mockCatalogClient.AssertExpectations(t)
 }
 
 // Test backward compatibility methods
 func TestCreateUserLegacy_Success(t *testing.T) {
-	client, mockUserClient, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
 	username := "testuser"
@@ -582,7 +934,7 @@ func TestCreateUserLegacy_Success(t *testing.T) {
 }
 
 func TestGetUserByMobile_Success(t *testing.T) {
-	client, mockUserClient, _ := createTestClient()
+	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 	mobileNumber := "+919876543210"
 

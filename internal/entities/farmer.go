@@ -1,28 +1,64 @@
 package entities
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
 )
 
+// JSONB is a custom type for handling JSONB columns
+type JSONB map[string]string
+
+// Value implements the driver.Valuer interface
+func (j JSONB) Value() (driver.Value, error) {
+	if j == nil {
+		return nil, nil
+	}
+	return json.Marshal(j)
+}
+
+// Scan implements the sql.Scanner interface
+func (j *JSONB) Scan(value interface{}) error {
+	if value == nil {
+		*j = nil
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("failed to unmarshal JSONB value")
+	}
+
+	result := make(map[string]string)
+	if err := json.Unmarshal(bytes, &result); err != nil {
+		return err
+	}
+
+	*j = result
+	return nil
+}
+
 // FarmerProfile represents a farmer profile in the domain
 type FarmerProfile struct {
 	base.BaseModel
-	AAAUserID        string            `json:"aaa_user_id"`
-	AAAOrgID         string            `json:"aaa_org_id"`
-	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty"`
-	FirstName        string            `json:"first_name,omitempty"`
-	LastName         string            `json:"last_name,omitempty"`
-	PhoneNumber      string            `json:"phone_number,omitempty"`
-	Email            string            `json:"email,omitempty"`
-	DateOfBirth      string            `json:"date_of_birth,omitempty"`
-	Gender           string            `json:"gender,omitempty"`
-	Address          Address           `json:"address,omitempty"`
-	Preferences      map[string]string `json:"preferences,omitempty"`
-	Metadata         map[string]string `json:"metadata,omitempty"`
-	Status           string            `json:"status"`
+	AAAUserID        string   `json:"aaa_user_id"`
+	AAAOrgID         string   `json:"aaa_org_id"`
+	KisanSathiUserID *string  `json:"kisan_sathi_user_id,omitempty"`
+	FirstName        string   `json:"first_name,omitempty"`
+	LastName         string   `json:"last_name,omitempty"`
+	PhoneNumber      string   `json:"phone_number,omitempty"`
+	Email            string   `json:"email,omitempty"`
+	DateOfBirth      string   `json:"date_of_birth,omitempty"`
+	Gender           string   `json:"gender,omitempty"`
+	AddressID        *string  `gorm:"column:address_id" json:"-"`
+	Address          *Address `gorm:"foreignKey:AddressID" json:"address,omitempty"`
+	Preferences      JSONB    `gorm:"type:jsonb" json:"preferences,omitempty"`
+	Metadata         JSONB    `gorm:"type:jsonb" json:"metadata,omitempty"`
+	Status           string   `json:"status"`
 }
 
 // TableName returns the table name for the FarmerProfile model
@@ -42,12 +78,28 @@ func (fp *FarmerProfile) GetTableSize() hash.TableSize {
 
 // Address represents address information in the domain
 type Address struct {
+	base.BaseModel
 	StreetAddress string `json:"street_address,omitempty"`
 	City          string `json:"city,omitempty"`
 	State         string `json:"state,omitempty"`
 	PostalCode    string `json:"postal_code,omitempty"`
 	Country       string `json:"country,omitempty"`
 	Coordinates   string `json:"coordinates,omitempty"`
+}
+
+// TableName returns the table name for the Address model
+func (a *Address) TableName() string {
+	return "addresses"
+}
+
+// GetTableIdentifier returns the table identifier for ID generation
+func (a *Address) GetTableIdentifier() string {
+	return "address"
+}
+
+// GetTableSize returns the table size for ID generation
+func (a *Address) GetTableSize() hash.TableSize {
+	return hash.Medium
 }
 
 // FarmerLink represents a farmer link in the domain

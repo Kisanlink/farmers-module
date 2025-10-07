@@ -69,13 +69,13 @@ func TestFPORefFields(t *testing.T) {
 		AAAOrgID:       "org123",
 		Name:           "Test FPO",
 		RegistrationNo: "REG123",
-		Status:         "ACTIVE",
+		Status:         FPOStatusActive,
 		BusinessConfig: map[string]string{"type": "agricultural"},
 	}
 
 	assert.Equal(t, "org123", fpoRef.AAAOrgID)
 	assert.Equal(t, "Test FPO", fpoRef.Name)
 	assert.Equal(t, "REG123", fpoRef.RegistrationNo)
-	assert.Equal(t, "ACTIVE", fpoRef.Status)
+	assert.Equal(t, FPOStatusActive, fpoRef.Status)
 	assert.Equal(t, map[string]string{"type": "agricultural"}, fpoRef.BusinessConfig)
 }

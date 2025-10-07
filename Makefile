@@ -17,15 +17,52 @@ build: ## Build the application
 	go build -o farmers-server cmd/farmers-service/main.go
 	@echo "✅ Build complete: farmers-server"
 
-test: ## Run tests
-	@echo "Running tests..."
+test: ## Run all tests (unit + integration)
+	@echo "Running all tests..."
 	go test ./... -v
+
+test-short: ## Run only unit tests (skip integration tests)
+	@echo "Running unit tests..."
+	go test ./... -v -short
+
+test-integration: ## Run integration tests with TestContainers
+	@echo "Running integration tests with TestContainers..."
+	@echo "Note: Requires Docker to be running"
+	go test ./... -v -run Integration
+
+test-contract: ## Run contract tests for mock-real service parity
+	@echo "Running contract tests..."
+	go test ./internal/services -v -run Contract
+
+test-security: ## Run security validation tests
+	@echo "Running security tests..."
+	go test ./internal/services -v -run Security
+
+test-coverage: ## Run tests with coverage report
+	@echo "Running tests with coverage..."
+	go test ./... -coverprofile=coverage.out -covermode=atomic
+	go tool cover -html=coverage.out -o coverage.html
+	@echo "✅ Coverage report generated: coverage.html"
+
+test-benchmark: ## Run benchmark tests
+	@echo "Running benchmark tests..."
+	go test ./... -bench=. -benchmem -run=^$$
 
 # Documentation
 docs: ## Generate Swagger documentation
 	@echo "Generating Swagger documentation..."
 	swag init -g cmd/farmers-service/main.go
 	@echo "✅ Swagger documentation generated"
+
+# Protocol Buffers
+proto-gen: ## Regenerate protocol buffer files
+	@echo "Regenerating proto files..."
+	@# Generate all proto files with dependencies resolved
+	cd pkg/proto && protoc --go_out=. --go_opt=paths=source_relative \
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		--proto_path=. \
+		*.proto
+	@echo "✅ Proto files regenerated"
 
 # Development server
 run: ## Run the farmers module server

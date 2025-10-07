@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/bulk"
 	"github.com/Kisanlink/farmers-module/internal/entities/crop"
 	"github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
@@ -72,7 +73,9 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		models := []interface{}{
 			&fpo.FPORef{},
 			&farmer.FarmerLink{},
-			&farmer.Farmer{}, // Add the main Farmer model
+			&farmer.Farmer{},          // Add the main Farmer model
+			&entities.Address{},       // Add Address entity
+			&entities.FarmerProfile{}, // Add FarmerProfile entity
 			&crop.Crop{},
 			&crop_variety.CropVariety{},
 			&crop_cycle.CropCycle{},
@@ -98,7 +101,9 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		models := []interface{}{
 			&fpo.FPORef{},
 			&farmer.FarmerLink{},
-			&farmer.Farmer{}, // Add the main Farmer model
+			&farmer.Farmer{},          // Add the main Farmer model
+			&entities.Address{},       // Add Address entity
+			&entities.FarmerProfile{}, // Add FarmerProfile entity
 			&farm.Farm{},
 			&crop.Crop{},
 			&crop_variety.CropVariety{},
@@ -200,6 +205,17 @@ func setupPostMigration(gormDB *gorm.DB) {
 	gormDB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS farmers_aaa_user_org_idx ON farmers (aaa_user_id, aaa_org_id);`)
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmers_phone_idx ON farmers (phone_number);`)
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmers_email_idx ON farmers (email);`)
+
+	// Create indexes for farmer_profiles table
+	gormDB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS farmer_profiles_aaa_user_org_idx ON farmer_profiles (aaa_user_id, aaa_org_id);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmer_profiles_phone_idx ON farmer_profiles (phone_number);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmer_profiles_email_idx ON farmer_profiles (email);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmer_profiles_address_id_idx ON farmer_profiles (address_id);`)
+
+	// Create indexes for addresses table
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS addresses_city_idx ON addresses (city);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS addresses_state_idx ON addresses (state);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS addresses_postal_code_idx ON addresses (postal_code);`)
 
 	// Create indexes for farmer_links table
 	gormDB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS farmer_links_user_org_idx ON farmer_links (aaa_user_id, aaa_org_id);`)
