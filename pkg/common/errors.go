@@ -17,11 +17,12 @@ var (
 	ErrInvalidFarmActivityData = errors.New("invalid farm activity data")
 
 	// General errors
-	ErrNotFound     = errors.New("resource not found")
-	ErrUnauthorized = errors.New("unauthorized")
-	ErrForbidden    = errors.New("forbidden")
-	ErrInvalidInput = errors.New("invalid input")
-	ErrInternal     = errors.New("internal server error")
+	ErrNotFound       = errors.New("resource not found")
+	ErrUnauthorized   = errors.New("unauthorized")
+	ErrForbidden      = errors.New("forbidden")
+	ErrInvalidInput   = errors.New("invalid input")
+	ErrInternal       = errors.New("internal server error")
+	ErrAlreadyExists  = errors.New("resource already exists")
 )
 
 // ErrorResponse represents a structured error response

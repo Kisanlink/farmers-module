@@ -73,19 +73,41 @@ var RoutePermissionMap = map[string]Permission{
 	"DELETE /api/v1/farms/:id": {Resource: "farm", Action: "delete"},
 	"GET /api/v1/farms":        {Resource: "farm", Action: "list"},
 
+	// Crop master data routes
+	"POST /api/v1/crops":       {Resource: "crop", Action: "create"},
+	"GET /api/v1/crops/:id":    {Resource: "crop", Action: "read"},
+	"PUT /api/v1/crops/:id":    {Resource: "crop", Action: "update"},
+	"DELETE /api/v1/crops/:id": {Resource: "crop", Action: "delete"},
+	"GET /api/v1/crops":        {Resource: "crop", Action: "list"},
+
+	// Crop variety routes
+	"POST /api/v1/varieties":       {Resource: "crop", Action: "create"},
+	"GET /api/v1/varieties/:id":    {Resource: "crop", Action: "read"},
+	"PUT /api/v1/varieties/:id":    {Resource: "crop", Action: "update"},
+	"DELETE /api/v1/varieties/:id": {Resource: "crop", Action: "delete"},
+	"GET /api/v1/varieties":        {Resource: "crop", Action: "list"},
+	"GET /api/v1/crop-varieties/:id": {Resource: "crop", Action: "list"},
+
 	// Crop cycle routes
-	"POST /api/v1/crop-cycles":       {Resource: "cycle", Action: "start"},
-	"GET /api/v1/crop-cycles/:id":    {Resource: "cycle", Action: "read"},
-	"PUT /api/v1/crop-cycles/:id":    {Resource: "cycle", Action: "update"},
-	"DELETE /api/v1/crop-cycles/:id": {Resource: "cycle", Action: "end"},
-	"GET /api/v1/crop-cycles":        {Resource: "cycle", Action: "list"},
+	"POST /api/v1/crops/cycles":         {Resource: "cycle", Action: "start"},
+	"GET /api/v1/crops/cycles/:id":      {Resource: "cycle", Action: "read"},
+	"PUT /api/v1/crops/cycles/:id":      {Resource: "cycle", Action: "update"},
+	"PUT /api/v1/crops/cycles/:id/end":  {Resource: "cycle", Action: "end"},
+	"DELETE /api/v1/crops/cycles/:id":   {Resource: "cycle", Action: "end"},
+	"GET /api/v1/crops/cycles":          {Resource: "cycle", Action: "list"},
 
 	// Farm activity routes
-	"POST /api/v1/farm-activities":               {Resource: "activity", Action: "create"},
-	"GET /api/v1/farm-activities/:id":            {Resource: "activity", Action: "read"},
-	"PUT /api/v1/farm-activities/:id":            {Resource: "activity", Action: "update"},
-	"PATCH /api/v1/farm-activities/:id/complete": {Resource: "activity", Action: "complete"},
-	"GET /api/v1/farm-activities":                {Resource: "activity", Action: "list"},
+	"POST /api/v1/crops/activities":                    {Resource: "activity", Action: "create"},
+	"GET /api/v1/crops/activities/:id":                 {Resource: "activity", Action: "read"},
+	"PUT /api/v1/crops/activities/:id":                 {Resource: "activity", Action: "update"},
+	"PUT /api/v1/crops/activities/:id/complete":        {Resource: "activity", Action: "complete"},
+	"GET /api/v1/crops/activities":                     {Resource: "activity", Action: "list"},
+
+	// Lookup/Dropdown data routes
+	"GET /api/v1/lookups/crops":             {Resource: "crop", Action: "list"},
+	"GET /api/v1/lookups/varieties/:id":     {Resource: "crop", Action: "list"},
+	"GET /api/v1/lookups/crop-categories":   {Resource: "crop", Action: "list"},
+	"GET /api/v1/lookups/crop-seasons":      {Resource: "crop", Action: "list"},
 
 	// Data quality routes
 	"POST /api/v1/data-quality/validate-geometry":       {Resource: "farm", Action: "audit"},

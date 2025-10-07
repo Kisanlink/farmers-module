@@ -14,13 +14,13 @@ type FarmSummary struct {
 
 // CycleSummary represents a summary of crop cycle data
 type CycleSummary struct {
-	CycleID      string     `json:"cycle_id"`
-	FarmID       string     `json:"farm_id"`
-	Season       string     `json:"season"`
-	Status       string     `json:"status"`
-	StartDate    *time.Time `json:"start_date,omitempty"`
-	EndDate      *time.Time `json:"end_date,omitempty"`
-	PlannedCrops []string   `json:"planned_crops,omitempty"`
+	CycleID   string     `json:"cycle_id"`
+	FarmID    string     `json:"farm_id"`
+	Season    string     `json:"season"`
+	Status    string     `json:"status"`
+	StartDate *time.Time `json:"start_date,omitempty"`
+	EndDate   *time.Time `json:"end_date,omitempty"`
+	CropName  string     `json:"crop_name,omitempty"`
 }
 
 // ActivitySummary represents a summary of farm activity data

@@ -17,64 +17,6 @@ definitions:
     - resource
     - subject
     type: object
-  handlers.CompleteActivityData:
-    properties:
-      activity_id:
-        type: string
-      completed_at:
-        type: string
-    type: object
-  handlers.CompleteActivityRequest:
-    properties:
-      completed_at:
-        type: string
-      notes:
-        type: string
-      outcome:
-        type: string
-    required:
-    - completed_at
-    type: object
-  handlers.CompleteActivityResponse:
-    properties:
-      data:
-        $ref: '#/definitions/handlers.CompleteActivityData'
-      message:
-        type: string
-    type: object
-  handlers.CreateActivityData:
-    properties:
-      activity_type:
-        type: string
-      crop_cycle_id:
-        type: string
-      planned_at:
-        type: string
-    type: object
-  handlers.CreateActivityRequest:
-    properties:
-      activity_type:
-        type: string
-      crop_cycle_id:
-        type: string
-      description:
-        type: string
-      metadata:
-        type: string
-      planned_at:
-        type: string
-    required:
-    - activity_type
-    - crop_cycle_id
-    - planned_at
-    type: object
-  handlers.CreateActivityResponse:
-    properties:
-      data:
-        $ref: '#/definitions/handlers.CreateActivityData'
-      message:
-        type: string
-    type: object
   handlers.DetectFarmOverlapsResponse:
     properties:
       data: {}
@@ -102,26 +44,6 @@ definitions:
         type: boolean
       total:
         type: integer
-    type: object
-  handlers.GetFarmActivityData:
-    properties:
-      activity_id:
-        type: string
-    type: object
-  handlers.GetFarmActivityResponse:
-    properties:
-      data:
-        $ref: '#/definitions/handlers.GetFarmActivityData'
-      message:
-        type: string
-    type: object
-  handlers.ListActivitiesResponse:
-    properties:
-      data:
-        items: {}
-        type: array
-      message:
-        type: string
     type: object
   handlers.RebuildSpatialIndexesResponse:
     properties:
@@ -151,27 +73,6 @@ definitions:
         type: string
       success:
         type: boolean
-    type: object
-  handlers.UpdateActivityData:
-    properties:
-      activity_id:
-        type: string
-    type: object
-  handlers.UpdateActivityRequest:
-    properties:
-      activity_type:
-        type: string
-      metadata:
-        type: string
-      planned_at:
-        type: string
-    type: object
-  handlers.UpdateActivityResponse:
-    properties:
-      data:
-        $ref: '#/definitions/handlers.UpdateActivityData'
-      message:
-        type: string
     type: object
   handlers.ValidateGeometryResponse:
     properties:
@@ -337,6 +238,107 @@ definitions:
     - activity_type
     - crop_cycle_id
     type: object
+  requests.CreateCropRequest:
+    properties:
+      category:
+        enum:
+        - CEREALS
+        - PULSES
+        - VEGETABLES
+        - FRUITS
+        - OIL_SEEDS
+        - SPICES
+        - CASH_CROPS
+        - FODDER
+        - MEDICINAL
+        - OTHER
+        type: string
+      duration_days:
+        maximum: 365
+        minimum: 1
+        type: integer
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        maxLength: 255
+        minLength: 2
+        type: string
+      org_id:
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        type: object
+      request_id:
+        type: string
+      request_type:
+        type: string
+      scientific_name:
+        maxLength: 255
+        type: string
+      seasons:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      timestamp:
+        type: string
+      unit:
+        maxLength: 50
+        minLength: 1
+        type: string
+      user_id:
+        type: string
+    required:
+    - category
+    - name
+    - seasons
+    - unit
+    type: object
+  requests.CreateCropVarietyRequest:
+    properties:
+      crop_id:
+        type: string
+      description:
+        type: string
+      duration_days:
+        maximum: 365
+        minimum: 1
+        type: integer
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        maxLength: 255
+        minLength: 2
+        type: string
+      org_id:
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        type: object
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+      yield_per_acre:
+        minimum: 0
+        type: number
+      yield_per_tree:
+        minimum: 0
+        type: number
+    required:
+    - crop_id
+    - name
+    type: object
   requests.CreateFPORequest:
     properties:
       business_config:
@@ -379,17 +381,38 @@ definitions:
       area_ha:
         minimum: 0.01
         type: number
+      bore_well_count:
+        minimum: 0
+        type: integer
       geometry:
         $ref: '#/definitions/requests.GeometryData'
+      irrigation_sources:
+        items:
+          $ref: '#/definitions/requests.IrrigationSourceRequest'
+        type: array
       metadata:
         additionalProperties:
           type: string
         type: object
+      name:
+        type: string
       org_id:
+        type: string
+      other_irrigation_details:
+        type: string
+      ownership_type:
+        enum:
+        - OWN
+        - LEASE
+        - SHARED
+        type: string
+      primary_irrigation_source_id:
         type: string
       request_id:
         type: string
       request_type:
+        type: string
+      soil_type_id:
         type: string
       timestamp:
         type: string
@@ -641,6 +664,20 @@ definitions:
         description: Well-Known Text format
         type: string
     type: object
+  requests.IrrigationSourceRequest:
+    properties:
+      count:
+        minimum: 0
+        type: integer
+      details:
+        type: string
+      irrigation_source_id:
+        type: string
+      is_primary:
+        type: boolean
+    required:
+    - irrigation_source_id
+    type: object
   requests.LinkFarmerRequest:
     properties:
       aaa_org_id:
@@ -841,6 +878,8 @@ definitions:
     type: object
   requests.StartCycleRequest:
     properties:
+      crop_id:
+        type: string
       farm_id:
         type: string
       metadata:
@@ -849,11 +888,6 @@ definitions:
         type: object
       org_id:
         type: string
-      planned_crops:
-        items:
-          type: string
-        minItems: 1
-        type: array
       request_id:
         type: string
       request_type:
@@ -870,9 +904,11 @@ definitions:
         type: string
       user_id:
         type: string
+      variety_id:
+        type: string
     required:
+    - crop_id
     - farm_id
-    - planned_crops
     - season
     - start_date
     type: object
@@ -925,8 +961,113 @@ definitions:
     required:
     - id
     type: object
+  requests.UpdateCropRequest:
+    properties:
+      category:
+        enum:
+        - CEREALS
+        - PULSES
+        - VEGETABLES
+        - FRUITS
+        - OIL_SEEDS
+        - SPICES
+        - CASH_CROPS
+        - FODDER
+        - MEDICINAL
+        - OTHER
+        type: string
+      duration_days:
+        maximum: 365
+        minimum: 1
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        maxLength: 255
+        minLength: 2
+        type: string
+      org_id:
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        type: object
+      request_id:
+        type: string
+      request_type:
+        type: string
+      scientific_name:
+        maxLength: 255
+        type: string
+      seasons:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      timestamp:
+        type: string
+      unit:
+        maxLength: 50
+        minLength: 1
+        type: string
+      user_id:
+        type: string
+    required:
+    - id
+    type: object
+  requests.UpdateCropVarietyRequest:
+    properties:
+      description:
+        type: string
+      duration_days:
+        maximum: 365
+        minimum: 1
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        maxLength: 255
+        minLength: 2
+        type: string
+      org_id:
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        type: object
+      request_id:
+        type: string
+      request_type:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: string
+      yield_per_acre:
+        minimum: 0
+        type: number
+      yield_per_tree:
+        minimum: 0
+        type: number
+    required:
+    - id
+    type: object
   requests.UpdateCycleRequest:
     properties:
+      crop_id:
+        type: string
       id:
         type: string
       metadata:
@@ -935,10 +1076,6 @@ definitions:
         type: object
       org_id:
         type: string
-      planned_crops:
-        items:
-          type: string
-        type: array
       request_id:
         type: string
       request_type:
@@ -955,6 +1092,8 @@ definitions:
         type: string
       user_id:
         type: string
+      variety_id:
+        type: string
     required:
     - id
     type: object
@@ -966,19 +1105,40 @@ definitions:
         type: string
       area_ha:
         type: number
+      bore_well_count:
+        minimum: 0
+        type: integer
       geometry:
         $ref: '#/definitions/requests.GeometryData'
       id:
         type: string
+      irrigation_sources:
+        items:
+          $ref: '#/definitions/requests.IrrigationSourceRequest'
+        type: array
       metadata:
         additionalProperties:
           type: string
         type: object
+      name:
+        type: string
       org_id:
+        type: string
+      other_irrigation_details:
+        type: string
+      ownership_type:
+        enum:
+        - OWN
+        - LEASE
+        - SHARED
+        type: string
+      primary_irrigation_source_id:
         type: string
       request_id:
         type: string
       request_type:
+        type: string
+      soil_type_id:
         type: string
       timestamp:
         type: string
@@ -1235,9 +1395,26 @@ definitions:
           $ref: '#/definitions/responses.UserGroupData'
         type: array
     type: object
+  responses.CropCategoriesResponse:
+    properties:
+      data:
+        items:
+          type: string
+        type: array
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
   responses.CropCycleData:
     properties:
       created_at:
+        type: string
+      crop_id:
+        type: string
+      crop_name:
         type: string
       end_date:
         type: string
@@ -1251,10 +1428,6 @@ definitions:
         additionalProperties:
           type: string
         type: object
-      planned_crops:
-        items:
-          type: string
-        type: array
       season:
         type: string
       start_date:
@@ -1263,6 +1436,140 @@ definitions:
         type: string
       updated_at:
         type: string
+      variety_id:
+        type: string
+      variety_name:
+        type: string
+    type: object
+  responses.CropData:
+    properties:
+      category:
+        type: string
+      created_at:
+        type: string
+      duration_days:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        type: object
+      scientific_name:
+        type: string
+      seasons:
+        items:
+          type: string
+        type: array
+      unit:
+        type: string
+      updated_at:
+        type: string
+      variety_count:
+        description: Count of active varieties
+        type: integer
+    type: object
+  responses.CropLookupData:
+    properties:
+      category:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      seasons:
+        items:
+          type: string
+        type: array
+      unit:
+        type: string
+    type: object
+  responses.CropSeasonsResponse:
+    properties:
+      data:
+        items:
+          type: string
+        type: array
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  responses.CropVarietyData:
+    properties:
+      created_at:
+        type: string
+      crop_id:
+        type: string
+      crop_name:
+        type: string
+      description:
+        type: string
+      duration_days:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        type: object
+      updated_at:
+        type: string
+      yield_per_acre:
+        type: number
+      yield_per_tree:
+        type: number
+    type: object
+  responses.CropVarietyListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/responses.CropVarietyData'
+        type: array
+      message:
+        type: string
+      page:
+        type: integer
+      page_size:
+        type: integer
+      request_id:
+        type: string
+      success:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  responses.CropVarietyLookupData:
+    properties:
+      duration_days:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  responses.CropVarietyLookupResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/responses.CropVarietyLookupData'
+        type: array
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
     type: object
   responses.ErrorResponse:
     properties:
@@ -1611,6 +1918,75 @@ definitions:
       request_id:
         type: string
       success:
+        type: boolean
+    type: object
+  responses.SwaggerCropListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/responses.CropData'
+        type: array
+      message:
+        example: Crops retrieved successfully
+        type: string
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 20
+        type: integer
+      request_id:
+        example: req_123456789
+        type: string
+      success:
+        example: true
+        type: boolean
+      total:
+        example: 50
+        type: integer
+    type: object
+  responses.SwaggerCropLookupResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/responses.CropLookupData'
+        type: array
+      message:
+        example: Crop lookup data retrieved successfully
+        type: string
+      request_id:
+        example: req_123456789
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.SwaggerCropResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.CropData'
+      message:
+        example: Crop created successfully
+        type: string
+      request_id:
+        example: req_123456789
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  responses.SwaggerCropVarietyResponse:
+    properties:
+      data:
+        $ref: '#/definitions/responses.CropVarietyData'
+      message:
+        example: Crop variety created successfully
+        type: string
+      request_id:
+        example: req_123456789
+        type: string
+      success:
+        example: true
         type: boolean
     type: object
   responses.SwaggerErrorResponse:
@@ -2771,59 +3147,90 @@ paths:
       summary: Validate bulk data
       tags:
       - Bulk Operations
-  /crops/activities:
+  /crops:
     get:
       consumes:
       - application/json
-      description: Retrieve a list of all farm activities
+      description: List crops with optional filtering by category, season, etc.
+      parameters:
+      - description: Filter by category
+        in: query
+        name: category
+        type: string
+      - description: Filter by season
+        in: query
+        name: season
+        type: string
+      - description: Search in name or scientific name
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.ListActivitiesResponse'
+            $ref: '#/definitions/responses.SwaggerCropListResponse'
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
-      summary: List farm activities
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: List crops
       tags:
-      - farm-activities
+      - Crop Master Data
     post:
       consumes:
       - application/json
-      description: Create a new farm activity for a crop cycle
+      description: Create a new crop with master data
       parameters:
-      - description: Farm activity data
+      - description: Crop data
         in: body
-        name: activity
+        name: crop
         required: true
         schema:
-          $ref: '#/definitions/handlers.CreateActivityRequest'
+          $ref: '#/definitions/requests.CreateCropRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            $ref: '#/definitions/handlers.CreateActivityResponse'
+            $ref: '#/definitions/responses.SwaggerCropResponse'
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
-      summary: Create a new farm activity
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Create a new crop
       tags:
-      - farm-activities
-  /crops/activities/{activity_id}:
-    get:
+      - Crop Master Data
+  /crops/{id}:
+    delete:
       consumes:
       - application/json
-      description: Retrieve a specific farm activity by its ID
+      description: Soft delete a crop (marks as inactive)
       parameters:
-      - description: Activity ID
+      - description: Crop ID
         in: path
-        name: activity_id
+        name: id
         required: true
         type: string
       produces:
@@ -2832,80 +3239,97 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.GetFarmActivityResponse'
+            $ref: '#/definitions/responses.SwaggerCropResponse'
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
-      summary: Get farm activity by ID
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Delete crop
       tags:
-      - farm-activities
+      - Crop Master Data
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific crop
+      parameters:
+      - description: Crop ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerCropResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get crop by ID
+      tags:
+      - Crop Master Data
     put:
       consumes:
       - application/json
-      description: Update an existing farm activity details
+      description: Update crop master data
       parameters:
-      - description: Activity ID
+      - description: Crop ID
         in: path
-        name: activity_id
+        name: id
         required: true
         type: string
-      - description: Activity update data
+      - description: Crop update data
         in: body
-        name: activity
+        name: crop
         required: true
         schema:
-          $ref: '#/definitions/handlers.UpdateActivityRequest'
+          $ref: '#/definitions/requests.UpdateCropRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.UpdateActivityResponse'
+            $ref: '#/definitions/responses.SwaggerCropResponse'
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
-      summary: Update a farm activity
-      tags:
-      - farm-activities
-  /crops/activities/{activity_id}/complete:
-    post:
-      consumes:
-      - application/json
-      description: Mark a farm activity as completed
-      parameters:
-      - description: Activity ID
-        in: path
-        name: activity_id
-        required: true
-        type: string
-      - description: Activity completion data
-        in: body
-        name: activity
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.CompleteActivityRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.CompleteActivityResponse'
-        "400":
-          description: Bad Request
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
-      summary: Complete a farm activity
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Update crop
       tags:
-      - farm-activities
+      - Crop Master Data
   /crops/cycles:
     get:
       consumes:
       - application/json
-      description: Retrieve a list of all crop cycles with filtering
+      description: Get a paginated list of crop cycles with optional filtering
       parameters:
       - default: 1
         description: Page number
@@ -2921,26 +3345,13 @@ paths:
         in: query
         name: farm_id
         type: string
-      - description: Filter by farmer ID
-        in: query
-        name: farmer_id
-        type: string
-      - description: Filter by season
-        enum:
-        - RABI
-        - KHARIF
-        - ZAID
-        in: query
-        name: season
-        type: string
       - description: Filter by status
-        enum:
-        - PLANNED
-        - ACTIVE
-        - COMPLETED
-        - CANCELLED
         in: query
         name: status
+        type: string
+      - description: Filter by season
+        in: query
+        name: season
         type: string
       produces:
       - application/json
@@ -2967,15 +3378,15 @@ paths:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: List crop cycles
       tags:
-      - crop-cycles
+      - Crop Cycles
     post:
       consumes:
       - application/json
-      description: Start a new crop cycle for a specific farm
+      description: Start a new crop cycle with farm and crop details
       parameters:
-      - description: Crop cycle data
+      - description: Start cycle request
         in: body
-        name: cycle
+        name: request
         required: true
         schema:
           $ref: '#/definitions/requests.StartCycleRequest'
@@ -3004,14 +3415,14 @@ paths:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Start a new crop cycle
       tags:
-      - crop-cycles
+      - Crop Cycles
   /crops/cycles/{cycle_id}:
     get:
       consumes:
       - application/json
-      description: Retrieve a specific crop cycle by its ID
+      description: Get detailed information about a specific crop cycle
       parameters:
-      - description: Crop Cycle ID
+      - description: Cycle ID
         in: path
         name: cycle_id
         required: true
@@ -3019,8 +3430,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/responses.SwaggerCropCycleResponse'
         "400":
@@ -3038,35 +3449,35 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.ErrorResponse'
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Get crop cycle by ID
       tags:
-      - crop-cycles
+      - Crop Cycles
     put:
       consumes:
       - application/json
-      description: Update an existing crop cycle details
+      description: Update details of an existing crop cycle
       parameters:
-      - description: Crop Cycle ID
+      - description: Cycle ID
         in: path
         name: cycle_id
         required: true
         type: string
-      - description: Crop cycle update data
+      - description: Update cycle request
         in: body
-        name: cycle
+        name: request
         required: true
         schema:
           $ref: '#/definitions/requests.UpdateCycleRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/responses.SwaggerCropCycleResponse'
         "400":
@@ -3084,36 +3495,36 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.ErrorResponse'
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: Update a crop cycle
       tags:
-      - crop-cycles
+      - Crop Cycles
   /crops/cycles/{cycle_id}/end:
-    post:
+    put:
       consumes:
       - application/json
-      description: End an active crop cycle with status and outcome
+      description: End a crop cycle and mark it as completed
       parameters:
-      - description: Crop Cycle ID
+      - description: Cycle ID
         in: path
         name: cycle_id
         required: true
         type: string
-      - description: Crop cycle end data
+      - description: End cycle request
         in: body
-        name: cycle
+        name: request
         required: true
         schema:
           $ref: '#/definitions/requests.EndCycleRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/responses.SwaggerCropCycleResponse'
         "400":
@@ -3131,14 +3542,14 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.ErrorResponse'
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
       summary: End a crop cycle
       tags:
-      - crop-cycles
+      - Crop Cycles
   /farms:
     get:
       consumes:
@@ -4093,6 +4504,263 @@ paths:
       summary: Reassign or remove KisanSathi
       tags:
       - kisansathi
+  /lookups/crop-categories:
+    get:
+      consumes:
+      - application/json
+      description: Get list of available crop categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.CropCategoriesResponse'
+      summary: Get crop categories
+      tags:
+      - Crop Master Data
+  /lookups/crop-seasons:
+    get:
+      consumes:
+      - application/json
+      description: Get list of available crop seasons
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.CropSeasonsResponse'
+      summary: Get crop seasons
+      tags:
+      - Crop Master Data
+  /lookups/crops:
+    get:
+      consumes:
+      - application/json
+      description: Get simplified crop data for dropdown/lookup purposes
+      parameters:
+      - description: Filter by category
+        in: query
+        name: category
+        type: string
+      - description: Filter by season
+        in: query
+        name: season
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerCropLookupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get crop lookup data
+      tags:
+      - Crop Master Data
+  /lookups/varieties/{crop_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get simplified variety data for dropdown/lookup purposes
+      parameters:
+      - description: Crop ID
+        in: path
+        name: crop_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.CropVarietyLookupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get variety lookup data
+      tags:
+      - Crop Master Data
+  /varieties:
+    get:
+      consumes:
+      - application/json
+      description: List crop varieties with optional filtering
+      parameters:
+      - description: Filter by crop ID
+        in: query
+        name: crop_id
+        type: string
+      - description: Search in name or description
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.CropVarietyListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: List crop varieties
+      tags:
+      - Crop Master Data
+    post:
+      consumes:
+      - application/json
+      description: Create a new variety for a specific crop
+      parameters:
+      - description: Crop variety data
+        in: body
+        name: variety
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateCropVarietyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responses.SwaggerCropVarietyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Create crop variety
+      tags:
+      - Crop Master Data
+  /varieties/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a crop variety (marks as inactive)
+      parameters:
+      - description: Crop variety ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerCropVarietyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Delete crop variety
+      tags:
+      - Crop Master Data
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific crop variety
+      parameters:
+      - description: Crop variety ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerCropVarietyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get crop variety by ID
+      tags:
+      - Crop Master Data
+    put:
+      consumes:
+      - application/json
+      description: Update crop variety data
+      parameters:
+      - description: Crop variety ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Crop variety update data
+        in: body
+        name: variety
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdateCropVarietyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerCropVarietyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Update crop variety
+      tags:
+      - Crop Master Data
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

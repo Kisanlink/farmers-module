@@ -47,12 +47,13 @@ func (s *CropCycleServiceImpl) StartCycle(ctx context.Context, req interface{}) 
 
 	// Create crop cycle entity
 	cycle := &cropCycleEntity.CropCycle{
-		FarmID:       startReq.FarmID,
-		FarmerID:     startReq.UserID,
-		Season:       startReq.Season,
-		Status:       "PLANNED",
-		StartDate:    &startReq.StartDate,
-		PlannedCrops: startReq.PlannedCrops,
+		FarmID:    startReq.FarmID,
+		FarmerID:  startReq.UserID,
+		Season:    startReq.Season,
+		Status:    "PLANNED",
+		StartDate: &startReq.StartDate,
+		CropID:    startReq.CropID,
+		VarietyID: startReq.VarietyID,
 	}
 
 	// Validate the cycle
@@ -74,7 +75,15 @@ func (s *CropCycleServiceImpl) StartCycle(ctx context.Context, req interface{}) 
 		Status:       cycle.Status,
 		StartDate:    cycle.StartDate,
 		EndDate:      cycle.EndDate,
-		PlannedCrops: cycle.PlannedCrops,
+		CropID:    cycle.CropID,
+		VarietyID: cycle.VarietyID,
+		CropName:  cycle.GetCropName(),
+		VarietyName: func() *string {
+			if name := cycle.GetVarietyName(); name != "" {
+				return &name
+			}
+			return nil
+		}(),
 		Outcome:      cycle.Outcome,
 		CreatedAt:    cycle.CreatedAt,
 		UpdatedAt:    cycle.UpdatedAt,
@@ -118,8 +127,11 @@ func (s *CropCycleServiceImpl) UpdateCycle(ctx context.Context, req interface{})
 	if updateReq.StartDate != nil {
 		cycle.StartDate = updateReq.StartDate
 	}
-	if updateReq.PlannedCrops != nil {
-		cycle.PlannedCrops = updateReq.PlannedCrops
+	if updateReq.CropID != nil {
+		cycle.CropID = *updateReq.CropID
+	}
+	if updateReq.VarietyID != nil {
+		cycle.VarietyID = updateReq.VarietyID
 	}
 
 	// Validate the updated cycle
@@ -141,7 +153,15 @@ func (s *CropCycleServiceImpl) UpdateCycle(ctx context.Context, req interface{})
 		Status:       cycle.Status,
 		StartDate:    cycle.StartDate,
 		EndDate:      cycle.EndDate,
-		PlannedCrops: cycle.PlannedCrops,
+		CropID:    cycle.CropID,
+		VarietyID: cycle.VarietyID,
+		CropName:  cycle.GetCropName(),
+		VarietyName: func() *string {
+			if name := cycle.GetVarietyName(); name != "" {
+				return &name
+			}
+			return nil
+		}(),
 		Outcome:      cycle.Outcome,
 		CreatedAt:    cycle.CreatedAt,
 		UpdatedAt:    cycle.UpdatedAt,
@@ -199,7 +219,15 @@ func (s *CropCycleServiceImpl) EndCycle(ctx context.Context, req interface{}) (i
 		Status:       cycle.Status,
 		StartDate:    cycle.StartDate,
 		EndDate:      cycle.EndDate,
-		PlannedCrops: cycle.PlannedCrops,
+		CropID:    cycle.CropID,
+		VarietyID: cycle.VarietyID,
+		CropName:  cycle.GetCropName(),
+		VarietyName: func() *string {
+			if name := cycle.GetVarietyName(); name != "" {
+				return &name
+			}
+			return nil
+		}(),
 		Outcome:      cycle.Outcome,
 		CreatedAt:    cycle.CreatedAt,
 		UpdatedAt:    cycle.UpdatedAt,
@@ -274,7 +302,15 @@ func (s *CropCycleServiceImpl) ListCycles(ctx context.Context, req interface{}) 
 			Status:       cycle.Status,
 			StartDate:    cycle.StartDate,
 			EndDate:      cycle.EndDate,
-			PlannedCrops: cycle.PlannedCrops,
+			CropID:    cycle.CropID,
+		VarietyID: cycle.VarietyID,
+		CropName:  cycle.GetCropName(),
+		VarietyName: func() *string {
+			if name := cycle.GetVarietyName(); name != "" {
+				return &name
+			}
+			return nil
+		}(),
 			Outcome:      cycle.Outcome,
 			CreatedAt:    cycle.CreatedAt,
 			UpdatedAt:    cycle.UpdatedAt,
@@ -303,7 +339,15 @@ func (s *CropCycleServiceImpl) GetCropCycle(ctx context.Context, cycleID string)
 		Status:       cycle.Status,
 		StartDate:    cycle.StartDate,
 		EndDate:      cycle.EndDate,
-		PlannedCrops: cycle.PlannedCrops,
+		CropID:    cycle.CropID,
+		VarietyID: cycle.VarietyID,
+		CropName:  cycle.GetCropName(),
+		VarietyName: func() *string {
+			if name := cycle.GetVarietyName(); name != "" {
+				return &name
+			}
+			return nil
+		}(),
 		Outcome:      cycle.Outcome,
 		CreatedAt:    cycle.CreatedAt,
 		UpdatedAt:    cycle.UpdatedAt,
