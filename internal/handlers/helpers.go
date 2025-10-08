@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/gin-gonic/gin"
 )
@@ -33,4 +36,20 @@ func parseIntQuery(c *gin.Context, key string, defaultValue int) int {
 // handleServiceError converts service errors to appropriate HTTP responses
 func handleServiceError(c *gin.Context, err error) {
 	common.HandleServiceError(c, err)
+}
+
+// convertValidatedData converts map[string]interface{} from context to a specific request struct
+func convertValidatedData(data interface{}, target interface{}) error {
+	// Convert map to JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal validated data: %w", err)
+	}
+
+	// Convert JSON to target struct
+	if err := json.Unmarshal(jsonData, target); err != nil {
+		return fmt.Errorf("failed to unmarshal to target struct: %w", err)
+	}
+
+	return nil
 }

@@ -24,9 +24,16 @@ import (
 // @Router /crops/cycles [post]
 func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req requests.StartCycleRequest
+		// Get validated data from context (set by validation middleware)
+		validatedData, exists := c.Get("validated_crop_cycle_data")
+		if !exists {
+			c.JSON(http.StatusBadRequest, responses.NewValidationError("Validation error", "validated data not found in context"))
+			return
+		}
 
-		if err := c.ShouldBindJSON(&req); err != nil {
+		// Convert validated data to request struct
+		var req requests.StartCycleRequest
+		if err := convertValidatedData(validatedData, &req); err != nil {
 			c.JSON(http.StatusBadRequest, responses.NewValidationError("Invalid request data", err.Error()))
 			return
 		}
@@ -73,9 +80,16 @@ func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Router /crops/cycles/{cycle_id} [put]
 func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req requests.UpdateCycleRequest
+		// Get validated data from context (set by validation middleware)
+		validatedData, exists := c.Get("validated_crop_cycle_data")
+		if !exists {
+			c.JSON(http.StatusBadRequest, responses.NewValidationError("Validation error", "validated data not found in context"))
+			return
+		}
 
-		if err := c.ShouldBindJSON(&req); err != nil {
+		// Convert validated data to request struct
+		var req requests.UpdateCycleRequest
+		if err := convertValidatedData(validatedData, &req); err != nil {
 			c.JSON(http.StatusBadRequest, responses.NewValidationError("Invalid request data", err.Error()))
 			return
 		}
@@ -125,9 +139,16 @@ func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Router /crops/cycles/{cycle_id}/end [put]
 func EndCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req requests.EndCycleRequest
+		// Get validated data from context (set by validation middleware)
+		validatedData, exists := c.Get("validated_crop_cycle_data")
+		if !exists {
+			c.JSON(http.StatusBadRequest, responses.NewValidationError("Validation error", "validated data not found in context"))
+			return
+		}
 
-		if err := c.ShouldBindJSON(&req); err != nil {
+		// Convert validated data to request struct
+		var req requests.EndCycleRequest
+		if err := convertValidatedData(validatedData, &req); err != nil {
 			c.JSON(http.StatusBadRequest, responses.NewValidationError("Invalid request data", err.Error()))
 			return
 		}

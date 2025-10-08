@@ -38,9 +38,9 @@ type Crop struct {
 	ScientificName *string           `json:"scientific_name" gorm:"type:varchar(255)"`
 	Category       CropCategory      `json:"category" gorm:"type:crop_category;not null"`
 	DurationDays   *int              `json:"duration_days" gorm:"type:integer"`
-	Seasons        []string          `json:"seasons" gorm:"type:jsonb;not null;default:'[]'"`
+	Seasons        []string          `json:"seasons" gorm:"type:jsonb;serializer:json;not null;default:'[]'"`
 	Unit           string            `json:"unit" gorm:"type:varchar(50);not null;default:'kg'"`
-	Properties     map[string]string `json:"properties" gorm:"type:jsonb;not null;default:'{}'"`
+	Properties     map[string]string `json:"properties" gorm:"type:jsonb;serializer:json;not null;default:'{}'"`
 	IsActive       bool              `json:"is_active" gorm:"type:boolean;not null;default:true"`
 }
 

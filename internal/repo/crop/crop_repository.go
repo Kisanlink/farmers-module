@@ -17,11 +17,23 @@ type CropRepository struct {
 }
 
 // NewCropRepository creates a new crop repository
-func NewCropRepository(db *gorm.DB) *CropRepository {
+func NewCropRepository(dbManager interface{}) *CropRepository {
 	baseRepo := base.NewBaseFilterableRepository[*crop.Crop]()
+	baseRepo.SetDBManager(dbManager)
+
+	// Get the GORM DB instance for custom queries
+	var db *gorm.DB
+	if postgresManager, ok := dbManager.(interface {
+		GetDB(context.Context, bool) (*gorm.DB, error)
+	}); ok {
+		if gormDB, err := postgresManager.GetDB(context.Background(), false); err == nil {
+			db = gormDB
+		}
+	}
+
 	return &CropRepository{
 		BaseFilterableRepository: baseRepo,
-		db:                      db,
+		db:                       db,
 	}
 }
 

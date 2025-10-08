@@ -16,11 +16,23 @@ type CropVarietyRepository struct {
 }
 
 // NewCropVarietyRepository creates a new crop variety repository
-func NewCropVarietyRepository(db *gorm.DB) *CropVarietyRepository {
+func NewCropVarietyRepository(dbManager interface{}) *CropVarietyRepository {
 	baseRepo := base.NewBaseFilterableRepository[*crop_variety.CropVariety]()
+	baseRepo.SetDBManager(dbManager)
+
+	// Get the GORM DB instance for custom queries
+	var db *gorm.DB
+	if postgresManager, ok := dbManager.(interface {
+		GetDB(context.Context, bool) (*gorm.DB, error)
+	}); ok {
+		if gormDB, err := postgresManager.GetDB(context.Background(), false); err == nil {
+			db = gormDB
+		}
+	}
+
 	return &CropVarietyRepository{
 		BaseFilterableRepository: baseRepo,
-		db:                      db,
+		db:                       db,
 	}
 }
 

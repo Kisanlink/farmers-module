@@ -6,6 +6,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/farmers-module/internal/middleware"
 	"github.com/Kisanlink/farmers-module/internal/services"
+	validationMiddleware "github.com/Kisanlink/farmers-module/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,29 +14,31 @@ import (
 func RegisterCropRoutes(router *gin.RouterGroup, services *services.ServiceFactory, cfg *config.Config, logger interfaces.Logger) {
 	// Initialize authentication and authorization middleware
 	authenticationMW := middleware.AuthenticationMiddleware(services.AAAService, logger)
+	userContextMW := middleware.UserContextMiddleware()
+	validation := validationMiddleware.NewValidationMiddleware(services.AAAClient, cfg)
 	authorizationMW := middleware.AuthorizationMiddleware(services.AAAService, logger)
 
 	crops := router.Group("/crops")
-	crops.Use(authenticationMW, authorizationMW) // Apply auth middleware to all crop routes
+	crops.Use(authenticationMW, userContextMW, authorizationMW) // Apply auth middleware to all crop routes
 	{
 		// Crop Master Data (CRUD operations)
-		crops.POST("/", handlers.CreateCrop(services.CropService))
+		crops.POST("/", validation.ValidateCropCreation(), handlers.CreateCrop(services.CropService))
 		crops.GET("/", handlers.ListCrops(services.CropService))
 		crops.GET("/:id", handlers.GetCrop(services.CropService))
-		crops.PUT("/:id", handlers.UpdateCrop(services.CropService))
+		crops.PUT("/:id", validation.ValidateCropCreation(), handlers.UpdateCrop(services.CropService))
 		crops.DELETE("/:id", handlers.DeleteCrop(services.CropService))
 
 		// Crop Cycles (W10-W13)
 		cycles := crops.Group("/cycles")
 		{
 			// W10: Start crop cycle
-			cycles.POST("/", handlers.StartCycle(services.CropCycleService))
+			cycles.POST("/", validation.ValidateCropCycleCreation(), handlers.StartCycle(services.CropCycleService))
 
 			// W11: Update crop cycle
-			cycles.PUT("/:cycle_id", handlers.UpdateCycle(services.CropCycleService))
+			cycles.PUT("/:cycle_id", validation.ValidateCropCycleCreation(), handlers.UpdateCycle(services.CropCycleService))
 
 			// W12: End crop cycle
-			cycles.PUT("/:cycle_id/end", handlers.EndCycle(services.CropCycleService))
+			cycles.PUT("/:cycle_id/end", validation.ValidateCropCycleCreation(), handlers.EndCycle(services.CropCycleService))
 
 			// W13: List crop cycles
 			cycles.GET("/", handlers.ListCycles(services.CropCycleService))
@@ -48,13 +51,13 @@ func RegisterCropRoutes(router *gin.RouterGroup, services *services.ServiceFacto
 		activities := crops.Group("/activities")
 		{
 			// W14: Create farm activity
-			activities.POST("/", handlers.CreateFarmActivity(services.FarmActivityService))
+			activities.POST("/", validation.ValidateFarmActivityCreation(), handlers.CreateFarmActivity(services.FarmActivityService))
 
 			// W15: Complete farm activity
-			activities.PUT("/:activity_id/complete", handlers.CompleteFarmActivity(services.FarmActivityService))
+			activities.PUT("/:activity_id/complete", validation.ValidateFarmActivityCreation(), handlers.CompleteFarmActivity(services.FarmActivityService))
 
 			// W16: Update farm activity
-			activities.PUT("/:activity_id", handlers.UpdateFarmActivity(services.FarmActivityService))
+			activities.PUT("/:activity_id", validation.ValidateFarmActivityCreation(), handlers.UpdateFarmActivity(services.FarmActivityService))
 
 			// W17: List farm activities
 			activities.GET("/", handlers.ListFarmActivities(services.FarmActivityService))
@@ -66,27 +69,27 @@ func RegisterCropRoutes(router *gin.RouterGroup, services *services.ServiceFacto
 
 	// Crop Varieties
 	varieties := router.Group("/varieties")
-	varieties.Use(authenticationMW, authorizationMW) // Apply auth middleware to variety routes
+	varieties.Use(authenticationMW, userContextMW, authorizationMW) // Apply auth middleware to variety routes
 	{
-		varieties.POST("/", handlers.CreateCropVariety(services.CropService))
+		varieties.POST("/", validation.ValidateCropVarietyCreation(), handlers.CreateCropVariety(services.CropService))
 		varieties.GET("/", handlers.ListCropVarieties(services.CropService))
 		varieties.GET("/:id", handlers.GetCropVariety(services.CropService))
-		varieties.PUT("/:id", handlers.UpdateCropVariety(services.CropService))
+		varieties.PUT("/:id", validation.ValidateCropVarietyCreation(), handlers.UpdateCropVariety(services.CropService))
 		varieties.DELETE("/:id", handlers.DeleteCropVariety(services.CropService))
 	}
 
 	// Get varieties for a specific crop using nested route under /crop-varieties
 	cropVarieties := router.Group("/crop-varieties")
-	cropVarieties.Use(authenticationMW, authorizationMW)
+	cropVarieties.Use(authenticationMW, userContextMW, authorizationMW)
 	{
-		cropVarieties.GET("/:crop_id", handlers.ListCropVarieties(services.CropService))
+		cropVarieties.GET("/:crop_id", validation.ValidateCropVarietyCreation(), handlers.ListCropVarieties(services.CropService))
 	}
 
 	// Lookup/Dropdown data
 	lookups := router.Group("/lookups")
-	lookups.Use(authenticationMW, authorizationMW) // Apply auth middleware to lookup routes
+	lookups.Use(authenticationMW, userContextMW, authorizationMW) // Apply auth middleware to lookup routes
 	{
-		lookups.GET("/crops", handlers.GetCropLookupData(services.CropService))
+		lookups.GET("/crops", validation.ValidateCropLookupData(), handlers.GetCropLookupData(services.CropService))
 		lookups.GET("/varieties/:crop_id", handlers.GetVarietyLookupData(services.CropService))
 		lookups.GET("/crop-categories", handlers.GetCropCategories(services.CropService))
 		lookups.GET("/crop-seasons", handlers.GetCropSeasons(services.CropService))

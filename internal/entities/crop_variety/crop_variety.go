@@ -25,8 +25,8 @@ type CropVariety struct {
 	DurationDays *int              `json:"duration_days" gorm:"type:integer"`
 	YieldPerAcre *float64          `json:"yield_per_acre" gorm:"type:numeric(10,2)"`
 	YieldPerTree *float64          `json:"yield_per_tree" gorm:"type:numeric(10,2)"`
-	YieldByAge   []YieldByAge      `json:"yield_by_age" gorm:"type:jsonb"`
-	Properties   map[string]string `json:"properties" gorm:"type:jsonb;not null;default:'{}'"`
+	YieldByAge   []YieldByAge      `json:"yield_by_age" gorm:"type:jsonb;serializer:json"`
+	Properties   map[string]string `json:"properties" gorm:"type:jsonb;serializer:json;not null;default:'{}'"`
 	IsActive     bool              `json:"is_active" gorm:"type:boolean;not null;default:true"`
 
 	// Relationships

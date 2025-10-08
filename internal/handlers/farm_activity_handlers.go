@@ -43,9 +43,16 @@ type FarmActivityListResponse struct {
 // @Router /activities [post]
 func CreateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req requests.CreateActivityRequest
+		// Get validated data from context (set by validation middleware)
+		validatedData, exists := c.Get("validated_farm_activity_data")
+		if !exists {
+			c.JSON(http.StatusBadRequest, responses.NewValidationError("Validation error", "validated data not found in context"))
+			return
+		}
 
-		if err := c.ShouldBindJSON(&req); err != nil {
+		// Convert validated data to request struct
+		var req requests.CreateActivityRequest
+		if err := convertValidatedData(validatedData, &req); err != nil {
 			c.JSON(http.StatusBadRequest, responses.NewValidationError("Invalid request data", err.Error()))
 			return
 		}
@@ -103,8 +110,6 @@ func CreateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 // @Router /activities/{id}/complete [put]
 func CompleteFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req requests.CompleteActivityRequest
-
 		// Get activity ID from path
 		activityID := c.Param("id")
 		if activityID == "" {
@@ -112,7 +117,16 @@ func CompleteFarmActivity(service services.FarmActivityService) gin.HandlerFunc 
 			return
 		}
 
-		if err := c.ShouldBindJSON(&req); err != nil {
+		// Get validated data from context (set by validation middleware)
+		validatedData, exists := c.Get("validated_farm_activity_data")
+		if !exists {
+			c.JSON(http.StatusBadRequest, responses.NewValidationError("Validation error", "validated data not found in context"))
+			return
+		}
+
+		// Convert validated data to request struct
+		var req requests.CompleteActivityRequest
+		if err := convertValidatedData(validatedData, &req); err != nil {
 			c.JSON(http.StatusBadRequest, responses.NewValidationError("Invalid request data", err.Error()))
 			return
 		}
@@ -171,8 +185,6 @@ func CompleteFarmActivity(service services.FarmActivityService) gin.HandlerFunc 
 // @Router /activities/{id} [put]
 func UpdateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req requests.UpdateActivityRequest
-
 		// Get activity ID from path
 		activityID := c.Param("id")
 		if activityID == "" {
@@ -180,7 +192,16 @@ func UpdateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 			return
 		}
 
-		if err := c.ShouldBindJSON(&req); err != nil {
+		// Get validated data from context (set by validation middleware)
+		validatedData, exists := c.Get("validated_farm_activity_data")
+		if !exists {
+			c.JSON(http.StatusBadRequest, responses.NewValidationError("Validation error", "validated data not found in context"))
+			return
+		}
+
+		// Convert validated data to request struct
+		var req requests.UpdateActivityRequest
+		if err := convertValidatedData(validatedData, &req); err != nil {
 			c.JSON(http.StatusBadRequest, responses.NewValidationError("Invalid request data", err.Error()))
 			return
 		}

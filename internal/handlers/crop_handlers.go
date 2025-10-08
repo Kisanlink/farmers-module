@@ -25,8 +25,16 @@ import (
 // @Router /crops [post]
 func CreateCrop(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Get validated data from context (set by validation middleware)
+		validatedData, exists := c.Get("validated_crop_data")
+		if !exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "validated data not found in context"})
+			return
+		}
+
+		// Convert validated data to request struct
 		var req requests.CreateCropRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
+		if err := convertValidatedData(validatedData, &req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -188,8 +196,16 @@ func UpdateCrop(service services.CropService) gin.HandlerFunc {
 			return
 		}
 
+		// Get validated data from context (set by validation middleware)
+		validatedData, exists := c.Get("validated_crop_data")
+		if !exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "validated data not found in context"})
+			return
+		}
+
+		// Convert validated data to request struct
 		var req requests.UpdateCropRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
+		if err := convertValidatedData(validatedData, &req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -281,8 +297,16 @@ func DeleteCrop(service services.CropService) gin.HandlerFunc {
 // @Router /varieties [post]
 func CreateCropVariety(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Get validated data from context (set by validation middleware)
+		validatedData, exists := c.Get("validated_crop_variety_data")
+		if !exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "validated data not found in context"})
+			return
+		}
+
+		// Convert validated data to request struct
 		var req requests.CreateCropVarietyRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
+		if err := convertValidatedData(validatedData, &req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -440,8 +464,16 @@ func UpdateCropVariety(service services.CropService) gin.HandlerFunc {
 			return
 		}
 
+		// Get validated data from context (set by validation middleware)
+		validatedData, exists := c.Get("validated_crop_variety_data")
+		if !exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "validated data not found in context"})
+			return
+		}
+
+		// Convert validated data to request struct
 		var req requests.UpdateCropVarietyRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
+		if err := convertValidatedData(validatedData, &req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	cropEntity "github.com/Kisanlink/farmers-module/internal/entities/crop"
 	cropVarietyEntity "github.com/Kisanlink/farmers-module/internal/entities/crop_variety"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
@@ -35,8 +36,14 @@ func (s *CropServiceImpl) CreateCrop(ctx context.Context, req interface{}) (inte
 		return nil, common.ErrInvalidInput
 	}
 
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
 	// Check permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, createReq.UserID, "crop", "create", "", createReq.OrgID)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "crop", "create", "", createReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -102,8 +109,14 @@ func (s *CropServiceImpl) GetCrop(ctx context.Context, req interface{}) (interfa
 		return nil, common.ErrInvalidInput
 	}
 
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
 	// Check permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, getReq.UserID, "crop", "read", getReq.ID, getReq.OrgID)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "crop", "read", getReq.ID, getReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -148,8 +161,14 @@ func (s *CropServiceImpl) UpdateCrop(ctx context.Context, req interface{}) (inte
 		return nil, common.ErrInvalidInput
 	}
 
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
 	// Check permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, updateReq.UserID, "crop", "update", updateReq.ID, updateReq.OrgID)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "crop", "update", updateReq.ID, updateReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -235,8 +254,14 @@ func (s *CropServiceImpl) DeleteCrop(ctx context.Context, req interface{}) (inte
 		return nil, common.ErrInvalidInput
 	}
 
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
 	// Check permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, deleteReq.UserID, "crop", "delete", deleteReq.ID, deleteReq.OrgID)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "crop", "delete", deleteReq.ID, deleteReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -272,8 +297,14 @@ func (s *CropServiceImpl) ListCrops(ctx context.Context, req interface{}) (inter
 		return nil, common.ErrInvalidInput
 	}
 
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
 	// Check permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, listReq.UserID, "crop", "read", "", listReq.OrgID)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "crop", "read", "", listReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -335,8 +366,14 @@ func (s *CropServiceImpl) CreateCropVariety(ctx context.Context, req interface{}
 		return nil, common.ErrInvalidInput
 	}
 
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
 	// Check permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, createReq.UserID, "crop_variety", "create", "", createReq.OrgID)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "crop_variety", "create", "", createReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -412,8 +449,14 @@ func (s *CropServiceImpl) GetCropVariety(ctx context.Context, req interface{}) (
 		return nil, common.ErrInvalidInput
 	}
 
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
 	// Check permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, getReq.UserID, "crop_variety", "read", getReq.ID, getReq.OrgID)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "crop_variety", "read", getReq.ID, getReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -463,8 +506,14 @@ func (s *CropServiceImpl) UpdateCropVariety(ctx context.Context, req interface{}
 		return nil, common.ErrInvalidInput
 	}
 
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
 	// Check permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, updateReq.UserID, "crop_variety", "update", updateReq.ID, updateReq.OrgID)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "crop_variety", "update", updateReq.ID, updateReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -550,8 +599,14 @@ func (s *CropServiceImpl) DeleteCropVariety(ctx context.Context, req interface{}
 		return nil, common.ErrInvalidInput
 	}
 
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
 	// Check permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, deleteReq.UserID, "crop_variety", "delete", deleteReq.ID, deleteReq.OrgID)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "crop_variety", "delete", deleteReq.ID, deleteReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -587,8 +642,14 @@ func (s *CropServiceImpl) ListCropVarieties(ctx context.Context, req interface{}
 		return nil, common.ErrInvalidInput
 	}
 
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
 	// Check permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, listReq.UserID, "crop_variety", "read", "", listReq.OrgID)
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "crop_variety", "read", "", listReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}

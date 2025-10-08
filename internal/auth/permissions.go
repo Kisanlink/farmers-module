@@ -81,33 +81,33 @@ var RoutePermissionMap = map[string]Permission{
 	"GET /api/v1/crops":        {Resource: "crop", Action: "list"},
 
 	// Crop variety routes
-	"POST /api/v1/varieties":       {Resource: "crop", Action: "create"},
-	"GET /api/v1/varieties/:id":    {Resource: "crop", Action: "read"},
-	"PUT /api/v1/varieties/:id":    {Resource: "crop", Action: "update"},
-	"DELETE /api/v1/varieties/:id": {Resource: "crop", Action: "delete"},
-	"GET /api/v1/varieties":        {Resource: "crop", Action: "list"},
+	"POST /api/v1/varieties":         {Resource: "crop", Action: "create"},
+	"GET /api/v1/varieties/:id":      {Resource: "crop", Action: "read"},
+	"PUT /api/v1/varieties/:id":      {Resource: "crop", Action: "update"},
+	"DELETE /api/v1/varieties/:id":   {Resource: "crop", Action: "delete"},
+	"GET /api/v1/varieties":          {Resource: "crop", Action: "list"},
 	"GET /api/v1/crop-varieties/:id": {Resource: "crop", Action: "list"},
 
 	// Crop cycle routes
-	"POST /api/v1/crops/cycles":         {Resource: "cycle", Action: "start"},
-	"GET /api/v1/crops/cycles/:id":      {Resource: "cycle", Action: "read"},
-	"PUT /api/v1/crops/cycles/:id":      {Resource: "cycle", Action: "update"},
-	"PUT /api/v1/crops/cycles/:id/end":  {Resource: "cycle", Action: "end"},
-	"DELETE /api/v1/crops/cycles/:id":   {Resource: "cycle", Action: "end"},
-	"GET /api/v1/crops/cycles":          {Resource: "cycle", Action: "list"},
+	"POST /api/v1/crops/cycles":        {Resource: "cycle", Action: "start"},
+	"GET /api/v1/crops/cycles/:id":     {Resource: "cycle", Action: "read"},
+	"PUT /api/v1/crops/cycles/:id":     {Resource: "cycle", Action: "update"},
+	"PUT /api/v1/crops/cycles/:id/end": {Resource: "cycle", Action: "end"},
+	"DELETE /api/v1/crops/cycles/:id":  {Resource: "cycle", Action: "end"},
+	"GET /api/v1/crops/cycles":         {Resource: "cycle", Action: "list"},
 
 	// Farm activity routes
-	"POST /api/v1/crops/activities":                    {Resource: "activity", Action: "create"},
-	"GET /api/v1/crops/activities/:id":                 {Resource: "activity", Action: "read"},
-	"PUT /api/v1/crops/activities/:id":                 {Resource: "activity", Action: "update"},
-	"PUT /api/v1/crops/activities/:id/complete":        {Resource: "activity", Action: "complete"},
-	"GET /api/v1/crops/activities":                     {Resource: "activity", Action: "list"},
+	"POST /api/v1/crops/activities":             {Resource: "activity", Action: "create"},
+	"GET /api/v1/crops/activities/:id":          {Resource: "activity", Action: "read"},
+	"PUT /api/v1/crops/activities/:id":          {Resource: "activity", Action: "update"},
+	"PUT /api/v1/crops/activities/:id/complete": {Resource: "activity", Action: "complete"},
+	"GET /api/v1/crops/activities":              {Resource: "activity", Action: "list"},
 
 	// Lookup/Dropdown data routes
-	"GET /api/v1/lookups/crops":             {Resource: "crop", Action: "list"},
-	"GET /api/v1/lookups/varieties/:id":     {Resource: "crop", Action: "list"},
-	"GET /api/v1/lookups/crop-categories":   {Resource: "crop", Action: "list"},
-	"GET /api/v1/lookups/crop-seasons":      {Resource: "crop", Action: "list"},
+	"GET /api/v1/lookups/crops":           {Resource: "crop", Action: "list"},
+	"GET /api/v1/lookups/varieties/:id":   {Resource: "crop", Action: "list"},
+	"GET /api/v1/lookups/crop-categories": {Resource: "crop", Action: "list"},
+	"GET /api/v1/lookups/crop-seasons":    {Resource: "crop", Action: "list"},
 
 	// Data quality routes
 	"POST /api/v1/data-quality/validate-geometry":       {Resource: "farm", Action: "audit"},
@@ -137,6 +137,11 @@ func GetPermissionForRoute(method, path string) (Permission, bool) {
 // normalizePath converts actual paths to route patterns
 // e.g., "/api/v1/identity/farmers/123" -> "/api/v1/identity/farmers/:id"
 func normalizePath(path string) string {
+
+	if strings.HasSuffix(path, "/") && path != "/" {
+		path = strings.TrimSuffix(path, "/")
+	}
+
 	// Split path into segments
 	segments := strings.Split(path, "/")
 

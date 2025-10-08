@@ -346,6 +346,28 @@ func AuthorizationMiddleware(aaaService services.AAAService, logger interfaces.L
 	}
 }
 
+// UserContextMiddleware extracts user_id and org_id from user_context and org_context
+// and makes them easily accessible in the Gin context
+func UserContextMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Extract user_id from user_context
+		if userContextInterface, exists := c.Get("user_context"); exists {
+			if userContext, ok := userContextInterface.(*auth.UserContext); ok && userContext != nil {
+				c.Set("user_id", userContext.AAAUserID)
+			}
+		}
+
+		// Extract org_id from org_context
+		if orgContextInterface, exists := c.Get("org_context"); exists {
+			if orgContext, ok := orgContextInterface.(*auth.OrgContext); ok && orgContext != nil {
+				c.Set("org_id", orgContext.AAAOrgID)
+			}
+		}
+
+		c.Next()
+	}
+}
+
 // getRequestIDFromGin extracts request ID from gin context
 func getRequestIDFromGin(c *gin.Context) string {
 	if requestID, exists := c.Get("request_id"); exists {
