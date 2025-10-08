@@ -120,13 +120,13 @@ func (s *ReportingServiceImpl) ExportFarmerPortfolio(ctx context.Context, req in
 
 	for _, cycle := range cycles {
 		cycleSummaries = append(cycleSummaries, responses.CycleSummary{
-			CycleID:      cycle.ID,
-			FarmID:       cycle.FarmID,
-			Season:       cycle.Season,
-			Status:       cycle.Status,
-			StartDate:    cycle.StartDate,
-			EndDate:      cycle.EndDate,
-			PlannedCrops: cycle.PlannedCrops,
+			CycleID:   cycle.ID,
+			FarmID:    cycle.FarmID,
+			Season:    cycle.Season,
+			Status:    cycle.Status,
+			StartDate: cycle.StartDate,
+			EndDate:   cycle.EndDate,
+			CropName:  cycle.GetCropName(),
 		})
 		cycleIDs = append(cycleIDs, cycle.ID)
 

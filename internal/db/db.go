@@ -6,11 +6,18 @@ import (
 	"log"
 
 	"github.com/Kisanlink/farmers-module/internal/entities"
+	"github.com/Kisanlink/farmers-module/internal/entities/bulk"
+	"github.com/Kisanlink/farmers-module/internal/entities/crop"
 	"github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
+	"github.com/Kisanlink/farmers-module/internal/entities/crop_variety"
 	"github.com/Kisanlink/farmers-module/internal/entities/farm"
 	"github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
+	"github.com/Kisanlink/farmers-module/internal/entities/farm_irrigation_source"
+	"github.com/Kisanlink/farmers-module/internal/entities/farm_soil_type"
 	"github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/fpo"
+	"github.com/Kisanlink/farmers-module/internal/entities/irrigation_source"
+	"github.com/Kisanlink/farmers-module/internal/entities/soil_type"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -70,6 +77,8 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 			&farmer.Farmer{},          // Add the main Farmer model
 			&entities.Address{},       // Add Address entity
 			&entities.FarmerProfile{}, // Add FarmerProfile entity
+			&crop.Crop{},
+			&crop_variety.CropVariety{},
 			&crop_cycle.CropCycle{},
 			&farm_activity.FarmActivity{},
 		}
@@ -97,8 +106,16 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 			&entities.Address{},       // Add Address entity
 			&entities.FarmerProfile{}, // Add FarmerProfile entity
 			&farm.Farm{},
+			&crop.Crop{},
+			&crop_variety.CropVariety{},
 			&crop_cycle.CropCycle{},
 			&farm_activity.FarmActivity{},
+			&bulk.BulkOperation{},
+			&bulk.ProcessingDetail{},
+			&soil_type.SoilType{},
+			&irrigation_source.IrrigationSource{},
+			&farm_soil_type.FarmSoilType{},
+			&farm_irrigation_source.FarmIrrigationSource{},
 		}
 
 		if err := postgresManager.AutoMigrateModels(ctx, models...); err != nil {
@@ -118,6 +135,11 @@ func createEnums(gormDB *gorm.DB) {
 	// Season enum
 	gormDB.Exec(`DO $$ BEGIN
 		CREATE TYPE season AS ENUM ('RABI','KHARIF','ZAID','OTHER');
+	EXCEPTION WHEN duplicate_object THEN NULL; END $$;`)
+
+	// Crop category enum
+	gormDB.Exec(`DO $$ BEGIN
+		CREATE TYPE crop_category AS ENUM ('CEREALS','PULSES','VEGETABLES','FRUITS','OIL_SEEDS','SPICES','CASH_CROPS','FODDER','MEDICINAL','OTHER');
 	EXCEPTION WHEN duplicate_object THEN NULL; END $$;`)
 
 	// Cycle status enum
@@ -204,9 +226,21 @@ func setupPostMigration(gormDB *gorm.DB) {
 	// Create indexes for fpo_refs table
 	gormDB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS fpo_refs_aaa_org_id_idx ON fpo_refs (aaa_org_id);`)
 
+	// Create indexes for crops table
+	gormDB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS crops_name_idx ON crops (name);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crops_category_idx ON crops (category);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crops_is_active_idx ON crops (is_active);`)
+
+	// Create indexes for crop_varieties table
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_varieties_crop_id_idx ON crop_varieties (crop_id);`)
+	gormDB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS crop_varieties_crop_name_idx ON crop_varieties (crop_id, name);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_varieties_is_active_idx ON crop_varieties (is_active);`)
+
 	// Create indexes for crop_cycles table
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_cycles_farm_id_idx ON crop_cycles (farm_id);`)
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_cycles_farmer_id_idx ON crop_cycles (farmer_id);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_cycles_crop_id_idx ON crop_cycles (crop_id);`)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_cycles_variety_id_idx ON crop_cycles (variety_id);`)
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_cycles_season_idx ON crop_cycles (season);`)
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_cycles_status_idx ON crop_cycles (status);`)
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS crop_cycles_start_date_idx ON crop_cycles (start_date);`)

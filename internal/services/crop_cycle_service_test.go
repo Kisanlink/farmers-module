@@ -34,10 +34,10 @@ func TestCropCycleService_StartCycle_BusinessLogic(t *testing.T) {
 					UserID: "user123",
 					OrgID:  "org123",
 				},
-				FarmID:       "farm123",
-				Season:       "RABI",
-				StartDate:    time.Now(),
-				PlannedCrops: []string{"wheat", "barley"},
+				FarmID:    "farm123",
+				Season:    "RABI",
+				StartDate: time.Now(),
+				CropID:    "crop123",
 			},
 			setupMocks: func(aaa *MockAAAServiceShared) {
 				aaa.On("CheckPermission", mock.Anything, "user123", "cycle", "start", "", "org123").Return(false, nil)
@@ -51,10 +51,10 @@ func TestCropCycleService_StartCycle_BusinessLogic(t *testing.T) {
 					UserID: "user123",
 					OrgID:  "org123",
 				},
-				FarmID:       "",
-				Season:       "RABI",
-				StartDate:    time.Now(),
-				PlannedCrops: []string{"wheat", "barley"},
+				FarmID:    "",
+				Season:    "RABI",
+				StartDate: time.Now(),
+				CropID:    "crop123",
 			},
 			setupMocks: func(aaa *MockAAAServiceShared) {
 				aaa.On("CheckPermission", mock.Anything, "user123", "cycle", "start", "", "org123").Return(true, nil)

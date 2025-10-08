@@ -1458,9 +1458,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/crops/activities": {
+        "/crops": {
             "get": {
-                "description": "Retrieve a list of all farm activities",
+                "description": "List crops with optional filtering by category, season, etc.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1468,18 +1468,58 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "farm-activities"
+                    "Crop Master Data"
                 ],
-                "summary": "List farm activities",
+                "summary": "List crops",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by category",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by season",
+                        "name": "season",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search in name or scientific name",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ListActivitiesResponse"
+                            "$ref": "#/definitions/responses.SwaggerCropListResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
@@ -1487,7 +1527,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create a new farm activity for a crop cycle",
+                "description": "Create a new crop with master data",
                 "consumes": [
                     "application/json"
                 ],
@@ -1495,25 +1535,25 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "farm-activities"
+                    "Crop Master Data"
                 ],
-                "summary": "Create a new farm activity",
+                "summary": "Create a new crop",
                 "parameters": [
                     {
-                        "description": "Farm activity data",
-                        "name": "activity",
+                        "description": "Crop data",
+                        "name": "crop",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateActivityRequest"
+                            "$ref": "#/definitions/requests.CreateCropRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateActivityResponse"
+                            "$ref": "#/definitions/responses.SwaggerCropResponse"
                         }
                     },
                     "400": {
@@ -1521,133 +1561,9 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
-                    }
-                }
-            }
-        },
-        "/crops/activities/{activity_id}": {
-            "get": {
-                "description": "Retrieve a specific farm activity by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "farm-activities"
-                ],
-                "summary": "Get farm activity by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Activity ID",
-                        "name": "activity_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.GetFarmActivityResponse"
-                        }
                     },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Update an existing farm activity details",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "farm-activities"
-                ],
-                "summary": "Update a farm activity",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Activity ID",
-                        "name": "activity_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Activity update data",
-                        "name": "activity",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.UpdateActivityRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.UpdateActivityResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/crops/activities/{activity_id}/complete": {
-            "post": {
-                "description": "Mark a farm activity as completed",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "farm-activities"
-                ],
-                "summary": "Complete a farm activity",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Activity ID",
-                        "name": "activity_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Activity completion data",
-                        "name": "activity",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.CompleteActivityRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.CompleteActivityResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
@@ -1657,7 +1573,7 @@ const docTemplate = `{
         },
         "/crops/cycles": {
             "get": {
-                "description": "Retrieve a list of all crop cycles with filtering",
+                "description": "Get a paginated list of crop cycles with optional filtering",
                 "consumes": [
                     "application/json"
                 ],
@@ -1665,7 +1581,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "crop-cycles"
+                    "Crop Cycles"
                 ],
                 "summary": "List crop cycles",
                 "parameters": [
@@ -1691,31 +1607,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter by farmer ID",
-                        "name": "farmer_id",
+                        "description": "Filter by status",
+                        "name": "status",
                         "in": "query"
                     },
                     {
-                        "enum": [
-                            "RABI",
-                            "KHARIF",
-                            "ZAID"
-                        ],
                         "type": "string",
                         "description": "Filter by season",
                         "name": "season",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "PLANNED",
-                            "ACTIVE",
-                            "COMPLETED",
-                            "CANCELLED"
-                        ],
-                        "type": "string",
-                        "description": "Filter by status",
-                        "name": "status",
                         "in": "query"
                     }
                 ],
@@ -1753,7 +1652,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Start a new crop cycle for a specific farm",
+                "description": "Start a new crop cycle with farm and crop details",
                 "consumes": [
                     "application/json"
                 ],
@@ -1761,13 +1660,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "crop-cycles"
+                    "Crop Cycles"
                 ],
                 "summary": "Start a new crop cycle",
                 "parameters": [
                     {
-                        "description": "Crop cycle data",
-                        "name": "cycle",
+                        "description": "Start cycle request",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -1811,7 +1710,7 @@ const docTemplate = `{
         },
         "/crops/cycles/{cycle_id}": {
             "get": {
-                "description": "Retrieve a specific crop cycle by its ID",
+                "description": "Get detailed information about a specific crop cycle",
                 "consumes": [
                     "application/json"
                 ],
@@ -1819,21 +1718,21 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "crop-cycles"
+                    "Crop Cycles"
                 ],
                 "summary": "Get crop cycle by ID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Crop Cycle ID",
+                        "description": "Cycle ID",
                         "name": "cycle_id",
                         "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerCropCycleResponse"
                         }
@@ -1859,7 +1758,7 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
@@ -1871,7 +1770,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Update an existing crop cycle details",
+                "description": "Update details of an existing crop cycle",
                 "consumes": [
                     "application/json"
                 ],
@@ -1879,20 +1778,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "crop-cycles"
+                    "Crop Cycles"
                 ],
                 "summary": "Update a crop cycle",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Crop Cycle ID",
+                        "description": "Cycle ID",
                         "name": "cycle_id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Crop cycle update data",
-                        "name": "cycle",
+                        "description": "Update cycle request",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -1901,8 +1800,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerCropCycleResponse"
                         }
@@ -1928,7 +1827,7 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
@@ -1941,8 +1840,8 @@ const docTemplate = `{
             }
         },
         "/crops/cycles/{cycle_id}/end": {
-            "post": {
-                "description": "End an active crop cycle with status and outcome",
+            "put": {
+                "description": "End a crop cycle and mark it as completed",
                 "consumes": [
                     "application/json"
                 ],
@@ -1950,20 +1849,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "crop-cycles"
+                    "Crop Cycles"
                 ],
                 "summary": "End a crop cycle",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Crop Cycle ID",
+                        "description": "Cycle ID",
                         "name": "cycle_id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Crop cycle end data",
-                        "name": "cycle",
+                        "description": "End cycle request",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -1972,8 +1871,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerCropCycleResponse"
                         }
@@ -1999,11 +1898,166 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/crops/{id}": {
+            "get": {
+                "description": "Get detailed information about a specific crop",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Master Data"
+                ],
+                "summary": "Get crop by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crop ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerCropResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update crop master data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Master Data"
+                ],
+                "summary": "Update crop",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crop ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Crop update data",
+                        "name": "crop",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UpdateCropRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerCropResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Soft delete a crop (marks as inactive)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Master Data"
+                ],
+                "summary": "Delete crop",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crop ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerCropResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
@@ -3446,6 +3500,395 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/lookups/crop-categories": {
+            "get": {
+                "description": "Get list of available crop categories",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Master Data"
+                ],
+                "summary": "Get crop categories",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.CropCategoriesResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/lookups/crop-seasons": {
+            "get": {
+                "description": "Get list of available crop seasons",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Master Data"
+                ],
+                "summary": "Get crop seasons",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.CropSeasonsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/lookups/crops": {
+            "get": {
+                "description": "Get simplified crop data for dropdown/lookup purposes",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Master Data"
+                ],
+                "summary": "Get crop lookup data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by category",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by season",
+                        "name": "season",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerCropLookupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/lookups/varieties/{crop_id}": {
+            "get": {
+                "description": "Get simplified variety data for dropdown/lookup purposes",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Master Data"
+                ],
+                "summary": "Get variety lookup data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crop ID",
+                        "name": "crop_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.CropVarietyLookupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/varieties": {
+            "get": {
+                "description": "List crop varieties with optional filtering",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Master Data"
+                ],
+                "summary": "List crop varieties",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by crop ID",
+                        "name": "crop_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search in name or description",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.CropVarietyListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new variety for a specific crop",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Master Data"
+                ],
+                "summary": "Create crop variety",
+                "parameters": [
+                    {
+                        "description": "Crop variety data",
+                        "name": "variety",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.CreateCropVarietyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerCropVarietyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/varieties/{id}": {
+            "get": {
+                "description": "Get detailed information about a specific crop variety",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Master Data"
+                ],
+                "summary": "Get crop variety by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crop variety ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerCropVarietyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update crop variety data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Master Data"
+                ],
+                "summary": "Update crop variety",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crop variety ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Crop variety update data",
+                        "name": "variety",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UpdateCropVarietyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerCropVarietyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Soft delete a crop variety (marks as inactive)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Master Data"
+                ],
+                "summary": "Delete crop variety",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crop variety ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerCropVarietyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -3470,95 +3913,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "subject": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.CompleteActivityData": {
-            "type": "object",
-            "properties": {
-                "activity_id": {
-                    "type": "string"
-                },
-                "completed_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.CompleteActivityRequest": {
-            "type": "object",
-            "required": [
-                "completed_at"
-            ],
-            "properties": {
-                "completed_at": {
-                    "type": "string"
-                },
-                "notes": {
-                    "type": "string"
-                },
-                "outcome": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.CompleteActivityResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/handlers.CompleteActivityData"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.CreateActivityData": {
-            "type": "object",
-            "properties": {
-                "activity_type": {
-                    "type": "string"
-                },
-                "crop_cycle_id": {
-                    "type": "string"
-                },
-                "planned_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.CreateActivityRequest": {
-            "type": "object",
-            "required": [
-                "activity_type",
-                "crop_cycle_id",
-                "planned_at"
-            ],
-            "properties": {
-                "activity_type": {
-                    "type": "string"
-                },
-                "crop_cycle_id": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "type": "string"
-                },
-                "planned_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.CreateActivityResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/handlers.CreateActivityData"
-                },
-                "message": {
                     "type": "string"
                 }
             }
@@ -3605,37 +3959,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.GetFarmActivityData": {
-            "type": "object",
-            "properties": {
-                "activity_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.GetFarmActivityResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/handlers.GetFarmActivityData"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.ListActivitiesResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {}
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
         "handlers.RebuildSpatialIndexesResponse": {
             "type": "object",
             "properties": {
@@ -3677,39 +4000,6 @@ const docTemplate = `{
                 },
                 "success": {
                     "type": "boolean"
-                }
-            }
-        },
-        "handlers.UpdateActivityData": {
-            "type": "object",
-            "properties": {
-                "activity_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.UpdateActivityRequest": {
-            "type": "object",
-            "properties": {
-                "activity_type": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "type": "string"
-                },
-                "planned_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.UpdateActivityResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/handlers.UpdateActivityData"
-                },
-                "message": {
-                    "type": "string"
                 }
             }
         },
@@ -3949,6 +4239,145 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "string"
+                }
+            }
+        },
+        "requests.CreateCropRequest": {
+            "type": "object",
+            "required": [
+                "category",
+                "name",
+                "seasons",
+                "unit"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "enum": [
+                        "CEREALS",
+                        "PULSES",
+                        "VEGETABLES",
+                        "FRUITS",
+                        "OIL_SEEDS",
+                        "SPICES",
+                        "CASH_CROPS",
+                        "FODDER",
+                        "MEDICINAL",
+                        "OTHER"
+                    ]
+                },
+                "duration_days": {
+                    "type": "integer",
+                    "maximum": 365,
+                    "minimum": 1
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 2
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "scientific_name": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "seasons": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 1
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.CreateCropVarietyRequest": {
+            "type": "object",
+            "required": [
+                "crop_id",
+                "name"
+            ],
+            "properties": {
+                "crop_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration_days": {
+                    "type": "integer",
+                    "maximum": 365,
+                    "minimum": 1
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 2
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "yield_per_acre": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "yield_per_tree": {
+                    "type": "number",
+                    "minimum": 0
                 }
             }
         },
@@ -4747,12 +5176,15 @@ const docTemplate = `{
         "requests.StartCycleRequest": {
             "type": "object",
             "required": [
+                "crop_id",
                 "farm_id",
-                "planned_crops",
                 "season",
                 "start_date"
             ],
             "properties": {
+                "crop_id": {
+                    "type": "string"
+                },
                 "farm_id": {
                     "type": "string"
                 },
@@ -4764,13 +5196,6 @@ const docTemplate = `{
                 },
                 "org_id": {
                     "type": "string"
-                },
-                "planned_crops": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "request_id": {
                     "type": "string"
@@ -4793,6 +5218,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_id": {
+                    "type": "string"
+                },
+                "variety_id": {
                     "type": "string"
                 }
             }
@@ -4871,12 +5299,159 @@ const docTemplate = `{
                 }
             }
         },
+        "requests.UpdateCropRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "enum": [
+                        "CEREALS",
+                        "PULSES",
+                        "VEGETABLES",
+                        "FRUITS",
+                        "OIL_SEEDS",
+                        "SPICES",
+                        "CASH_CROPS",
+                        "FODDER",
+                        "MEDICINAL",
+                        "OTHER"
+                    ]
+                },
+                "duration_days": {
+                    "type": "integer",
+                    "maximum": 365,
+                    "minimum": 1
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 2
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "scientific_name": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "seasons": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 1
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.UpdateCropVarietyRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "duration_days": {
+                    "type": "integer",
+                    "maximum": 365,
+                    "minimum": 1
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 2
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "yield_per_acre": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "yield_per_tree": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
         "requests.UpdateCycleRequest": {
             "type": "object",
             "required": [
                 "id"
             ],
             "properties": {
+                "crop_id": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -4888,12 +5463,6 @@ const docTemplate = `{
                 },
                 "org_id": {
                     "type": "string"
-                },
-                "planned_crops": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "request_id": {
                     "type": "string"
@@ -4916,6 +5485,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_id": {
+                    "type": "string"
+                },
+                "variety_id": {
                     "type": "string"
                 }
             }
@@ -5367,10 +5939,36 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.CropCategoriesResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
         "responses.CropCycleData": {
             "type": "object",
             "properties": {
                 "created_at": {
+                    "type": "string"
+                },
+                "crop_id": {
+                    "type": "string"
+                },
+                "crop_name": {
                     "type": "string"
                 },
                 "end_date": {
@@ -5391,12 +5989,6 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "planned_crops": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "season": {
                     "type": "string"
                 },
@@ -5408,6 +6000,210 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                },
+                "variety_id": {
+                    "type": "string"
+                },
+                "variety_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.CropData": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "duration_days": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "scientific_name": {
+                    "type": "string"
+                },
+                "seasons": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "variety_count": {
+                    "description": "Count of active varieties",
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.CropLookupData": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "seasons": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.CropSeasonsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "responses.CropVarietyData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "crop_id": {
+                    "type": "string"
+                },
+                "crop_name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration_days": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "yield_per_acre": {
+                    "type": "number"
+                },
+                "yield_per_tree": {
+                    "type": "number"
+                }
+            }
+        },
+        "responses.CropVarietyListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.CropVarietyData"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.CropVarietyLookupData": {
+            "type": "object",
+            "properties": {
+                "duration_days": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.CropVarietyLookupResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.CropVarietyLookupData"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
                 }
             }
         },
@@ -5940,6 +6736,104 @@ const docTemplate = `{
                 },
                 "success": {
                     "type": "boolean"
+                }
+            }
+        },
+        "responses.SwaggerCropListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.CropData"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Crops retrieved successfully"
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "page_size": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 50
+                }
+            }
+        },
+        "responses.SwaggerCropLookupResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.CropLookupData"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Crop lookup data retrieved successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.SwaggerCropResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.CropData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Crop created successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.SwaggerCropVarietyResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/responses.CropVarietyData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Crop variety created successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

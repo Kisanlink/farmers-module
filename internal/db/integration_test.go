@@ -101,6 +101,7 @@ func TestModelValidation(t *testing.T) {
 			FarmerID: "farmer123",
 			Season:   "RABI",
 			Status:   "PLANNED",
+			CropID:   "crop123",
 		}
 
 		err := cropCycle.Validate()
@@ -150,6 +151,7 @@ func TestModelRelationships(t *testing.T) {
 		FarmerID: "farmer123", // Would be testFarmer.ID in real scenario
 		Season:   "RABI",
 		Status:   "PLANNED",
+		CropID:   "crop123", // Crop master data reference
 	}
 
 	testFarmActivity := &farm_activity.FarmActivity{

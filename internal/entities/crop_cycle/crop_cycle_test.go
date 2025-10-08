@@ -20,6 +20,7 @@ func TestCropCycleValidate(t *testing.T) {
 				FarmerID: "farmer123",
 				Season:   "RABI",
 				Status:   "PLANNED",
+				CropID:   "crop123",
 			},
 			wantErr: false,
 		},
@@ -76,14 +77,16 @@ func TestCropCycleGetTableIdentifier(t *testing.T) {
 
 func TestCropCycleFields(t *testing.T) {
 	now := time.Now()
+	varietyID := "variety123"
 	cropCycle := &CropCycle{
-		FarmID:       "farm123",
-		FarmerID:     "farmer123",
-		Season:       "RABI",
-		Status:       "ACTIVE",
-		StartDate:    &now,
-		PlannedCrops: []string{"wheat", "barley"},
-		Outcome:      map[string]string{"yield": "good"},
+		FarmID:    "farm123",
+		FarmerID:  "farmer123",
+		Season:    "RABI",
+		Status:    "ACTIVE",
+		StartDate: &now,
+		CropID:    "crop123",
+		VarietyID: &varietyID,
+		Outcome:   map[string]string{"yield": "good"},
 	}
 
 	assert.Equal(t, "farm123", cropCycle.FarmID)
@@ -91,6 +94,7 @@ func TestCropCycleFields(t *testing.T) {
 	assert.Equal(t, "RABI", cropCycle.Season)
 	assert.Equal(t, "ACTIVE", cropCycle.Status)
 	assert.Equal(t, &now, cropCycle.StartDate)
-	assert.Equal(t, []string{"wheat", "barley"}, cropCycle.PlannedCrops)
+	assert.Equal(t, "crop123", cropCycle.CropID)
+	assert.Equal(t, &varietyID, cropCycle.VarietyID)
 	assert.Equal(t, map[string]string{"yield": "good"}, cropCycle.Outcome)
 }

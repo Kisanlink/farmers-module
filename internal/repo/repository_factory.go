@@ -8,6 +8,7 @@ import (
 	farmActivityEntity "github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
 	fpoEntity "github.com/Kisanlink/farmers-module/internal/entities/fpo"
 	"github.com/Kisanlink/farmers-module/internal/repo/bulk"
+	"github.com/Kisanlink/farmers-module/internal/repo/crop"
 	"github.com/Kisanlink/farmers-module/internal/repo/crop_cycle"
 	"github.com/Kisanlink/farmers-module/internal/repo/farm"
 	"github.com/Kisanlink/farmers-module/internal/repo/farm_activity"
@@ -24,6 +25,8 @@ type RepositoryFactory struct {
 	FarmerLinkageRepo    *base.BaseFilterableRepository[*entities.FarmerLink]
 	FPORefRepo           *base.BaseFilterableRepository[*fpoEntity.FPORef]
 	FarmRepo             *farm.FarmRepository
+	CropRepo             *crop.CropRepository
+	CropVarietyRepo      *crop.CropVarietyRepository
 	CropCycleRepo        *base.BaseFilterableRepository[*cropCycleEntity.CropCycle]
 	FarmActivityRepo     *base.BaseFilterableRepository[*farmActivityEntity.FarmActivity]
 	BulkOperationRepo    bulk.BulkOperationRepository
@@ -43,6 +46,8 @@ func NewRepositoryFactory(dbManager *db.PostgresManager) *RepositoryFactory {
 		FarmerLinkageRepo:    farmer_linkage.NewFarmerLinkageRepository(dbManager),
 		FPORefRepo:           fpo_ref.NewFPORefRepository(dbManager),
 		FarmRepo:             farm.NewFarmRepository(dbManager),
+		CropRepo:             crop.NewCropRepository(gormDB),
+		CropVarietyRepo:      crop.NewCropVarietyRepository(gormDB),
 		CropCycleRepo:        crop_cycle.NewRepository(dbManager),
 		FarmActivityRepo:     farm_activity.NewFarmActivityRepository(dbManager),
 		BulkOperationRepo:    bulk.NewBulkOperationRepository(gormDB),
