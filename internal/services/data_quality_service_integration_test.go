@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
@@ -135,7 +136,16 @@ func (suite *DataQualityServiceIntegrationTestSuite) TestValidateGeometry_Withou
 				CheckBounds: tt.checkBounds,
 			}
 
-			response, err := suite.service.ValidateGeometry(context.Background(), req)
+			// Setup context with user information
+			ctx := context.Background()
+			userCtx := &auth.UserContext{
+				AAAUserID: req.UserID,
+				Username:  "testuser",
+				Roles:     []string{"admin"},
+			}
+			ctx = auth.SetUserInContext(ctx, userCtx)
+
+			response, err := suite.service.ValidateGeometry(ctx, req)
 
 			if tt.expectedError {
 				suite.Error(err)
@@ -175,7 +185,16 @@ func (suite *DataQualityServiceIntegrationTestSuite) TestRebuildSpatialIndexes_W
 		},
 	}
 
-	response, err := suite.service.RebuildSpatialIndexes(context.Background(), req)
+	// Setup context with user information
+	ctx := context.Background()
+	userCtx := &auth.UserContext{
+		AAAUserID: req.UserID,
+		Username:  "testadmin",
+		Roles:     []string{"admin"},
+	}
+	ctx = auth.SetUserInContext(ctx, userCtx)
+
+	response, err := suite.service.RebuildSpatialIndexes(ctx, req)
 
 	suite.NoError(err)
 	suite.NotNil(response)
@@ -202,7 +221,16 @@ func (suite *DataQualityServiceIntegrationTestSuite) TestDetectFarmOverlaps_With
 		Limit:            nil,
 	}
 
-	_, err := suite.service.DetectFarmOverlaps(context.Background(), req)
+	// Setup context with user information
+	ctx := context.Background()
+	userCtx := &auth.UserContext{
+		AAAUserID: req.UserID,
+		Username:  "testuser",
+		Roles:     []string{"admin"},
+	}
+	ctx = auth.SetUserInContext(ctx, userCtx)
+
+	_, err := suite.service.DetectFarmOverlaps(ctx, req)
 
 	// Should fail because PostGIS is not available
 	suite.Error(err)
@@ -227,7 +255,16 @@ func (suite *DataQualityServiceIntegrationTestSuite) TestPermissionDenied() {
 		CheckBounds: false,
 	}
 
-	response, err := suite.service.ValidateGeometry(context.Background(), req)
+	// Setup context with user information
+	ctx := context.Background()
+	userCtx := &auth.UserContext{
+		AAAUserID: req.UserID,
+		Username:  "testuser",
+		Roles:     []string{"admin"},
+	}
+	ctx = auth.SetUserInContext(ctx, userCtx)
+
+	response, err := suite.service.ValidateGeometry(ctx, req)
 
 	suite.Error(err)
 	suite.Nil(response)

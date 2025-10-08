@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
@@ -37,7 +38,16 @@ func TestDataQualityService_ValidateGeometry_Minimal(t *testing.T) {
 			CheckBounds: false,
 		}
 
-		response, err := service.ValidateGeometry(context.Background(), req)
+		// Setup context with user information
+		ctx := context.Background()
+		userCtx := &auth.UserContext{
+			AAAUserID: req.UserID,
+			Username:  "testuser",
+			Roles:     []string{"admin"},
+		}
+		ctx = auth.SetUserInContext(ctx, userCtx)
+
+		response, err := service.ValidateGeometry(ctx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -61,7 +71,16 @@ func TestDataQualityService_ValidateGeometry_Minimal(t *testing.T) {
 			CheckBounds: false,
 		}
 
-		response, err := service.ValidateGeometry(context.Background(), req)
+		// Setup context with user information
+		ctx := context.Background()
+		userCtx := &auth.UserContext{
+			AAAUserID: req.UserID,
+			Username:  "testuser",
+			Roles:     []string{"admin"},
+		}
+		ctx = auth.SetUserInContext(ctx, userCtx)
+
+		response, err := service.ValidateGeometry(ctx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -83,7 +102,16 @@ func TestDataQualityService_ValidateGeometry_Minimal(t *testing.T) {
 			CheckBounds: false,
 		}
 
-		response, err := service.ValidateGeometry(context.Background(), req)
+		// Setup context with user information
+		ctx := context.Background()
+		userCtx := &auth.UserContext{
+			AAAUserID: req.UserID,
+			Username:  "testuser",
+			Roles:     []string{"admin"},
+		}
+		ctx = auth.SetUserInContext(ctx, userCtx)
+
+		response, err := service.ValidateGeometry(ctx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -132,7 +160,16 @@ func TestDataQualityService_ReconcileAAALinks_Minimal(t *testing.T) {
 			DryRun: false,
 		}
 
-		response, err := service.ReconcileAAALinks(context.Background(), req)
+		// Setup context with user information
+		ctx := context.Background()
+		userCtx := &auth.UserContext{
+			AAAUserID: req.UserID,
+			Username:  "testadmin",
+			Roles:     []string{"admin"},
+		}
+		ctx = auth.SetUserInContext(ctx, userCtx)
+
+		response, err := service.ReconcileAAALinks(ctx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -170,7 +207,16 @@ func TestDataQualityService_RebuildSpatialIndexes_Minimal(t *testing.T) {
 			},
 		}
 
-		response, err := service.RebuildSpatialIndexes(context.Background(), req)
+		// Setup context with user information
+		ctx := context.Background()
+		userCtx := &auth.UserContext{
+			AAAUserID: req.UserID,
+			Username:  "testadmin",
+			Roles:     []string{"admin"},
+		}
+		ctx = auth.SetUserInContext(ctx, userCtx)
+
+		response, err := service.RebuildSpatialIndexes(ctx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -207,7 +253,16 @@ func TestDataQualityService_DetectFarmOverlaps_Minimal(t *testing.T) {
 			},
 		}
 
-		_, err := service.DetectFarmOverlaps(context.Background(), req)
+		// Setup context with user information
+		ctx := context.Background()
+		userCtx := &auth.UserContext{
+			AAAUserID: req.UserID,
+			Username:  "testuser",
+			Roles:     []string{"admin"},
+		}
+		ctx = auth.SetUserInContext(ctx, userCtx)
+
+		_, err := service.DetectFarmOverlaps(ctx, req)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "database connection not available")

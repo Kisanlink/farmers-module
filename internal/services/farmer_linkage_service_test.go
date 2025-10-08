@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
@@ -24,6 +25,10 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 		{
 			name: "successful link farmer to FPO",
 			request: &requests.LinkFarmerRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
 				AAAUserID: "user123",
 				AAAOrgID:  "org456",
 			},
@@ -43,6 +48,10 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 		{
 			name: "invalid request - missing user ID",
 			request: &requests.LinkFarmerRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
 				AAAUserID: "",
 				AAAOrgID:  "org456",
 			},
@@ -54,6 +63,10 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 		{
 			name: "permission denied",
 			request: &requests.LinkFarmerRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
 				AAAUserID: "user123",
 				AAAOrgID:  "org456",
 			},
@@ -66,6 +79,10 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 		{
 			name: "user not found in AAA",
 			request: &requests.LinkFarmerRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
 				AAAUserID: "user123",
 				AAAOrgID:  "org456",
 			},
@@ -80,6 +97,10 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 		{
 			name: "reactivate existing inactive link",
 			request: &requests.LinkFarmerRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
 				AAAUserID: "user123",
 				AAAOrgID:  "org456",
 			},
@@ -115,7 +136,16 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 				aaaService:        mockAAA,
 			}
 
-			err := service.LinkFarmerToFPO(context.Background(), tt.request)
+			// Setup context with user information
+			ctx := context.Background()
+			userCtx := &auth.UserContext{
+				AAAUserID: tt.request.UserID,
+				Username:  "testadmin",
+				Roles:     []string{"admin"},
+			}
+			ctx = auth.SetUserInContext(ctx, userCtx)
+
+			err := service.LinkFarmerToFPO(ctx, tt.request)
 
 			if tt.shouldSucceed {
 				assert.NoError(t, err)
@@ -143,6 +173,10 @@ func TestFarmerLinkageServiceImpl_AssignKisanSathi(t *testing.T) {
 		{
 			name: "successful assign KisanSathi",
 			request: &requests.AssignKisanSathiRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
 				AAAUserID:        "user123",
 				AAAOrgID:         "org456",
 				KisanSathiUserID: "ks789",
@@ -169,6 +203,10 @@ func TestFarmerLinkageServiceImpl_AssignKisanSathi(t *testing.T) {
 		{
 			name: "invalid request - missing KisanSathi user ID",
 			request: &requests.AssignKisanSathiRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
 				AAAUserID:        "user123",
 				AAAOrgID:         "org456",
 				KisanSathiUserID: "",
@@ -181,6 +219,10 @@ func TestFarmerLinkageServiceImpl_AssignKisanSathi(t *testing.T) {
 		{
 			name: "KisanSathi user needs role assignment",
 			request: &requests.AssignKisanSathiRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
 				AAAUserID:        "user123",
 				AAAOrgID:         "org456",
 				KisanSathiUserID: "ks789",
@@ -211,6 +253,10 @@ func TestFarmerLinkageServiceImpl_AssignKisanSathi(t *testing.T) {
 		{
 			name: "cannot assign to inactive farmer link",
 			request: &requests.AssignKisanSathiRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
 				AAAUserID:        "user123",
 				AAAOrgID:         "org456",
 				KisanSathiUserID: "ks789",
@@ -246,7 +292,16 @@ func TestFarmerLinkageServiceImpl_AssignKisanSathi(t *testing.T) {
 				aaaService:        mockAAA,
 			}
 
-			result, err := service.AssignKisanSathi(context.Background(), tt.request)
+			// Setup context with user information
+			ctx := context.Background()
+			userCtx := &auth.UserContext{
+				AAAUserID: tt.request.UserID,
+				Username:  "testadmin",
+				Roles:     []string{"admin"},
+			}
+			ctx = auth.SetUserInContext(ctx, userCtx)
+
+			result, err := service.AssignKisanSathi(ctx, tt.request)
 
 			if tt.shouldSucceed {
 				assert.NoError(t, err)
@@ -282,6 +337,10 @@ func TestFarmerLinkageServiceImpl_CreateKisanSathiUser(t *testing.T) {
 		{
 			name: "successful create new KisanSathi user",
 			request: &requests.CreateKisanSathiUserRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
 				Username:    "kisansathi1",
 				PhoneNumber: "+919876543210",
 				Email:       "ks1@example.com",
@@ -312,6 +371,10 @@ func TestFarmerLinkageServiceImpl_CreateKisanSathiUser(t *testing.T) {
 		{
 			name: "invalid request - missing required fields",
 			request: &requests.CreateKisanSathiUserRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
 				Username:    "",
 				PhoneNumber: "+919876543210",
 				Email:       "ks1@example.com",
@@ -326,6 +389,10 @@ func TestFarmerLinkageServiceImpl_CreateKisanSathiUser(t *testing.T) {
 		{
 			name: "user already exists by phone - assign role",
 			request: &requests.CreateKisanSathiUserRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
 				Username:    "kisansathi1",
 				PhoneNumber: "+919876543210",
 				Email:       "ks1@example.com",
@@ -365,7 +432,16 @@ func TestFarmerLinkageServiceImpl_CreateKisanSathiUser(t *testing.T) {
 				aaaService:        mockAAA,
 			}
 
-			result, err := service.CreateKisanSathiUser(context.Background(), tt.request)
+			// Setup context with user information
+			ctx := context.Background()
+			userCtx := &auth.UserContext{
+				AAAUserID: tt.request.UserID,
+				Username:  "testadmin",
+				Roles:     []string{"admin"},
+			}
+			ctx = auth.SetUserInContext(ctx, userCtx)
+
+			result, err := service.CreateKisanSathiUser(ctx, tt.request)
 
 			if tt.shouldSucceed {
 				assert.NoError(t, err)

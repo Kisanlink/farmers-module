@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
@@ -47,8 +48,14 @@ func (s *DataQualityServiceImpl) ValidateGeometry(ctx context.Context, req inter
 		return nil, fmt.Errorf("invalid request type for ValidateGeometry")
 	}
 
-	// Check AAA permission for farm.audit
-	hasPermission, err := s.aaaService.CheckPermission(ctx, validateReq.UserID, "farm", "audit", "", validateReq.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can audit farm data quality
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "farm", "audit", "", validateReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -184,8 +191,14 @@ func (s *DataQualityServiceImpl) ReconcileAAALinks(ctx context.Context, req inte
 		return nil, fmt.Errorf("invalid request type for ReconcileAAALinks")
 	}
 
-	// Check AAA permission for admin.maintain
-	hasPermission, err := s.aaaService.CheckPermission(ctx, reconcileReq.UserID, "admin", "maintain", "", reconcileReq.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can maintain AAA links
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "admin", "maintain", "", reconcileReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -312,8 +325,14 @@ func (s *DataQualityServiceImpl) RebuildSpatialIndexes(ctx context.Context, req 
 		return nil, fmt.Errorf("invalid request type for RebuildSpatialIndexes")
 	}
 
-	// Check AAA permission for admin.maintain
-	hasPermission, err := s.aaaService.CheckPermission(ctx, rebuildReq.UserID, "admin", "maintain", "", rebuildReq.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can maintain spatial indexes
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "admin", "maintain", "", rebuildReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -412,8 +431,14 @@ func (s *DataQualityServiceImpl) DetectFarmOverlaps(ctx context.Context, req int
 		return nil, fmt.Errorf("invalid request type for DetectFarmOverlaps")
 	}
 
-	// Check AAA permission for farm.audit
-	hasPermission, err := s.aaaService.CheckPermission(ctx, detectReq.UserID, "farm", "audit", "", detectReq.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can audit farm overlaps
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "farm", "audit", "", detectReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}

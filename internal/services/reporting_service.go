@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/repo"
+	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"gorm.io/gorm"
 )
@@ -36,13 +38,19 @@ func (s *ReportingServiceImpl) ExportFarmerPortfolio(ctx context.Context, req in
 		return nil, fmt.Errorf("invalid request type")
 	}
 
-	// Check permission - user should have 'report.read' permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, request.UserID, "report", "read", request.FarmerID, request.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("permission check failed: %w", err)
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can export reports
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "report", "export", "", request.OrgID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
 	if !hasPermission {
-		return nil, fmt.Errorf("insufficient permissions to read farmer portfolio")
+		return nil, common.ErrForbidden
 	}
 
 	// Get farmer information
@@ -202,13 +210,19 @@ func (s *ReportingServiceImpl) OrgDashboardCounters(ctx context.Context, req int
 		return nil, fmt.Errorf("invalid request type")
 	}
 
-	// Check permission - user should have 'report.read' permission for the organization
-	hasPermission, err := s.aaaService.CheckPermission(ctx, request.UserID, "report", "read", "org", request.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("permission check failed: %w", err)
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can read organization dashboard
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "report", "read", "", request.OrgID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
 	if !hasPermission {
-		return nil, fmt.Errorf("insufficient permissions to read organization dashboard")
+		return nil, common.ErrForbidden
 	}
 
 	// Get total farmers count

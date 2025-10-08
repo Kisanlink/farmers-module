@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
@@ -30,10 +31,16 @@ func (s *KisanSathiServiceImpl) AssignKisanSathi(ctx context.Context, req interf
 		return fmt.Errorf("invalid request type")
 	}
 
-	// Permission: user must be allowed to assign KisanSathi within org
-	allowed, err := s.aaaService.CheckPermission(ctx, r.AAAUserID, "kisan_sathi_assignment", "assign", r.KisanSathiUserID, r.AAAOrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can assign KisanSathi
+	allowed, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "kisan_sathi_assignment", "assign", r.KisanSathiUserID, r.AAAOrgID)
+	if err != nil {
+		return fmt.Errorf("failed to check permission: %w", err)
 	}
 	if !allowed {
 		return fmt.Errorf("permission denied: assign KisanSathi")
@@ -47,6 +54,13 @@ func (s *KisanSathiServiceImpl) ReassignOrRemoveKisanSathi(ctx context.Context, 
 	if !ok {
 		return fmt.Errorf("invalid request type")
 	}
+
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get user context: %w", err)
+	}
+
 	action := "reassign"
 	object := ""
 	if r.NewKisanSathiUserID == nil || *r.NewKisanSathiUserID == "" {
@@ -54,9 +68,11 @@ func (s *KisanSathiServiceImpl) ReassignOrRemoveKisanSathi(ctx context.Context, 
 	} else {
 		object = *r.NewKisanSathiUserID
 	}
-	allowed, err := s.aaaService.CheckPermission(ctx, r.AAAUserID, "kisan_sathi_assignment", action, object, r.AAAOrgID)
+
+	// Check if authenticated user can reassign/remove KisanSathi
+	allowed, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "kisan_sathi_assignment", action, object, r.AAAOrgID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to check permission: %w", err)
 	}
 	if !allowed {
 		return fmt.Errorf("permission denied: %s KisanSathi", action)

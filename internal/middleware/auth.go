@@ -154,7 +154,11 @@ func AuthenticationMiddleware(aaaService services.AAAService, logger interfaces.
 		c.Set("org_context", orgContext)
 		c.Set("token", token)
 
-		// Store token in Request context for downstream services (e.g., gRPC calls)
+		// Store user context and token in Request context for downstream services (e.g., gRPC calls)
+		ctx = auth.SetUserInContext(ctx, userContext)
+		if orgContext != nil {
+			ctx = auth.SetOrgInContext(ctx, orgContext)
+		}
 		ctx = auth.SetTokenInContext(ctx, token)
 		c.Request = c.Request.WithContext(ctx)
 

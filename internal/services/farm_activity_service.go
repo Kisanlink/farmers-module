@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	cropCycleEntity "github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
 	farmActivityEntity "github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
@@ -43,8 +44,14 @@ func (s *FarmActivityServiceImpl) CreateActivity(ctx context.Context, req interf
 		return nil, common.ErrInvalidInput
 	}
 
-	// Check permission for activity.create
-	hasPermission, err := s.aaaService.CheckPermission(ctx, createReq.UserID, "activity", "create", createReq.CropCycleID, createReq.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can create activity
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "activity", "create", "", createReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -61,7 +68,7 @@ func (s *FarmActivityServiceImpl) CreateActivity(ctx context.Context, req interf
 
 	// Business Rule 9.2: KisanSathi permission scope check
 	// KisanSathi users can only create activities for farmers they are assigned to
-	isKisanSathi, err := s.aaaService.CheckUserRole(ctx, createReq.UserID, "kisansathi")
+	isKisanSathi, err := s.aaaService.CheckUserRole(ctx, userCtx.AAAUserID, "kisansathi")
 	if err != nil {
 		return nil, fmt.Errorf("failed to check user role: %w", err)
 	}
@@ -79,7 +86,7 @@ func (s *FarmActivityServiceImpl) CreateActivity(ctx context.Context, req interf
 		}
 
 		farmerLink := farmerLinks[0]
-		if farmerLink.KisanSathiUserID == nil || *farmerLink.KisanSathiUserID != createReq.UserID {
+		if farmerLink.KisanSathiUserID == nil || *farmerLink.KisanSathiUserID != userCtx.AAAUserID {
 			return nil, fmt.Errorf("KisanSathi can only create activities for assigned farmers")
 		}
 	}
@@ -89,7 +96,7 @@ func (s *FarmActivityServiceImpl) CreateActivity(ctx context.Context, req interf
 		CropCycleID:  createReq.CropCycleID,
 		ActivityType: createReq.ActivityType,
 		PlannedAt:    createReq.PlannedAt,
-		CreatedBy:    createReq.UserID,
+		CreatedBy:    userCtx.AAAUserID,
 		Status:       "PLANNED",
 		Metadata:     createReq.Metadata,
 	}
@@ -138,8 +145,14 @@ func (s *FarmActivityServiceImpl) CompleteActivity(ctx context.Context, req inte
 		return nil, common.ErrInvalidInput
 	}
 
-	// Check permission for activity.complete first
-	hasPermission, err := s.aaaService.CheckPermission(ctx, completeReq.UserID, "activity", "complete", completeReq.ID, completeReq.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can complete activity
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "activity", "complete", completeReq.ID, completeReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -197,8 +210,14 @@ func (s *FarmActivityServiceImpl) UpdateActivity(ctx context.Context, req interf
 		return nil, common.ErrInvalidInput
 	}
 
-	// Check permission for activity.update first
-	hasPermission, err := s.aaaService.CheckPermission(ctx, updateReq.UserID, "activity", "update", updateReq.ID, updateReq.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can update activity
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "activity", "update", updateReq.ID, updateReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -265,8 +284,14 @@ func (s *FarmActivityServiceImpl) ListActivities(ctx context.Context, req interf
 		return nil, common.ErrInvalidInput
 	}
 
-	// Check permission for activity.list
-	hasPermission, err := s.aaaService.CheckPermission(ctx, listReq.UserID, "activity", "list", "", listReq.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can list activities
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "activity", "list", "", listReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}

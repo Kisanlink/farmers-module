@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/stretchr/testify/assert"
@@ -38,7 +39,7 @@ func TestFarmActivityService_CreateActivity_BusinessLogic(t *testing.T) {
 				ActivityType: "planting",
 			},
 			setupMocks: func(aaa *MockAAAService) {
-				aaa.On("CheckPermission", mock.Anything, "user123", "activity", "create", "cycle123", "org123").Return(false, nil)
+				aaa.On("CheckPermission", mock.Anything, "user123", "activity", "create", "", "org123").Return(false, nil)
 			},
 			expectedError: common.ErrForbidden,
 		},
@@ -54,7 +55,18 @@ func TestFarmActivityService_CreateActivity_BusinessLogic(t *testing.T) {
 				aaaService: mockAAAService,
 			}
 
-			result, err := service.CreateActivity(context.Background(), tt.request)
+			// Setup context with user information
+			ctx := context.Background()
+			if req, ok := tt.request.(*requests.CreateActivityRequest); ok {
+				userCtx := &auth.UserContext{
+					AAAUserID: req.UserID,
+					Username:  "testuser",
+					Roles:     []string{"admin"},
+				}
+				ctx = auth.SetUserInContext(ctx, userCtx)
+			}
+
+			result, err := service.CreateActivity(ctx, tt.request)
 
 			assert.Error(t, err)
 			assert.Equal(t, tt.expectedError, err)
@@ -107,7 +119,18 @@ func TestFarmActivityService_CompleteActivity_BusinessLogic(t *testing.T) {
 				aaaService: mockAAAService,
 			}
 
-			result, err := service.CompleteActivity(context.Background(), tt.request)
+			// Setup context with user information
+			ctx := context.Background()
+			if req, ok := tt.request.(*requests.CompleteActivityRequest); ok {
+				userCtx := &auth.UserContext{
+					AAAUserID: req.UserID,
+					Username:  "testuser",
+					Roles:     []string{"admin"},
+				}
+				ctx = auth.SetUserInContext(ctx, userCtx)
+			}
+
+			result, err := service.CompleteActivity(ctx, tt.request)
 
 			assert.Error(t, err)
 			assert.Equal(t, tt.expectedError, err)
@@ -159,7 +182,18 @@ func TestFarmActivityService_UpdateActivity_BusinessLogic(t *testing.T) {
 				aaaService: mockAAAService,
 			}
 
-			result, err := service.UpdateActivity(context.Background(), tt.request)
+			// Setup context with user information
+			ctx := context.Background()
+			if req, ok := tt.request.(*requests.UpdateActivityRequest); ok {
+				userCtx := &auth.UserContext{
+					AAAUserID: req.UserID,
+					Username:  "testuser",
+					Roles:     []string{"admin"},
+				}
+				ctx = auth.SetUserInContext(ctx, userCtx)
+			}
+
+			result, err := service.UpdateActivity(ctx, tt.request)
 
 			assert.Error(t, err)
 			assert.Equal(t, tt.expectedError, err)
@@ -212,7 +246,18 @@ func TestFarmActivityService_ListActivities_BusinessLogic(t *testing.T) {
 				aaaService: mockAAAService,
 			}
 
-			result, err := service.ListActivities(context.Background(), tt.request)
+			// Setup context with user information
+			ctx := context.Background()
+			if req, ok := tt.request.(*requests.ListActivitiesRequest); ok {
+				userCtx := &auth.UserContext{
+					AAAUserID: req.UserID,
+					Username:  "testuser",
+					Roles:     []string{"admin"},
+				}
+				ctx = auth.SetUserInContext(ctx, userCtx)
+			}
+
+			result, err := service.ListActivities(ctx, tt.request)
 
 			assert.Error(t, err)
 			assert.Equal(t, tt.expectedError, err)
@@ -243,7 +288,16 @@ func TestFarmActivityService_DateFiltering(t *testing.T) {
 			PageSize: 10,
 		}
 
-		result, err := service.ListActivities(context.Background(), req)
+		// Setup context with user information
+		ctx := context.Background()
+		userCtx := &auth.UserContext{
+			AAAUserID: req.UserID,
+			Username:  "testuser",
+			Roles:     []string{"admin"},
+		}
+		ctx = auth.SetUserInContext(ctx, userCtx)
+
+		result, err := service.ListActivities(ctx, req)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid date_from format")
 		assert.Nil(t, result)
@@ -261,7 +315,16 @@ func TestFarmActivityService_DateFiltering(t *testing.T) {
 			PageSize: 10,
 		}
 
-		result, err := service.ListActivities(context.Background(), req)
+		// Setup context with user information
+		ctx := context.Background()
+		userCtx := &auth.UserContext{
+			AAAUserID: req.UserID,
+			Username:  "testuser",
+			Roles:     []string{"admin"},
+		}
+		ctx = auth.SetUserInContext(ctx, userCtx)
+
+		result, err := service.ListActivities(ctx, req)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid date_to format")
 		assert.Nil(t, result)

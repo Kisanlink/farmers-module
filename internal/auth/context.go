@@ -90,3 +90,23 @@ func SetRequestIDInContext(ctx context.Context, requestID string) context.Contex
 func SetTokenInContext(ctx context.Context, token string) context.Context {
 	return context.WithValue(ctx, TokenKey, token)
 }
+
+// GetAuthenticatedUserID extracts the authenticated user ID from context
+// Returns error if user context is not found
+func GetAuthenticatedUserID(ctx context.Context) (string, error) {
+	user, err := GetUserFromContext(ctx)
+	if err != nil {
+		return "", err
+	}
+	return user.AAAUserID, nil
+}
+
+// GetAuthenticatedOrgID extracts the authenticated user's organization ID from context
+// Returns empty string if org context is not found (org is optional)
+func GetAuthenticatedOrgID(ctx context.Context) string {
+	org, err := GetOrgFromContext(ctx)
+	if err != nil {
+		return ""
+	}
+	return org.AAAOrgID
+}

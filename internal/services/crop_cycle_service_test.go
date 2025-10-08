@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/stretchr/testify/assert"
@@ -39,7 +40,7 @@ func TestCropCycleService_StartCycle_BusinessLogic(t *testing.T) {
 				PlannedCrops: []string{"wheat", "barley"},
 			},
 			setupMocks: func(aaa *MockAAAServiceShared) {
-				aaa.On("CheckPermission", mock.Anything, "user123", "cycle", "start", "farm123", "org123").Return(false, nil)
+				aaa.On("CheckPermission", mock.Anything, "user123", "cycle", "start", "", "org123").Return(false, nil)
 			},
 			expectedError: common.ErrForbidden,
 		},
@@ -74,8 +75,19 @@ func TestCropCycleService_StartCycle_BusinessLogic(t *testing.T) {
 				aaaService:    mockAAA,
 			}
 
+			// Setup context with user information
+			ctx := context.Background()
+			if req, ok := tt.request.(*requests.StartCycleRequest); ok {
+				userCtx := &auth.UserContext{
+					AAAUserID: req.UserID,
+					Username:  "testuser",
+					Roles:     []string{"admin"},
+				}
+				ctx = auth.SetUserInContext(ctx, userCtx)
+			}
+
 			// Call the service method
-			result, err := service.StartCycle(context.Background(), tt.request)
+			result, err := service.StartCycle(ctx, tt.request)
 
 			// Assertions
 			assert.Error(t, err)
@@ -132,8 +144,19 @@ func TestCropCycleService_UpdateCycle_BusinessLogic(t *testing.T) {
 				aaaService:    mockAAA,
 			}
 
+			// Setup context with user information
+			ctx := context.Background()
+			if req, ok := tt.request.(*requests.UpdateCycleRequest); ok {
+				userCtx := &auth.UserContext{
+					AAAUserID: req.UserID,
+					Username:  "testuser",
+					Roles:     []string{"admin"},
+				}
+				ctx = auth.SetUserInContext(ctx, userCtx)
+			}
+
 			// Call the service method - this will fail at repository access but we can test the early validation
-			result, err := service.UpdateCycle(context.Background(), tt.request)
+			result, err := service.UpdateCycle(ctx, tt.request)
 
 			// Assertions
 			assert.Error(t, err)
@@ -193,8 +216,19 @@ func TestCropCycleService_EndCycle_BusinessLogic(t *testing.T) {
 				aaaService:    mockAAA,
 			}
 
+			// Setup context with user information
+			ctx := context.Background()
+			if req, ok := tt.request.(*requests.EndCycleRequest); ok {
+				userCtx := &auth.UserContext{
+					AAAUserID: req.UserID,
+					Username:  "testuser",
+					Roles:     []string{"admin"},
+				}
+				ctx = auth.SetUserInContext(ctx, userCtx)
+			}
+
 			// Call the service method - this will fail at repository access but we can test the early validation
-			result, err := service.EndCycle(context.Background(), tt.request)
+			result, err := service.EndCycle(ctx, tt.request)
 
 			// Assertions
 			assert.Error(t, err)
@@ -257,8 +291,19 @@ func TestCropCycleService_ListCycles_BusinessLogic(t *testing.T) {
 				aaaService:    mockAAA,
 			}
 
+			// Setup context with user information
+			ctx := context.Background()
+			if req, ok := tt.request.(*requests.ListCyclesRequest); ok {
+				userCtx := &auth.UserContext{
+					AAAUserID: req.UserID,
+					Username:  "testuser",
+					Roles:     []string{"admin"},
+				}
+				ctx = auth.SetUserInContext(ctx, userCtx)
+			}
+
 			// Call the service method - this will fail at repository access but we can test the early validation
-			result, err := service.ListCycles(context.Background(), tt.request)
+			result, err := service.ListCycles(ctx, tt.request)
 
 			// Assertions
 			assert.Error(t, err)

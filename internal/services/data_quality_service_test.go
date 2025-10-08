@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -30,8 +31,17 @@ func TestDataQualityService_ValidateGeometry(t *testing.T) {
 		CheckBounds: false,
 	}
 
+	// Setup context with user information
+	ctx := context.Background()
+	userCtx := &auth.UserContext{
+		AAAUserID: req.UserID,
+		Username:  "testuser",
+		Roles:     []string{"admin"},
+	}
+	ctx = auth.SetUserInContext(ctx, userCtx)
+
 	// Call the method
-	response, err := service.ValidateGeometry(context.Background(), req)
+	response, err := service.ValidateGeometry(ctx, req)
 
 	// Assertions
 	assert.NoError(t, err)

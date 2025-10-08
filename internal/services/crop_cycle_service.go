@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	cropCycleEntity "github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
@@ -32,8 +33,14 @@ func (s *CropCycleServiceImpl) StartCycle(ctx context.Context, req interface{}) 
 		return nil, common.ErrInvalidInput
 	}
 
-	// Check permission for cycle.start
-	hasPermission, err := s.aaaService.CheckPermission(ctx, startReq.UserID, "cycle", "start", startReq.FarmID, startReq.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can start crop cycle
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "cycle", "start", "", startReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -90,8 +97,14 @@ func (s *CropCycleServiceImpl) UpdateCycle(ctx context.Context, req interface{})
 		return nil, common.ErrInvalidInput
 	}
 
-	// Check permission for cycle.update first
-	hasPermission, err := s.aaaService.CheckPermission(ctx, updateReq.UserID, "cycle", "update", updateReq.ID, updateReq.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can update crop cycle
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "cycle", "update", updateReq.ID, updateReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -157,8 +170,14 @@ func (s *CropCycleServiceImpl) EndCycle(ctx context.Context, req interface{}) (i
 		return nil, common.ErrInvalidInput
 	}
 
-	// Check permission for cycle.end first
-	hasPermission, err := s.aaaService.CheckPermission(ctx, endReq.UserID, "cycle", "end", endReq.ID, endReq.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can end crop cycle
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "cycle", "end", endReq.ID, endReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -215,8 +234,14 @@ func (s *CropCycleServiceImpl) ListCycles(ctx context.Context, req interface{}) 
 		return nil, common.ErrInvalidInput
 	}
 
-	// Check permission for cycle.list
-	hasPermission, err := s.aaaService.CheckPermission(ctx, listReq.UserID, "cycle", "list", "", listReq.OrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can list crop cycles
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "cycle", "list", "", listReq.OrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}

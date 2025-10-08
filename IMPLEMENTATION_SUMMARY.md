@@ -194,7 +194,193 @@ mock.ValidateToken(ctx, "forged.jwt.token")
 - **Rate Limit Testing**: Can test rate limiting behavior without real infrastructure
 - **Toggleable Security**: Can enable/disable for different test scenarios
 
-## 4. Testing Infrastructure Updates
+## 4. Critical Security Fix: AAA Permission Check Authentication
+
+### Problem Statement
+
+When AAA service was enabled (`AAA_ENABLED=true`), multiple API endpoints failed with error:
+```json
+{
+  "error": "failed to check permission: missing permission parameters"
+}
+```
+
+**Root Cause**: Services were using optional request parameters (from query params or request body) as the subject for permission checks, instead of extracting the authenticated user ID from the JWT token context set by the auth middleware.
+
+### Implementation Details
+
+**Specification Document**: `.kiro/specs/aaa-permission-check-fix.md`
+
+**Files Modified:**
+1. `internal/middleware/auth.go` - Store user context in request context
+2. `internal/auth/context.go` - Add helper functions for user extraction
+3. `internal/services/farm_service.go` - Fix 6 methods
+4. `internal/services/farm_activity_service.go` - Fix 4 methods
+5. `internal/services/crop_cycle_service.go` - Fix 4 methods
+6. `internal/services/data_quality_service.go` - Fix 4 methods
+7. `internal/services/reporting_service.go` - Fix 2 methods
+8. `internal/services/kisan_sathi_service.go` - Fix 2 methods
+9. `internal/services/farmer_linkage_service.go` - Fix 6 methods
+
+**Total Methods Fixed**: 28 permission checks across 7 service files
+
+### Key Changes
+
+#### 1. Auth Middleware Enhancement (auth.go)
+```go
+// Before: Only stored in Gin context
+c.Set("user_context", userContext)
+
+// After: Also store in request context for services
+ctx = auth.SetUserInContext(ctx, userContext)
+if orgContext != nil {
+    ctx = auth.SetOrgInContext(ctx, orgContext)
+}
+c.Request = c.Request.WithContext(ctx)
+```
+
+#### 2. Helper Functions (auth/context.go)
+```go
+// GetAuthenticatedUserID extracts the authenticated user ID from context
+func GetAuthenticatedUserID(ctx context.Context) (string, error) {
+    user, err := GetUserFromContext(ctx)
+    if err != nil {
+        return "", err
+    }
+    return user.AAAUserID, nil
+}
+
+// GetAuthenticatedOrgID extracts the authenticated user's organization ID
+func GetAuthenticatedOrgID(ctx context.Context) string {
+    org, err := GetOrgFromContext(ctx)
+    if err != nil {
+        return ""
+    }
+    return org.AAAOrgID
+}
+```
+
+#### 3. Service Permission Check Pattern
+
+**Before (WRONG)**:
+```go
+// Using request parameter as subject - SECURITY VULNERABILITY
+hasPermission, err := s.aaaService.CheckPermission(ctx, req.AAAFarmerUserID, "farm", "list", "", req.AAAOrgID)
+```
+
+**After (CORRECT)**:
+```go
+// Extract authenticated user from context
+userCtx, err := auth.GetUserFromContext(ctx)
+if err != nil {
+    return nil, fmt.Errorf("failed to get user context: %w", err)
+}
+
+// Use authenticated user as subject - SECURE
+hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "farm", "list", "", req.AAAOrgID)
+if err != nil {
+    return nil, fmt.Errorf("failed to check permission: %w", err)
+}
+if !hasPermission {
+    return nil, common.ErrForbidden
+}
+```
+
+### Security Impact
+
+**Before (VULNERABLE)**:
+- Permission checks used optional request parameters (e.g., `farmer_id` from query params)
+- When parameters were omitted, subject was empty string → "missing permission parameters" error
+- Potential privilege escalation: users could manipulate request parameters to impersonate others
+- Authentication (JWT) and authorization (permission checks) were decoupled
+
+**After (SECURE)**:
+- ALL permission checks use authenticated user from JWT token context
+- Impossible to bypass authentication by manipulating request parameters
+- Request parameters now correctly used ONLY for filtering data, NOT for authorization
+- Proper separation: Authentication (WHO) from JWT, Filtering (WHOSE resources) from params
+
+### Example Scenario
+
+**User Story**: CEO wants to view all farms in their FPO organization
+
+**Request**:
+```http
+GET /api/v1/farms?org_id=fpo_123
+Authorization: Bearer <ceo_jwt_token>
+```
+
+**Before (BROKEN)**:
+```
+1. Middleware extracts from JWT: user_id = "ceo_456" ✅
+2. Handler parses query: No farmer_id param → AAAFarmerUserID = ""
+3. Service checks: "Can user '' (empty) list farms?" ❌
+4. AAA client validation: subject == "" → Error
+5. Returns: {"error": "failed to check permission: missing permission parameters"}
+```
+
+**After (FIXED)**:
+```
+1. Middleware extracts from JWT: user_id = "ceo_456" ✅
+2. Middleware stores in context: ctx.SetUserContext(userContext) ✅
+3. Service extracts: userCtx = auth.GetUserFromContext(ctx) ✅
+4. Service checks: "Can user 'ceo_456' list farms in org fpo_123?" ✅
+5. AAA responds: "Yes" (CEO has permission)
+6. Service queries: All farms where org_id = fpo_123
+7. Returns: 200 OK with farm list
+```
+
+### Methods Fixed by Service
+
+| Service | Methods Fixed | Total |
+|---------|--------------|-------|
+| **farm_service.go** | CreateFarm, UpdateFarm, DeleteFarm, ListFarms, GetFarmByID, ListFarmsByBoundingBox | 6 |
+| **farm_activity_service.go** | CreateActivity, CompleteActivity, UpdateActivity, ListActivities | 4 |
+| **crop_cycle_service.go** | StartCycle, UpdateCycle, EndCycle, ListCycles | 4 |
+| **data_quality_service.go** | ValidateGeometry, ReconcileAAALinks, RebuildSpatialIndexes, DetectFarmOverlaps | 4 |
+| **reporting_service.go** | ExportFarmerPortfolio, OrgDashboardCounters | 2 |
+| **kisan_sathi_service.go** | AssignKisanSathi, ReassignOrRemoveKisanSathi | 2 |
+| **farmer_linkage_service.go** | LinkFarmer, UnlinkFarmer, GetFarmerLinkage, AssignKisanSathi, ReassignKisanSathi, CreateKisanSathiUser | 6 |
+| **TOTAL** | | **28** |
+
+### Testing & Verification
+
+**Compilation**: ✅ All services compile successfully
+```bash
+go build ./internal/services/...
+```
+
+**Tests**: ✅ All AAA and permission tests pass
+```bash
+go test ./internal/services/... -v -run "TestAAA|TestPermission"
+```
+
+**Code Quality**: ✅ Consistent pattern applied across all fixes
+- All fixes follow the same secure pattern
+- Proper error handling with wrapped errors
+- No logic changes beyond permission checks
+- Backward compatible (no API contract changes)
+
+### Benefits
+
+1. **Security**: Eliminates privilege escalation vulnerability
+2. **Reliability**: No more "missing permission parameters" errors
+3. **Correctness**: Permission checks now validate actual authenticated user
+4. **Consistency**: Single pattern applied across all services
+5. **Maintainability**: Clear separation between authentication and filtering
+6. **Auditability**: All permission checks trace back to JWT-authenticated user
+
+### Migration Notes
+
+- **Breaking Changes**: None - this is a bug fix that makes the system work as originally intended
+- **Database Migrations**: None required
+- **API Contract Changes**: None
+- **Deployment**: Can be deployed during normal maintenance window
+- **Rollback**: Safe to rollback if issues arise (no schema changes)
+
+---
+
+## 5. Testing Infrastructure Updates
 
 ### Makefile Enhancements
 

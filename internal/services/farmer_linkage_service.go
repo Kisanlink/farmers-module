@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
@@ -44,8 +45,14 @@ func (s *FarmerLinkageServiceImpl) LinkFarmerToFPO(ctx context.Context, req inte
 		return fmt.Errorf("aaa_user_id and aaa_org_id are required")
 	}
 
-	// Check 'farmer.link' permission on the target organization
-	hasPermission, err := s.aaaService.CheckPermission(ctx, linkReq.AAAUserID, "farmer", "link", linkReq.AAAUserID, linkReq.AAAOrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can link farmer
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "farmer", "link", linkReq.AAAUserID, linkReq.AAAOrgID)
 	if err != nil {
 		return fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -102,8 +109,14 @@ func (s *FarmerLinkageServiceImpl) UnlinkFarmerFromFPO(ctx context.Context, req 
 		return fmt.Errorf("aaa_user_id and aaa_org_id are required")
 	}
 
-	// Check 'farmer.unlink' permission on the target organization
-	hasPermission, err := s.aaaService.CheckPermission(ctx, unlinkReq.AAAUserID, "farmer", "unlink", unlinkReq.AAAUserID, unlinkReq.AAAOrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can unlink farmer
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "farmer", "unlink", unlinkReq.AAAUserID, unlinkReq.AAAOrgID)
 	if err != nil {
 		return fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -134,8 +147,14 @@ func (s *FarmerLinkageServiceImpl) UnlinkFarmerFromFPO(ctx context.Context, req 
 
 // GetFarmerLinkage gets farmer linkage status
 func (s *FarmerLinkageServiceImpl) GetFarmerLinkage(ctx context.Context, farmerID, orgID string) (interface{}, error) {
-	// Check 'farmer.read' permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, farmerID, "farmer", "read", farmerID, orgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can read farmer linkage
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "farmer", "read", farmerID, orgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -181,8 +200,14 @@ func (s *FarmerLinkageServiceImpl) AssignKisanSathi(ctx context.Context, req int
 		return nil, fmt.Errorf("aaa_user_id, aaa_org_id, and kisan_sathi_user_id are required")
 	}
 
-	// Check 'kisansathi.assign' permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, assignReq.KisanSathiUserID, "kisansathi", "assign", assignReq.AAAUserID, assignReq.AAAOrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can assign KisanSathi
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "kisansathi", "assign", assignReq.AAAUserID, assignReq.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -248,8 +273,14 @@ func (s *FarmerLinkageServiceImpl) ReassignOrRemoveKisanSathi(ctx context.Contex
 		return nil, fmt.Errorf("aaa_user_id and aaa_org_id are required")
 	}
 
-	// Check 'kisansathi.reassign' permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, reassignReq.AAAUserID, "kisansathi", "reassign", reassignReq.AAAUserID, reassignReq.AAAOrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can reassign KisanSathi
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "kisansathi", "reassign", reassignReq.AAAUserID, reassignReq.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -323,8 +354,14 @@ func (s *FarmerLinkageServiceImpl) CreateKisanSathiUser(ctx context.Context, req
 		return nil, fmt.Errorf("username, phone_number, password, and full_name are required")
 	}
 
-	// Check 'user.create' permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, createReq.Username, "user", "create", "", "")
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can create user
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "user", "create", "", "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}

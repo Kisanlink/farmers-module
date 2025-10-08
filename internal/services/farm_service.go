@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	farmEntity "github.com/Kisanlink/farmers-module/internal/entities/farm"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
@@ -42,8 +43,14 @@ func (s *FarmServiceImpl) CreateFarm(ctx context.Context, req interface{}) (inte
 		return nil, err
 	}
 
-	// Check AAA permission for farm.create
-	hasPermission, err := s.aaaService.CheckPermission(ctx, createReq.AAAFarmerUserID, "farm", "create", createReq.AAAOrgID, createReq.AAAOrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can create farms
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "farm", "create", "", createReq.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -122,8 +129,14 @@ func (s *FarmServiceImpl) UpdateFarm(ctx context.Context, req interface{}) (inte
 		return nil, fmt.Errorf("failed to get farm: %w", err)
 	}
 
-	// Check AAA permission for farm.update
-	hasPermission, err := s.aaaService.CheckPermission(ctx, existingFarm.AAAFarmerUserID, "farm", "update", existingFarm.ID, existingFarm.AAAOrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can update this farm
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "farm", "update", existingFarm.ID, existingFarm.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -214,8 +227,14 @@ func (s *FarmServiceImpl) DeleteFarm(ctx context.Context, req interface{}) error
 		return fmt.Errorf("failed to get farm: %w", err)
 	}
 
-	// Check AAA permission for farm.delete
-	hasPermission, err := s.aaaService.CheckPermission(ctx, existingFarm.AAAFarmerUserID, "farm", "delete", existingFarm.ID, existingFarm.AAAOrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can delete this farm
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "farm", "delete", existingFarm.ID, existingFarm.AAAOrgID)
 	if err != nil {
 		return fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -238,8 +257,14 @@ func (s *FarmServiceImpl) ListFarms(ctx context.Context, req interface{}) (inter
 		return nil, fmt.Errorf("invalid request type for ListFarms")
 	}
 
-	// Check AAA permission for farm.list
-	hasPermission, err := s.aaaService.CheckPermission(ctx, listReq.AAAFarmerUserID, "farm", "list", "", listReq.AAAOrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can list farms
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "farm", "list", "", listReq.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -309,8 +334,14 @@ func (s *FarmServiceImpl) GetFarm(ctx context.Context, farmID string) (interface
 		return nil, fmt.Errorf("failed to get farm: %w", err)
 	}
 
-	// Check AAA permission for farm.read
-	hasPermission, err := s.aaaService.CheckPermission(ctx, farm.AAAFarmerUserID, "farm", "read", farm.ID, farm.AAAOrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can read this farm
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "farm", "read", farm.ID, farm.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
@@ -327,8 +358,14 @@ func (s *FarmServiceImpl) GetFarm(ctx context.Context, farmID string) (interface
 
 // ListFarmsByBoundingBox lists farms within a bounding box
 func (s *FarmServiceImpl) ListFarmsByBoundingBox(ctx context.Context, bbox requests.BoundingBox, filters requests.ListFarmsRequest) (interface{}, error) {
-	// Check AAA permission
-	hasPermission, err := s.aaaService.CheckPermission(ctx, filters.AAAFarmerUserID, "farm", "list", "", filters.AAAOrgID)
+	// Extract authenticated user from context
+	userCtx, err := auth.GetUserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user context: %w", err)
+	}
+
+	// Check if authenticated user can list farms
+	hasPermission, err := s.aaaService.CheckPermission(ctx, userCtx.AAAUserID, "farm", "list", "", filters.AAAOrgID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check permission: %w", err)
 	}
