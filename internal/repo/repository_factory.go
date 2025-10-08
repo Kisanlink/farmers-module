@@ -3,9 +3,6 @@ package repo
 import (
 	"context"
 
-	entities "github.com/Kisanlink/farmers-module/internal/entities"
-	cropCycleEntity "github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
-	farmActivityEntity "github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
 	fpoEntity "github.com/Kisanlink/farmers-module/internal/entities/fpo"
 	"github.com/Kisanlink/farmers-module/internal/repo/bulk"
 	"github.com/Kisanlink/farmers-module/internal/repo/crop"
@@ -13,7 +10,6 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/repo/farm"
 	"github.com/Kisanlink/farmers-module/internal/repo/farm_activity"
 	"github.com/Kisanlink/farmers-module/internal/repo/farmer"
-	"github.com/Kisanlink/farmers-module/internal/repo/farmer_linkage"
 	"github.com/Kisanlink/farmers-module/internal/repo/fpo_ref"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
@@ -21,14 +17,14 @@ import (
 
 // RepositoryFactory provides access to all domain repositories
 type RepositoryFactory struct {
-	FarmerRepo           *base.BaseFilterableRepository[*entities.FarmerProfile]
-	FarmerLinkageRepo    *base.BaseFilterableRepository[*entities.FarmerLink]
+	FarmerRepo           *farmer.FarmerRepository
+	FarmerLinkageRepo    *farmer.FarmerLinkRepository
 	FPORefRepo           *base.BaseFilterableRepository[*fpoEntity.FPORef]
 	FarmRepo             *farm.FarmRepository
 	CropRepo             *crop.CropRepository
 	CropVarietyRepo      *crop.CropVarietyRepository
-	CropCycleRepo        *base.BaseFilterableRepository[*cropCycleEntity.CropCycle]
-	FarmActivityRepo     *base.BaseFilterableRepository[*farmActivityEntity.FarmActivity]
+	CropCycleRepo        *crop_cycle.CropCycleRepository
+	FarmActivityRepo     *farm_activity.FarmActivityRepository
 	BulkOperationRepo    bulk.BulkOperationRepository
 	ProcessingDetailRepo bulk.ProcessingDetailRepository
 }
@@ -43,7 +39,7 @@ func NewRepositoryFactory(dbManager *db.PostgresManager) *RepositoryFactory {
 
 	return &RepositoryFactory{
 		FarmerRepo:           farmer.NewFarmerRepository(dbManager),
-		FarmerLinkageRepo:    farmer_linkage.NewFarmerLinkageRepository(dbManager),
+		FarmerLinkageRepo:    farmer.NewFarmerLinkRepository(dbManager),
 		FPORefRepo:           fpo_ref.NewFPORefRepository(dbManager),
 		FarmRepo:             farm.NewFarmRepository(dbManager),
 		CropRepo:             crop.NewCropRepository(gormDB),

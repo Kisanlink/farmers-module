@@ -73,10 +73,10 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	aaaService := NewAAAService(cfg)
 
 	// Initialize identity services
-	farmerService := NewFarmerService(repoFactory.FarmerRepo, aaaService)
-	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo, aaaService)
+	farmerService := NewFarmerService(repoFactory.FarmerRepo.BaseFilterableRepository, aaaService)
+	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo.BaseFilterableRepository, aaaService)
 	fpoService := NewFPOService(repoFactory.FPORefRepo, aaaService)
-	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo, aaaService)
+	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo.BaseFilterableRepository, aaaService)
 
 	// Initialize farm management services
 	// Get GORM DB for farm service
@@ -88,14 +88,14 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 
 	// Initialize crop management services
 	cropService := NewCropService(repoFactory.CropRepo, repoFactory.CropVarietyRepo, aaaService)
-	cropCycleService := NewCropCycleService(repoFactory.CropCycleRepo, aaaService)
-	farmActivityService := NewFarmActivityService(repoFactory.FarmActivityRepo, repoFactory.CropCycleRepo, repoFactory.FarmerLinkageRepo, aaaService)
+	cropCycleService := NewCropCycleService(repoFactory.CropCycleRepo.BaseFilterableRepository, aaaService)
+	farmActivityService := NewFarmActivityService(repoFactory.FarmActivityRepo.BaseFilterableRepository, repoFactory.CropCycleRepo.BaseFilterableRepository, repoFactory.FarmerLinkageRepo.BaseFilterableRepository, aaaService)
 
 	// Initialize notification service
 	notificationService := NewNotificationService(aaaService)
 
 	// Initialize data quality service
-	dataQualityService := NewDataQualityService(gormDB, repoFactory.FarmRepo, repoFactory.FarmerLinkageRepo, aaaService, notificationService)
+	dataQualityService := NewDataQualityService(gormDB, repoFactory.FarmRepo, repoFactory.FarmerLinkageRepo.BaseFilterableRepository, aaaService, notificationService)
 
 	// Initialize reporting service
 	reportingService := NewReportingService(repoFactory, gormDB, aaaService)
