@@ -26,23 +26,23 @@ type FarmOverlapResponse struct {
 
 // FarmData represents farm data in responses
 type FarmData struct {
-	ID              string            `json:"id"`
-	AAAFarmerUserID string            `json:"aaa_farmer_user_id"`
-	AAAOrgID        string            `json:"aaa_org_id"`
-	Name            string            `json:"name"`
-	Geometry        string            `json:"geometry"`
-	AreaHa          float64           `json:"area_ha"`
-	Metadata        map[string]string `json:"metadata"`
-	CreatedAt       time.Time         `json:"created_at"`
-	UpdatedAt       time.Time         `json:"updated_at"`
+	ID              string            `json:"id" example:"farm_123e4567-e89b-12d3-a456-426614174000"`
+	AAAFarmerUserID string            `json:"aaa_farmer_user_id" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	AAAOrgID        string            `json:"aaa_org_id" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+	Name            string            `json:"name" example:"North Field Farm"`
+	Geometry        string            `json:"geometry" example:"POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85 22.71))"`
+	AreaHa          float64           `json:"area_ha" example:"2.5"`
+	Metadata        map[string]string `json:"metadata" example:"soil_type:loamy,irrigation:drip"`
+	CreatedAt       time.Time         `json:"created_at" example:"2024-01-15T10:30:00Z"`
+	UpdatedAt       time.Time         `json:"updated_at" example:"2024-01-20T15:45:00Z"`
 }
 
 // FarmOverlapData represents farm overlap check result
 type FarmOverlapData struct {
-	HasOverlap       bool     `json:"has_overlap"`
-	OverlapArea      float64  `json:"overlap_area,omitempty"`
-	OverlappingFarms []string `json:"overlapping_farms,omitempty"`
-	Message          string   `json:"message,omitempty"`
+	HasOverlap       bool     `json:"has_overlap" example:"true"`
+	OverlapArea      float64  `json:"overlap_area,omitempty" example:"0.25"`
+	OverlappingFarms []string `json:"overlapping_farms,omitempty" example:"farm_123e4567-e89b-12d3-a456-426614174001,farm_123e4567-e89b-12d3-a456-426614174002"`
+	Message          string   `json:"message,omitempty" example:"Farm boundary overlaps with 2 existing farms"`
 }
 
 // NewFarmResponse creates a new farm response

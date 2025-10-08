@@ -87,40 +87,57 @@ definitions:
   requests.AddressData:
     properties:
       city:
+        example: Indore
         type: string
       coordinates:
         description: WKT format for PostGIS
+        example: POINT(75.8577 22.7196)
         type: string
       country:
+        example: India
         type: string
       postal_code:
+        example: "452001"
         type: string
       state:
+        example: Madhya Pradesh
         type: string
       street_address:
+        example: Village Rampur, Post Khandwa
         type: string
     type: object
   requests.AssignKisanSathiRequest:
     properties:
       aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       aaa_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       kisan_sathi_user_id:
+        example: ks_123e4567-e89b-12d3-a456-426614174001
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - aaa_org_id
@@ -131,52 +148,70 @@ definitions:
     properties:
       assign_kisan_sathi:
         description: Auto-assign KisanSathi if available
+        example: true
         type: boolean
       chunk_size:
         description: 'Size of processing chunks (default: 100)'
+        example: 100
         type: integer
       continue_on_error:
         description: Continue processing on individual failures
+        example: true
         type: boolean
       credential_method:
         description: sms, email, both
+        example: sms
         type: string
       deduplication_mode:
         description: 'How to handle duplicates: skip, update, error'
+        example: skip
         type: string
       kisan_sathi_user_id:
         description: Specific KisanSathi to assign
+        example: ks_123e4567-e89b-12d3-a456-426614174001
         type: string
       max_concurrency:
         description: 'Max parallel workers (default: 10)'
+        example: 10
         type: integer
       metadata:
         additionalProperties:
           type: string
         description: Additional metadata
+        example:
+          batch_name: january_2024
+          region: central
         type: object
       notification_webhook:
         description: Webhook for completion notification
+        example: https://webhook.example.com/bulk-completion
         type: string
       send_credentials:
         description: Send login credentials to farmers
+        example: true
         type: boolean
       validate_only:
         description: Dry run mode
+        example: false
         type: boolean
     type: object
   requests.CEOUserData:
     properties:
       email:
+        example: rajesh.sharma@fpo.com
         type: string
       first_name:
+        example: Rajesh
         type: string
       last_name:
+        example: Sharma
         type: string
       password:
+        example: SecurePass@123
         minLength: 8
         type: string
       phone_number:
+        example: +91-9876543210
         type: string
     required:
     - first_name
@@ -187,26 +222,40 @@ definitions:
   requests.CompleteActivityRequest:
     properties:
       completed_at:
+        example: "2024-11-11T16:30:00Z"
         type: string
       id:
+        example: activity_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       output:
         additionalProperties:
           type: string
+        example:
+          area_covered: 2.5ha
+          notes: completed_successfully
+          workers: "4"
         type: object
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - completed_at
@@ -215,24 +264,35 @@ definitions:
   requests.CreateActivityRequest:
     properties:
       activity_type:
+        example: SOWING
         type: string
       crop_cycle_id:
+        example: cycle_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          seed_rate: 100kg_per_acre
+          seed_type: HD2967
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       planned_at:
+        example: "2024-11-10T09:00:00Z"
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - activity_type
@@ -252,44 +312,62 @@ definitions:
         - FODDER
         - MEDICINAL
         - OTHER
+        example: CEREALS
         type: string
       duration_days:
+        example: 120
         maximum: 365
         minimum: 1
         type: integer
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       name:
+        example: Wheat
         maxLength: 255
         minLength: 2
         type: string
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       properties:
         additionalProperties:
           type: string
+        example:
+          climate: temperate
+          water_requirement: medium
         type: object
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       scientific_name:
+        example: Triticum aestivum
         maxLength: 255
         type: string
       seasons:
+        example:
+        - RABI
         items:
           type: string
         minItems: 1
         type: array
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       unit:
+        example: kg
         maxLength: 50
         minLength: 1
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - category
@@ -300,39 +378,60 @@ definitions:
   requests.CreateCropVarietyRequest:
     properties:
       crop_id:
+        example: crop_123e4567-e89b-12d3-a456-426614174000
         type: string
       description:
+        example: High yielding wheat variety suitable for irrigated conditions
         type: string
       duration_days:
+        example: 120
         maximum: 365
         minimum: 1
         type: integer
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       name:
+        example: HD-2967
         maxLength: 255
         minLength: 2
         type: string
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       properties:
         additionalProperties:
           type: string
+        example:
+          disease_resistance: high
+          recommended_for: punjab_haryana
         type: object
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
+      yield_by_age:
+        items:
+          $ref: '#/definitions/requests.YieldByAgeRequest'
+        type: array
       yield_per_acre:
+        example: 25.5
         minimum: 0
         type: number
       yield_per_tree:
+        example: 0
         minimum: 0
         type: number
     required:
@@ -344,28 +443,43 @@ definitions:
       business_config:
         additionalProperties:
           type: string
+        example:
+          max_farmers: "1000"
+          procurement_enabled: "true"
         type: object
       ceo_user:
         $ref: '#/definitions/requests.CEOUserData'
       description:
+        example: A farmer producer organization serving 500+ farmers in Rampur region
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          district: Indore
+          established: "2024"
+          state: MP
         type: object
       name:
+        example: Rampur Farmers Producer Company
         type: string
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       registration_no:
+        example: FPO/MP/2024/001234
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - ceo_user
@@ -375,13 +489,17 @@ definitions:
   requests.CreateFarmRequest:
     properties:
       aaa_farmer_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       area_ha:
+        example: 2.5
         minimum: 0.01
         type: number
       bore_well_count:
+        example: 2
         minimum: 0
         type: integer
       geometry:
@@ -393,30 +511,43 @@ definitions:
       metadata:
         additionalProperties:
           type: string
+        example:
+          elevation: 450m
+          soil_test_date: "2024-01-10"
         type: object
       name:
+        example: North Field Farm
         type: string
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       other_irrigation_details:
+        example: Canal irrigation available during monsoon
         type: string
       ownership_type:
         enum:
         - OWN
         - LEASE
         - SHARED
+        example: OWN
         type: string
       primary_irrigation_source_id:
+        example: irr_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       soil_type_id:
+        example: soil_123e4567-e89b-12d3-a456-426614174000
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - aaa_farmer_user_id
@@ -426,26 +557,37 @@ definitions:
   requests.CreateFarmerRequest:
     properties:
       aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       aaa_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       kisan_sathi_user_id:
+        example: ks_123e4567-e89b-12d3-a456-426614174001
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       profile:
         $ref: '#/definitions/requests.FarmerProfileData'
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - aaa_org_id
@@ -454,31 +596,45 @@ definitions:
   requests.CreateKisanSathiUserRequest:
     properties:
       country_code:
+        example: "+91"
         type: string
       email:
+        example: pradeep.ks@fpo.com
         type: string
       full_name:
+        example: Pradeep Kumar
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          experience_years: "5"
+          villages_covered: "10"
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       password:
+        example: SecureKS@123
         minLength: 8
         type: string
       phone_number:
+        example: +91-9876543211
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       username:
+        example: pradeep.ks
         type: string
     required:
     - full_name
@@ -490,53 +646,78 @@ definitions:
     properties:
       limit:
         description: Maximum number of overlaps to return
+        example: 100
         type: integer
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       min_overlap_area_ha:
         description: Minimum overlap area in hectares to report
+        example: 0.1
         type: number
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     type: object
   requests.EndCycleRequest:
     properties:
       end_date:
+        example: "2024-03-15T00:00:00Z"
         type: string
       id:
+        example: cycle_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       outcome:
         additionalProperties:
           type: string
+        example:
+          notes: good_harvest
+          quality: good
+          yield_kg: "2500"
         type: object
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       status:
         enum:
         - COMPLETED
         - CANCELLED
+        example: COMPLETED
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - end_date
@@ -546,35 +727,48 @@ definitions:
   requests.ExportFarmerPortfolioRequest:
     properties:
       end_date:
+        example: "2024-12-31T23:59:59Z"
         type: string
       farmer_id:
+        example: farmer_123e4567-e89b-12d3-a456-426614174000
         type: string
       format:
         enum:
         - json
         - csv
+        example: json
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       season:
         enum:
         - RABI
         - KHARIF
         - ZAID
+        example: RABI
         type: string
       start_date:
+        example: "2024-01-01T00:00:00Z"
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - farmer_id
@@ -582,21 +776,30 @@ definitions:
   requests.FarmerBulkData:
     properties:
       city:
+        example: Ratlam
         type: string
       country:
+        example: India
         type: string
       custom_fields:
         additionalProperties:
           type: string
+        example:
+          education: high_school
+          family_size: "5"
         type: object
       date_of_birth:
+        example: "1975-08-20"
         type: string
       email:
+        example: suresh.patel@example.com
         type: string
       external_id:
         description: For tracking and idempotency
+        example: EXT_FARMER_001
         type: string
       first_name:
+        example: Suresh
         maxLength: 50
         minLength: 2
         type: string
@@ -605,23 +808,31 @@ definitions:
         - male
         - female
         - other
+        example: male
         type: string
       land_ownership_type:
+        example: OWN
         type: string
       last_name:
+        example: Patel
         maxLength: 50
         minLength: 2
         type: string
       password:
         description: Optional password, will be generated if not provided
+        example: Farmer@123
         type: string
       phone_number:
+        example: +91-9876543220
         type: string
       postal_code:
+        example: "457001"
         type: string
       state:
+        example: Madhya Pradesh
         type: string
       street_address:
+        example: Village Khandwa, Post Ratlam
         type: string
     required:
     - first_name
@@ -633,24 +844,36 @@ definitions:
       address:
         $ref: '#/definitions/requests.AddressData'
       date_of_birth:
+        example: "1980-05-15"
         type: string
       email:
+        example: ramesh.kumar@example.com
         type: string
       first_name:
+        example: Ramesh
         type: string
       gender:
+        example: male
         type: string
       last_name:
+        example: Kumar
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: field_survey
+          verified: "true"
         type: object
       phone_number:
+        example: +91-9876543210
         type: string
       preferences:
         additionalProperties:
           type: string
+        example:
+          language: hindi
+          notification: sms
         type: object
     type: object
   requests.GeometryData:
@@ -662,18 +885,24 @@ definitions:
         type: array
       wkt:
         description: Well-Known Text format
+        example: POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85
+          22.71))
         type: string
     type: object
   requests.IrrigationSourceRequest:
     properties:
       count:
+        example: 2
         minimum: 0
         type: integer
       details:
+        example: Bore well depth 150ft
         type: string
       irrigation_source_id:
+        example: irr_123e4567-e89b-12d3-a456-426614174000
         type: string
       is_primary:
+        example: true
         type: boolean
     required:
     - irrigation_source_id
@@ -681,22 +910,32 @@ definitions:
   requests.LinkFarmerRequest:
     properties:
       aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       aaa_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - aaa_org_id
@@ -705,52 +944,74 @@ definitions:
   requests.OrgDashboardCountersRequest:
     properties:
       end_date:
+        example: "2024-12-31T23:59:59Z"
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       season:
         enum:
         - RABI
         - KHARIF
         - ZAID
+        example: RABI
         type: string
       start_date:
+        example: "2024-01-01T00:00:00Z"
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     type: object
   requests.ReassignKisanSathiRequest:
     properties:
       aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       aaa_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       new_kisan_sathi_user_id:
         description: nil means remove
+        example: ks_123e4567-e89b-12d3-a456-426614174002
         type: string
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - aaa_org_id
@@ -761,63 +1022,94 @@ definitions:
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     type: object
   requests.ReconcileAAALinksRequest:
     properties:
       dry_run:
         description: If true, only report what would be fixed without making changes
+        example: false
         type: boolean
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     type: object
   requests.RegisterFPORefRequest:
     properties:
       aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       business_config:
         additionalProperties:
           type: string
+        example:
+          credit_limit: "500000"
+          payment_terms: net30
         type: object
       metadata:
         additionalProperties:
           type: string
+        example:
+          crop_focus: wheat_soybean
+          region: central_india
         type: object
       name:
+        example: Rampur Farmers Producer Company
         type: string
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       registration_no:
+        example: FPO/MP/2024/001234
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - aaa_org_id
@@ -828,26 +1120,41 @@ definitions:
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       operation_id:
+        example: op_123e4567-e89b-12d3-a456-426614174000
         type: string
       options:
         $ref: '#/definitions/requests.BulkProcessingOptions'
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       record_indices:
+        example:
+        - 5
+        - 12
+        - 25
+        - 48
         items:
           type: integer
         type: array
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       retry_all:
+        example: false
         type: boolean
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - operation_id
@@ -857,54 +1164,77 @@ definitions:
       dry_run:
         description: DryRun indicates whether to perform a dry run without making
           changes
+        example: false
         type: boolean
       force:
         description: Force indicates whether to force re-seeding even if already seeded
+        example: false
         type: boolean
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     type: object
   requests.StartCycleRequest:
     properties:
       crop_id:
+        example: crop_123e4567-e89b-12d3-a456-426614174000
         type: string
       farm_id:
+        example: farm_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       season:
         enum:
         - RABI
         - KHARIF
         - ZAID
+        example: RABI
         type: string
       start_date:
+        example: "2024-11-01T00:00:00Z"
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       variety_id:
+        example: variety_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - crop_id
@@ -915,22 +1245,32 @@ definitions:
   requests.UnlinkFarmerRequest:
     properties:
       aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       aaa_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - aaa_org_id
@@ -939,24 +1279,35 @@ definitions:
   requests.UpdateActivityRequest:
     properties:
       activity_type:
+        example: IRRIGATION
         type: string
       id:
+        example: activity_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          duration: 2hours
+          water_source: borewell
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       planned_at:
+        example: "2024-12-01T08:00:00Z"
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - id
@@ -975,48 +1326,68 @@ definitions:
         - FODDER
         - MEDICINAL
         - OTHER
+        example: CEREALS
         type: string
       duration_days:
+        example: 125
         maximum: 365
         minimum: 1
         type: integer
       id:
+        example: crop_123e4567-e89b-12d3-a456-426614174000
         type: string
       is_active:
+        example: true
         type: boolean
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       name:
+        example: Wheat - HD2967
         maxLength: 255
         minLength: 2
         type: string
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       properties:
         additionalProperties:
           type: string
+        example:
+          fertilizer: high
+          irrigation: required
         type: object
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       scientific_name:
+        example: Triticum aestivum L.
         maxLength: 255
         type: string
       seasons:
+        example:
+        - RABI
         items:
           type: string
         minItems: 1
         type: array
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       unit:
+        example: quintal
         maxLength: 50
         minLength: 1
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - id
@@ -1024,41 +1395,63 @@ definitions:
   requests.UpdateCropVarietyRequest:
     properties:
       description:
+        example: Updated description with latest cultivation practices
         type: string
       duration_days:
+        example: 118
         maximum: 365
         minimum: 1
         type: integer
       id:
+        example: variety_123e4567-e89b-12d3-a456-426614174000
         type: string
       is_active:
+        example: true
         type: boolean
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       name:
+        example: HD-2967 (Improved)
         maxLength: 255
         minLength: 2
         type: string
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       properties:
         additionalProperties:
           type: string
+        example:
+          drought_tolerance: medium
+          market_demand: high
         type: object
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
+      yield_by_age:
+        items:
+          $ref: '#/definitions/requests.YieldByAgeRequest'
+        type: array
       yield_per_acre:
+        example: 27
         minimum: 0
         type: number
       yield_per_tree:
+        example: 0
         minimum: 0
         type: number
     required:
@@ -1067,32 +1460,45 @@ definitions:
   requests.UpdateCycleRequest:
     properties:
       crop_id:
+        example: crop_123e4567-e89b-12d3-a456-426614174000
         type: string
       id:
+        example: cycle_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       season:
         enum:
         - RABI
         - KHARIF
         - ZAID
+        example: RABI
         type: string
       start_date:
+        example: "2024-11-05T00:00:00Z"
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       variety_id:
+        example: variety_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - id
@@ -1100,17 +1506,22 @@ definitions:
   requests.UpdateFarmRequest:
     properties:
       aaa_farmer_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       area_ha:
+        example: 3
         type: number
       bore_well_count:
+        example: 3
         minimum: 0
         type: integer
       geometry:
         $ref: '#/definitions/requests.GeometryData'
       id:
+        example: farm_123e4567-e89b-12d3-a456-426614174000
         type: string
       irrigation_sources:
         items:
@@ -1119,30 +1530,43 @@ definitions:
       metadata:
         additionalProperties:
           type: string
+        example:
+          certification: organic
+          last_survey: "2024-02-15"
         type: object
       name:
+        example: North Field Farm - Updated
         type: string
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       other_irrigation_details:
+        example: Drip irrigation installed
         type: string
       ownership_type:
         enum:
         - OWN
         - LEASE
         - SHARED
+        example: LEASE
         type: string
       primary_irrigation_source_id:
+        example: irr_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       soil_type_id:
+        example: soil_123e4567-e89b-12d3-a456-426614174000
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - id
@@ -1151,30 +1575,42 @@ definitions:
     properties:
       aaa_org_id:
         description: Optional org filter
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       aaa_user_id:
         description: User ID lookup (no org required)
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       farmer_id:
         description: Primary key lookup
+        example: farmer_123e4567-e89b-12d3-a456-426614174000
         type: string
       kisan_sathi_user_id:
+        example: ks_123e4567-e89b-12d3-a456-426614174001
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       profile:
         $ref: '#/definitions/requests.FarmerProfileData'
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     type: object
   requests.ValidateBulkDataRequest:
@@ -1188,26 +1624,36 @@ definitions:
           $ref: '#/definitions/requests.FarmerBulkData'
         type: array
       fpo_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       input_format:
         enum:
         - csv
         - excel
         - json
+        example: json
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
     - fpo_org_id
@@ -1217,54 +1663,91 @@ definitions:
     properties:
       check_bounds:
         description: Whether to check if geometry is within India bounds
+        example: true
         type: boolean
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
         type: object
       org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       request_type:
+        example: create_farmer
         type: string
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
       user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       wkt:
+        example: POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85
+          22.71))
         type: string
     required:
     - wkt
     type: object
+  requests.YieldByAgeRequest:
+    properties:
+      age_from:
+        example: 5
+        minimum: 0
+        type: integer
+      age_to:
+        example: 10
+        type: integer
+      yield_per_tree:
+        example: 50.5
+        minimum: 0
+        type: number
+    type: object
   responses.AddressData:
     properties:
       city:
+        example: Indore
         type: string
       coordinates:
+        example: POINT(75.8577 22.7196)
         type: string
       country:
+        example: India
         type: string
       postal_code:
+        example: "452001"
         type: string
       state:
+        example: Madhya Pradesh
         type: string
       street_address:
+        example: Village Rampur, Post Khandwa
         type: string
     type: object
   responses.BulkOperationData:
     properties:
       estimated_completion:
+        example: "2024-01-15T11:00:00Z"
         type: string
       message:
+        example: Processing 150 records
         type: string
       operation_id:
+        example: op_123e4567-e89b-12d3-a456-426614174000
         type: string
       result_url:
+        example: /api/v1/bulk-operations/op_123e4567-e89b-12d3-a456-426614174000/results
         type: string
       status:
+        example: PROCESSING
         type: string
       status_url:
+        example: /api/v1/bulk-operations/op_123e4567-e89b-12d3-a456-426614174000/status
         type: string
     type: object
   responses.BulkOperationResponse:
@@ -1272,12 +1755,16 @@ definitions:
       data:
         $ref: '#/definitions/responses.BulkOperationData'
       message:
+        example: Bulk operation initiated successfully
         type: string
       request_id:
+        example: req_123e4567e89b12d3
         type: string
       success:
+        example: true
         type: boolean
       timestamp:
+        example: "2024-01-15T10:30:00Z"
         type: string
     type: object
   responses.BulkOperationStatusData:
@@ -1525,6 +2012,10 @@ definitions:
         type: object
       updated_at:
         type: string
+      yield_by_age:
+        items:
+          $ref: '#/definitions/responses.YieldByAgeData'
+        type: array
       yield_per_acre:
         type: number
       yield_per_tree:
@@ -1647,24 +2138,36 @@ definitions:
   responses.FarmData:
     properties:
       aaa_farmer_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       area_ha:
+        example: 2.5
         type: number
       created_at:
+        example: "2024-01-15T10:30:00Z"
         type: string
       geometry:
+        example: POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85
+          22.71))
         type: string
       id:
+        example: farm_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          irrigation: drip
+          soil_type: loamy
         type: object
       name:
+        example: North Field Farm
         type: string
       updated_at:
+        example: "2024-01-20T15:45:00Z"
         type: string
     type: object
   responses.FarmerLinkageData:
@@ -1691,43 +2194,61 @@ definitions:
   responses.FarmerProfileData:
     properties:
       aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       aaa_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       address:
         $ref: '#/definitions/responses.AddressData'
       created_at:
+        example: "2024-01-15T10:30:00Z"
         type: string
       date_of_birth:
+        example: "1980-05-15"
         type: string
       email:
+        example: ramesh.kumar@example.com
         type: string
       farms:
         items:
           $ref: '#/definitions/responses.FarmData'
         type: array
       first_name:
+        example: Ramesh
         type: string
       gender:
+        example: male
         type: string
       id:
         description: Farmer ID (primary key)
+        example: farmer_123e4567-e89b-12d3-a456-426614174000
         type: string
       kisan_sathi_user_id:
+        example: ks_123e4567-e89b-12d3-a456-426614174001
         type: string
       last_name:
+        example: Kumar
         type: string
       metadata:
         additionalProperties:
           type: string
+        example:
+          source: field_survey
+          verified: "true"
         type: object
       phone_number:
+        example: +91-9876543210
         type: string
       preferences:
         additionalProperties:
           type: string
+        example:
+          language: hindi
+          notification: sms
         type: object
       updated_at:
+        example: "2024-01-20T15:45:00Z"
         type: string
     type: object
   responses.KisanSathiAssignmentData:
@@ -1777,16 +2298,22 @@ definitions:
   responses.ProgressInfo:
     properties:
       failed:
+        example: 3
         type: integer
       percentage:
+        example: 50
         type: number
       processed:
+        example: 75
         type: integer
       skipped:
+        example: 2
         type: integer
       successful:
+        example: 70
         type: integer
       total:
+        example: 150
         type: integer
     type: object
   responses.SwaggerAdminHealthResponse:
@@ -2178,6 +2705,15 @@ definitions:
         type: string
       record_index:
         type: integer
+    type: object
+  responses.YieldByAgeData:
+    properties:
+      age_from:
+        type: integer
+      age_to:
+        type: integer
+      yield_per_tree:
+        type: number
     type: object
 host: localhost:8000
 info:
@@ -2962,6 +3498,10 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: For synchronous operations
+          schema:
+            $ref: '#/definitions/responses.BulkOperationResponse'
         "202":
           description: Accepted
           schema:
@@ -2978,10 +3518,20 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "413":
+          description: File too large
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "415":
+          description: Unsupported media type
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Bulk add farmers to FPO
       tags:
       - Bulk Operations
@@ -3075,14 +3625,28 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/responses.BulkOperationStatusResponse'
+        "400":
+          description: Invalid operation ID
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Access denied to this operation
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "404":
-          description: Not Found
+          description: Operation not found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get bulk operation status
       tags:
       - Bulk Operations
@@ -3915,6 +4479,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "409":
           description: Conflict
           schema:
@@ -3923,6 +4495,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Create a new farmer
       tags:
       - identity
@@ -3990,6 +4564,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -3998,6 +4580,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get farmer by user ID and org ID
       tags:
       - identity
@@ -4250,6 +4834,93 @@ paths:
       summary: Update farmer by user ID only
       tags:
       - identity
+  /identity/fpo:
+    post:
+      consumes:
+      - application/json
+      description: Register a new FPO reference with business configuration
+      parameters:
+      - description: FPO reference data
+        in: body
+        name: fpo
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RegisterFPORefRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFPORefResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Register FPO reference
+      tags:
+      - identity
+  /identity/fpo/{org_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve FPO reference configuration by organization ID
+      parameters:
+      - description: Organization ID
+        in: path
+        name: org_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFPORefResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get FPO reference
+      tags:
+      - identity
   /identity/link-farmer:
     post:
       consumes:
@@ -4273,6 +4944,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "403":
           description: Forbidden
           schema:
@@ -4281,6 +4956,12 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Link farmer to FPO
       tags:
       - identity
@@ -4306,23 +4987,29 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerFarmerLinkageResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "403":
           description: Forbidden
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get farmer linkage status
       tags:
       - identity
@@ -4349,6 +5036,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
         "403":
           description: Forbidden
           schema:
@@ -4357,6 +5048,12 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Unlink farmer from FPO
       tags:
       - identity

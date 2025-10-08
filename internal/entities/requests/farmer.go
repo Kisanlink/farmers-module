@@ -3,68 +3,68 @@ package requests
 // CreateFarmerRequest represents a request to create a new farmer
 type CreateFarmerRequest struct {
 	BaseRequest
-	AAAUserID        string            `json:"aaa_user_id" validate:"required"`
-	AAAOrgID         string            `json:"aaa_org_id" validate:"required"`
-	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty"`
+	AAAUserID        string            `json:"aaa_user_id" validate:"required" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	AAAOrgID         string            `json:"aaa_org_id" validate:"required" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"ks_123e4567-e89b-12d3-a456-426614174001"`
 	Profile          FarmerProfileData `json:"profile,omitempty"`
 }
 
 // UpdateFarmerRequest represents a request to update an existing farmer
 type UpdateFarmerRequest struct {
 	BaseRequest
-	FarmerID         string            `json:"farmer_id,omitempty"`   // Primary key lookup
-	AAAUserID        string            `json:"aaa_user_id,omitempty"` // User ID lookup (no org required)
-	AAAOrgID         string            `json:"aaa_org_id,omitempty"`  // Optional org filter
-	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty"`
+	FarmerID         string            `json:"farmer_id,omitempty" example:"farmer_123e4567-e89b-12d3-a456-426614174000"` // Primary key lookup
+	AAAUserID        string            `json:"aaa_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`  // User ID lookup (no org required)
+	AAAOrgID         string            `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`   // Optional org filter
+	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"ks_123e4567-e89b-12d3-a456-426614174001"`
 	Profile          FarmerProfileData `json:"profile,omitempty"`
 }
 
 // DeleteFarmerRequest represents a request to delete a farmer
 type DeleteFarmerRequest struct {
 	BaseRequest
-	FarmerID  string `json:"farmer_id,omitempty"`   // Primary key lookup
-	AAAUserID string `json:"aaa_user_id,omitempty"` // User ID lookup (no org required)
-	AAAOrgID  string `json:"aaa_org_id,omitempty"`  // Optional org filter
+	FarmerID  string `json:"farmer_id,omitempty" example:"farmer_123e4567-e89b-12d3-a456-426614174000"` // Primary key lookup
+	AAAUserID string `json:"aaa_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`  // User ID lookup (no org required)
+	AAAOrgID  string `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`   // Optional org filter
 }
 
 // GetFarmerRequest represents a request to retrieve a farmer
 type GetFarmerRequest struct {
 	BaseRequest
-	FarmerID  string `json:"farmer_id,omitempty"`   // Primary key lookup
-	AAAUserID string `json:"aaa_user_id,omitempty"` // User ID lookup (no org required)
-	AAAOrgID  string `json:"aaa_org_id,omitempty"`  // Optional org filter
+	FarmerID  string `json:"farmer_id,omitempty" example:"farmer_123e4567-e89b-12d3-a456-426614174000"` // Primary key lookup
+	AAAUserID string `json:"aaa_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`  // User ID lookup (no org required)
+	AAAOrgID  string `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`   // Optional org filter
 }
 
 // ListFarmersRequest represents a request to list farmers with filtering
 type ListFarmersRequest struct {
 	FilterRequest
-	AAAOrgID         string `json:"aaa_org_id,omitempty"`
-	KisanSathiUserID string `json:"kisan_sathi_user_id,omitempty"`
-	Page             int    `json:"page,omitempty"`
-	PageSize         int    `json:"page_size,omitempty"`
+	AAAOrgID         string `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+	KisanSathiUserID string `json:"kisan_sathi_user_id,omitempty" example:"ks_123e4567-e89b-12d3-a456-426614174001"`
+	Page             int    `json:"page,omitempty" example:"1"`
+	PageSize         int    `json:"page_size,omitempty" example:"20"`
 }
 
 // FarmerProfileData represents the profile data for a farmer
 type FarmerProfileData struct {
-	FirstName   string            `json:"first_name,omitempty"`
-	LastName    string            `json:"last_name,omitempty"`
-	PhoneNumber string            `json:"phone_number,omitempty"`
-	Email       string            `json:"email,omitempty"`
-	DateOfBirth string            `json:"date_of_birth,omitempty"`
-	Gender      string            `json:"gender,omitempty"`
+	FirstName   string            `json:"first_name,omitempty" example:"Ramesh"`
+	LastName    string            `json:"last_name,omitempty" example:"Kumar"`
+	PhoneNumber string            `json:"phone_number,omitempty" example:"+91-9876543210"`
+	Email       string            `json:"email,omitempty" example:"ramesh.kumar@example.com"`
+	DateOfBirth string            `json:"date_of_birth,omitempty" example:"1980-05-15"`
+	Gender      string            `json:"gender,omitempty" example:"male"`
 	Address     AddressData       `json:"address,omitempty"`
-	Preferences map[string]string `json:"preferences,omitempty"`
-	Metadata    map[string]string `json:"metadata,omitempty"`
+	Preferences map[string]string `json:"preferences,omitempty" example:"language:hindi,notification:sms"`
+	Metadata    map[string]string `json:"metadata,omitempty" example:"source:field_survey,verified:true"`
 }
 
 // AddressData represents address information
 type AddressData struct {
-	StreetAddress string `json:"street_address,omitempty"`
-	City          string `json:"city,omitempty"`
-	State         string `json:"state,omitempty"`
-	PostalCode    string `json:"postal_code,omitempty"`
-	Country       string `json:"country,omitempty"`
-	Coordinates   string `json:"coordinates,omitempty"` // WKT format for PostGIS
+	StreetAddress string `json:"street_address,omitempty" example:"Village Rampur, Post Khandwa"`
+	City          string `json:"city,omitempty" example:"Indore"`
+	State         string `json:"state,omitempty" example:"Madhya Pradesh"`
+	PostalCode    string `json:"postal_code,omitempty" example:"452001"`
+	Country       string `json:"country,omitempty" example:"India"`
+	Coordinates   string `json:"coordinates,omitempty" example:"POINT(75.8577 22.7196)"` // WKT format for PostGIS
 }
 
 // NewCreateFarmerRequest creates a new create farmer request

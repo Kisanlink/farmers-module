@@ -1131,6 +1131,11 @@ const docTemplate = `{
         },
         "/bulk/farmers/add": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Add multiple farmers to an FPO in a single operation",
                 "consumes": [
                     "multipart/form-data"
@@ -1179,6 +1184,12 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "For synchronous operations",
+                        "schema": {
+                            "$ref": "#/definitions/responses.BulkOperationResponse"
+                        }
+                    },
                     "202": {
                         "description": "Accepted",
                         "schema": {
@@ -1199,6 +1210,18 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "413": {
+                        "description": "File too large",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported media type",
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
@@ -1326,6 +1349,11 @@ const docTemplate = `{
         },
         "/bulk/status/{operation_id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get the current status and progress of a bulk operation",
                 "produces": [
                     "application/json"
@@ -1350,8 +1378,26 @@ const docTemplate = `{
                             "$ref": "#/definitions/responses.BulkOperationStatusResponse"
                         }
                     },
+                    "400": {
+                        "description": "Invalid operation ID",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied to this operation",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Operation not found",
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
@@ -2583,6 +2629,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new farmer profile",
                 "consumes": [
                     "application/json"
@@ -2614,6 +2665,18 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
@@ -2945,6 +3008,11 @@ const docTemplate = `{
         },
         "/identity/farmers/{aaa_user_id}/{aaa_org_id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a farmer profile by AAA user ID and org ID",
                 "consumes": [
                     "application/json"
@@ -2981,6 +3049,18 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
@@ -3119,8 +3199,149 @@ const docTemplate = `{
                 }
             }
         },
+        "/identity/fpo": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Register a new FPO reference with business configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "summary": "Register FPO reference",
+                "parameters": [
+                    {
+                        "description": "FPO reference data",
+                        "name": "fpo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.RegisterFPORefRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerFPORefResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/identity/fpo/{org_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve FPO reference configuration by organization ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "summary": "Get FPO reference",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "org_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerFPORefResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/identity/link-farmer": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Link a farmer to a Farmer Producer Organization with AAA validation",
                 "consumes": [
                     "application/json"
@@ -3156,6 +3377,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
@@ -3167,12 +3394,23 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
                     }
                 }
             }
         },
         "/identity/linkage/{farmer_id}/{org_id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve the linkage status between a farmer and FPO",
                 "consumes": [
                     "application/json"
@@ -3204,29 +3442,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/responses.SwaggerFarmerLinkageResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3234,6 +3480,11 @@ const docTemplate = `{
         },
         "/identity/unlink-farmer": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Unlink a farmer from a Farmer Producer Organization with soft delete",
                 "consumes": [
                     "application/json"
@@ -3269,6 +3520,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
@@ -3277,6 +3534,12 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
                         }
@@ -4022,23 +4285,29 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "city": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Indore"
                 },
                 "coordinates": {
                     "description": "WKT format for PostGIS",
-                    "type": "string"
+                    "type": "string",
+                    "example": "POINT(75.8577 22.7196)"
                 },
                 "country": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "India"
                 },
                 "postal_code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "452001"
                 },
                 "state": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Madhya Pradesh"
                 },
                 "street_address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Village Rampur, Post Khandwa"
                 }
             }
         },
@@ -4051,34 +4320,46 @@ const docTemplate = `{
             ],
             "properties": {
                 "aaa_org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "aaa_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "kisan_sathi_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "ks_123e4567-e89b-12d3-a456-426614174001"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -4087,50 +4368,64 @@ const docTemplate = `{
             "properties": {
                 "assign_kisan_sathi": {
                     "description": "Auto-assign KisanSathi if available",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "chunk_size": {
                     "description": "Size of processing chunks (default: 100)",
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 100
                 },
                 "continue_on_error": {
                     "description": "Continue processing on individual failures",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "credential_method": {
                     "description": "sms, email, both",
-                    "type": "string"
+                    "type": "string",
+                    "example": "sms"
                 },
                 "deduplication_mode": {
                     "description": "How to handle duplicates: skip, update, error",
-                    "type": "string"
+                    "type": "string",
+                    "example": "skip"
                 },
                 "kisan_sathi_user_id": {
                     "description": "Specific KisanSathi to assign",
-                    "type": "string"
+                    "type": "string",
+                    "example": "ks_123e4567-e89b-12d3-a456-426614174001"
                 },
                 "max_concurrency": {
                     "description": "Max parallel workers (default: 10)",
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 10
                 },
                 "metadata": {
                     "description": "Additional metadata",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "batch_name": "january_2024",
+                        "region": "central"
                     }
                 },
                 "notification_webhook": {
                     "description": "Webhook for completion notification",
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://webhook.example.com/bulk-completion"
                 },
                 "send_credentials": {
                     "description": "Send login credentials to farmers",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "validate_only": {
                     "description": "Dry run mode",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 }
             }
         },
@@ -4144,20 +4439,25 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "rajesh.sharma@fpo.com"
                 },
                 "first_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Rajesh"
                 },
                 "last_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Sharma"
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "example": "SecurePass@123"
                 },
                 "phone_number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+91-9876543210"
                 }
             }
         },
@@ -4169,37 +4469,53 @@ const docTemplate = `{
             ],
             "properties": {
                 "completed_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-11-11T16:30:00Z"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "activity_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "output": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "area_covered": "2.5ha",
+                        "notes": "completed_successfully",
+                        "workers": "4"
                     }
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -4211,34 +4527,46 @@ const docTemplate = `{
             ],
             "properties": {
                 "activity_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "SOWING"
                 },
                 "crop_cycle_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "cycle_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "seed_rate": "100kg_per_acre",
+                        "seed_type": "HD2967"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "planned_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-11-10T09:00:00Z"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -4264,60 +4592,81 @@ const docTemplate = `{
                         "FODDER",
                         "MEDICINAL",
                         "OTHER"
-                    ]
+                    ],
+                    "example": "CEREALS"
                 },
                 "duration_days": {
                     "type": "integer",
                     "maximum": 365,
-                    "minimum": 1
+                    "minimum": 1,
+                    "example": 120
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "name": {
                     "type": "string",
                     "maxLength": 255,
-                    "minLength": 2
+                    "minLength": 2,
+                    "example": "Wheat"
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "properties": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "climate": "temperate",
+                        "water_requirement": "medium"
                     }
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "scientific_name": {
                     "type": "string",
-                    "maxLength": 255
+                    "maxLength": 255,
+                    "example": "Triticum aestivum"
                 },
                 "seasons": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "example": [
+                        "RABI"
+                    ]
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "unit": {
                     "type": "string",
                     "maxLength": 50,
-                    "minLength": 1
+                    "minLength": 1,
+                    "example": "kg"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -4329,55 +4678,80 @@ const docTemplate = `{
             ],
             "properties": {
                 "crop_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "crop_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "High yielding wheat variety suitable for irrigated conditions"
                 },
                 "duration_days": {
                     "type": "integer",
                     "maximum": 365,
-                    "minimum": 1
+                    "minimum": 1,
+                    "example": 120
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "name": {
                     "type": "string",
                     "maxLength": 255,
-                    "minLength": 2
+                    "minLength": 2,
+                    "example": "HD-2967"
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "properties": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "disease_resistance": "high",
+                        "recommended_for": "punjab_haryana"
                     }
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "yield_by_age": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/requests.YieldByAgeRequest"
+                    }
                 },
                 "yield_per_acre": {
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 25.5
                 },
                 "yield_per_tree": {
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 0
                 }
             }
         },
@@ -4393,40 +4767,57 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "max_farmers": "1000",
+                        "procurement_enabled": "true"
                     }
                 },
                 "ceo_user": {
                     "$ref": "#/definitions/requests.CEOUserData"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "A farmer producer organization serving 500+ farmers in Rampur region"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "district": "Indore",
+                        "established": "2024",
+                        "state": "MP"
                     }
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Rampur Farmers Producer Company"
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "registration_no": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "FPO/MP/2024/001234"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -4439,18 +4830,22 @@ const docTemplate = `{
             ],
             "properties": {
                 "aaa_farmer_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "aaa_org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "area_ha": {
                     "type": "number",
-                    "minimum": 0.01
+                    "minimum": 0.01,
+                    "example": 2.5
                 },
                 "bore_well_count": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 2
                 },
                 "geometry": {
                     "$ref": "#/definitions/requests.GeometryData"
@@ -4465,16 +4860,23 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "elevation": "450m",
+                        "soil_test_date": "2024-01-10"
                     }
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "North Field Farm"
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "other_irrigation_details": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Canal irrigation available during monsoon"
                 },
                 "ownership_type": {
                     "type": "string",
@@ -4482,25 +4884,32 @@ const docTemplate = `{
                         "OWN",
                         "LEASE",
                         "SHARED"
-                    ]
+                    ],
+                    "example": "OWN"
                 },
                 "primary_irrigation_source_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "irr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "soil_type_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "soil_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -4512,37 +4921,49 @@ const docTemplate = `{
             ],
             "properties": {
                 "aaa_org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "aaa_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "kisan_sathi_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "ks_123e4567-e89b-12d3-a456-426614174001"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "profile": {
                     "$ref": "#/definitions/requests.FarmerProfileData"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -4556,44 +4977,59 @@ const docTemplate = `{
             ],
             "properties": {
                 "country_code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+91"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "pradeep.ks@fpo.com"
                 },
                 "full_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Pradeep Kumar"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "experience_years": "5",
+                        "villages_covered": "10"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "example": "SecureKS@123"
                 },
                 "phone_number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+91-9876543211"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "username": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "pradeep.ks"
                 }
             }
         },
@@ -4602,32 +5038,43 @@ const docTemplate = `{
             "properties": {
                 "limit": {
                     "description": "Maximum number of overlaps to return",
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 100
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "min_overlap_area_ha": {
                     "description": "Minimum overlap area in hectares to report",
-                    "type": "number"
+                    "type": "number",
+                    "example": 0.1
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -4640,44 +5087,61 @@ const docTemplate = `{
             ],
             "properties": {
                 "end_date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-03-15T00:00:00Z"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "cycle_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "outcome": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "notes": "good_harvest",
+                        "quality": "good",
+                        "yield_kg": "2500"
                     }
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "status": {
                     "type": "string",
                     "enum": [
                         "COMPLETED",
                         "CANCELLED"
-                    ]
+                    ],
+                    "example": "COMPLETED"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -4688,32 +5152,42 @@ const docTemplate = `{
             ],
             "properties": {
                 "end_date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-12-31T23:59:59Z"
                 },
                 "farmer_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "farmer_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "format": {
                     "type": "string",
                     "enum": [
                         "json",
                         "csv"
-                    ]
+                    ],
+                    "example": "json"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "season": {
                     "type": "string",
@@ -4721,16 +5195,20 @@ const docTemplate = `{
                         "RABI",
                         "KHARIF",
                         "ZAID"
-                    ]
+                    ],
+                    "example": "RABI"
                 },
                 "start_date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -4743,31 +5221,41 @@ const docTemplate = `{
             ],
             "properties": {
                 "city": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Ratlam"
                 },
                 "country": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "India"
                 },
                 "custom_fields": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "education": "high_school",
+                        "family_size": "5"
                     }
                 },
                 "date_of_birth": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1975-08-20"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "suresh.patel@example.com"
                 },
                 "external_id": {
                     "description": "For tracking and idempotency",
-                    "type": "string"
+                    "type": "string",
+                    "example": "EXT_FARMER_001"
                 },
                 "first_name": {
                     "type": "string",
                     "maxLength": 50,
-                    "minLength": 2
+                    "minLength": 2,
+                    "example": "Suresh"
                 },
                 "gender": {
                     "type": "string",
@@ -4775,31 +5263,39 @@ const docTemplate = `{
                         "male",
                         "female",
                         "other"
-                    ]
+                    ],
+                    "example": "male"
                 },
                 "land_ownership_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "OWN"
                 },
                 "last_name": {
                     "type": "string",
                     "maxLength": 50,
-                    "minLength": 2
+                    "minLength": 2,
+                    "example": "Patel"
                 },
                 "password": {
                     "description": "Optional password, will be generated if not provided",
-                    "type": "string"
+                    "type": "string",
+                    "example": "Farmer@123"
                 },
                 "phone_number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+91-9876543220"
                 },
                 "postal_code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "457001"
                 },
                 "state": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Madhya Pradesh"
                 },
                 "street_address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Village Khandwa, Post Ratlam"
                 }
             }
         },
@@ -4810,33 +5306,47 @@ const docTemplate = `{
                     "$ref": "#/definitions/requests.AddressData"
                 },
                 "date_of_birth": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1980-05-15"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "ramesh.kumar@example.com"
                 },
                 "first_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Ramesh"
                 },
                 "gender": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "male"
                 },
                 "last_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Kumar"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "field_survey",
+                        "verified": "true"
                     }
                 },
                 "phone_number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+91-9876543210"
                 },
                 "preferences": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "language": "hindi",
+                        "notification": "sms"
                     }
                 }
             }
@@ -4853,7 +5363,8 @@ const docTemplate = `{
                 },
                 "wkt": {
                     "description": "Well-Known Text format",
-                    "type": "string"
+                    "type": "string",
+                    "example": "POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85 22.71))"
                 }
             }
         },
@@ -4865,16 +5376,20 @@ const docTemplate = `{
             "properties": {
                 "count": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 2
                 },
                 "details": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Bore well depth 150ft"
                 },
                 "irrigation_source_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "irr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "is_primary": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -4886,31 +5401,42 @@ const docTemplate = `{
             ],
             "properties": {
                 "aaa_org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "aaa_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -4918,22 +5444,30 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "end_date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-12-31T23:59:59Z"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "season": {
                     "type": "string",
@@ -4941,16 +5475,20 @@ const docTemplate = `{
                         "RABI",
                         "KHARIF",
                         "ZAID"
-                    ]
+                    ],
+                    "example": "RABI"
                 },
                 "start_date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -4962,35 +5500,47 @@ const docTemplate = `{
             ],
             "properties": {
                 "aaa_org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "aaa_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "new_kisan_sathi_user_id": {
                     "description": "nil means remove",
-                    "type": "string"
+                    "type": "string",
+                    "example": "ks_123e4567-e89b-12d3-a456-426614174002"
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5001,22 +5551,31 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5025,28 +5584,38 @@ const docTemplate = `{
             "properties": {
                 "dry_run": {
                     "description": "If true, only report what would be fixed without making changes",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5058,40 +5627,56 @@ const docTemplate = `{
             ],
             "properties": {
                 "aaa_org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "business_config": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "credit_limit": "500000",
+                        "payment_terms": "net30"
                     }
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "crop_focus": "wheat_soybean",
+                        "region": "central_india"
                     }
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Rampur Farmers Producer Company"
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "registration_no": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "FPO/MP/2024/001234"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5105,37 +5690,54 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "operation_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "op_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "options": {
                     "$ref": "#/definitions/requests.BulkProcessingOptions"
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "record_indices": {
                     "type": "array",
                     "items": {
                         "type": "integer"
-                    }
+                    },
+                    "example": [
+                        5,
+                        12,
+                        25,
+                        48
+                    ]
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "retry_all": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5144,32 +5746,43 @@ const docTemplate = `{
             "properties": {
                 "dry_run": {
                     "description": "DryRun indicates whether to perform a dry run without making changes",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "force": {
                     "description": "Force indicates whether to force re-seeding even if already seeded",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5183,25 +5796,34 @@ const docTemplate = `{
             ],
             "properties": {
                 "crop_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "crop_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "farm_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "farm_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "season": {
                     "type": "string",
@@ -5209,19 +5831,24 @@ const docTemplate = `{
                         "RABI",
                         "KHARIF",
                         "ZAID"
-                    ]
+                    ],
+                    "example": "RABI"
                 },
                 "start_date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-11-01T00:00:00Z"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "variety_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "variety_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5233,31 +5860,42 @@ const docTemplate = `{
             ],
             "properties": {
                 "aaa_org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "aaa_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5268,34 +5906,46 @@ const docTemplate = `{
             ],
             "properties": {
                 "activity_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "IRRIGATION"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "activity_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "duration": "2hours",
+                        "water_source": "borewell"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "planned_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-12-01T08:00:00Z"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5318,66 +5968,89 @@ const docTemplate = `{
                         "FODDER",
                         "MEDICINAL",
                         "OTHER"
-                    ]
+                    ],
+                    "example": "CEREALS"
                 },
                 "duration_days": {
                     "type": "integer",
                     "maximum": 365,
-                    "minimum": 1
+                    "minimum": 1,
+                    "example": 125
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "crop_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "is_active": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "name": {
                     "type": "string",
                     "maxLength": 255,
-                    "minLength": 2
+                    "minLength": 2,
+                    "example": "Wheat - HD2967"
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "properties": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "fertilizer": "high",
+                        "irrigation": "required"
                     }
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "scientific_name": {
                     "type": "string",
-                    "maxLength": 255
+                    "maxLength": 255,
+                    "example": "Triticum aestivum L."
                 },
                 "seasons": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "example": [
+                        "RABI"
+                    ]
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "unit": {
                     "type": "string",
                     "maxLength": 50,
-                    "minLength": 1
+                    "minLength": 1,
+                    "example": "quintal"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5388,58 +6061,84 @@ const docTemplate = `{
             ],
             "properties": {
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Updated description with latest cultivation practices"
                 },
                 "duration_days": {
                     "type": "integer",
                     "maximum": 365,
-                    "minimum": 1
+                    "minimum": 1,
+                    "example": 118
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "variety_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "is_active": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "name": {
                     "type": "string",
                     "maxLength": 255,
-                    "minLength": 2
+                    "minLength": 2,
+                    "example": "HD-2967 (Improved)"
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "properties": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "drought_tolerance": "medium",
+                        "market_demand": "high"
                     }
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "yield_by_age": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/requests.YieldByAgeRequest"
+                    }
                 },
                 "yield_per_acre": {
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 27
                 },
                 "yield_per_tree": {
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 0
                 }
             }
         },
@@ -5450,25 +6149,34 @@ const docTemplate = `{
             ],
             "properties": {
                 "crop_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "crop_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "cycle_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "season": {
                     "type": "string",
@@ -5476,19 +6184,24 @@ const docTemplate = `{
                         "RABI",
                         "KHARIF",
                         "ZAID"
-                    ]
+                    ],
+                    "example": "RABI"
                 },
                 "start_date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-11-05T00:00:00Z"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "variety_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "variety_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5499,23 +6212,28 @@ const docTemplate = `{
             ],
             "properties": {
                 "aaa_farmer_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "aaa_org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "area_ha": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 3
                 },
                 "bore_well_count": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 3
                 },
                 "geometry": {
                     "$ref": "#/definitions/requests.GeometryData"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "farm_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "irrigation_sources": {
                     "type": "array",
@@ -5527,16 +6245,23 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "certification": "organic",
+                        "last_survey": "2024-02-15"
                     }
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "North Field Farm - Updated"
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "other_irrigation_details": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Drip irrigation installed"
                 },
                 "ownership_type": {
                     "type": "string",
@@ -5544,25 +6269,32 @@ const docTemplate = `{
                         "OWN",
                         "LEASE",
                         "SHARED"
-                    ]
+                    ],
+                    "example": "LEASE"
                 },
                 "primary_irrigation_source_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "irr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "soil_type_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "soil_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5571,42 +6303,55 @@ const docTemplate = `{
             "properties": {
                 "aaa_org_id": {
                     "description": "Optional org filter",
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "aaa_user_id": {
                     "description": "User ID lookup (no org required)",
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "farmer_id": {
                     "description": "Primary key lookup",
-                    "type": "string"
+                    "type": "string",
+                    "example": "farmer_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "kisan_sathi_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "ks_123e4567-e89b-12d3-a456-426614174001"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "profile": {
                     "$ref": "#/definitions/requests.FarmerProfileData"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5630,7 +6375,8 @@ const docTemplate = `{
                     }
                 },
                 "fpo_org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "input_format": {
                     "type": "string",
@@ -5638,28 +6384,38 @@ const docTemplate = `{
                         "csv",
                         "excel",
                         "json"
-                    ]
+                    ],
+                    "example": "json"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -5671,31 +6427,61 @@ const docTemplate = `{
             "properties": {
                 "check_bounds": {
                     "description": "Whether to check if geometry is within India bounds",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
                     }
                 },
                 "org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "request_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "wkt": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85 22.71))"
+                }
+            }
+        },
+        "requests.YieldByAgeRequest": {
+            "type": "object",
+            "properties": {
+                "age_from": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 5
+                },
+                "age_to": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "yield_per_tree": {
+                    "type": "number",
+                    "minimum": 0,
+                    "example": 50.5
                 }
             }
         },
@@ -5703,22 +6489,28 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "city": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Indore"
                 },
                 "coordinates": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "POINT(75.8577 22.7196)"
                 },
                 "country": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "India"
                 },
                 "postal_code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "452001"
                 },
                 "state": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Madhya Pradesh"
                 },
                 "street_address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Village Rampur, Post Khandwa"
                 }
             }
         },
@@ -5726,22 +6518,28 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "estimated_completion": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T11:00:00Z"
                 },
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Processing 150 records"
                 },
                 "operation_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "op_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "result_url": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "/api/v1/bulk-operations/op_123e4567-e89b-12d3-a456-426614174000/results"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "PROCESSING"
                 },
                 "status_url": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "/api/v1/bulk-operations/op_123e4567-e89b-12d3-a456-426614174000/status"
                 }
             }
         },
@@ -5752,16 +6550,20 @@ const docTemplate = `{
                     "$ref": "#/definitions/responses.BulkOperationData"
                 },
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Bulk operation initiated successfully"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
                 },
                 "success": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 }
             }
         },
@@ -6136,6 +6938,12 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string"
                 },
+                "yield_by_age": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.YieldByAgeData"
+                    }
+                },
                 "yield_per_acre": {
                     "type": "number"
                 },
@@ -6322,34 +7130,46 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "aaa_farmer_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "aaa_org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "area_ha": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 2.5
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "geometry": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85 22.71))"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "farm_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "irrigation": "drip",
+                        "soil_type": "loamy"
                     }
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "North Field Farm"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-20T15:45:00Z"
                 }
             }
         },
@@ -6389,22 +7209,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "aaa_org_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "aaa_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "address": {
                     "$ref": "#/definitions/responses.AddressData"
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 },
                 "date_of_birth": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1980-05-15"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "ramesh.kumar@example.com"
                 },
                 "farms": {
                     "type": "array",
@@ -6413,38 +7238,53 @@ const docTemplate = `{
                     }
                 },
                 "first_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Ramesh"
                 },
                 "gender": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "male"
                 },
                 "id": {
                     "description": "Farmer ID (primary key)",
-                    "type": "string"
+                    "type": "string",
+                    "example": "farmer_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "kisan_sathi_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "ks_123e4567-e89b-12d3-a456-426614174001"
                 },
                 "last_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Kumar"
                 },
                 "metadata": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "source": "field_survey",
+                        "verified": "true"
                     }
                 },
                 "phone_number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+91-9876543210"
                 },
                 "preferences": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    },
+                    "example": {
+                        "language": "hindi",
+                        "notification": "sms"
                     }
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-01-20T15:45:00Z"
                 }
             }
         },
@@ -6519,22 +7359,28 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "failed": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 3
                 },
                 "percentage": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 50
                 },
                 "processed": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 75
                 },
                 "skipped": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 2
                 },
                 "successful": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 70
                 },
                 "total": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 150
                 }
             }
         },
@@ -7125,6 +7971,20 @@ const docTemplate = `{
                 },
                 "record_index": {
                     "type": "integer"
+                }
+            }
+        },
+        "responses.YieldByAgeData": {
+            "type": "object",
+            "properties": {
+                "age_from": {
+                    "type": "integer"
+                },
+                "age_to": {
+                    "type": "integer"
+                },
+                "yield_per_tree": {
+                    "type": "number"
                 }
             }
         }

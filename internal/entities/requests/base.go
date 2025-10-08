@@ -6,27 +6,27 @@ import (
 
 // BaseRequest provides common fields for all API requests
 type BaseRequest struct {
-	RequestID   string            `json:"request_id,omitempty"`
-	Timestamp   time.Time         `json:"timestamp"`
-	UserID      string            `json:"user_id,omitempty"`
-	OrgID       string            `json:"org_id,omitempty"`
-	Metadata    map[string]string `json:"metadata,omitempty"`
-	RequestType string            `json:"request_type,omitempty"`
+	RequestID   string            `json:"request_id,omitempty" example:"req_123e4567e89b12d3"`
+	Timestamp   time.Time         `json:"timestamp" example:"2024-01-15T10:30:00Z"`
+	UserID      string            `json:"user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	OrgID       string            `json:"org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+	Metadata    map[string]string `json:"metadata,omitempty" example:"source:mobile_app,version:1.0.0"`
+	RequestType string            `json:"request_type,omitempty" example:"create_farmer"`
 }
 
 // PaginationRequest provides pagination parameters for list requests
 type PaginationRequest struct {
 	BaseRequest
-	Page     int `json:"page" validate:"min=1"`
-	PageSize int `json:"page_size" validate:"min=1,max=100"`
+	Page     int `json:"page" validate:"min=1" example:"1"`
+	PageSize int `json:"page_size" validate:"min=1,max=100" example:"20"`
 }
 
 // FilterRequest provides filtering parameters for search requests
 type FilterRequest struct {
 	PaginationRequest
-	Filters map[string]interface{} `json:"filters,omitempty"`
-	SortBy  string                 `json:"sort_by,omitempty"`
-	SortDir string                 `json:"sort_dir,omitempty" validate:"oneof=asc desc"`
+	Filters map[string]interface{} `json:"filters,omitempty" example:"status:active,category:CEREALS"`
+	SortBy  string                 `json:"sort_by,omitempty" example:"created_at"`
+	SortDir string                 `json:"sort_dir,omitempty" validate:"oneof=asc desc" example:"desc"`
 }
 
 // NewBaseRequest creates a new base request with default values

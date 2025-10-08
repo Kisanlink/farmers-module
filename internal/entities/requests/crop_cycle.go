@@ -8,45 +8,45 @@ import (
 // StartCycleRequest represents a request to start a new crop cycle
 type StartCycleRequest struct {
 	BaseRequest
-	FarmID    string    `json:"farm_id" validate:"required"`
-	Season    string    `json:"season" validate:"required,oneof=RABI KHARIF ZAID"`
-	StartDate time.Time `json:"start_date" validate:"required"`
-	CropID    string    `json:"crop_id" validate:"required"`
-	VarietyID *string   `json:"variety_id,omitempty"`
+	FarmID    string    `json:"farm_id" validate:"required" example:"farm_123e4567-e89b-12d3-a456-426614174000"`
+	Season    string    `json:"season" validate:"required,oneof=RABI KHARIF ZAID" example:"RABI"`
+	StartDate time.Time `json:"start_date" validate:"required" example:"2024-11-01T00:00:00Z"`
+	CropID    string    `json:"crop_id" validate:"required" example:"crop_123e4567-e89b-12d3-a456-426614174000"`
+	VarietyID *string   `json:"variety_id,omitempty" example:"variety_123e4567-e89b-12d3-a456-426614174000"`
 }
 
 // UpdateCycleRequest represents a request to update an existing crop cycle
 type UpdateCycleRequest struct {
 	BaseRequest
-	ID        string     `json:"id" validate:"required"`
-	Season    *string    `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID"`
-	StartDate *time.Time `json:"start_date,omitempty"`
-	CropID    *string    `json:"crop_id,omitempty"`
-	VarietyID *string    `json:"variety_id,omitempty"`
+	ID        string     `json:"id" validate:"required" example:"cycle_123e4567-e89b-12d3-a456-426614174000"`
+	Season    *string    `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID" example:"RABI"`
+	StartDate *time.Time `json:"start_date,omitempty" example:"2024-11-05T00:00:00Z"`
+	CropID    *string    `json:"crop_id,omitempty" example:"crop_123e4567-e89b-12d3-a456-426614174000"`
+	VarietyID *string    `json:"variety_id,omitempty" example:"variety_123e4567-e89b-12d3-a456-426614174000"`
 }
 
 // EndCycleRequest represents a request to end a crop cycle
 type EndCycleRequest struct {
 	BaseRequest
-	ID      string            `json:"id" validate:"required"`
-	Status  string            `json:"status" validate:"required,oneof=COMPLETED CANCELLED"`
-	EndDate time.Time         `json:"end_date" validate:"required"`
-	Outcome map[string]string `json:"outcome,omitempty"`
+	ID      string            `json:"id" validate:"required" example:"cycle_123e4567-e89b-12d3-a456-426614174000"`
+	Status  string            `json:"status" validate:"required,oneof=COMPLETED CANCELLED" example:"COMPLETED"`
+	EndDate time.Time         `json:"end_date" validate:"required" example:"2024-03-15T00:00:00Z"`
+	Outcome map[string]string `json:"outcome,omitempty" example:"yield_kg:2500,quality:good,notes:good_harvest"`
 }
 
 // ListCyclesRequest represents a request to list crop cycles with filtering
 type ListCyclesRequest struct {
 	FilterRequest
-	FarmID   string `json:"farm_id,omitempty"`
-	FarmerID string `json:"farmer_id,omitempty"`
-	Season   string `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID"`
-	Status   string `json:"status,omitempty" validate:"omitempty,oneof=PLANNED ACTIVE COMPLETED CANCELLED"`
+	FarmID   string `json:"farm_id,omitempty" example:"farm_123e4567-e89b-12d3-a456-426614174000"`
+	FarmerID string `json:"farmer_id,omitempty" example:"farmer_123e4567-e89b-12d3-a456-426614174000"`
+	Season   string `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID" example:"RABI"`
+	Status   string `json:"status,omitempty" validate:"omitempty,oneof=PLANNED ACTIVE COMPLETED CANCELLED" example:"ACTIVE"`
 }
 
 // GetCycleRequest represents a request to retrieve a crop cycle
 type GetCycleRequest struct {
 	BaseRequest
-	ID string `json:"id" validate:"required"`
+	ID string `json:"id" validate:"required" example:"cycle_123e4567-e89b-12d3-a456-426614174000"`
 }
 
 // NewStartCycleRequest creates a new start cycle request

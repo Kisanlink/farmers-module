@@ -3,29 +3,29 @@ package requests
 // AssignKisanSathiRequest represents a request to assign KisanSathi to farmer
 type AssignKisanSathiRequest struct {
 	BaseRequest
-	AAAUserID        string `json:"aaa_user_id" validate:"required"`
-	AAAOrgID         string `json:"aaa_org_id" validate:"required"`
-	KisanSathiUserID string `json:"kisan_sathi_user_id" validate:"required"`
+	AAAUserID        string `json:"aaa_user_id" validate:"required" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	AAAOrgID         string `json:"aaa_org_id" validate:"required" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+	KisanSathiUserID string `json:"kisan_sathi_user_id" validate:"required" example:"ks_123e4567-e89b-12d3-a456-426614174001"`
 }
 
 // ReassignKisanSathiRequest represents a request to reassign or remove KisanSathi
 type ReassignKisanSathiRequest struct {
 	BaseRequest
-	AAAUserID           string  `json:"aaa_user_id" validate:"required"`
-	AAAOrgID            string  `json:"aaa_org_id" validate:"required"`
-	NewKisanSathiUserID *string `json:"new_kisan_sathi_user_id,omitempty"` // nil means remove
+	AAAUserID           string  `json:"aaa_user_id" validate:"required" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	AAAOrgID            string  `json:"aaa_org_id" validate:"required" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+	NewKisanSathiUserID *string `json:"new_kisan_sathi_user_id,omitempty" example:"ks_123e4567-e89b-12d3-a456-426614174002"` // nil means remove
 }
 
 // CreateKisanSathiUserRequest represents a request to create a new KisanSathi user
 type CreateKisanSathiUserRequest struct {
 	BaseRequest
-	Username    string            `json:"username" validate:"required"`
-	PhoneNumber string            `json:"phone_number" validate:"required"`
-	Email       string            `json:"email" validate:"email"`
-	Password    string            `json:"password" validate:"required,min=8"`
-	FullName    string            `json:"full_name" validate:"required"`
-	CountryCode string            `json:"country_code"`
-	Metadata    map[string]string `json:"metadata,omitempty"`
+	Username    string            `json:"username" validate:"required" example:"pradeep.ks"`
+	PhoneNumber string            `json:"phone_number" validate:"required" example:"+91-9876543211"`
+	Email       string            `json:"email" validate:"email" example:"pradeep.ks@fpo.com"`
+	Password    string            `json:"password" validate:"required,min=8" example:"SecureKS@123"`
+	FullName    string            `json:"full_name" validate:"required" example:"Pradeep Kumar"`
+	CountryCode string            `json:"country_code" example:"+91"`
+	Metadata    map[string]string `json:"metadata,omitempty" example:"experience_years:5,villages_covered:10"`
 }
 
 // NewAssignKisanSathiRequest creates a new assign KisanSathi request

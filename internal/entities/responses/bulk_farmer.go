@@ -6,21 +6,21 @@ import (
 
 // BulkOperationResponse represents the response for a bulk operation
 type BulkOperationResponse struct {
-	Success   bool               `json:"success"`
-	Message   string             `json:"message"`
-	RequestID string             `json:"request_id,omitempty"`
-	Timestamp time.Time          `json:"timestamp"`
+	Success   bool               `json:"success" example:"true"`
+	Message   string             `json:"message" example:"Bulk operation initiated successfully"`
+	RequestID string             `json:"request_id,omitempty" example:"req_123e4567e89b12d3"`
+	Timestamp time.Time          `json:"timestamp" example:"2024-01-15T10:30:00Z"`
 	Data      *BulkOperationData `json:"data,omitempty"`
 }
 
 // BulkOperationData contains the bulk operation details
 type BulkOperationData struct {
-	OperationID         string     `json:"operation_id"`
-	Status              string     `json:"status"`
-	StatusURL           string     `json:"status_url"`
-	ResultURL           string     `json:"result_url,omitempty"`
-	EstimatedCompletion *time.Time `json:"estimated_completion,omitempty"`
-	Message             string     `json:"message"`
+	OperationID         string     `json:"operation_id" example:"op_123e4567-e89b-12d3-a456-426614174000"`
+	Status              string     `json:"status" example:"PROCESSING"`
+	StatusURL           string     `json:"status_url" example:"/api/v1/bulk-operations/op_123e4567-e89b-12d3-a456-426614174000/status"`
+	ResultURL           string     `json:"result_url,omitempty" example:"/api/v1/bulk-operations/op_123e4567-e89b-12d3-a456-426614174000/results"`
+	EstimatedCompletion *time.Time `json:"estimated_completion,omitempty" example:"2024-01-15T11:00:00Z"`
+	Message             string     `json:"message" example:"Processing 150 records"`
 }
 
 // BulkOperationStatusResponse represents the status response for a bulk operation
@@ -52,12 +52,12 @@ type BulkOperationStatusData struct {
 
 // ProgressInfo contains progress information
 type ProgressInfo struct {
-	Total      int     `json:"total"`
-	Processed  int     `json:"processed"`
-	Successful int     `json:"successful"`
-	Failed     int     `json:"failed"`
-	Skipped    int     `json:"skipped"`
-	Percentage float64 `json:"percentage"`
+	Total      int     `json:"total" example:"150"`
+	Processed  int     `json:"processed" example:"75"`
+	Successful int     `json:"successful" example:"70"`
+	Failed     int     `json:"failed" example:"3"`
+	Skipped    int     `json:"skipped" example:"2"`
+	Percentage float64 `json:"percentage" example:"50.0"`
 }
 
 // BulkValidationResponse represents the validation response for bulk data
