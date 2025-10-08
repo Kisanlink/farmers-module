@@ -69,10 +69,9 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 
 	if !postgisAvailable {
 		log.Println("PostGIS not available - skipping spatial features")
-		// For now, skip the farm entity that requires PostGIS
+		// Skip the farm entity that requires PostGIS geometry types
 		models := []interface{}{
 			&fpo.FPORef{},
-			&farm.Farm{},
 			&farmer.FarmerLink{},
 			&farmer.Farmer{},          // Add the main Farmer model
 			&entities.Address{},       // Add Address entity
@@ -81,6 +80,12 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 			&crop_variety.CropVariety{},
 			&crop_cycle.CropCycle{},
 			&farm_activity.FarmActivity{},
+			&bulk.BulkOperation{},
+			&bulk.ProcessingDetail{},
+			&soil_type.SoilType{},
+			&irrigation_source.IrrigationSource{},
+			&farm_soil_type.FarmSoilType{},
+			&farm_irrigation_source.FarmIrrigationSource{},
 		}
 
 		if err := postgresManager.AutoMigrateModels(ctx, models...); err != nil {
