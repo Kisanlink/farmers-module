@@ -97,11 +97,43 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 	} else {
 		// Enable PostGIS extension
 		if err := gormDB.Exec(`CREATE EXTENSION IF NOT EXISTS postgis;`).Error; err != nil {
-			log.Printf("Warning: PostGIS extension not available: %v", err)
-			log.Println("Continuing without PostGIS - some spatial features may not work")
-		} else {
-			log.Println("PostGIS extension enabled successfully")
+			log.Printf("❌ Failed to enable PostGIS extension: %v", err)
+			log.Println("⚠️  PostGIS is not installed on your PostgreSQL server")
+			log.Println("📝 To install PostGIS:")
+			log.Println("   macOS:         brew install postgis")
+			log.Println("   Ubuntu/Debian: sudo apt-get install postgresql-postgis")
+			log.Println("   Then reconnect to enable spatial features")
+			log.Println("⏭️  Continuing without PostGIS - spatial features (farms) will be unavailable")
+
+			// Fall back to non-PostGIS migration
+			models := []interface{}{
+				&fpo.FPORef{},
+				&farmer.FarmerLink{},
+				&farmer.Farmer{},
+				&entities.Address{},
+				&entities.FarmerProfile{},
+				&crop.Crop{},
+				&crop_variety.CropVariety{},
+				&crop_cycle.CropCycle{},
+				&farm_activity.FarmActivity{},
+				&bulk.BulkOperation{},
+				&bulk.ProcessingDetail{},
+				&soil_type.SoilType{},
+				&irrigation_source.IrrigationSource{},
+				&farm_soil_type.FarmSoilType{},
+				&farm_irrigation_source.FarmIrrigationSource{},
+			}
+
+			if err := postgresManager.AutoMigrateModels(ctx, models...); err != nil {
+				return fmt.Errorf("failed to run AutoMigrate: %w", err)
+			}
+
+			setupPostMigration(gormDB)
+			log.Println("Database setup completed successfully (without PostGIS)")
+			return nil
 		}
+
+		log.Println("✅ PostGIS extension enabled successfully")
 
 		// AutoMigrate all models including farm
 		models := []interface{}{
