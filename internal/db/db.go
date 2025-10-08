@@ -65,6 +65,7 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		// For now, skip the farm entity that requires PostGIS
 		models := []interface{}{
 			&fpo.FPORef{},
+			&farm.Farm{},
 			&farmer.FarmerLink{},
 			&farmer.Farmer{},          // Add the main Farmer model
 			&entities.Address{},       // Add Address entity
