@@ -18,6 +18,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/fpo"
 	"github.com/Kisanlink/farmers-module/internal/entities/irrigation_source"
 	"github.com/Kisanlink/farmers-module/internal/entities/soil_type"
+	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -92,6 +93,11 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 			return fmt.Errorf("failed to run AutoMigrate: %w", err)
 		}
 
+		// Initialize ID counters from existing database records
+		if err := initializeIDCounters(gormDB); err != nil {
+			log.Printf("Warning: Failed to initialize ID counters: %v", err)
+		}
+
 		// Post-migration setup (without PostGIS features)
 		setupPostMigration(gormDB)
 	} else {
@@ -128,6 +134,11 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 				return fmt.Errorf("failed to run AutoMigrate: %w", err)
 			}
 
+			// Initialize ID counters from existing database records
+			if err := initializeIDCounters(gormDB); err != nil {
+				log.Printf("Warning: Failed to initialize ID counters: %v", err)
+			}
+
 			setupPostMigration(gormDB)
 			log.Println("Database setup completed successfully (without PostGIS)")
 			return nil
@@ -157,6 +168,11 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 
 		if err := postgresManager.AutoMigrateModels(ctx, models...); err != nil {
 			return fmt.Errorf("failed to run AutoMigrate: %w", err)
+		}
+
+		// Initialize ID counters from existing database records
+		if err := initializeIDCounters(gormDB); err != nil {
+			log.Printf("Warning: Failed to initialize ID counters: %v", err)
 		}
 
 		// Post-migration setup (with PostGIS features)
@@ -290,6 +306,47 @@ func setupPostMigration(gormDB *gorm.DB) {
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farm_activities_planned_at_idx ON farm_activities (planned_at);`)
 
 	log.Println("Post-migration setup completed")
+}
+
+// initializeIDCounters initializes ID counters from existing database records
+// This prevents duplicate key errors when the server restarts
+func initializeIDCounters(db *gorm.DB) error {
+	tables := []struct {
+		tableName  string
+		identifier string
+		size       hash.TableSize
+	}{
+		{"fpo_refs", "fpo_ref", hash.Medium},
+		{"farmer_links", "farmer_link", hash.Medium},
+		{"farmers", "farmer", hash.Large},
+		{"addresses", "address", hash.Medium},
+		{"farmer_profiles", "farmer_profile", hash.Medium},
+		{"farms", "farm", hash.Medium},
+		{"crops", "crop", hash.Medium},
+		{"crop_varieties", "crop_variety", hash.Medium},
+		{"crop_cycles", "crop_cycle", hash.Medium},
+		{"farm_activities", "farm_activity", hash.Medium},
+		{"bulk_operations", "bulk_op", hash.Medium},
+		{"bulk_processing_details", "bulk_detail", hash.Large},
+		{"soil_types", "soil_type", hash.Small},
+		{"irrigation_sources", "irrigation_source", hash.Small},
+		{"farm_soil_types", "farm_soil_type", hash.Medium},
+		{"farm_irrigation_sources", "farm_irrigation_source", hash.Medium},
+	}
+
+	for _, t := range tables {
+		var ids []string
+		// Get all existing IDs from the table
+		if err := db.Table(t.tableName).Pluck("id", &ids).Error; err != nil {
+			// Skip if table doesn't exist yet or has no records
+			continue
+		}
+		// Initialize the global counter for this table
+		hash.InitializeGlobalCountersFromDatabase(t.identifier, ids, t.size)
+	}
+
+	log.Println("ID counters initialized from database")
+	return nil
 }
 
 // Close closes the database connection
