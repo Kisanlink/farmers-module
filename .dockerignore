@@ -1,0 +1,65 @@
+# Git and version control
+.git/
+.gitignore
+.github/
+.gitattributes
+
+# Documentation (except essential docs)
+*.md
+!README.md
+CONTRIBUTING.md
+LICENSE
+docs/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.code-workspace
+.claude/
+
+# Build artifacts
+farmers-server
+farmers-service
+*.test
+*.out
+coverage.out
+coverage.html
+*.prof
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+secrets/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+.cache/
+
+# Test files and test data
+*_test.go
+testdata/
+fixtures/
+
+# Deployment files (not needed in image)
+deployment/
+.kiro/
+
+# CI/CD
+.pre-commit-config.yaml
+.golangci.yml
+
+# Other
+bin/
+dist/
+vendor/
+node_modules/

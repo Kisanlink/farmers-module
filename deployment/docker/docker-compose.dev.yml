@@ -1,0 +1,128 @@
+# Development Environment Overrides
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.9'
+
+services:
+  # ============================================================================
+  # Farmers Service - Development Configuration
+  # ============================================================================
+  farmers-service:
+    # Use local build for faster iteration
+    build:
+      target: builder
+      cache_from:
+        - farmers-module:dev-cache
+
+    image: farmers-module:dev
+    container_name: farmers-service-dev
+
+    # Override command for hot-reload with Air (if installed)
+    # For now, we'll use the standard binary but with volume mounts
+    command: /app/farmers-server
+
+    # Development environment variables
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+      - GIN_MODE=debug
+      - ENABLE_TRACING=true
+      - ENABLE_METRICS=true
+
+      # Database with verbose logging
+      - DB_POSTGRES_MAX_CONNS=5
+
+      # AAA Service (optional for local dev)
+      - AAA_ENABLED=${AAA_ENABLED:-false}
+
+    # Volume mounts for development
+    volumes:
+      # Mount source code for hot-reload (if using Air or similar)
+      # Uncomment if you set up hot-reload tooling
+      # - ../../:/app/src:ro
+
+      # Mount logs directory
+      - dev-logs:/app/logs
+
+    # Expose additional ports for debugging
+    ports:
+      - "8000:8000"   # HTTP API
+      - "8081:8081"   # gRPC gateway
+      - "2345:2345"   # Delve debugger (if needed)
+
+    # Disable health check in development for faster startup
+    healthcheck:
+      interval: 60s
+      start_period: 10s
+
+    # Enable debugging
+    security_opt:
+      - "apparmor=unconfined"
+    cap_add:
+      - SYS_PTRACE
+
+  # ============================================================================
+  # PostgreSQL - Development Configuration
+  # ============================================================================
+  postgres:
+    container_name: farmers-postgres-dev
+
+    # Expose PostgreSQL port to host for direct access
+    ports:
+      - "${DB_POSTGRES_PORT:-5432}:5432"
+
+    # Development environment with verbose logging
+    environment:
+      - POSTGRES_USER=${DB_POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_POSTGRES_DBNAME:-farmers_module}
+
+    # Additional configuration for development
+    command:
+      - "postgres"
+      - "-c"
+      - "log_statement=all"
+      - "-c"
+      - "log_duration=on"
+      - "-c"
+      - "max_connections=100"
+
+    # Fast health check for development
+    healthcheck:
+      interval: 5s
+      start_period: 10s
+
+  # ============================================================================
+  # pgAdmin - Database Management UI (Optional)
+  # ============================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: farmers-pgadmin-dev
+    restart: unless-stopped
+
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@farmers.local}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+
+    ports:
+      - "5050:80"
+
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+    networks:
+      - farmers-network
+
+    depends_on:
+      - postgres
+
+# ============================================================================
+# Development Volumes
+# ============================================================================
+volumes:
+  dev-logs:
+    name: farmers-dev-logs
+  pgadmin-data:
+    name: farmers-pgadmin-data
