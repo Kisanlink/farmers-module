@@ -316,22 +316,22 @@ func initializeIDCounters(db *gorm.DB) error {
 		identifier string
 		size       hash.TableSize
 	}{
-		{"fpo_refs", "fpo_ref", hash.Medium},
-		{"farmer_links", "farmer_link", hash.Medium},
-		{"farmers", "farmer", hash.Large},
-		{"addresses", "address", hash.Medium},
-		{"farmer_profiles", "farmer_profile", hash.Medium},
-		{"farms", "farm", hash.Medium},
-		{"crops", "crop", hash.Medium},
-		{"crop_varieties", "crop_variety", hash.Medium},
-		{"crop_cycles", "crop_cycle", hash.Medium},
-		{"farm_activities", "farm_activity", hash.Medium},
-		{"bulk_operations", "bulk_op", hash.Medium},
-		{"bulk_processing_details", "bulk_detail", hash.Large},
-		{"soil_types", "soil_type", hash.Small},
-		{"irrigation_sources", "irrigation_source", hash.Small},
-		{"farm_soil_types", "farm_soil_type", hash.Medium},
-		{"farm_irrigation_sources", "farm_irrigation_source", hash.Medium},
+		{"fpo_refs", "FPOR", hash.Medium},
+		{"farmer_links", "FLNK", hash.Medium},
+		{"farmers", "FRMR", hash.Large},
+		{"addresses", "ADDR", hash.Medium},
+		{"farmer_profiles", "FPRF", hash.Medium},
+		{"farms", "FARM", hash.Medium},
+		{"crops", "CROP", hash.Medium},
+		{"crop_varieties", "CVAR", hash.Medium},
+		{"crop_cycles", "CCYC", hash.Medium},
+		{"farm_activities", "FACT", hash.Medium},
+		{"bulk_operations", "BLKO", hash.Medium},
+		{"bulk_processing_details", "BKDT", hash.Large},
+		{"soil_types", "STYP", hash.Small},
+		{"irrigation_sources", "ISRC", hash.Small},
+		{"farm_soil_types", "FSTP", hash.Medium},
+		{"farm_irrigation_sources", "FISC", hash.Medium},
 	}
 
 	for _, t := range tables {

@@ -68,7 +68,7 @@ func (fp *FarmerProfile) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (fp *FarmerProfile) GetTableIdentifier() string {
-	return "farmer_profile"
+	return "FPRF"
 }
 
 // GetTableSize returns the table size for ID generation
@@ -94,7 +94,7 @@ func (a *Address) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (a *Address) GetTableIdentifier() string {
-	return "address"
+	return "ADDR"
 }
 
 // GetTableSize returns the table size for ID generation
@@ -120,7 +120,7 @@ func (fl *FarmerLink) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (fl *FarmerLink) GetTableIdentifier() string {
-	return "farmer_link"
+	return "FLNK"
 }
 
 // GetTableSize returns the table size for ID generation

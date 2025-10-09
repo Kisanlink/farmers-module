@@ -51,7 +51,7 @@ func (c *Crop) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (c *Crop) GetTableIdentifier() string {
-	return "crop"
+	return "CROP"
 }
 
 // GetTableSize returns the table size for ID generation
@@ -61,7 +61,7 @@ func (c *Crop) GetTableSize() hash.TableSize {
 
 // NewCrop creates a new crop model with proper initialization
 func NewCrop() *Crop {
-	baseModel := base.NewBaseModel("crop", hash.Medium)
+	baseModel := base.NewBaseModel("CROP", hash.Medium)
 	return &Crop{
 		BaseModel:  *baseModel,
 		Properties: make(map[string]string),

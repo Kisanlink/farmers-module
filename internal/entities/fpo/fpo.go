@@ -58,7 +58,7 @@ func (f *FPORef) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (f *FPORef) GetTableIdentifier() string {
-	return "fpo_ref"
+	return "FPOR"
 }
 
 // GetTableSize returns the table size for ID generation

@@ -28,7 +28,7 @@ func (f *FarmSoilType) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (f *FarmSoilType) GetTableIdentifier() string {
-	return "farm_soil_type"
+	return "FSTP"
 }
 
 // GetTableSize returns the table size for ID generation

@@ -207,7 +207,7 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 
 	// Create new farmer profile
 	farmerProfile := &entities.FarmerProfile{
-		BaseModel:        *base.NewBaseModel("farmer_profile", hash.Medium),
+		BaseModel:        *base.NewBaseModel("FPRF", hash.Medium),
 		AAAUserID:        aaaUserID,
 		AAAOrgID:         aaaOrgID,
 		KisanSathiUserID: validatedKisanSathiID,

@@ -39,7 +39,7 @@ func NewBulkOperationRepository(db *gorm.DB) BulkOperationRepository {
 // Create creates a new bulk operation
 func (r *BulkOperationRepositoryImpl) Create(ctx context.Context, operation *bulk.BulkOperation) error {
 	if operation.ID == "" {
-		baseModel := base.NewBaseModel("bulk_op", hash.Medium)
+		baseModel := base.NewBaseModel("BLKO", hash.Medium)
 		operation.ID = baseModel.ID
 		operation.CreatedAt = baseModel.CreatedAt
 		operation.UpdatedAt = baseModel.UpdatedAt
@@ -206,7 +206,7 @@ func NewProcessingDetailRepository(db *gorm.DB) ProcessingDetailRepository {
 // Create creates a new processing detail
 func (r *ProcessingDetailRepositoryImpl) Create(ctx context.Context, detail *bulk.ProcessingDetail) error {
 	if detail.ID == "" {
-		baseModel := base.NewBaseModel("bulk_detail", hash.Large)
+		baseModel := base.NewBaseModel("BKDT", hash.Large)
 		detail.ID = baseModel.ID
 		detail.CreatedAt = baseModel.CreatedAt
 		detail.UpdatedAt = baseModel.UpdatedAt
@@ -227,7 +227,7 @@ func (r *ProcessingDetailRepositoryImpl) CreateBatch(ctx context.Context, detail
 	// Assign IDs to details without IDs
 	for _, detail := range details {
 		if detail.ID == "" {
-			baseModel := base.NewBaseModel("bulk_detail", hash.Large)
+			baseModel := base.NewBaseModel("BKDT", hash.Large)
 			detail.ID = baseModel.ID
 			detail.CreatedAt = baseModel.CreatedAt
 			detail.UpdatedAt = baseModel.UpdatedAt

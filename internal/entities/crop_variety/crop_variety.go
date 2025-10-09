@@ -40,7 +40,7 @@ func (cv *CropVariety) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (cv *CropVariety) GetTableIdentifier() string {
-	return "crop_variety"
+	return "CVAR"
 }
 
 // GetTableSize returns the table size for ID generation
@@ -50,7 +50,7 @@ func (cv *CropVariety) GetTableSize() hash.TableSize {
 
 // NewCropVariety creates a new crop variety model with proper initialization
 func NewCropVariety() *CropVariety {
-	baseModel := base.NewBaseModel("crop_variety", hash.Medium)
+	baseModel := base.NewBaseModel("CVAR", hash.Medium)
 	return &CropVariety{
 		BaseModel:  *baseModel,
 		Properties: make(map[string]string),

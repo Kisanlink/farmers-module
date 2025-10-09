@@ -22,7 +22,7 @@ func (fl *FarmerLink) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (fl *FarmerLink) GetTableIdentifier() string {
-	return "farmer_link"
+	return "FLNK"
 }
 
 // GetTableSize returns the table size for ID generation
@@ -80,7 +80,7 @@ func (f *Farmer) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (f *Farmer) GetTableIdentifier() string {
-	return "farmer"
+	return "FRMR"
 }
 
 // GetTableSize returns the table size for ID generation
@@ -90,7 +90,7 @@ func (f *Farmer) GetTableSize() hash.TableSize {
 
 // NewFarmer creates a new farmer model with proper initialization
 func NewFarmer() *Farmer {
-	baseModel := base.NewBaseModel("farmer", hash.Large)
+	baseModel := base.NewBaseModel("FRMR", hash.Large)
 	return &Farmer{
 		BaseModel:   *baseModel,
 		Preferences: make(map[string]string),
