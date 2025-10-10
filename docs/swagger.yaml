@@ -27,6 +27,12 @@ definitions:
       success:
         type: boolean
     type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        example: Failed to retrieve data
+        type: string
+    type: object
   handlers.FarmActivityListResponse:
     properties:
       data:
@@ -44,6 +50,16 @@ definitions:
         type: boolean
       total:
         type: integer
+    type: object
+  handlers.IrrigationSourcesResponse:
+    properties:
+      data: {}
+      message:
+        example: Irrigation sources retrieved successfully
+        type: string
+      success:
+        example: true
+        type: boolean
     type: object
   handlers.RebuildSpatialIndexesResponse:
     properties:
@@ -72,6 +88,16 @@ definitions:
       request_id:
         type: string
       success:
+        type: boolean
+    type: object
+  handlers.SoilTypesResponse:
+    properties:
+      data: {}
+      message:
+        example: Soil types retrieved successfully
+        type: string
+      success:
+        example: true
         type: boolean
     type: object
   handlers.ValidateGeometryResponse:
@@ -884,9 +910,9 @@ definitions:
           type: integer
         type: array
       wkt:
-        description: Well-Known Text format
-        example: POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85
-          22.71))
+        description: Well-Known Text format (~50 ha)
+        example: POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663,
+          75.85 22.71))
         type: string
     type: object
   requests.IrrigationSourceRequest:
@@ -1662,7 +1688,7 @@ definitions:
   requests.ValidateGeometryRequest:
     properties:
       check_bounds:
-        description: Whether to check if geometry is within India bounds
+        description: Whether to check if geometry is within India bounds (~50 ha)
         example: true
         type: boolean
       metadata:
@@ -1688,8 +1714,8 @@ definitions:
         example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       wkt:
-        example: POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85
-          22.71))
+        example: POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663,
+          75.85 22.71))
         type: string
     required:
     - wkt
@@ -2150,8 +2176,8 @@ definitions:
         example: "2024-01-15T10:30:00Z"
         type: string
       geometry:
-        example: POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85
-          22.71))
+        example: POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663,
+          75.85 22.71))
         type: string
       id:
         example: farm_123e4567-e89b-12d3-a456-426614174000
@@ -5259,6 +5285,44 @@ paths:
       summary: Get crop lookup data
       tags:
       - Crop Master Data
+  /lookups/irrigation-sources:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all available irrigation sources for farm management
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.IrrigationSourcesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get all irrigation sources
+      tags:
+      - lookups
+  /lookups/soil-types:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all available soil types for farm management
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SoilTypesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get all soil types
+      tags:
+      - lookups
   /lookups/varieties/{crop_id}:
     get:
       consumes:

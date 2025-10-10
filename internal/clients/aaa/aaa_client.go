@@ -118,13 +118,53 @@ type CreateUserGroupResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// apiKeyInterceptor creates a unary interceptor that adds x-api-key to all requests
+func apiKeyInterceptor(apiKey string) grpc.UnaryClientInterceptor {
+	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		// Only add x-api-key if it's configured
+		if apiKey != "" {
+			// Get existing metadata or create new
+			md, ok := metadata.FromOutgoingContext(ctx)
+			if !ok {
+				md = metadata.New(nil)
+			} else {
+				// Clone to avoid modifying the original
+				md = md.Copy()
+			}
+
+			// Add x-api-key header
+			md.Set("x-api-key", apiKey)
+
+			// Create new context with updated metadata
+			ctx = metadata.NewOutgoingContext(ctx, md)
+			log.Printf("AAA Client: Added x-api-key to request for method: %s", method)
+		}
+
+		// Call the actual RPC
+		return invoker(ctx, method, req, reply, cc, opts...)
+	}
+}
+
 // NewClient creates a new AAA gRPC client
 func NewClient(cfg *config.Config) (*Client, error) {
 	log.Printf("AAA Client: Connecting to gRPC endpoint: %s", cfg.AAA.GRPCEndpoint)
 
+	// Create dial options with interceptor for x-api-key
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	}
+
+	// Add unary interceptor for x-api-key if configured
+	if cfg.AAA.APIKey != "" {
+		log.Printf("AAA Client: x-api-key configured for service authentication")
+		opts = append(opts, grpc.WithUnaryInterceptor(apiKeyInterceptor(cfg.AAA.APIKey)))
+	} else {
+		log.Printf("AAA Client: Warning - no x-api-key configured, service-to-service auth may fail")
+	}
+
 	conn, err := grpc.NewClient(
 		cfg.AAA.GRPCEndpoint,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		opts...,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to AAA service: %w", err)

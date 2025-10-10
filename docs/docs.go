@@ -3853,6 +3853,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/lookups/irrigation-sources": {
+            "get": {
+                "description": "Retrieve a list of all available irrigation sources for farm management",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lookups"
+                ],
+                "summary": "Get all irrigation sources",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.IrrigationSourcesResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/lookups/soil-types": {
+            "get": {
+                "description": "Retrieve a list of all available soil types for farm management",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lookups"
+                ],
+                "summary": "Get all soil types",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SoilTypesResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/lookups/varieties/{crop_id}": {
             "get": {
                 "description": "Get simplified variety data for dropdown/lookup purposes",
@@ -4195,6 +4253,15 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "Failed to retrieve data"
+                }
+            }
+        },
         "handlers.FarmActivityListResponse": {
             "type": "object",
             "properties": {
@@ -4219,6 +4286,20 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "handlers.IrrigationSourcesResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string",
+                    "example": "Irrigation sources retrieved successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -4263,6 +4344,20 @@ const docTemplate = `{
                 },
                 "success": {
                     "type": "boolean"
+                }
+            }
+        },
+        "handlers.SoilTypesResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string",
+                    "example": "Soil types retrieved successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -5362,9 +5457,9 @@ const docTemplate = `{
                     }
                 },
                 "wkt": {
-                    "description": "Well-Known Text format",
+                    "description": "Well-Known Text format (~50 ha)",
                     "type": "string",
-                    "example": "POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85 22.71))"
+                    "example": "POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663, 75.85 22.71))"
                 }
             }
         },
@@ -6426,7 +6521,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "check_bounds": {
-                    "description": "Whether to check if geometry is within India bounds",
+                    "description": "Whether to check if geometry is within India bounds (~50 ha)",
                     "type": "boolean",
                     "example": true
                 },
@@ -6462,7 +6557,7 @@ const docTemplate = `{
                 },
                 "wkt": {
                     "type": "string",
-                    "example": "POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85 22.71))"
+                    "example": "POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663, 75.85 22.71))"
                 }
             }
         },
@@ -7147,7 +7242,7 @@ const docTemplate = `{
                 },
                 "geometry": {
                     "type": "string",
-                    "example": "POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85 22.71))"
+                    "example": "POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663, 75.85 22.71))"
                 },
                 "id": {
                     "type": "string",

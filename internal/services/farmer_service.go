@@ -8,6 +8,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
+	"github.com/Kisanlink/farmers-module/internal/repo/farmer"
 	"github.com/Kisanlink/farmers-module/internal/utils"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
@@ -24,13 +25,13 @@ type FarmerService interface {
 
 // FarmerServiceImpl implements FarmerService
 type FarmerServiceImpl struct {
-	repository  *base.BaseFilterableRepository[*entities.FarmerProfile]
+	repository  *farmer.FarmerRepository
 	aaaService  AAAService
 	passwordGen *utils.PasswordGenerator
 }
 
 // NewFarmerService creates a new farmer service with repository and AAA service
-func NewFarmerService(repository *base.BaseFilterableRepository[*entities.FarmerProfile], aaaService AAAService) FarmerService {
+func NewFarmerService(repository *farmer.FarmerRepository, aaaService AAAService) FarmerService {
 	return &FarmerServiceImpl{
 		repository:  repository,
 		aaaService:  aaaService,

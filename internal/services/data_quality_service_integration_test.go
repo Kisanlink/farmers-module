@@ -9,6 +9,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	farmRepo "github.com/Kisanlink/farmers-module/internal/repo/farm"
+	farmerRepo "github.com/Kisanlink/farmers-module/internal/repo/farmer"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -22,7 +23,7 @@ type DataQualityServiceIntegrationTestSuite struct {
 	db                      *gorm.DB
 	service                 DataQualityService
 	farmRepo                *farmRepo.FarmRepository
-	farmerLinkageRepo       *base.BaseFilterableRepository[*entities.FarmerLink]
+	farmerLinkageRepo       *farmerRepo.FarmerLinkRepository
 	mockAAAService          *MockAAAService
 	mockNotificationService *MockNotificationService
 }
@@ -41,7 +42,9 @@ func (suite *DataQualityServiceIntegrationTestSuite) SetupSuite() {
 
 	// Create repositories
 	suite.farmRepo = farmRepo.NewFarmRepository(nil) // No DB manager for this test
-	suite.farmerLinkageRepo = base.NewBaseFilterableRepository[*entities.FarmerLink]()
+	suite.farmerLinkageRepo = &farmerRepo.FarmerLinkRepository{
+		BaseFilterableRepository: base.NewBaseFilterableRepository[*entities.FarmerLink](),
+	}
 	suite.farmerLinkageRepo.SetDBManager(&mockDBManager{db: db})
 
 	// Create mock services

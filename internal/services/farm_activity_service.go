@@ -10,22 +10,24 @@ import (
 	farmActivityEntity "github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
+	"github.com/Kisanlink/farmers-module/internal/repo/crop_cycle"
+	"github.com/Kisanlink/farmers-module/internal/repo/farm_activity"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
 // FarmActivityServiceImpl implements FarmActivityService
 type FarmActivityServiceImpl struct {
-	farmActivityRepo *base.BaseFilterableRepository[*farmActivityEntity.FarmActivity]
-	cropCycleRepo    *base.BaseFilterableRepository[*cropCycleEntity.CropCycle]
+	farmActivityRepo *farm_activity.FarmActivityRepository
+	cropCycleRepo    *crop_cycle.CropCycleRepository
 	farmerLinkRepo   FarmerLinkRepository
 	aaaService       AAAService
 }
 
 // NewFarmActivityService creates a new farm activity service
 func NewFarmActivityService(
-	farmActivityRepo *base.BaseFilterableRepository[*farmActivityEntity.FarmActivity],
-	cropCycleRepo *base.BaseFilterableRepository[*cropCycleEntity.CropCycle],
+	farmActivityRepo *farm_activity.FarmActivityRepository,
+	cropCycleRepo *crop_cycle.CropCycleRepository,
 	farmerLinkRepo FarmerLinkRepository,
 	aaaService AAAService,
 ) FarmActivityService {

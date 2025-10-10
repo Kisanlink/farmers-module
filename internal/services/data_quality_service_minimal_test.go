@@ -8,6 +8,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
+	farmerRepo "github.com/Kisanlink/farmers-module/internal/repo/farmer"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -144,7 +145,9 @@ func TestDataQualityService_ReconcileAAALinks_Minimal(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create real repository
-	farmerLinkageRepo := base.NewBaseFilterableRepository[*entities.FarmerLink]()
+	farmerLinkageRepo := &farmerRepo.FarmerLinkRepository{
+		BaseFilterableRepository: base.NewBaseFilterableRepository[*entities.FarmerLink](),
+	}
 	farmerLinkageRepo.SetDBManager(&mockDBManager{db: db})
 
 	// Create service with real repository

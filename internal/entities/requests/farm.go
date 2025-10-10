@@ -72,8 +72,8 @@ type GetFarmsByOrgRequest struct {
 // CheckFarmOverlapRequest represents a request to check farm overlap
 type CheckFarmOverlapRequest struct {
 	BaseRequest
-	Geometry string `json:"geometry" validate:"required" example:"POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85 22.71))"` // WKT format
-	FarmID   string `json:"farm_id,omitempty" example:"farm_123e4567-e89b-12d3-a456-426614174000"`                                             // Exclude this farm from overlap check
+	Geometry string `json:"geometry" validate:"required" example:"POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663, 75.85 22.71))"` // WKT format (~50 ha)
+	FarmID   string `json:"farm_id,omitempty" example:"farm_123e4567-e89b-12d3-a456-426614174000"`                                                         // Exclude this farm from overlap check
 }
 
 // BoundingBox represents a geographic bounding box
@@ -86,8 +86,8 @@ type BoundingBox struct {
 
 // GeometryData represents geometric data for farms
 type GeometryData struct {
-	WKT string `json:"wkt,omitempty" example:"POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85 22.71))"` // Well-Known Text format
-	WKB []byte `json:"wkb,omitempty"`                                                                                      // Well-Known Binary format
+	WKT string `json:"wkt,omitempty" example:"POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663, 75.85 22.71))"` // Well-Known Text format (~50 ha)
+	WKB []byte `json:"wkb,omitempty"`                                                                                                  // Well-Known Binary format
 }
 
 // IrrigationSourceRequest represents irrigation source data in farm requests

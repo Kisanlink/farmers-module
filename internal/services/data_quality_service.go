@@ -10,6 +10,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	farmRepo "github.com/Kisanlink/farmers-module/internal/repo/farm"
+	farmerRepo "github.com/Kisanlink/farmers-module/internal/repo/farmer"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"gorm.io/gorm"
@@ -19,7 +20,7 @@ import (
 type DataQualityServiceImpl struct {
 	db                  *gorm.DB
 	farmRepo            *farmRepo.FarmRepository
-	farmerLinkageRepo   *base.BaseFilterableRepository[*entities.FarmerLink]
+	farmerLinkageRepo   *farmerRepo.FarmerLinkRepository
 	aaaService          AAAService
 	notificationService NotificationService
 }
@@ -28,7 +29,7 @@ type DataQualityServiceImpl struct {
 func NewDataQualityService(
 	db *gorm.DB,
 	farmRepo *farmRepo.FarmRepository,
-	farmerLinkageRepo *base.BaseFilterableRepository[*entities.FarmerLink],
+	farmerLinkageRepo *farmerRepo.FarmerLinkRepository,
 	aaaService AAAService,
 	notificationService NotificationService,
 ) DataQualityService {

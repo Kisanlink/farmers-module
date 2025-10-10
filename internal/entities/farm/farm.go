@@ -1,6 +1,10 @@
 package farm
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+
 	"github.com/Kisanlink/farmers-module/internal/entities/farm_irrigation_source"
 	"github.com/Kisanlink/farmers-module/internal/entities/farm_soil_type"
 	"github.com/Kisanlink/farmers-module/internal/entities/irrigation_source"
@@ -19,20 +23,52 @@ const (
 	OwnershipShared OwnershipType = "SHARED"
 )
 
+// Metadata is a custom type for JSONB metadata fields
+type Metadata map[string]string
+
+// Scan implements the sql.Scanner interface for JSONB deserialization
+func (m *Metadata) Scan(value interface{}) error {
+	if value == nil {
+		*m = make(map[string]string)
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("failed to unmarshal JSONB value")
+	}
+
+	result := make(map[string]string)
+	if err := json.Unmarshal(bytes, &result); err != nil {
+		return err
+	}
+
+	*m = result
+	return nil
+}
+
+// Value implements the driver.Valuer interface for JSONB serialization
+func (m Metadata) Value() (driver.Value, error) {
+	if m == nil {
+		return "{}", nil
+	}
+	return json.Marshal(m)
+}
+
 // Farm represents a farm with geographic boundaries
 type Farm struct {
 	base.BaseModel
-	AAAFarmerUserID           string            `json:"aaa_farmer_user_id" gorm:"type:varchar(255);not null"`
-	AAAOrgID                  string            `json:"aaa_org_id" gorm:"type:varchar(255);not null"`
-	Name                      *string           `json:"name" gorm:"type:varchar(255)"`
-	OwnershipType             OwnershipType     `json:"ownership_type" gorm:"type:varchar(20);default:'OWN'"`
-	Geometry                  string            `json:"geometry" gorm:"type:geometry(POLYGON,4326)"`
-	AreaHa                    float64           `json:"area_ha" gorm:"type:numeric(12,4);->"`
-	SoilTypeID                *string           `json:"soil_type_id" gorm:"type:varchar(255);index"`
-	PrimaryIrrigationSourceID *string           `json:"primary_irrigation_source_id" gorm:"type:varchar(255);index"`
-	BoreWellCount             int               `json:"bore_well_count" gorm:"default:0"`
-	OtherIrrigationDetails    *string           `json:"other_irrigation_details" gorm:"type:text"`
-	Metadata                  map[string]string `json:"metadata" gorm:"type:jsonb;default:'{}'"`
+	AAAFarmerUserID           string        `json:"aaa_farmer_user_id" gorm:"type:varchar(255);not null"`
+	AAAOrgID                  string        `json:"aaa_org_id" gorm:"type:varchar(255);not null"`
+	Name                      *string       `json:"name" gorm:"type:varchar(255)"`
+	OwnershipType             OwnershipType `json:"ownership_type" gorm:"type:varchar(20);default:'OWN'"`
+	Geometry                  string        `json:"geometry" gorm:"type:geometry(POLYGON,4326)"`
+	AreaHa                    float64       `json:"area_ha" gorm:"type:numeric(12,4);->"`
+	SoilTypeID                *string       `json:"soil_type_id" gorm:"type:varchar(255);index"`
+	PrimaryIrrigationSourceID *string       `json:"primary_irrigation_source_id" gorm:"type:varchar(255);index"`
+	BoreWellCount             int           `json:"bore_well_count" gorm:"default:0"`
+	OtherIrrigationDetails    *string       `json:"other_irrigation_details" gorm:"type:text"`
+	Metadata                  Metadata      `json:"metadata" gorm:"type:jsonb;default:'{}'"`
 
 	// Relationships
 	SoilType                *soil_type.SoilType                           `json:"soil_type" gorm:"foreignKey:SoilTypeID;references:ID"`

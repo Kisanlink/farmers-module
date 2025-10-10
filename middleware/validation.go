@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/clients/aaa"
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/gin-gonic/gin"
@@ -127,12 +128,33 @@ func (vm *ValidationMiddleware) ValidateOrganizationAccess(orgIDParam string) gi
 			return
 		}
 
-		// Extract user ID from context (this would come from authentication middleware)
-		userID := c.GetString("user_id")
+		// Extract user context from context (set by authentication middleware)
+		userContextInterface, exists := c.Get("user_context")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error":   "Authentication required",
+				"message": "User context not found - authentication middleware may not have run",
+			})
+			c.Abort()
+			return
+		}
+
+		// Type assert to auth.UserContext
+		userContext, ok := userContextInterface.(*auth.UserContext)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Internal server error",
+				"message": "Invalid user context type",
+			})
+			c.Abort()
+			return
+		}
+
+		userID := userContext.AAAUserID
 		if userID == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error":   "Authentication required",
-				"message": "User ID not found in context",
+				"message": "User ID is empty in context",
 			})
 			c.Abort()
 			return

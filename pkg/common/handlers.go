@@ -1,6 +1,7 @@
 package common
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -51,6 +52,9 @@ func ParseIntQuery(c *gin.Context, key string, defaultValue int) int {
 
 // HandleServiceError converts service errors to appropriate HTTP responses
 func HandleServiceError(c *gin.Context, err error) {
+	// Log the error for debugging
+	log.Printf("[ERROR] Service error: %v", err)
+
 	switch err {
 	case ErrNotFound:
 		c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})

@@ -1,0 +1,151 @@
+# Base Docker Compose Configuration for Farmers Module
+# This file contains the core service definitions
+# Use docker-compose.dev.yml, docker-compose.staging.yml, or docker-compose.prod.yml for environment-specific overrides
+
+version: '3.9'
+
+services:
+  # ============================================================================
+  # Farmers Service - Main Application
+  # ============================================================================
+  farmers-service:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile
+      args:
+        GO_VERSION: ${GO_VERSION:-1.24.4}
+        VERSION: ${VERSION:-1.0.0}
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+    image: farmers-module:${IMAGE_TAG:-latest}
+    container_name: farmers-service
+    hostname: farmers-service
+    restart: unless-stopped
+
+    # Port mappings
+    ports:
+      - "${SERVICE_PORT:-8000}:8000"    # HTTP REST API
+      - "${GATEWAY_PORT:-8081}:8081"    # gRPC gateway
+
+    # Environment variables
+    environment:
+      # Service Configuration
+      - SERVICE_NAME=${SERVICE_NAME:-farmers-module}
+      - SERVICE_PORT=8000
+      - GATEWAY_PORT=8081
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+
+      # Database Configuration
+      - DB_POSTGRES_HOST=postgres
+      - DB_POSTGRES_PORT=5432
+      - DB_POSTGRES_USER=${DB_POSTGRES_USER:-postgres}
+      - DB_POSTGRES_PASSWORD=${DB_POSTGRES_PASSWORD:-postgres}
+      - DB_POSTGRES_DBNAME=${DB_POSTGRES_DBNAME:-farmers_module}
+      - DB_POSTGRES_SSLMODE=${DB_POSTGRES_SSLMODE:-disable}
+      - DB_POSTGRES_MAX_CONNS=${DB_POSTGRES_MAX_CONNS:-10}
+
+      # AAA Service Configuration
+      - AAA_ENABLED=${AAA_ENABLED:-false}
+      - AAA_GRPC_ADDR=${AAA_GRPC_ADDR:-localhost:50051}
+      - AUTHZ_CACHE_TTL=${AUTHZ_CACHE_TTL:-30s}
+      - AAA_RETRY_ATTEMPTS=${AAA_RETRY_ATTEMPTS:-3}
+      - AAA_RETRY_BACKOFF=${AAA_RETRY_BACKOFF:-100ms}
+      - AAA_REQUEST_TIMEOUT=${AAA_REQUEST_TIMEOUT:-5s}
+
+      # Observability Configuration
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-localhost:4317}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - ENABLE_TRACING=${ENABLE_TRACING:-false}
+      - ENABLE_METRICS=${ENABLE_METRICS:-false}
+
+      # PostGIS Configuration
+      - POSTGIS_SRID=${POSTGIS_SRID:-4326}
+
+    # Service dependencies
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+    # Networks
+    networks:
+      - farmers-network
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================================================
+  # PostgreSQL with PostGIS - Database
+  # ============================================================================
+  postgres:
+    image: postgis/postgis:16-3.5-alpine
+    container_name: farmers-postgres
+    hostname: postgres
+    restart: unless-stopped
+
+    # Port mapping (not exposed to host by default for security)
+    # Override in docker-compose.dev.yml for local development
+    ports:
+      - "5432"
+
+    # Environment variables
+    environment:
+      - POSTGRES_USER=${DB_POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_POSTGRES_DBNAME:-farmers_module}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+
+    # Persistent volume for data
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+
+    # Health check
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_POSTGRES_USER:-postgres} -d ${DB_POSTGRES_DBNAME:-farmers_module}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    # Networks
+    networks:
+      - farmers-network
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  farmers-network:
+    name: farmers-network
+    driver: bridge
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres-data:
+    name: farmers-postgres-data
+    driver: local

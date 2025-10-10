@@ -40,6 +40,7 @@ type ServerConfig struct {
 type AAAConfig struct {
 	GRPCEndpoint   string
 	Token          string
+	APIKey         string
 	RetryAttempts  int
 	RetryBackoff   string
 	RequestTimeout string
@@ -82,6 +83,7 @@ func Load() *Config {
 		AAA: AAAConfig{
 			GRPCEndpoint:   getEnv("AAA_GRPC_ADDR", "localhost:50051"),
 			Token:          getEnv("AAA_TOKEN", ""),
+			APIKey:         getEnv("AAA_API_KEY", ""),
 			RetryAttempts:  getEnvAsInt("AAA_RETRY_ATTEMPTS", 3),
 			RetryBackoff:   getEnv("AAA_RETRY_BACKOFF", "100ms"),
 			RequestTimeout: getEnv("AAA_REQUEST_TIMEOUT", "5s"),

@@ -7,17 +7,17 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
-	"github.com/Kisanlink/kisanlink-db/pkg/base"
+	"github.com/Kisanlink/farmers-module/internal/repo/farmer"
 )
 
 // KisanSathiServiceImpl implements KisanSathiService
 type KisanSathiServiceImpl struct {
-	farmerLinkageRepo *base.BaseFilterableRepository[*entities.FarmerLink]
+	farmerLinkageRepo *farmer.FarmerLinkRepository
 	aaaService        AAAService
 }
 
 // NewKisanSathiService creates a new KisanSathi service
-func NewKisanSathiService(farmerLinkageRepo *base.BaseFilterableRepository[*entities.FarmerLink], aaaService AAAService) KisanSathiService {
+func NewKisanSathiService(farmerLinkageRepo *farmer.FarmerLinkRepository, aaaService AAAService) KisanSathiService {
 	return &KisanSathiServiceImpl{
 		farmerLinkageRepo: farmerLinkageRepo,
 		aaaService:        aaaService,

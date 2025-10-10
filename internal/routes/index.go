@@ -31,6 +31,9 @@ func RegisterAllRoutes(router *gin.Engine, services *services.ServiceFactory, cf
 		// Data Quality and Validation
 		RegisterDataQualityRoutes(api, services, cfg, logger)
 
+		// Lookup Data (Master Data)
+		RegisterLookupRoutes(api, services, cfg, logger)
+
 		// Bulk Operations
 		RegisterBulkOperationsRoutes(api, services, cfg, logger)
 

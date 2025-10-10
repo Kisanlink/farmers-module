@@ -32,6 +32,9 @@ type ServiceFactory struct {
 	// Data Quality Services
 	DataQualityService DataQualityService
 
+	// Lookup Services
+	LookupService LookupService
+
 	// Reporting Services
 	ReportingService ReportingService
 
@@ -73,10 +76,10 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	aaaService := NewAAAService(cfg)
 
 	// Initialize identity services
-	farmerService := NewFarmerService(repoFactory.FarmerRepo.BaseFilterableRepository, aaaService)
+	farmerService := NewFarmerService(repoFactory.FarmerRepo, aaaService)
 	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo.BaseFilterableRepository, aaaService)
 	fpoService := NewFPOService(repoFactory.FPORefRepo, aaaService)
-	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo.BaseFilterableRepository, aaaService)
+	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo, aaaService)
 
 	// Initialize farm management services
 	// Get GORM DB for farm service
@@ -88,14 +91,17 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 
 	// Initialize crop management services
 	cropService := NewCropService(repoFactory.CropRepo, repoFactory.CropVarietyRepo, aaaService)
-	cropCycleService := NewCropCycleService(repoFactory.CropCycleRepo.BaseFilterableRepository, aaaService)
-	farmActivityService := NewFarmActivityService(repoFactory.FarmActivityRepo.BaseFilterableRepository, repoFactory.CropCycleRepo.BaseFilterableRepository, repoFactory.FarmerLinkageRepo.BaseFilterableRepository, aaaService)
+	cropCycleService := NewCropCycleService(repoFactory.CropCycleRepo, aaaService)
+	farmActivityService := NewFarmActivityService(repoFactory.FarmActivityRepo, repoFactory.CropCycleRepo, repoFactory.FarmerLinkageRepo.BaseFilterableRepository, aaaService)
 
 	// Initialize notification service
 	notificationService := NewNotificationService(aaaService)
 
 	// Initialize data quality service
-	dataQualityService := NewDataQualityService(gormDB, repoFactory.FarmRepo, repoFactory.FarmerLinkageRepo.BaseFilterableRepository, aaaService, notificationService)
+	dataQualityService := NewDataQualityService(gormDB, repoFactory.FarmRepo, repoFactory.FarmerLinkageRepo, aaaService, notificationService)
+
+	// Initialize lookup service
+	lookupService := NewLookupService(gormDB)
 
 	// Initialize reporting service
 	reportingService := NewReportingService(repoFactory, gormDB, aaaService)
@@ -127,6 +133,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		CropCycleService:      cropCycleService,
 		FarmActivityService:   farmActivityService,
 		DataQualityService:    dataQualityService,
+		LookupService:         lookupService,
 		ReportingService:      reportingService,
 		AdministrativeService: administrativeService,
 		BulkFarmerService:     bulkFarmerService,

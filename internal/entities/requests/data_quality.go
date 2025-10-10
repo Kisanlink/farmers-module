@@ -3,8 +3,8 @@ package requests
 // ValidateGeometryRequest represents a request to validate WKT geometry
 type ValidateGeometryRequest struct {
 	BaseRequest
-	WKT         string `json:"wkt" validate:"required" example:"POLYGON((75.85 22.71, 75.86 22.71, 75.86 22.72, 75.85 22.72, 75.85 22.71))"`
-	CheckBounds bool   `json:"check_bounds,omitempty" example:"true"` // Whether to check if geometry is within India bounds
+	WKT         string `json:"wkt" validate:"required" example:"POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663, 75.85 22.71))"`
+	CheckBounds bool   `json:"check_bounds,omitempty" example:"true"` // Whether to check if geometry is within India bounds (~50 ha)
 }
 
 // ReconcileAAALinksRequest represents a request to reconcile AAA links

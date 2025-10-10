@@ -4,11 +4,31 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/gin-gonic/gin"
 )
+
+// getUserContext extracts user context from gin context
+func getUserContext(c *gin.Context) (userID, orgID string) {
+	// Extract user context
+	if userCtx, exists := c.Get("user_context"); exists {
+		if uc, ok := userCtx.(*auth.UserContext); ok && uc != nil {
+			userID = uc.AAAUserID
+		}
+	}
+
+	// Extract org context
+	if orgCtx, exists := c.Get("org_context"); exists {
+		if oc, ok := orgCtx.(*auth.OrgContext); ok && oc != nil {
+			orgID = oc.AAAOrgID
+		}
+	}
+
+	return userID, orgID
+}
 
 // Crop Handlers
 
@@ -36,8 +56,7 @@ func CreateCrop(service services.CropService) gin.HandlerFunc {
 		if req.RequestID == "" {
 			req.RequestID = generateRequestID()
 		}
-		req.UserID = c.GetString("user_id")
-		req.OrgID = c.GetString("org_id")
+		req.UserID, req.OrgID = getUserContext(c)
 
 		// Call service
 		result, err := service.CreateCrop(c.Request.Context(), &req)
@@ -101,8 +120,7 @@ func ListCrops(service services.CropService) gin.HandlerFunc {
 		if req.RequestID == "" {
 			req.RequestID = generateRequestID()
 		}
-		req.UserID = c.GetString("user_id")
-		req.OrgID = c.GetString("org_id")
+		req.UserID, req.OrgID = getUserContext(c)
 
 		// Call service
 		result, err := service.ListCrops(c.Request.Context(), &req)
@@ -147,8 +165,7 @@ func GetCrop(service services.CropService) gin.HandlerFunc {
 		if req.RequestID == "" {
 			req.RequestID = generateRequestID()
 		}
-		req.UserID = c.GetString("user_id")
-		req.OrgID = c.GetString("org_id")
+		req.UserID, req.OrgID = getUserContext(c)
 
 		// Call service
 		result, err := service.GetCrop(c.Request.Context(), &req)
@@ -200,8 +217,7 @@ func UpdateCrop(service services.CropService) gin.HandlerFunc {
 		if req.RequestID == "" {
 			req.RequestID = generateRequestID()
 		}
-		req.UserID = c.GetString("user_id")
-		req.OrgID = c.GetString("org_id")
+		req.UserID, req.OrgID = getUserContext(c)
 
 		// Call service
 		result, err := service.UpdateCrop(c.Request.Context(), &req)
@@ -246,8 +262,7 @@ func DeleteCrop(service services.CropService) gin.HandlerFunc {
 		if req.RequestID == "" {
 			req.RequestID = generateRequestID()
 		}
-		req.UserID = c.GetString("user_id")
-		req.OrgID = c.GetString("org_id")
+		req.UserID, req.OrgID = getUserContext(c)
 
 		// Call service
 		result, err := service.DeleteCrop(c.Request.Context(), &req)
@@ -292,8 +307,7 @@ func CreateCropVariety(service services.CropService) gin.HandlerFunc {
 		if req.RequestID == "" {
 			req.RequestID = generateRequestID()
 		}
-		req.UserID = c.GetString("user_id")
-		req.OrgID = c.GetString("org_id")
+		req.UserID, req.OrgID = getUserContext(c)
 
 		// Call service
 		result, err := service.CreateCropVariety(c.Request.Context(), &req)
@@ -353,8 +367,7 @@ func ListCropVarieties(service services.CropService) gin.HandlerFunc {
 		if req.RequestID == "" {
 			req.RequestID = generateRequestID()
 		}
-		req.UserID = c.GetString("user_id")
-		req.OrgID = c.GetString("org_id")
+		req.UserID, req.OrgID = getUserContext(c)
 
 		// Call service
 		result, err := service.ListCropVarieties(c.Request.Context(), &req)
@@ -399,8 +412,7 @@ func GetCropVariety(service services.CropService) gin.HandlerFunc {
 		if req.RequestID == "" {
 			req.RequestID = generateRequestID()
 		}
-		req.UserID = c.GetString("user_id")
-		req.OrgID = c.GetString("org_id")
+		req.UserID, req.OrgID = getUserContext(c)
 
 		// Call service
 		result, err := service.GetCropVariety(c.Request.Context(), &req)
@@ -452,8 +464,7 @@ func UpdateCropVariety(service services.CropService) gin.HandlerFunc {
 		if req.RequestID == "" {
 			req.RequestID = generateRequestID()
 		}
-		req.UserID = c.GetString("user_id")
-		req.OrgID = c.GetString("org_id")
+		req.UserID, req.OrgID = getUserContext(c)
 
 		// Call service
 		result, err := service.UpdateCropVariety(c.Request.Context(), &req)
@@ -498,8 +509,7 @@ func DeleteCropVariety(service services.CropService) gin.HandlerFunc {
 		if req.RequestID == "" {
 			req.RequestID = generateRequestID()
 		}
-		req.UserID = c.GetString("user_id")
-		req.OrgID = c.GetString("org_id")
+		req.UserID, req.OrgID = getUserContext(c)
 
 		// Call service
 		result, err := service.DeleteCropVariety(c.Request.Context(), &req)
