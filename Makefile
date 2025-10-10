@@ -90,5 +90,179 @@ version: ## Show version information
 	@echo "Version: 1.0.0"
 	@echo "Date: $(shell date)"
 
+# ==============================================================================
+# Docker Commands
+# ==============================================================================
+
+# Docker variables
+DOCKER_COMPOSE_DIR := deployment/docker
+DOCKER_COMPOSE := docker-compose -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml
+DOCKER_COMPOSE_DEV := $(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_DIR)/docker-compose.dev.yml
+DOCKER_COMPOSE_STAGING := $(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_DIR)/docker-compose.staging.yml
+DOCKER_COMPOSE_PROD := $(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_DIR)/docker-compose.prod.yml
+
+# Build metadata
+GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+VERSION := $(shell cat VERSION 2>/dev/null || echo "dev")
+
+# Docker build
+docker-build: ## Build Docker image
+	@echo "Building Docker image..."
+	@echo "Version: $(VERSION)"
+	@echo "Git Commit: $(GIT_COMMIT)"
+	@echo "Build Date: $(BUILD_DATE)"
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose build \
+		--build-arg GO_VERSION=1.24.4 \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg BUILD_DATE=$(BUILD_DATE)
+	@echo "✅ Docker image built successfully"
+
+# Development environment
+docker-dev: ## Start development environment with hot-reload
+	@echo "Starting development environment..."
+	@echo "Services will be available at:"
+	@echo "  - Farmers API: http://localhost:8000"
+	@echo "  - API Docs: http://localhost:8000/docs"
+	@echo "  - PostgreSQL: localhost:5432"
+	@echo "  - pgAdmin: http://localhost:5050"
+	@echo ""
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+docker-dev-build: ## Build and start development environment
+	@echo "Building and starting development environment..."
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+docker-dev-down: ## Stop development environment
+	@echo "Stopping development environment..."
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+	@echo "✅ Development environment stopped"
+
+# Production-like environments
+docker-up: ## Start services (base configuration)
+	@echo "Starting services..."
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose up -d
+	@echo "✅ Services started"
+
+docker-staging: ## Start staging environment
+	@echo "Starting staging environment..."
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+	@echo "✅ Staging environment started"
+
+docker-prod: ## Start production environment (reference only)
+	@echo "⚠️  WARNING: Production environment should use orchestration platforms (Kubernetes)"
+	@echo "Starting production environment..."
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+	@echo "✅ Production environment started"
+
+# Stop and cleanup
+docker-down: ## Stop and remove all containers
+	@echo "Stopping and removing containers..."
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose down
+	@echo "✅ Containers stopped and removed"
+
+docker-down-volumes: ## Stop containers and remove volumes (WARNING: deletes data)
+	@echo "⚠️  WARNING: This will delete all data in Docker volumes"
+	@read -p "Are you sure? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		cd $(DOCKER_COMPOSE_DIR) && docker-compose down -v; \
+		echo "✅ Containers and volumes removed"; \
+	else \
+		echo "Cancelled"; \
+	fi
+
+# Logs and monitoring
+docker-logs: ## View logs from all services
+	@echo "Viewing logs (Ctrl+C to exit)..."
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose logs -f
+
+docker-logs-app: ## View logs from farmers-service only
+	@echo "Viewing farmers-service logs (Ctrl+C to exit)..."
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose logs -f farmers-service
+
+docker-logs-db: ## View logs from PostgreSQL only
+	@echo "Viewing PostgreSQL logs (Ctrl+C to exit)..."
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose logs -f postgres
+
+# Container management
+docker-ps: ## List running containers
+	@cd $(DOCKER_COMPOSE_DIR) && docker-compose ps
+
+docker-shell: ## Open shell in running farmers-service container
+	@echo "Opening shell in farmers-service container..."
+	@cd $(DOCKER_COMPOSE_DIR) && docker-compose exec farmers-service /bin/sh
+
+docker-shell-db: ## Open psql shell in PostgreSQL container
+	@echo "Opening psql shell in PostgreSQL container..."
+	@cd $(DOCKER_COMPOSE_DIR) && docker-compose exec postgres psql -U postgres -d farmers_module
+
+# Testing in Docker
+docker-test: ## Run tests in Docker container
+	@echo "Running tests in Docker..."
+	docker run --rm \
+		-v $(PWD):/app \
+		-w /app \
+		golang:1.24.4-alpine \
+		sh -c "apk add --no-cache git make && go test ./... -v"
+	@echo "✅ Tests completed"
+
+# Restart services
+docker-restart: ## Restart all services
+	@echo "Restarting services..."
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose restart
+	@echo "✅ Services restarted"
+
+docker-restart-app: ## Restart farmers-service only
+	@echo "Restarting farmers-service..."
+	cd $(DOCKER_COMPOSE_DIR) && docker-compose restart farmers-service
+	@echo "✅ farmers-service restarted"
+
+# Health checks
+docker-health: ## Check health status of all services
+	@echo "Checking health status..."
+	@cd $(DOCKER_COMPOSE_DIR) && docker-compose ps
+
+# Clean Docker resources
+docker-clean: ## Remove unused Docker resources
+	@echo "Cleaning unused Docker resources..."
+	docker system prune -f
+	@echo "✅ Docker cleanup complete"
+
+docker-clean-all: ## Remove all Docker resources (WARNING: nuclear option)
+	@echo "⚠️  WARNING: This will remove ALL Docker resources (images, containers, volumes, networks)"
+	@read -p "Are you sure? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		docker system prune -a --volumes -f; \
+		echo "✅ All Docker resources removed"; \
+	else \
+		echo "Cancelled"; \
+	fi
+
+# Quick start guide
+docker-quickstart: ## Quick start guide for Docker setup
+	@echo "========================================"
+	@echo "Farmers Module - Docker Quick Start"
+	@echo "========================================"
+	@echo ""
+	@echo "1. Copy environment file:"
+	@echo "   cp deployment/docker/.env.example deployment/docker/.env"
+	@echo ""
+	@echo "2. Start development environment:"
+	@echo "   make docker-dev"
+	@echo ""
+	@echo "3. Access services:"
+	@echo "   - API: http://localhost:8000"
+	@echo "   - Docs: http://localhost:8000/docs"
+	@echo "   - pgAdmin: http://localhost:5050"
+	@echo ""
+	@echo "4. Stop environment:"
+	@echo "   make docker-dev-down"
+	@echo ""
+	@echo "For more commands, run: make help"
+	@echo ""
+
 # Default target
 .DEFAULT_GOAL := help

@@ -1,0 +1,189 @@
+# Staging Environment Overrides
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.staging.yml up
+
+version: '3.9'
+
+services:
+  # ============================================================================
+  # Farmers Service - Staging Configuration
+  # ============================================================================
+  farmers-service:
+    image: farmers-module:staging-${GIT_COMMIT:-latest}
+    container_name: farmers-service-staging
+    restart: always
+
+    # Staging environment variables
+    environment:
+      - ENVIRONMENT=staging
+      - LOG_LEVEL=info
+      - GIN_MODE=release
+      - ENABLE_TRACING=true
+      - ENABLE_METRICS=true
+
+      # Database configuration (use external DB in real staging)
+      - DB_POSTGRES_HOST=${DB_POSTGRES_HOST:-postgres}
+      - DB_POSTGRES_PORT=${DB_POSTGRES_PORT:-5432}
+      - DB_POSTGRES_SSLMODE=${DB_POSTGRES_SSLMODE:-require}
+      - DB_POSTGRES_MAX_CONNS=20
+
+      # AAA Service configuration (should point to staging AAA)
+      - AAA_ENABLED=true
+      - AAA_GRPC_ADDR=${AAA_GRPC_ADDR:-aaa-service-staging:50051}
+
+      # Observability (should point to staging monitoring)
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-otel-collector:4317}
+
+    # Resource limits (production-like)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    # Health check with tighter intervals
+    healthcheck:
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    # Logging with structured format
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "environment=staging,service=farmers-module"
+
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    read_only: false  # Set to true if app doesn't need write access
+    tmpfs:
+      - /tmp:size=100M,mode=1777
+
+  # ============================================================================
+  # PostgreSQL - Staging Configuration
+  # ============================================================================
+  postgres:
+    container_name: farmers-postgres-staging
+    restart: always
+
+    # Do not expose PostgreSQL port to host in staging
+    # Access should be through the farmers-service only
+    ports: []
+
+    # Staging database configuration
+    environment:
+      - POSTGRES_USER=${DB_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${DB_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${DB_POSTGRES_DBNAME}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8
+
+    # Performance tuning for staging
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=100"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "effective_cache_size=1GB"
+      - "-c"
+      - "maintenance_work_mem=64MB"
+      - "-c"
+      - "checkpoint_completion_target=0.9"
+      - "-c"
+      - "wal_buffers=16MB"
+      - "-c"
+      - "default_statistics_target=100"
+      - "-c"
+      - "random_page_cost=1.1"
+      - "-c"
+      - "effective_io_concurrency=200"
+      - "-c"
+      - "work_mem=2621kB"
+      - "-c"
+      - "min_wal_size=1GB"
+      - "-c"
+      - "max_wal_size=4GB"
+      - "-c"
+      - "log_statement=ddl"
+      - "-c"
+      - "log_duration=on"
+      - "-c"
+      - "log_min_duration_statement=1000"
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+    # Health check
+    healthcheck:
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    # Security
+    security_opt:
+      - no-new-privileges:true
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # ============================================================================
+  # Monitoring Stack (Optional - for staging observability)
+  # ============================================================================
+
+  # Prometheus for metrics collection (optional)
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: farmers-prometheus-staging
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - prometheus-data:/prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   networks:
+  #     - farmers-network
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+
+  # Grafana for visualization (optional)
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: farmers-grafana-staging
+  #   restart: unless-stopped
+  #   volumes:
+  #     - grafana-data:/var/lib/grafana
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - farmers-network
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+
+# ============================================================================
+# Volumes
+# ============================================================================
+# volumes:
+#   prometheus-data:
+#     name: farmers-prometheus-data
+#   grafana-data:
+#     name: farmers-grafana-data
