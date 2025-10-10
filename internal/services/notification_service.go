@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Kisanlink/farmers-module/internal/entities"
+	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 )
 
 // NotificationChannel represents the type of notification channel
@@ -43,7 +43,7 @@ type NotificationRequest struct {
 // NotificationService handles sending notifications to users and admins
 type NotificationService interface {
 	// SendOrphanedLinkAlert sends an alert when farmer_links become ORPHANED
-	SendOrphanedLinkAlert(ctx context.Context, fpoOrgID string, orphanedLinks []*entities.FarmerLink) error
+	SendOrphanedLinkAlert(ctx context.Context, fpoOrgID string, orphanedLinks []*farmerentity.FarmerLink) error
 
 	// SendDataQualityAlert sends alerts for data quality issues
 	SendDataQualityAlert(ctx context.Context, alert DataQualityAlert) error
@@ -87,7 +87,7 @@ func NewNotificationService(aaaService AAAService) NotificationService {
 
 // SendOrphanedLinkAlert sends an alert when farmer_links become ORPHANED
 // Business Rule 6.2: Notify FPO admin of data inconsistency
-func (s *NotificationServiceImpl) SendOrphanedLinkAlert(ctx context.Context, fpoOrgID string, orphanedLinks []*entities.FarmerLink) error {
+func (s *NotificationServiceImpl) SendOrphanedLinkAlert(ctx context.Context, fpoOrgID string, orphanedLinks []*farmerentity.FarmerLink) error {
 	if len(orphanedLinks) == 0 {
 		return nil
 	}

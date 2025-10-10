@@ -21,10 +21,12 @@ func TestModelValidation(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test AutoMigrate with models that work with SQLite
+	// Skip models with PostGIS types (Address with geometry, Farm with geometry)
 	models := []interface{}{
 		&fpo.FPORef{},
 		&farmer.FarmerLink{},
-		&farmer.Farmer{},
+		// Skip farmer.Farmer as it has FK to Address which uses PostGIS Point
+		// Skip farmer.Address as it uses PostGIS Point type
 		// Skip farm.Farm as it uses PostGIS geometry types
 		&crop_cycle.CropCycle{},
 		&farm_activity.FarmActivity{},

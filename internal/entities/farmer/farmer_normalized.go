@@ -42,9 +42,9 @@ func NewAddress() *Address {
 	}
 }
 
-// FarmerNormalized represents a farmer's database model with normalized address relationship
-// This is the RECOMMENDED entity to use for all farmer operations
-type FarmerNormalized struct {
+// Farmer represents a farmer's database model with normalized address relationship
+// This is the recommended entity to use for all farmer operations
+type Farmer struct {
 	base.BaseModel
 
 	// AAA Integration (External System IDs)
@@ -73,25 +73,25 @@ type FarmerNormalized struct {
 	Metadata    map[string]string `json:"metadata" gorm:"type:jsonb;default:'{}'"`
 }
 
-// TableName returns the table name for the FarmerNormalized model
-func (f *FarmerNormalized) TableName() string {
+// TableName returns the table name for the Farmer model
+func (f *Farmer) TableName() string {
 	return "farmers"
 }
 
 // GetTableIdentifier returns the table identifier for ID generation
-func (f *FarmerNormalized) GetTableIdentifier() string {
+func (f *Farmer) GetTableIdentifier() string {
 	return "FMRR"
 }
 
 // GetTableSize returns the table size for ID generation
-func (f *FarmerNormalized) GetTableSize() hash.TableSize {
+func (f *Farmer) GetTableSize() hash.TableSize {
 	return hash.Large
 }
 
-// NewFarmerNormalized creates a new normalized farmer model with proper initialization
-func NewFarmerNormalized() *FarmerNormalized {
+// NewFarmer creates a new farmer model with proper initialization
+func NewFarmer() *Farmer {
 	baseModel := base.NewBaseModel("FMRR", hash.Large)
-	return &FarmerNormalized{
+	return &Farmer{
 		BaseModel:   *baseModel,
 		Status:      "ACTIVE",
 		Preferences: make(map[string]string),
@@ -99,8 +99,8 @@ func NewFarmerNormalized() *FarmerNormalized {
 	}
 }
 
-// Validate validates the normalized farmer model
-func (f *FarmerNormalized) Validate() error {
+// Validate validates the farmer model
+func (f *Farmer) Validate() error {
 	if f.AAAUserID == "" {
 		return common.ErrInvalidInput
 	}
@@ -117,7 +117,7 @@ func (f *FarmerNormalized) Validate() error {
 }
 
 // SetAddress sets the address for the farmer and establishes the foreign key relationship
-func (f *FarmerNormalized) SetAddress(address *Address) {
+func (f *Farmer) SetAddress(address *Address) {
 	if address != nil {
 		f.Address = address
 		addressID := address.GetID()
@@ -126,7 +126,7 @@ func (f *FarmerNormalized) SetAddress(address *Address) {
 }
 
 // ClearAddress removes the address relationship
-func (f *FarmerNormalized) ClearAddress() {
+func (f *Farmer) ClearAddress() {
 	f.Address = nil
 	f.AddressID = nil
 }

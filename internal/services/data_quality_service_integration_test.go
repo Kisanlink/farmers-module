@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/Kisanlink/farmers-module/internal/auth"
-	"github.com/Kisanlink/farmers-module/internal/entities"
+	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	farmRepo "github.com/Kisanlink/farmers-module/internal/repo/farm"
@@ -35,7 +35,7 @@ func (suite *DataQualityServiceIntegrationTestSuite) SetupSuite() {
 	suite.Require().NoError(err)
 
 	// Auto-migrate the schema
-	err = db.AutoMigrate(&entities.FarmerLink{})
+	err = db.AutoMigrate(&farmerentity.FarmerLink{})
 	suite.Require().NoError(err)
 
 	suite.db = db
@@ -43,7 +43,7 @@ func (suite *DataQualityServiceIntegrationTestSuite) SetupSuite() {
 	// Create repositories
 	suite.farmRepo = farmRepo.NewFarmRepository(nil) // No DB manager for this test
 	suite.farmerLinkageRepo = &farmerRepo.FarmerLinkRepository{
-		BaseFilterableRepository: base.NewBaseFilterableRepository[*entities.FarmerLink](),
+		BaseFilterableRepository: base.NewBaseFilterableRepository[*farmerentity.FarmerLink](),
 	}
 	suite.farmerLinkageRepo.SetDBManager(&mockDBManager{db: db})
 

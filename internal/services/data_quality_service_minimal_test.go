@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/Kisanlink/farmers-module/internal/auth"
-	"github.com/Kisanlink/farmers-module/internal/entities"
+	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	farmerRepo "github.com/Kisanlink/farmers-module/internal/repo/farmer"
@@ -141,12 +141,12 @@ func TestDataQualityService_ReconcileAAALinks_Minimal(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Auto-migrate the FarmerLink model
-	err = db.AutoMigrate(&entities.FarmerLink{})
+	err = db.AutoMigrate(&farmerentity.FarmerLink{})
 	assert.NoError(t, err)
 
 	// Create real repository
 	farmerLinkageRepo := &farmerRepo.FarmerLinkRepository{
-		BaseFilterableRepository: base.NewBaseFilterableRepository[*entities.FarmerLink](),
+		BaseFilterableRepository: base.NewBaseFilterableRepository[*farmerentity.FarmerLink](),
 	}
 	farmerLinkageRepo.SetDBManager(&mockDBManager{db: db})
 

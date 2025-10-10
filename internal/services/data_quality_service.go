@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/Kisanlink/farmers-module/internal/auth"
-	"github.com/Kisanlink/farmers-module/internal/entities"
+	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	farmRepo "github.com/Kisanlink/farmers-module/internal/repo/farm"
@@ -236,7 +236,7 @@ func (s *DataQualityServiceImpl) ReconcileAAALinks(ctx context.Context, req inte
 
 	// Business Rule 6.2: Drift Detection and Recovery
 	// Collect orphaned links for notification
-	orphanedLinks := []*entities.FarmerLink{}
+	orphanedLinks := []*farmerentity.FarmerLink{}
 
 	// Check each link against AAA service
 	for _, link := range farmerLinks {
@@ -295,7 +295,7 @@ func (s *DataQualityServiceImpl) ReconcileAAALinks(ctx context.Context, req inte
 	// Business Rule 6.2: Notify FPO admin of data inconsistency
 	if len(orphanedLinks) > 0 && !reconcileReq.DryRun {
 		// Group orphaned links by organization for targeted notifications
-		orgOrphanedLinks := make(map[string][]*entities.FarmerLink)
+		orgOrphanedLinks := make(map[string][]*farmerentity.FarmerLink)
 		for _, link := range orphanedLinks {
 			orgOrphanedLinks[link.AAAOrgID] = append(orgOrphanedLinks[link.AAAOrgID], link)
 		}

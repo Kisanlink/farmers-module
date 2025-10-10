@@ -49,11 +49,13 @@ type Farm struct {
 	UpdatedAt       string            `json:"updated_at"`
 }
 
-// Farmer represents a farmer's database model that embeds base.BaseModel
-type Farmer struct {
+// FarmerLegacy represents the legacy farmer model with denormalized address fields
+// DEPRECATED: This model is deprecated. Use Farmer (from farmer_normalized.go) instead.
+// This model embeds address fields directly instead of using a foreign key relationship.
+type FarmerLegacy struct {
 	base.BaseModel
-	AAAUserID         string            `json:"aaa_user_id" gorm:"type:varchar(255);not null;uniqueIndex:idx_farmer_unique"`
-	AAAOrgID          string            `json:"aaa_org_id" gorm:"type:varchar(255);not null;uniqueIndex:idx_farmer_unique"`
+	AAAUserID         string            `json:"aaa_user_id" gorm:"type:varchar(255);not null;uniqueIndex:idx_farmer_legacy_unique"`
+	AAAOrgID          string            `json:"aaa_org_id" gorm:"type:varchar(255);not null;uniqueIndex:idx_farmer_legacy_unique"`
 	KisanSathiUserID  *string           `json:"kisan_sathi_user_id" gorm:"type:varchar(255)"`
 	FirstName         string            `json:"first_name" gorm:"type:varchar(255);not null"`
 	LastName          string            `json:"last_name" gorm:"type:varchar(255);not null"`
@@ -73,33 +75,34 @@ type Farmer struct {
 	Metadata          map[string]string `json:"metadata" gorm:"type:jsonb;default:'{}'"`
 }
 
-// TableName returns the table name for the Farmer model
-func (f *Farmer) TableName() string {
-	return "farmers"
+// TableName returns the table name for the FarmerLegacy model
+func (f *FarmerLegacy) TableName() string {
+	return "farmers_legacy"
 }
 
 // GetTableIdentifier returns the table identifier for ID generation
-func (f *Farmer) GetTableIdentifier() string {
-	return "FMRR"
+func (f *FarmerLegacy) GetTableIdentifier() string {
+	return "FMRL"
 }
 
 // GetTableSize returns the table size for ID generation
-func (f *Farmer) GetTableSize() hash.TableSize {
+func (f *FarmerLegacy) GetTableSize() hash.TableSize {
 	return hash.Large
 }
 
-// NewFarmer creates a new farmer model with proper initialization
-func NewFarmer() *Farmer {
-	baseModel := base.NewBaseModel("FMRR", hash.Large)
-	return &Farmer{
+// NewFarmerLegacy creates a new legacy farmer model with proper initialization
+// DEPRECATED: Use NewFarmer() from farmer_normalized.go instead
+func NewFarmerLegacy() *FarmerLegacy {
+	baseModel := base.NewBaseModel("FMRL", hash.Large)
+	return &FarmerLegacy{
 		BaseModel:   *baseModel,
 		Preferences: make(map[string]string),
 		Metadata:    make(map[string]string),
 	}
 }
 
-// Validate validates the farmer model
-func (f *Farmer) Validate() error {
+// Validate validates the legacy farmer model
+func (f *FarmerLegacy) Validate() error {
 	if f.AAAUserID == "" {
 		return common.ErrInvalidInput
 	}

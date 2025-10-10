@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/auth"
-	"github.com/Kisanlink/farmers-module/internal/entities"
+	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/repo"
@@ -54,7 +54,7 @@ func (s *ReportingServiceImpl) ExportFarmerPortfolio(ctx context.Context, req in
 	}
 
 	// Get farmer information
-	farmer := &entities.FarmerProfile{}
+	farmer := &farmerentity.Farmer{}
 	_, err = s.repoFactory.FarmerRepo.GetByID(ctx, request.FarmerID, farmer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get farmer: %w", err)
@@ -228,7 +228,7 @@ func (s *ReportingServiceImpl) OrgDashboardCounters(ctx context.Context, req int
 	// Get total farmers count
 	farmerFilterBuilder := base.NewFilterBuilder().
 		Where("aaa_org_id", base.OpEqual, request.OrgID)
-	totalFarmers, err := s.repoFactory.FarmerRepo.Count(ctx, farmerFilterBuilder.Build(), &entities.FarmerProfile{})
+	totalFarmers, err := s.repoFactory.FarmerRepo.Count(ctx, farmerFilterBuilder.Build(), &farmerentity.Farmer{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to count farmers: %w", err)
 	}
@@ -237,7 +237,7 @@ func (s *ReportingServiceImpl) OrgDashboardCounters(ctx context.Context, req int
 	linkageFilterBuilder := base.NewFilterBuilder().
 		Where("aaa_org_id", base.OpEqual, request.OrgID).
 		Where("status", base.OpEqual, "ACTIVE")
-	activeFarmers, err := s.repoFactory.FarmerLinkageRepo.Count(ctx, linkageFilterBuilder.Build(), &entities.FarmerLink{})
+	activeFarmers, err := s.repoFactory.FarmerLinkageRepo.Count(ctx, linkageFilterBuilder.Build(), &farmerentity.FarmerLink{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to count active farmers: %w", err)
 	}

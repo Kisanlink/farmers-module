@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/auth"
-	"github.com/Kisanlink/farmers-module/internal/entities"
+	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
@@ -14,9 +14,9 @@ import (
 
 // FarmerLinkRepository defines the interface for farmer link repository operations
 type FarmerLinkRepository interface {
-	Create(ctx context.Context, entity *entities.FarmerLink) error
-	Update(ctx context.Context, entity *entities.FarmerLink) error
-	Find(ctx context.Context, filter *base.Filter) ([]*entities.FarmerLink, error)
+	Create(ctx context.Context, entity *farmerentity.FarmerLink) error
+	Update(ctx context.Context, entity *farmerentity.FarmerLink) error
+	Find(ctx context.Context, filter *base.Filter) ([]*farmerentity.FarmerLink, error)
 }
 
 // FarmerLinkageServiceImpl implements FarmerLinkageService
@@ -77,21 +77,16 @@ func (s *FarmerLinkageServiceImpl) LinkFarmerToFPO(ctx context.Context, req inte
 		// Update existing link to ACTIVE if it was inactive
 		if existingLink.Status != "ACTIVE" {
 			existingLink.Status = "ACTIVE"
-			now := time.Now()
-			existingLink.LinkedAt = &now
-			existingLink.UnlinkedAt = nil
 			return s.farmerLinkageRepo.Update(ctx, existingLink)
 		}
 		return nil // Already linked and active
 	}
 
 	// Create new farmer link
-	now := time.Now()
-	farmerLink := &entities.FarmerLink{
+	farmerLink := &farmerentity.FarmerLink{
 		AAAUserID: linkReq.AAAUserID,
 		AAAOrgID:  linkReq.AAAOrgID,
 		Status:    "ACTIVE",
-		LinkedAt:  &now,
 	}
 
 	return s.farmerLinkageRepo.Create(ctx, farmerLink)
@@ -137,8 +132,6 @@ func (s *FarmerLinkageServiceImpl) UnlinkFarmerFromFPO(ctx context.Context, req 
 
 	// Soft delete by setting status to INACTIVE
 	existingLink.Status = "INACTIVE"
-	now := time.Now()
-	existingLink.UnlinkedAt = &now
 	// Clear KisanSathi assignment when unlinking
 	existingLink.KisanSathiUserID = nil
 
@@ -176,13 +169,6 @@ func (s *FarmerLinkageServiceImpl) GetFarmerLinkage(ctx context.Context, farmerI
 		Status:           farmerLink.Status,
 		CreatedAt:        farmerLink.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:        farmerLink.UpdatedAt.Format(time.RFC3339),
-	}
-
-	if farmerLink.LinkedAt != nil {
-		linkageData.LinkedAt = farmerLink.LinkedAt.Format(time.RFC3339)
-	}
-	if farmerLink.UnlinkedAt != nil {
-		linkageData.UnlinkedAt = farmerLink.UnlinkedAt.Format(time.RFC3339)
 	}
 
 	return linkageData, nil
@@ -457,7 +443,7 @@ func (s *FarmerLinkageServiceImpl) CreateKisanSathiUser(ctx context.Context, req
 }
 
 // getFarmerLinkByUserAndOrg is a helper method to find farmer link by user and org
-func (s *FarmerLinkageServiceImpl) getFarmerLinkByUserAndOrg(ctx context.Context, userID, orgID string) (*entities.FarmerLink, error) {
+func (s *FarmerLinkageServiceImpl) getFarmerLinkByUserAndOrg(ctx context.Context, userID, orgID string) (*farmerentity.FarmerLink, error) {
 	filter := base.NewFilterBuilder().
 		Where("aaa_user_id", base.OpEqual, userID).
 		Where("aaa_org_id", base.OpEqual, orgID).

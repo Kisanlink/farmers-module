@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Kisanlink/farmers-module/internal/entities"
+	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/repo/farmer"
 	"github.com/Kisanlink/farmers-module/internal/utils"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
-	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
 )
 
 // FarmerService handles farmer-related operations
@@ -37,6 +36,22 @@ func NewFarmerService(repository *farmer.FarmerRepository, aaaService AAAService
 		aaaService:  aaaService,
 		passwordGen: utils.NewPasswordGenerator(),
 	}
+}
+
+// Helper function to safely dereference DateOfBirth pointer
+func safeDerefString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+// Helper function to convert string to pointer (returns nil for empty string)
+func stringToPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }
 
 // CreateFarmer creates a new farmer
@@ -127,7 +142,7 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 						LastName:         existingFarmer.LastName,
 						PhoneNumber:      existingFarmer.PhoneNumber,
 						Email:            existingFarmer.Email,
-						DateOfBirth:      existingFarmer.DateOfBirth,
+						DateOfBirth:      safeDerefString(existingFarmer.DateOfBirth),
 						Gender:           existingFarmer.Gender,
 						Address:          addressData,
 						Preferences:      existingFarmer.Preferences,
@@ -206,68 +221,73 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		validatedKisanSathiID = nil
 	}
 
-	// Create new farmer profile
-	farmerProfile := &entities.FarmerProfile{
-		BaseModel:        *base.NewBaseModel("farmer_profile", hash.Medium),
-		AAAUserID:        aaaUserID,
-		AAAOrgID:         aaaOrgID,
-		KisanSathiUserID: validatedKisanSathiID,
-		FirstName:        req.Profile.FirstName,
-		LastName:         req.Profile.LastName,
-		PhoneNumber:      req.Profile.PhoneNumber,
-		Email:            req.Profile.Email,
-		DateOfBirth:      req.Profile.DateOfBirth,
-		Gender:           req.Profile.Gender,
-		Address: &entities.Address{
-			StreetAddress: req.Profile.Address.StreetAddress,
-			City:          req.Profile.Address.City,
-			State:         req.Profile.Address.State,
-			PostalCode:    req.Profile.Address.PostalCode,
-			Country:       req.Profile.Address.Country,
-			Coordinates:   req.Profile.Address.Coordinates,
-		},
-		Preferences: req.Profile.Preferences,
-		Metadata:    req.Profile.Metadata,
-		Status:      "ACTIVE",
+	// Create new farmer with normalized address
+	farmer := farmerentity.NewFarmer()
+	farmer.AAAUserID = aaaUserID
+	farmer.AAAOrgID = aaaOrgID
+	farmer.KisanSathiUserID = validatedKisanSathiID
+	farmer.FirstName = req.Profile.FirstName
+	farmer.LastName = req.Profile.LastName
+	farmer.PhoneNumber = req.Profile.PhoneNumber
+	farmer.Email = req.Profile.Email
+	farmer.DateOfBirth = stringToPtr(req.Profile.DateOfBirth)
+	farmer.Gender = req.Profile.Gender
+	farmer.Preferences = req.Profile.Preferences
+	farmer.Metadata = req.Profile.Metadata
+	farmer.Status = "ACTIVE"
+	farmer.SetCreatedBy(req.UserID)
+
+	// Create address entity if address data is provided
+	if req.Profile.Address.StreetAddress != "" || req.Profile.Address.City != "" {
+		address := farmerentity.NewAddress()
+		address.StreetAddress = req.Profile.Address.StreetAddress
+		address.City = req.Profile.Address.City
+		address.State = req.Profile.Address.State
+		address.PostalCode = req.Profile.Address.PostalCode
+		address.Country = req.Profile.Address.Country
+		address.Coordinates = req.Profile.Address.Coordinates
+		address.SetCreatedBy(req.UserID)
+
+		// Set the address for the farmer (establishes FK relationship)
+		farmer.SetAddress(address)
 	}
-	farmerProfile.SetCreatedBy(req.UserID)
 
 	// Save to repository
-	if err := s.repository.Create(ctx, farmerProfile); err != nil {
+	if err := s.repository.Create(ctx, farmer); err != nil {
 		return nil, fmt.Errorf("failed to create farmer: %w", err)
 	}
 
 	// Convert to response format
 	// Handle address data safely
 	var addressData responses.AddressData
-	if farmerProfile.Address != nil {
+	if farmer.Address != nil {
 		addressData = responses.AddressData{
-			StreetAddress: farmerProfile.Address.StreetAddress,
-			City:          farmerProfile.Address.City,
-			State:         farmerProfile.Address.State,
-			PostalCode:    farmerProfile.Address.PostalCode,
-			Country:       farmerProfile.Address.Country,
-			Coordinates:   farmerProfile.Address.Coordinates,
+			StreetAddress: farmer.Address.StreetAddress,
+			City:          farmer.Address.City,
+			State:         farmer.Address.State,
+			PostalCode:    farmer.Address.PostalCode,
+			Country:       farmer.Address.Country,
+			Coordinates:   farmer.Address.Coordinates,
 		}
 	}
 
 	farmerProfileData := &responses.FarmerProfileData{
-		ID:               farmerProfile.GetID(),
-		AAAUserID:        farmerProfile.AAAUserID,
-		AAAOrgID:         farmerProfile.AAAOrgID,
-		KisanSathiUserID: farmerProfile.KisanSathiUserID,
-		FirstName:        farmerProfile.FirstName,
-		LastName:         farmerProfile.LastName,
-		PhoneNumber:      farmerProfile.PhoneNumber,
-		Email:            farmerProfile.Email,
-		DateOfBirth:      farmerProfile.DateOfBirth,
-		Gender:           farmerProfile.Gender,
+		ID:               farmer.GetID(),
+		AAAUserID:        farmer.AAAUserID,
+		AAAOrgID:         farmer.AAAOrgID,
+		KisanSathiUserID: farmer.KisanSathiUserID,
+		FirstName:        farmer.FirstName,
+		LastName:         farmer.LastName,
+		PhoneNumber:      farmer.PhoneNumber,
+		Email:            farmer.Email,
+		DateOfBirth:      safeDerefString(farmer.DateOfBirth),
+		Gender:           farmer.Gender,
 		Address:          addressData,
-		Preferences:      farmerProfile.Preferences,
-		Metadata:         farmerProfile.Metadata,
+		Preferences:      farmer.Preferences,
+		Metadata:         farmer.Metadata,
 		Farms:            []*responses.FarmData{},
-		CreatedAt:        farmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:        farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:        farmer.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:        farmer.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
 	// Prepare response message with warning if KisanSathi validation failed
@@ -304,7 +324,7 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 		return nil, fmt.Errorf("either farmer_id or aaa_user_id must be provided")
 	}
 
-	farmerProfile, err := s.repository.FindOne(ctx, filter)
+	farmer, err := s.repository.FindOne(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("farmer not found: %w", err)
 	}
@@ -312,34 +332,34 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 	// Convert to response format
 	// Handle address data safely
 	var addressData responses.AddressData
-	if farmerProfile.Address != nil {
+	if farmer.Address != nil {
 		addressData = responses.AddressData{
-			StreetAddress: farmerProfile.Address.StreetAddress,
-			City:          farmerProfile.Address.City,
-			State:         farmerProfile.Address.State,
-			PostalCode:    farmerProfile.Address.PostalCode,
-			Country:       farmerProfile.Address.Country,
-			Coordinates:   farmerProfile.Address.Coordinates,
+			StreetAddress: farmer.Address.StreetAddress,
+			City:          farmer.Address.City,
+			State:         farmer.Address.State,
+			PostalCode:    farmer.Address.PostalCode,
+			Country:       farmer.Address.Country,
+			Coordinates:   farmer.Address.Coordinates,
 		}
 	}
 
 	farmerProfileData := &responses.FarmerProfileData{
-		ID:               farmerProfile.GetID(),
-		AAAUserID:        farmerProfile.AAAUserID,
-		AAAOrgID:         farmerProfile.AAAOrgID,
-		KisanSathiUserID: farmerProfile.KisanSathiUserID,
-		FirstName:        farmerProfile.FirstName,
-		LastName:         farmerProfile.LastName,
-		PhoneNumber:      farmerProfile.PhoneNumber,
-		Email:            farmerProfile.Email,
-		DateOfBirth:      farmerProfile.DateOfBirth,
-		Gender:           farmerProfile.Gender,
+		ID:               farmer.GetID(),
+		AAAUserID:        farmer.AAAUserID,
+		AAAOrgID:         farmer.AAAOrgID,
+		KisanSathiUserID: farmer.KisanSathiUserID,
+		FirstName:        farmer.FirstName,
+		LastName:         farmer.LastName,
+		PhoneNumber:      farmer.PhoneNumber,
+		Email:            farmer.Email,
+		DateOfBirth:      safeDerefString(farmer.DateOfBirth),
+		Gender:           farmer.Gender,
 		Address:          addressData,
-		Preferences:      farmerProfile.Preferences,
-		Metadata:         farmerProfile.Metadata,
+		Preferences:      farmer.Preferences,
+		Metadata:         farmer.Metadata,
 		Farms:            []*responses.FarmData{}, // TODO: Load actual farms
-		CreatedAt:        farmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:        farmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:        farmer.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:        farmer.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
 	response := responses.NewFarmerProfileResponse(farmerProfileData, "Farmer retrieved successfully")
@@ -370,84 +390,84 @@ func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.Upda
 		return nil, fmt.Errorf("either farmer_id or aaa_user_id must be provided")
 	}
 
-	existingFarmerProfile, err := s.repository.FindOne(ctx, filter)
+	existingFarmer, err := s.repository.FindOne(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("farmer not found: %w", err)
 	}
 
 	// Update fields if provided
 	if req.Profile.FirstName != "" {
-		existingFarmerProfile.FirstName = req.Profile.FirstName
+		existingFarmer.FirstName = req.Profile.FirstName
 	}
 	if req.Profile.LastName != "" {
-		existingFarmerProfile.LastName = req.Profile.LastName
+		existingFarmer.LastName = req.Profile.LastName
 	}
 	if req.Profile.PhoneNumber != "" {
-		existingFarmerProfile.PhoneNumber = req.Profile.PhoneNumber
+		existingFarmer.PhoneNumber = req.Profile.PhoneNumber
 	}
 	if req.Profile.Email != "" {
-		existingFarmerProfile.Email = req.Profile.Email
+		existingFarmer.Email = req.Profile.Email
 	}
 	if req.Profile.DateOfBirth != "" {
-		existingFarmerProfile.DateOfBirth = req.Profile.DateOfBirth
+		existingFarmer.DateOfBirth = stringToPtr(req.Profile.DateOfBirth)
 	}
 	if req.Profile.Gender != "" {
-		existingFarmerProfile.Gender = req.Profile.Gender
+		existingFarmer.Gender = req.Profile.Gender
 	}
 	if req.Profile.Address.StreetAddress != "" {
-		existingFarmerProfile.Address.StreetAddress = req.Profile.Address.StreetAddress
-		existingFarmerProfile.Address.City = req.Profile.Address.City
-		existingFarmerProfile.Address.State = req.Profile.Address.State
-		existingFarmerProfile.Address.PostalCode = req.Profile.Address.PostalCode
-		existingFarmerProfile.Address.Country = req.Profile.Address.Country
-		existingFarmerProfile.Address.Coordinates = req.Profile.Address.Coordinates
+		existingFarmer.Address.StreetAddress = req.Profile.Address.StreetAddress
+		existingFarmer.Address.City = req.Profile.Address.City
+		existingFarmer.Address.State = req.Profile.Address.State
+		existingFarmer.Address.PostalCode = req.Profile.Address.PostalCode
+		existingFarmer.Address.Country = req.Profile.Address.Country
+		existingFarmer.Address.Coordinates = req.Profile.Address.Coordinates
 	}
 	if req.KisanSathiUserID != nil {
-		existingFarmerProfile.KisanSathiUserID = req.KisanSathiUserID
+		existingFarmer.KisanSathiUserID = req.KisanSathiUserID
 	}
 
 	// Update metadata
 	if req.Profile.Metadata != nil {
-		if existingFarmerProfile.Metadata == nil {
-			existingFarmerProfile.Metadata = make(map[string]string)
+		if existingFarmer.Metadata == nil {
+			existingFarmer.Metadata = make(map[string]string)
 		}
 		for k, v := range req.Profile.Metadata {
-			existingFarmerProfile.Metadata[k] = v
+			existingFarmer.Metadata[k] = v
 		}
 	}
 
-	existingFarmerProfile.SetUpdatedBy(req.UserID)
+	existingFarmer.SetUpdatedBy(req.UserID)
 
 	// Save updated farmer
-	if err := s.repository.Update(ctx, existingFarmerProfile); err != nil {
+	if err := s.repository.Update(ctx, existingFarmer); err != nil {
 		return nil, fmt.Errorf("failed to update farmer: %w", err)
 	}
 
 	// Convert to response format
 	farmerProfileData := &responses.FarmerProfileData{
-		ID:               existingFarmerProfile.GetID(),
-		AAAUserID:        existingFarmerProfile.AAAUserID,
-		AAAOrgID:         existingFarmerProfile.AAAOrgID,
-		KisanSathiUserID: existingFarmerProfile.KisanSathiUserID,
-		FirstName:        existingFarmerProfile.FirstName,
-		LastName:         existingFarmerProfile.LastName,
-		PhoneNumber:      existingFarmerProfile.PhoneNumber,
-		Email:            existingFarmerProfile.Email,
-		DateOfBirth:      existingFarmerProfile.DateOfBirth,
-		Gender:           existingFarmerProfile.Gender,
+		ID:               existingFarmer.GetID(),
+		AAAUserID:        existingFarmer.AAAUserID,
+		AAAOrgID:         existingFarmer.AAAOrgID,
+		KisanSathiUserID: existingFarmer.KisanSathiUserID,
+		FirstName:        existingFarmer.FirstName,
+		LastName:         existingFarmer.LastName,
+		PhoneNumber:      existingFarmer.PhoneNumber,
+		Email:            existingFarmer.Email,
+		DateOfBirth:      safeDerefString(existingFarmer.DateOfBirth),
+		Gender:           existingFarmer.Gender,
 		Address: responses.AddressData{
-			StreetAddress: existingFarmerProfile.Address.StreetAddress,
-			City:          existingFarmerProfile.Address.City,
-			State:         existingFarmerProfile.Address.State,
-			PostalCode:    existingFarmerProfile.Address.PostalCode,
-			Country:       existingFarmerProfile.Address.Country,
-			Coordinates:   existingFarmerProfile.Address.Coordinates,
+			StreetAddress: existingFarmer.Address.StreetAddress,
+			City:          existingFarmer.Address.City,
+			State:         existingFarmer.Address.State,
+			PostalCode:    existingFarmer.Address.PostalCode,
+			Country:       existingFarmer.Address.Country,
+			Coordinates:   existingFarmer.Address.Coordinates,
 		},
-		Preferences: existingFarmerProfile.Preferences,
-		Metadata:    existingFarmerProfile.Metadata,
+		Preferences: existingFarmer.Preferences,
+		Metadata:    existingFarmer.Metadata,
 		Farms:       []*responses.FarmData{}, // TODO: Load actual farms
-		CreatedAt:   existingFarmerProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   existingFarmerProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:   existingFarmer.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:   existingFarmer.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
 	response := responses.NewFarmerResponse(farmerProfileData, "Farmer updated successfully")
@@ -478,13 +498,13 @@ func (s *FarmerServiceImpl) DeleteFarmer(ctx context.Context, req *requests.Dele
 		return fmt.Errorf("either farmer_id or aaa_user_id must be provided")
 	}
 
-	existingFarmerProfile, err := s.repository.FindOne(ctx, filter)
+	existingFarmer, err := s.repository.FindOne(ctx, filter)
 	if err != nil {
 		return fmt.Errorf("farmer not found: %w", err)
 	}
 
 	// Perform soft delete
-	if err := s.repository.SoftDelete(ctx, existingFarmerProfile.GetID(), req.UserID); err != nil {
+	if err := s.repository.SoftDelete(ctx, existingFarmer.GetID(), req.UserID); err != nil {
 		return fmt.Errorf("failed to delete farmer: %w", err)
 	}
 
@@ -508,7 +528,7 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 	}
 
 	// Query farmers from repository
-	farmerProfiles, err := s.repository.Find(ctx, filter.Build())
+	farmers, err := s.repository.Find(ctx, filter.Build())
 	if err != nil {
 		return nil, fmt.Errorf("failed to list farmers: %w", err)
 	}
@@ -531,37 +551,37 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 
 	// Convert to response format
 	var farmerProfilesData []*responses.FarmerProfileData
-	for _, fp := range farmerProfiles {
+	for _, farmer := range farmers {
 		// Handle address data safely
 		var addressData responses.AddressData
-		if fp.Address != nil {
+		if farmer.Address != nil {
 			addressData = responses.AddressData{
-				StreetAddress: fp.Address.StreetAddress,
-				City:          fp.Address.City,
-				State:         fp.Address.State,
-				PostalCode:    fp.Address.PostalCode,
-				Country:       fp.Address.Country,
-				Coordinates:   fp.Address.Coordinates,
+				StreetAddress: farmer.Address.StreetAddress,
+				City:          farmer.Address.City,
+				State:         farmer.Address.State,
+				PostalCode:    farmer.Address.PostalCode,
+				Country:       farmer.Address.Country,
+				Coordinates:   farmer.Address.Coordinates,
 			}
 		}
 
 		farmerProfileData := &responses.FarmerProfileData{
-			ID:               fp.GetID(),
-			AAAUserID:        fp.AAAUserID,
-			AAAOrgID:         fp.AAAOrgID,
-			KisanSathiUserID: fp.KisanSathiUserID,
-			FirstName:        fp.FirstName,
-			LastName:         fp.LastName,
-			PhoneNumber:      fp.PhoneNumber,
-			Email:            fp.Email,
-			DateOfBirth:      fp.DateOfBirth,
-			Gender:           fp.Gender,
+			ID:               farmer.GetID(),
+			AAAUserID:        farmer.AAAUserID,
+			AAAOrgID:         farmer.AAAOrgID,
+			KisanSathiUserID: farmer.KisanSathiUserID,
+			FirstName:        farmer.FirstName,
+			LastName:         farmer.LastName,
+			PhoneNumber:      farmer.PhoneNumber,
+			Email:            farmer.Email,
+			DateOfBirth:      safeDerefString(farmer.DateOfBirth),
+			Gender:           farmer.Gender,
 			Address:          addressData,
-			Preferences:      fp.Preferences,
-			Metadata:         fp.Metadata,
+			Preferences:      farmer.Preferences,
+			Metadata:         farmer.Metadata,
 			Farms:            []*responses.FarmData{}, // TODO: Load actual farms
-			CreatedAt:        fp.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:        fp.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:        farmer.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			UpdatedAt:        farmer.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		}
 		farmerProfilesData = append(farmerProfilesData, farmerProfileData)
 	}

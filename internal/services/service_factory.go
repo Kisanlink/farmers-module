@@ -77,7 +77,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 
 	// Initialize identity services
 	farmerService := NewFarmerService(repoFactory.FarmerRepo, aaaService)
-	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo.BaseFilterableRepository, aaaService)
+	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo, aaaService)
 	fpoService := NewFPOService(repoFactory.FPORefRepo, aaaService)
 	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo, aaaService)
 
@@ -92,7 +92,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	// Initialize crop management services
 	cropService := NewCropService(repoFactory.CropRepo, repoFactory.CropVarietyRepo, aaaService)
 	cropCycleService := NewCropCycleService(repoFactory.CropCycleRepo, aaaService)
-	farmActivityService := NewFarmActivityService(repoFactory.FarmActivityRepo, repoFactory.CropCycleRepo, repoFactory.FarmerLinkageRepo.BaseFilterableRepository, aaaService)
+	farmActivityService := NewFarmActivityService(repoFactory.FarmActivityRepo, repoFactory.CropCycleRepo, repoFactory.FarmerLinkageRepo, aaaService)
 
 	// Initialize notification service
 	notificationService := NewNotificationService(aaaService)

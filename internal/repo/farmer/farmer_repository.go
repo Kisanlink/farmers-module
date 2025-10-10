@@ -4,26 +4,26 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Kisanlink/farmers-module/internal/entities"
+	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"gorm.io/gorm"
 )
 
-// FarmerRepository wraps BaseFilterableRepository with custom methods
+// FarmerRepository wraps BaseFilterableRepository with custom methods for normalized Farmer entity
 type FarmerRepository struct {
-	*base.BaseFilterableRepository[*entities.FarmerProfile]
+	*base.BaseFilterableRepository[*farmerentity.Farmer]
 	db *gorm.DB
 }
 
 // FarmerLinkRepository wraps BaseFilterableRepository with custom methods
 type FarmerLinkRepository struct {
-	*base.BaseFilterableRepository[*entities.FarmerLink]
+	*base.BaseFilterableRepository[*farmerentity.FarmerLink]
 	db *gorm.DB
 }
 
-// NewFarmerRepository creates a new farmer repository using BaseFilterableRepository
+// NewFarmerRepository creates a new farmer repository using BaseFilterableRepository with normalized Farmer entity
 func NewFarmerRepository(dbManager interface{}) *FarmerRepository {
-	baseRepo := base.NewBaseFilterableRepository[*entities.FarmerProfile]()
+	baseRepo := base.NewBaseFilterableRepository[*farmerentity.Farmer]()
 	baseRepo.SetDBManager(dbManager)
 
 	// Get the GORM DB instance
@@ -43,12 +43,12 @@ func NewFarmerRepository(dbManager interface{}) *FarmerRepository {
 }
 
 // Count overrides the base Count method to properly set the model
-func (r *FarmerRepository) Count(ctx context.Context, filter *base.Filter, model *entities.FarmerProfile) (int64, error) {
+func (r *FarmerRepository) Count(ctx context.Context, filter *base.Filter, model *farmerentity.Farmer) (int64, error) {
 	if r.db == nil {
 		return 0, fmt.Errorf("database connection not available")
 	}
 
-	query := r.db.Model(&entities.FarmerProfile{}).WithContext(ctx)
+	query := r.db.Model(&farmerentity.Farmer{}).WithContext(ctx)
 
 	// Apply filters
 	if filter != nil && filter.Group.Conditions != nil {
@@ -67,7 +67,7 @@ func (r *FarmerRepository) Count(ctx context.Context, filter *base.Filter, model
 
 // NewFarmerLinkRepository creates a new farmer link repository using BaseFilterableRepository
 func NewFarmerLinkRepository(dbManager interface{}) *FarmerLinkRepository {
-	baseRepo := base.NewBaseFilterableRepository[*entities.FarmerLink]()
+	baseRepo := base.NewBaseFilterableRepository[*farmerentity.FarmerLink]()
 	baseRepo.SetDBManager(dbManager)
 
 	// Get the GORM DB instance
@@ -87,12 +87,12 @@ func NewFarmerLinkRepository(dbManager interface{}) *FarmerLinkRepository {
 }
 
 // Count overrides the base Count method to properly set the model
-func (r *FarmerLinkRepository) Count(ctx context.Context, filter *base.Filter, model *entities.FarmerLink) (int64, error) {
+func (r *FarmerLinkRepository) Count(ctx context.Context, filter *base.Filter, model *farmerentity.FarmerLink) (int64, error) {
 	if r.db == nil {
 		return 0, fmt.Errorf("database connection not available")
 	}
 
-	query := r.db.Model(&entities.FarmerLink{}).WithContext(ctx)
+	query := r.db.Model(&farmerentity.FarmerLink{}).WithContext(ctx)
 
 	// Apply filters
 	if filter != nil && filter.Group.Conditions != nil {

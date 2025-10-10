@@ -73,9 +73,10 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		models := []interface{}{
 			&fpo.FPORef{},
 			&farmer.FarmerLink{},
-			&farmer.Farmer{},          // Add the main Farmer model
-			&entities.Address{},       // Add Address entity
-			&entities.FarmerProfile{}, // Add FarmerProfile entity
+			&farmer.Address{},         // Normalized Address entity (shared)
+			&farmer.Farmer{},          // Normalized Farmer entity (recommended)
+			&farmer.FarmerLegacy{},    // Legacy Farmer model (denormalized, deprecated)
+			&entities.FarmerProfile{}, // Legacy FarmerProfile (deprecated)
 			&crop.Crop{},
 			&crop_variety.CropVariety{},
 			&crop_cycle.CropCycle{},
@@ -109,9 +110,10 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 			models := []interface{}{
 				&fpo.FPORef{},
 				&farmer.FarmerLink{},
-				&farmer.Farmer{},
-				&entities.Address{},
-				&entities.FarmerProfile{},
+				&farmer.Address{},         // Normalized Address entity (shared)
+				&farmer.Farmer{},          // Normalized Farmer entity (recommended)
+				&farmer.FarmerLegacy{},    // Legacy Farmer model (denormalized, deprecated)
+				&entities.FarmerProfile{}, // Legacy FarmerProfile (deprecated)
 				&crop.Crop{},
 				&crop_variety.CropVariety{},
 				&crop_cycle.CropCycle{},
@@ -139,9 +141,10 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		models := []interface{}{
 			&fpo.FPORef{},
 			&farmer.FarmerLink{},
-			&farmer.Farmer{},          // Add the main Farmer model
-			&entities.Address{},       // Add Address entity
-			&entities.FarmerProfile{}, // Add FarmerProfile entity
+			&farmer.Address{},         // Normalized Address entity (shared)
+			&farmer.Farmer{},          // Normalized Farmer entity (recommended)
+			&farmer.FarmerLegacy{},    // Legacy Farmer model (denormalized, deprecated)
+			&entities.FarmerProfile{}, // Legacy FarmerProfile (deprecated)
 			&farm.Farm{},
 			&crop.Crop{},
 			&crop_variety.CropVariety{},

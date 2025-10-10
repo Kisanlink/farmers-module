@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Kisanlink/farmers-module/internal/entities"
+	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/stretchr/testify/mock"
@@ -251,29 +251,29 @@ type MockFarmerLinkageRepoShared struct {
 	mock.Mock
 }
 
-func (m *MockFarmerLinkageRepoShared) Create(ctx context.Context, entity *entities.FarmerLink) error {
+func (m *MockFarmerLinkageRepoShared) Create(ctx context.Context, entity *farmerentity.FarmerLink) error {
 	args := m.Called(ctx, entity)
 	return args.Error(0)
 }
 
-func (m *MockFarmerLinkageRepoShared) Update(ctx context.Context, entity *entities.FarmerLink) error {
+func (m *MockFarmerLinkageRepoShared) Update(ctx context.Context, entity *farmerentity.FarmerLink) error {
 	args := m.Called(ctx, entity)
 	return args.Error(0)
 }
 
-func (m *MockFarmerLinkageRepoShared) Find(ctx context.Context, filter *base.Filter) ([]*entities.FarmerLink, error) {
+func (m *MockFarmerLinkageRepoShared) Find(ctx context.Context, filter *base.Filter) ([]*farmerentity.FarmerLink, error) {
 	args := m.Called(ctx, filter)
-	return args.Get(0).([]*entities.FarmerLink), args.Error(1)
+	return args.Get(0).([]*farmerentity.FarmerLink), args.Error(1)
 }
 
-func (m *MockFarmerLinkageRepoShared) FindOne(ctx context.Context, filter *base.Filter) (*entities.FarmerLink, error) {
+func (m *MockFarmerLinkageRepoShared) FindOne(ctx context.Context, filter *base.Filter) (*farmerentity.FarmerLink, error) {
 	args := m.Called(ctx, filter)
-	return args.Get(0).(*entities.FarmerLink), args.Error(1)
+	return args.Get(0).(*farmerentity.FarmerLink), args.Error(1)
 }
 
-func (m *MockFarmerLinkageRepoShared) GetByID(ctx context.Context, id string) (*entities.FarmerLink, error) {
+func (m *MockFarmerLinkageRepoShared) GetByID(ctx context.Context, id string) (*farmerentity.FarmerLink, error) {
 	args := m.Called(ctx, id)
-	return args.Get(0).(*entities.FarmerLink), args.Error(1)
+	return args.Get(0).(*farmerentity.FarmerLink), args.Error(1)
 }
 
 func (m *MockFarmerLinkageRepoShared) Delete(ctx context.Context, id string) error {
@@ -364,7 +364,7 @@ type MockNotificationService struct {
 	mock.Mock
 }
 
-func (m *MockNotificationService) SendOrphanedLinkAlert(ctx context.Context, fpoOrgID string, orphanedLinks []*entities.FarmerLink) error {
+func (m *MockNotificationService) SendOrphanedLinkAlert(ctx context.Context, fpoOrgID string, orphanedLinks []*farmerentity.FarmerLink) error {
 	args := m.Called(ctx, fpoOrgID, orphanedLinks)
 	return args.Error(0)
 }

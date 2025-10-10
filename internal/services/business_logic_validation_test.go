@@ -10,7 +10,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/Kisanlink/farmers-module/internal/entities"
+	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -32,13 +32,13 @@ func TestBusinessInvariants_FarmerRegistration(t *testing.T) {
 		aaaMock := factory.NewAAAServiceMock()
 
 		// Setup: Farmer already linked to FPO1
-		existingLink := &entities.FarmerLink{
+		existingLink := &farmerentity.FarmerLink{
 			AAAUserID: "farmer123",
 			AAAOrgID:  "fpo1",
 			Status:    "ACTIVE",
 		}
 
-		repo.On("Find", ctx, mock.Anything).Return([]*entities.FarmerLink{existingLink}, nil)
+		repo.On("Find", ctx, mock.Anything).Return([]*farmerentity.FarmerLink{existingLink}, nil)
 		aaaMock.GetPermissionMatrix().AddAllowRule("admin", "*", "*", "*", "*")
 
 		// Attempt to link to FPO2 should fail
@@ -50,7 +50,7 @@ func TestBusinessInvariants_FarmerRegistration(t *testing.T) {
 		}
 
 		// Simulate the check that would happen in real service
-		existingLinks := []*entities.FarmerLink{existingLink}
+		existingLinks := []*farmerentity.FarmerLink{existingLink}
 		hasActiveLink := false
 		for _, link := range existingLinks {
 			if link.Status == "ACTIVE" && link.AAAUserID == req.AAAUserID {
@@ -352,7 +352,7 @@ func TestAbusePaths_RaceConditions(t *testing.T) {
 			wg.Add(1)
 			go func(idx int) {
 				defer wg.Done()
-				farm := &entities.FarmerLink{AAAUserID: "farmer1", AAAOrgID: "org1"}
+				farm := &farmerentity.FarmerLink{AAAUserID: "farmer1", AAAOrgID: "org1"}
 				errList[idx] = repo.Create(context.Background(), farm)
 			}(i)
 		}

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/auth"
-	"github.com/Kisanlink/farmers-module/internal/entities"
+	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/stretchr/testify/assert"
@@ -39,7 +39,7 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 				aaa.On("GetUser", mock.Anything, "user123").Return(map[string]interface{}{"id": "user123"}, nil)
 				aaa.On("GetOrganization", mock.Anything, "org456").Return(map[string]interface{}{"id": "org456"}, nil)
 				// No existing link
-				repo.On("Find", mock.Anything, mock.Anything).Return([]*entities.FarmerLink{}, nil)
+				repo.On("Find", mock.Anything, mock.Anything).Return([]*farmerentity.FarmerLink{}, nil)
 				// Create succeeds
 				repo.On("Create", mock.Anything, mock.Anything).Return(nil)
 			},
@@ -111,12 +111,12 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 				aaa.On("GetUser", mock.Anything, "user123").Return(map[string]interface{}{"id": "user123"}, nil)
 				aaa.On("GetOrganization", mock.Anything, "org456").Return(map[string]interface{}{"id": "org456"}, nil)
 				// Existing inactive link
-				existingLink := &entities.FarmerLink{
+				existingLink := &farmerentity.FarmerLink{
 					AAAUserID: "user123",
 					AAAOrgID:  "org456",
 					Status:    "INACTIVE",
 				}
-				repo.On("Find", mock.Anything, mock.Anything).Return([]*entities.FarmerLink{existingLink}, nil)
+				repo.On("Find", mock.Anything, mock.Anything).Return([]*farmerentity.FarmerLink{existingLink}, nil)
 				// Update succeeds
 				repo.On("Update", mock.Anything, mock.Anything).Return(nil)
 			},
@@ -189,12 +189,12 @@ func TestFarmerLinkageServiceImpl_AssignKisanSathi(t *testing.T) {
 				// Role check passes
 				aaa.On("CheckUserRole", mock.Anything, "ks789", "KisanSathi").Return(true, nil)
 				// Existing active farmer link
-				existingLink := &entities.FarmerLink{
+				existingLink := &farmerentity.FarmerLink{
 					AAAUserID: "user123",
 					AAAOrgID:  "org456",
 					Status:    "ACTIVE",
 				}
-				repo.On("Find", mock.Anything, mock.Anything).Return([]*entities.FarmerLink{existingLink}, nil)
+				repo.On("Find", mock.Anything, mock.Anything).Return([]*farmerentity.FarmerLink{existingLink}, nil)
 				// Update succeeds
 				repo.On("Update", mock.Anything, mock.Anything).Return(nil)
 			},
@@ -239,12 +239,12 @@ func TestFarmerLinkageServiceImpl_AssignKisanSathi(t *testing.T) {
 				// Role check passes after assignment
 				aaa.On("CheckUserRole", mock.Anything, "ks789", "KisanSathi").Return(true, nil).Once()
 				// Existing active farmer link
-				existingLink := &entities.FarmerLink{
+				existingLink := &farmerentity.FarmerLink{
 					AAAUserID: "user123",
 					AAAOrgID:  "org456",
 					Status:    "ACTIVE",
 				}
-				repo.On("Find", mock.Anything, mock.Anything).Return([]*entities.FarmerLink{existingLink}, nil)
+				repo.On("Find", mock.Anything, mock.Anything).Return([]*farmerentity.FarmerLink{existingLink}, nil)
 				// Update succeeds
 				repo.On("Update", mock.Anything, mock.Anything).Return(nil)
 			},
@@ -269,12 +269,12 @@ func TestFarmerLinkageServiceImpl_AssignKisanSathi(t *testing.T) {
 				// Role check passes
 				aaa.On("CheckUserRole", mock.Anything, "ks789", "KisanSathi").Return(true, nil)
 				// Existing inactive farmer link
-				existingLink := &entities.FarmerLink{
+				existingLink := &farmerentity.FarmerLink{
 					AAAUserID: "user123",
 					AAAOrgID:  "org456",
 					Status:    "INACTIVE",
 				}
-				repo.On("Find", mock.Anything, mock.Anything).Return([]*entities.FarmerLink{existingLink}, nil)
+				repo.On("Find", mock.Anything, mock.Anything).Return([]*farmerentity.FarmerLink{existingLink}, nil)
 			},
 			expectedError: "cannot assign KisanSathi to inactive farmer link",
 		},
