@@ -13,59 +13,59 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// MockUserServiceV2Client is a mock implementation of UserServiceV2Client
-type MockUserServiceV2Client struct {
+// MockUserServiceClient is a mock implementation of UserServiceClient
+type MockUserServiceClient struct {
 	mock.Mock
 }
 
-func (m *MockUserServiceV2Client) Login(ctx context.Context, in *proto.LoginRequestV2, opts ...grpc.CallOption) (*proto.LoginResponseV2, error) {
+func (m *MockUserServiceClient) Login(ctx context.Context, in *proto.LoginRequest, opts ...grpc.CallOption) (*proto.LoginResponse, error) {
 	args := m.Called(ctx, in)
-	return args.Get(0).(*proto.LoginResponseV2), args.Error(1)
+	return args.Get(0).(*proto.LoginResponse), args.Error(1)
 }
 
-func (m *MockUserServiceV2Client) Register(ctx context.Context, in *proto.RegisterRequestV2, opts ...grpc.CallOption) (*proto.RegisterResponseV2, error) {
+func (m *MockUserServiceClient) Register(ctx context.Context, in *proto.RegisterRequest, opts ...grpc.CallOption) (*proto.RegisterResponse, error) {
 	args := m.Called(ctx, in)
-	return args.Get(0).(*proto.RegisterResponseV2), args.Error(1)
+	return args.Get(0).(*proto.RegisterResponse), args.Error(1)
 }
 
-func (m *MockUserServiceV2Client) GetUser(ctx context.Context, in *proto.GetUserRequestV2, opts ...grpc.CallOption) (*proto.GetUserResponseV2, error) {
+func (m *MockUserServiceClient) GetUser(ctx context.Context, in *proto.GetUserRequest, opts ...grpc.CallOption) (*proto.GetUserResponse, error) {
 	args := m.Called(ctx, in)
-	return args.Get(0).(*proto.GetUserResponseV2), args.Error(1)
+	return args.Get(0).(*proto.GetUserResponse), args.Error(1)
 }
 
-func (m *MockUserServiceV2Client) GetAllUsers(ctx context.Context, in *proto.GetAllUsersRequestV2, opts ...grpc.CallOption) (*proto.GetAllUsersResponseV2, error) {
+func (m *MockUserServiceClient) GetAllUsers(ctx context.Context, in *proto.GetAllUsersRequest, opts ...grpc.CallOption) (*proto.GetAllUsersResponse, error) {
 	args := m.Called(ctx, in)
-	return args.Get(0).(*proto.GetAllUsersResponseV2), args.Error(1)
+	return args.Get(0).(*proto.GetAllUsersResponse), args.Error(1)
 }
 
-func (m *MockUserServiceV2Client) UpdateUser(ctx context.Context, in *proto.UpdateUserRequestV2, opts ...grpc.CallOption) (*proto.UpdateUserResponseV2, error) {
+func (m *MockUserServiceClient) UpdateUser(ctx context.Context, in *proto.UpdateUserRequest, opts ...grpc.CallOption) (*proto.UpdateUserResponse, error) {
 	args := m.Called(ctx, in)
-	return args.Get(0).(*proto.UpdateUserResponseV2), args.Error(1)
+	return args.Get(0).(*proto.UpdateUserResponse), args.Error(1)
 }
 
-func (m *MockUserServiceV2Client) DeleteUser(ctx context.Context, in *proto.DeleteUserRequestV2, opts ...grpc.CallOption) (*proto.DeleteUserResponseV2, error) {
+func (m *MockUserServiceClient) DeleteUser(ctx context.Context, in *proto.DeleteUserRequest, opts ...grpc.CallOption) (*proto.DeleteUserResponse, error) {
 	args := m.Called(ctx, in)
-	return args.Get(0).(*proto.DeleteUserResponseV2), args.Error(1)
+	return args.Get(0).(*proto.DeleteUserResponse), args.Error(1)
 }
 
-func (m *MockUserServiceV2Client) RefreshToken(ctx context.Context, in *proto.RefreshTokenRequestV2, opts ...grpc.CallOption) (*proto.RefreshTokenResponseV2, error) {
+func (m *MockUserServiceClient) RefreshToken(ctx context.Context, in *proto.RefreshTokenRequest, opts ...grpc.CallOption) (*proto.RefreshTokenResponse, error) {
 	args := m.Called(ctx, in)
-	return args.Get(0).(*proto.RefreshTokenResponseV2), args.Error(1)
+	return args.Get(0).(*proto.RefreshTokenResponse), args.Error(1)
 }
 
-func (m *MockUserServiceV2Client) Logout(ctx context.Context, in *proto.LogoutRequestV2, opts ...grpc.CallOption) (*proto.LogoutResponseV2, error) {
+func (m *MockUserServiceClient) Logout(ctx context.Context, in *proto.LogoutRequest, opts ...grpc.CallOption) (*proto.LogoutResponse, error) {
 	args := m.Called(ctx, in)
-	return args.Get(0).(*proto.LogoutResponseV2), args.Error(1)
+	return args.Get(0).(*proto.LogoutResponse), args.Error(1)
 }
 
-func (m *MockUserServiceV2Client) GetUserByPhone(ctx context.Context, in *proto.GetUserByPhoneRequestV2, opts ...grpc.CallOption) (*proto.GetUserResponseV2, error) {
+func (m *MockUserServiceClient) GetUserByPhone(ctx context.Context, in *proto.GetUserByPhoneRequest, opts ...grpc.CallOption) (*proto.GetUserResponse, error) {
 	args := m.Called(ctx, in)
-	return args.Get(0).(*proto.GetUserResponseV2), args.Error(1)
+	return args.Get(0).(*proto.GetUserResponse), args.Error(1)
 }
 
-func (m *MockUserServiceV2Client) VerifyUserPassword(ctx context.Context, in *proto.VerifyPasswordRequestV2, opts ...grpc.CallOption) (*proto.VerifyPasswordResponseV2, error) {
+func (m *MockUserServiceClient) VerifyUserPassword(ctx context.Context, in *proto.VerifyPasswordRequest, opts ...grpc.CallOption) (*proto.VerifyPasswordResponse, error) {
 	args := m.Called(ctx, in)
-	return args.Get(0).(*proto.VerifyPasswordResponseV2), args.Error(1)
+	return args.Get(0).(*proto.VerifyPasswordResponse), args.Error(1)
 }
 
 // MockAuthorizationServiceClient is a mock implementation of AuthorizationServiceClient
@@ -381,8 +381,8 @@ func (m *MockAuthorizationServiceClient) EvaluatePermission(ctx context.Context,
 }
 
 // Helper function to create a test client with mocks
-func createTestClient() (*Client, *MockUserServiceV2Client, *MockAuthorizationServiceClient, *MockOrganizationServiceClient, *MockGroupServiceClient, *MockRoleServiceClient, *MockPermissionServiceClient, *MockCatalogServiceClient, *MockTokenServiceClient) {
-	mockUserClient := &MockUserServiceV2Client{}
+func createTestClient() (*Client, *MockUserServiceClient, *MockAuthorizationServiceClient, *MockOrganizationServiceClient, *MockGroupServiceClient, *MockRoleServiceClient, *MockPermissionServiceClient, *MockCatalogServiceClient, *MockTokenServiceClient) {
+	mockUserClient := &MockUserServiceClient{}
 	mockAuthzClient := &MockAuthorizationServiceClient{}
 	mockOrgClient := &MockOrganizationServiceClient{}
 	mockGroupClient := &MockGroupServiceClient{}
@@ -419,17 +419,17 @@ func TestCreateUser_Success(t *testing.T) {
 		FullName:    "Test User",
 	}
 
-	expectedResponse := &proto.RegisterResponseV2{
+	expectedResponse := &proto.RegisterResponse{
 		StatusCode: 201,
 		Message:    "User created successfully",
-		User: &proto.UserV2{
+		User: &proto.User{
 			Id:       "user123",
 			Username: "testuser",
 			Status:   "active",
 		},
 	}
 
-	mockUserClient.On("Register", ctx, mock.AnythingOfType("*proto.RegisterRequestV2")).Return(expectedResponse, nil)
+	mockUserClient.On("Register", ctx, mock.AnythingOfType("*proto.RegisterRequest")).Return(expectedResponse, nil)
 
 	response, err := client.CreateUser(ctx, req)
 
@@ -452,8 +452,8 @@ func TestCreateUser_AlreadyExists(t *testing.T) {
 		Password:    "password123",
 	}
 
-	mockUserClient.On("Register", ctx, mock.AnythingOfType("*proto.RegisterRequestV2")).Return(
-		(*proto.RegisterResponseV2)(nil), status.Error(codes.AlreadyExists, "user already exists"))
+	mockUserClient.On("Register", ctx, mock.AnythingOfType("*proto.RegisterRequest")).Return(
+		(*proto.RegisterResponse)(nil), status.Error(codes.AlreadyExists, "user already exists"))
 
 	response, err := client.CreateUser(ctx, req)
 
@@ -468,10 +468,10 @@ func TestGetUser_Success(t *testing.T) {
 	ctx := context.Background()
 	userID := "user123"
 
-	expectedResponse := &proto.GetUserResponseV2{
+	expectedResponse := &proto.GetUserResponse{
 		StatusCode: 200,
 		Message:    "User retrieved successfully",
-		User: &proto.UserV2{
+		User: &proto.User{
 			Id:          "user123",
 			Username:    "testuser",
 			PhoneNumber: "+919876543210",
@@ -483,7 +483,7 @@ func TestGetUser_Success(t *testing.T) {
 		},
 	}
 
-	mockUserClient.On("GetUser", ctx, &proto.GetUserRequestV2{Id: userID}).Return(expectedResponse, nil)
+	mockUserClient.On("GetUser", ctx, &proto.GetUserRequest{Id: userID}).Return(expectedResponse, nil)
 
 	userData, err := client.GetUser(ctx, userID)
 
@@ -500,8 +500,8 @@ func TestGetUser_NotFound(t *testing.T) {
 	ctx := context.Background()
 	userID := "nonexistent"
 
-	mockUserClient.On("GetUser", ctx, &proto.GetUserRequestV2{Id: userID}).Return(
-		(*proto.GetUserResponseV2)(nil), status.Error(codes.NotFound, "user not found"))
+	mockUserClient.On("GetUser", ctx, &proto.GetUserRequest{Id: userID}).Return(
+		(*proto.GetUserResponse)(nil), status.Error(codes.NotFound, "user not found"))
 
 	userData, err := client.GetUser(ctx, userID)
 
@@ -516,10 +516,10 @@ func TestGetUserByPhone_Success(t *testing.T) {
 	ctx := context.Background()
 	phoneNumber := "+919876543210"
 
-	expectedResponse := &proto.GetUserResponseV2{
+	expectedResponse := &proto.GetUserResponse{
 		StatusCode: 200,
 		Message:    "User retrieved successfully",
-		User: &proto.UserV2{
+		User: &proto.User{
 			Id:          "user123",
 			Username:    "testuser",
 			PhoneNumber: phoneNumber,
@@ -528,7 +528,7 @@ func TestGetUserByPhone_Success(t *testing.T) {
 		},
 	}
 
-	expectedRequest := &proto.GetUserByPhoneRequestV2{
+	expectedRequest := &proto.GetUserByPhoneRequest{
 		PhoneNumber:        phoneNumber,
 		CountryCode:        "+91",
 		IncludeRoles:       false,
@@ -674,13 +674,13 @@ func TestHealthCheck_Success(t *testing.T) {
 	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
-	expectedRequest := &proto.GetUserRequestV2{
+	expectedRequest := &proto.GetUserRequest{
 		Id: "health-check-user-id",
 	}
 
 	// Mock GetUser to return NotFound error, which indicates service is healthy
 	mockUserClient.On("GetUser", mock.Anything, expectedRequest).Return(
-		(*proto.GetUserResponseV2)(nil),
+		(*proto.GetUserResponse)(nil),
 		status.Error(codes.NotFound, "user not found"),
 	)
 
@@ -694,13 +694,13 @@ func TestHealthCheck_PermissionDeniedIsHealthy(t *testing.T) {
 	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
-	expectedRequest := &proto.GetUserRequestV2{
+	expectedRequest := &proto.GetUserRequest{
 		Id: "health-check-user-id",
 	}
 
 	// Mock GetUser to return PermissionDenied error, which indicates service is healthy
 	mockUserClient.On("GetUser", mock.Anything, expectedRequest).Return(
-		(*proto.GetUserResponseV2)(nil),
+		(*proto.GetUserResponse)(nil),
 		status.Error(codes.PermissionDenied, "permission denied"),
 	)
 
@@ -714,13 +714,13 @@ func TestHealthCheck_ServiceUnavailable(t *testing.T) {
 	client, mockUserClient, _, _, _, _, _, _, _ := createTestClient()
 	ctx := context.Background()
 
-	expectedRequest := &proto.GetUserRequestV2{
+	expectedRequest := &proto.GetUserRequest{
 		Id: "health-check-user-id",
 	}
 
 	// Mock GetUser to return Unavailable error, which indicates service is unhealthy
 	mockUserClient.On("GetUser", mock.Anything, expectedRequest).Return(
-		(*proto.GetUserResponseV2)(nil),
+		(*proto.GetUserResponse)(nil),
 		status.Error(codes.Unavailable, "service unavailable"),
 	)
 
@@ -866,11 +866,11 @@ func TestCheckUserRole_NotImplemented(t *testing.T) {
 
 	// Mock GetUser to return a user without the farmer role
 	mockUserClient.On("GetUser", mock.Anything, mock.Anything).Return(
-		&proto.GetUserResponseV2{
-			User: &proto.UserV2{
+		&proto.GetUserResponse{
+			User: &proto.User{
 				Id:        "user123",
 				Username:  "testuser",
-				UserRoles: []*proto.UserRoleV2{}, // No roles
+				UserRoles: []*proto.UserRole{}, // No roles
 			},
 		},
 		nil,
@@ -914,17 +914,17 @@ func TestCreateUserLegacy_Success(t *testing.T) {
 	countryCode := "+91"
 	aadhaarNumber := "123456789012"
 
-	expectedResponse := &proto.RegisterResponseV2{
+	expectedResponse := &proto.RegisterResponse{
 		StatusCode: 201,
 		Message:    "User created successfully",
-		User: &proto.UserV2{
+		User: &proto.User{
 			Id:       "user123",
 			Username: username,
 			Status:   "active",
 		},
 	}
 
-	mockUserClient.On("Register", ctx, mock.AnythingOfType("*proto.RegisterRequestV2")).Return(expectedResponse, nil)
+	mockUserClient.On("Register", ctx, mock.AnythingOfType("*proto.RegisterRequest")).Return(expectedResponse, nil)
 
 	userID, err := client.CreateUserLegacy(ctx, username, mobileNumber, password, countryCode, &aadhaarNumber)
 
@@ -938,10 +938,10 @@ func TestGetUserByMobile_Success(t *testing.T) {
 	ctx := context.Background()
 	mobileNumber := "+919876543210"
 
-	expectedResponse := &proto.GetUserResponseV2{
+	expectedResponse := &proto.GetUserResponse{
 		StatusCode: 200,
 		Message:    "User retrieved successfully",
-		User: &proto.UserV2{
+		User: &proto.User{
 			Id:          "user123",
 			Username:    "testuser",
 			PhoneNumber: mobileNumber,
@@ -951,7 +951,7 @@ func TestGetUserByMobile_Success(t *testing.T) {
 		},
 	}
 
-	expectedRequest := &proto.GetUserByPhoneRequestV2{
+	expectedRequest := &proto.GetUserByPhoneRequest{
 		PhoneNumber:        mobileNumber,
 		CountryCode:        "+91",
 		IncludeRoles:       false,

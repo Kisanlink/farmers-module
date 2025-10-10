@@ -21,7 +21,7 @@ import (
 type Client struct {
 	conn          *grpc.ClientConn
 	config        *config.Config
-	userClient    proto.UserServiceV2Client
+	userClient    proto.UserServiceClient
 	authzClient   proto.AuthorizationServiceClient
 	orgClient     proto.OrganizationServiceClient
 	groupClient   proto.GroupServiceClient
@@ -171,7 +171,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	}
 
 	// Initialize gRPC clients
-	userClient := proto.NewUserServiceV2Client(conn)
+	userClient := proto.NewUserServiceClient(conn)
 	authzClient := proto.NewAuthorizationServiceClient(conn)
 	orgClient := proto.NewOrganizationServiceClient(conn)
 	groupClient := proto.NewGroupServiceClient(conn)
@@ -206,7 +206,7 @@ func (c *Client) CreateUser(ctx context.Context, req *CreateUserRequest) (*Creat
 	log.Printf("AAA CreateUser: username=%s, phone=%s", req.Username, req.PhoneNumber)
 
 	// Create gRPC request
-	grpcReq := &proto.RegisterRequestV2{
+	grpcReq := &proto.RegisterRequest{
 		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
@@ -247,7 +247,7 @@ func (c *Client) GetUser(ctx context.Context, userID string) (*UserData, error) 
 	log.Printf("AAA GetUser: userID=%s", userID)
 
 	// Create gRPC request
-	req := &proto.GetUserRequestV2{
+	req := &proto.GetUserRequest{
 		Id: userID,
 	}
 
@@ -296,7 +296,7 @@ func (c *Client) GetUserByPhone(ctx context.Context, phone string) (*UserData, e
 	}
 
 	// Create gRPC request to get user by phone number
-	req := &proto.GetUserByPhoneRequestV2{
+	req := &proto.GetUserByPhoneRequest{
 		PhoneNumber:        phone,
 		CountryCode:        "+91", // Default to India, should be configurable
 		IncludeRoles:       false,
@@ -353,7 +353,7 @@ func (c *Client) GetUserByEmail(ctx context.Context, email string) (*UserData, e
 
 	// Get all users and filter by email
 	// Note: This is inefficient but works until AAA service adds GetUserByEmail
-	req := &proto.GetAllUsersRequestV2{
+	req := &proto.GetAllUsersRequest{
 		// No pagination fields available in current proto
 	}
 
@@ -673,8 +673,8 @@ func (c *Client) CheckUserRole(ctx context.Context, userID, roleName string) (bo
 		return false, nil
 	}
 
-	// Try to get user and check roles from UserServiceV2
-	req := &proto.GetUserRequestV2{Id: userID}
+	// Try to get user and check roles from UserService
+	req := &proto.GetUserRequest{Id: userID}
 	resp, err := c.userClient.GetUser(ctx, req)
 	if err != nil {
 		log.Printf("Failed to get user for role check: %v", err)
@@ -924,9 +924,9 @@ func (c *Client) SeedRolesAndPermissions(ctx context.Context) error {
 func (c *Client) HealthCheck(ctx context.Context) error {
 	log.Println("AAA HealthCheck: Checking service health")
 
-	// Use a simple call to UserServiceV2 which we know exists
+	// Use a simple call to UserService which we know exists
 	// Try to get a non-existent user - if service responds (even with NotFound), it's healthy
-	req := &proto.GetUserRequestV2{
+	req := &proto.GetUserRequest{
 		Id: "health-check-user-id",
 	}
 
