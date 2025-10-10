@@ -8,6 +8,7 @@ import (
 
 // Address represents an address entity (normalized, reusable)
 // This allows multiple entities (farmers, farms, etc.) to reference the same address
+// Note: Coordinates stored as text (lat,lng). PostGIS geometry only used in Farm entity.
 type Address struct {
 	base.BaseModel
 	StreetAddress string `json:"street_address" gorm:"type:text"`
@@ -15,7 +16,7 @@ type Address struct {
 	State         string `json:"state" gorm:"type:varchar(255)"`
 	PostalCode    string `json:"postal_code" gorm:"type:varchar(50)"`
 	Country       string `json:"country" gorm:"type:varchar(255);default:'India'"`
-	Coordinates   string `json:"coordinates" gorm:"type:geometry(Point,4326)"` // PostGIS for spatial queries
+	Coordinates   string `json:"coordinates" gorm:"type:text"` // Stored as "lat,lng" text
 }
 
 // TableName returns the table name for the Address model
@@ -66,11 +67,11 @@ type Farmer struct {
 
 	// Additional Fields
 	LandOwnershipType string `json:"land_ownership_type" gorm:"type:varchar(100)"`
-	Status            string `json:"status" gorm:"type:varchar(50);not null;default:'ACTIVE'"`
+	Status            string `json:"status" gorm:"type:farmer_status;not null;default:'ACTIVE'"`
 
 	// Flexible Data (JSONB for extensibility)
-	Preferences map[string]string `json:"preferences" gorm:"type:jsonb;default:'{}'"`
-	Metadata    map[string]string `json:"metadata" gorm:"type:jsonb;default:'{}'"`
+	Preferences map[string]string `json:"preferences" gorm:"type:jsonb;default:'{}'::jsonb"`
+	Metadata    map[string]string `json:"metadata" gorm:"type:jsonb;default:'{}'::jsonb"`
 }
 
 // TableName returns the table name for the Farmer model

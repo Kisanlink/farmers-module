@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/bulk"
 	"github.com/Kisanlink/farmers-module/internal/entities/crop"
 	"github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
@@ -70,23 +69,32 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 	if !postgisAvailable {
 		log.Println("PostGIS not available - skipping spatial features")
 		// Skip the farm entity that requires PostGIS geometry types
+		// Migration order: independent tables first, then tables with FK dependencies
 		models := []interface{}{
+			// Independent master data tables
 			&fpo.FPORef{},
-			&farmer.FarmerLink{},
-			&farmer.Address{},         // Normalized Address entity (shared)
-			&farmer.Farmer{},          // Normalized Farmer entity (recommended)
-			&farmer.FarmerLegacy{},    // Legacy Farmer model (denormalized, deprecated)
-			&entities.FarmerProfile{}, // Legacy FarmerProfile (deprecated)
-			&crop.Crop{},
-			&crop_variety.CropVariety{},
-			&crop_cycle.CropCycle{},
-			&farm_activity.FarmActivity{},
-			&bulk.BulkOperation{},
-			&bulk.ProcessingDetail{},
 			&soil_type.SoilType{},
 			&irrigation_source.IrrigationSource{},
-			&farm_soil_type.FarmSoilType{},
-			&farm_irrigation_source.FarmIrrigationSource{},
+			&crop.Crop{},
+
+			// Address table (no dependencies)
+			&farmer.Address{},
+
+			// Farmer tables (Farmer depends on Address via FK)
+			&farmer.Farmer{},
+			&farmer.FarmerLink{},
+
+			// Crop variety (depends on Crop)
+			&crop_variety.CropVariety{},
+
+			// Farm entity skipped (requires PostGIS)
+
+			// Crop cycle (depends on Farm - skipped without PostGIS)
+			// Farm activity (depends on CropCycle - skipped without PostGIS)
+
+			// Bulk operations (last)
+			&bulk.BulkOperation{},
+			&bulk.ProcessingDetail{},
 		}
 
 		if err := postgresManager.AutoMigrateModels(ctx, models...); err != nil {
@@ -107,23 +115,32 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 			log.Println("⏭️  Continuing without PostGIS - spatial features (farms) will be unavailable")
 
 			// Fall back to non-PostGIS migration
+			// Migration order: independent tables first, then tables with FK dependencies
 			models := []interface{}{
+				// Independent master data tables
 				&fpo.FPORef{},
-				&farmer.FarmerLink{},
-				&farmer.Address{},         // Normalized Address entity (shared)
-				&farmer.Farmer{},          // Normalized Farmer entity (recommended)
-				&farmer.FarmerLegacy{},    // Legacy Farmer model (denormalized, deprecated)
-				&entities.FarmerProfile{}, // Legacy FarmerProfile (deprecated)
-				&crop.Crop{},
-				&crop_variety.CropVariety{},
-				&crop_cycle.CropCycle{},
-				&farm_activity.FarmActivity{},
-				&bulk.BulkOperation{},
-				&bulk.ProcessingDetail{},
 				&soil_type.SoilType{},
 				&irrigation_source.IrrigationSource{},
-				&farm_soil_type.FarmSoilType{},
-				&farm_irrigation_source.FarmIrrigationSource{},
+				&crop.Crop{},
+
+				// Address table (no dependencies)
+				&farmer.Address{},
+
+				// Farmer tables (Farmer depends on Address via FK)
+				&farmer.Farmer{},
+				&farmer.FarmerLink{},
+
+				// Crop variety (depends on Crop)
+				&crop_variety.CropVariety{},
+
+				// Farm entity skipped (PostGIS extension failed)
+
+				// Crop cycle (depends on Farm - skipped without PostGIS)
+				// Farm activity (depends on CropCycle - skipped without PostGIS)
+
+				// Bulk operations (last)
+				&bulk.BulkOperation{},
+				&bulk.ProcessingDetail{},
 			}
 
 			if err := postgresManager.AutoMigrateModels(ctx, models...); err != nil {
@@ -137,25 +154,41 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 
 		log.Println("✅ PostGIS extension enabled successfully")
 
-		// AutoMigrate all models including farm
+		// AutoMigrate all models including farm (PostGIS enabled)
+		// Migration order: independent tables first, then tables with FK dependencies
 		models := []interface{}{
+			// Independent master data tables
 			&fpo.FPORef{},
-			&farmer.FarmerLink{},
-			&farmer.Address{},         // Normalized Address entity (shared)
-			&farmer.Farmer{},          // Normalized Farmer entity (recommended)
-			&farmer.FarmerLegacy{},    // Legacy Farmer model (denormalized, deprecated)
-			&entities.FarmerProfile{}, // Legacy FarmerProfile (deprecated)
-			&farm.Farm{},
-			&crop.Crop{},
-			&crop_variety.CropVariety{},
-			&crop_cycle.CropCycle{},
-			&farm_activity.FarmActivity{},
-			&bulk.BulkOperation{},
-			&bulk.ProcessingDetail{},
 			&soil_type.SoilType{},
 			&irrigation_source.IrrigationSource{},
+			&crop.Crop{},
+
+			// Address table (no dependencies)
+			&farmer.Address{},
+
+			// Farmer tables (Farmer depends on Address via FK)
+			&farmer.Farmer{},
+			&farmer.FarmerLink{},
+
+			// Farm (depends on Farmer, uses PostGIS)
+			&farm.Farm{},
+
+			// Crop variety (depends on Crop)
+			&crop_variety.CropVariety{},
+
+			// Crop cycle (depends on Farm, Farmer, Crop, CropVariety)
+			&crop_cycle.CropCycle{},
+
+			// Farm activity (depends on CropCycle)
+			&farm_activity.FarmActivity{},
+
+			// Junction tables (depend on Farm and master tables)
 			&farm_soil_type.FarmSoilType{},
 			&farm_irrigation_source.FarmIrrigationSource{},
+
+			// Bulk operations (last)
+			&bulk.BulkOperation{},
+			&bulk.ProcessingDetail{},
 		}
 
 		if err := postgresManager.AutoMigrateModels(ctx, models...); err != nil {

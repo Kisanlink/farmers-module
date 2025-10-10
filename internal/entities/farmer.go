@@ -43,6 +43,9 @@ func (j *JSONB) Scan(value interface{}) error {
 }
 
 // FarmerProfile represents a farmer profile in the domain
+// DEPRECATED: This entity is deprecated and should not be used for new development.
+// Use internal/entities/farmer/farmer_normalized.go Farmer entity instead.
+// This entity uses denormalized address fields and is NOT included in active migrations.
 type FarmerProfile struct {
 	base.BaseModel
 	AAAUserID        string   `json:"aaa_user_id"`
@@ -77,14 +80,17 @@ func (fp *FarmerProfile) GetTableSize() hash.TableSize {
 }
 
 // Address represents address information in the domain
+// DEPRECATED: This Address entity is deprecated and should not be migrated.
+// Use internal/entities/farmer/farmer_normalized.go Address entity instead.
+// This type exists only for backward compatibility with FarmerProfile entity.
 type Address struct {
 	base.BaseModel
-	StreetAddress string `json:"street_address,omitempty"`
-	City          string `json:"city,omitempty"`
-	State         string `json:"state,omitempty"`
-	PostalCode    string `json:"postal_code,omitempty"`
-	Country       string `json:"country,omitempty"`
-	Coordinates   string `json:"coordinates,omitempty"`
+	StreetAddress string `json:"street_address,omitempty" gorm:"type:text"`
+	City          string `json:"city,omitempty" gorm:"type:varchar(255)"`
+	State         string `json:"state,omitempty" gorm:"type:varchar(255)"`
+	PostalCode    string `json:"postal_code,omitempty" gorm:"type:varchar(50)"`
+	Country       string `json:"country,omitempty" gorm:"type:varchar(255);default:'India'"`
+	Coordinates   string `json:"coordinates,omitempty" gorm:"type:text"`
 }
 
 // TableName returns the table name for the Address model
