@@ -1,0 +1,5518 @@
+basePath: /api/v1
+definitions:
+  github_com_Kisanlink_farmers-module_internal_entities_requests.AddressData:
+    properties:
+      city:
+        example: Indore
+        type: string
+      coordinates:
+        description: WKT format for PostGIS
+        example: POINT(75.8577 22.7196)
+        type: string
+      country:
+        example: India
+        type: string
+      postal_code:
+        example: "452001"
+        type: string
+      state:
+        example: Madhya Pradesh
+        type: string
+      street_address:
+        example: Village Rampur, Post Khandwa
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.AssignKisanSathiRequest:
+    properties:
+      aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      aaa_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      kisan_sathi_user_id:
+        example: ks_123e4567-e89b-12d3-a456-426614174001
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_id
+    - kisan_sathi_user_id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.BulkProcessingOptions:
+    properties:
+      assign_kisan_sathi:
+        description: Auto-assign KisanSathi if available
+        example: true
+        type: boolean
+      chunk_size:
+        description: 'Size of processing chunks (default: 100)'
+        example: 100
+        type: integer
+      continue_on_error:
+        description: Continue processing on individual failures
+        example: true
+        type: boolean
+      credential_method:
+        description: sms, email, both
+        example: sms
+        type: string
+      deduplication_mode:
+        description: 'How to handle duplicates: skip, update, error'
+        example: skip
+        type: string
+      kisan_sathi_user_id:
+        description: Specific KisanSathi to assign
+        example: ks_123e4567-e89b-12d3-a456-426614174001
+        type: string
+      max_concurrency:
+        description: 'Max parallel workers (default: 10)'
+        example: 10
+        type: integer
+      metadata:
+        additionalProperties:
+          type: string
+        description: Additional metadata
+        example:
+          batch_name: january_2024
+          region: central
+        type: object
+      notification_webhook:
+        description: Webhook for completion notification
+        example: https://webhook.example.com/bulk-completion
+        type: string
+      send_credentials:
+        description: Send login credentials to farmers
+        example: true
+        type: boolean
+      validate_only:
+        description: Dry run mode
+        example: false
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.CEOUserData:
+    properties:
+      email:
+        example: rajesh.sharma@fpo.com
+        type: string
+      first_name:
+        example: Rajesh
+        type: string
+      last_name:
+        example: Sharma
+        type: string
+      password:
+        example: SecurePass@123
+        minLength: 8
+        type: string
+      phone_number:
+        example: +91-9876543210
+        type: string
+    required:
+    - first_name
+    - last_name
+    - password
+    - phone_number
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.CompleteActivityRequest:
+    properties:
+      completed_at:
+        example: "2024-11-11T16:30:00Z"
+        type: string
+      id:
+        example: activity_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      output:
+        additionalProperties:
+          type: string
+        example:
+          area_covered: 2.5ha
+          notes: completed_successfully
+          workers: "4"
+        type: object
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - completed_at
+    - id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.CreateActivityRequest:
+    properties:
+      activity_type:
+        example: SOWING
+        type: string
+      crop_cycle_id:
+        example: cycle_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          seed_rate: 100kg_per_acre
+          seed_type: HD2967
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      planned_at:
+        example: "2024-11-10T09:00:00Z"
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - activity_type
+    - crop_cycle_id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropRequest:
+    properties:
+      category:
+        enum:
+        - CEREALS
+        - PULSES
+        - VEGETABLES
+        - FRUITS
+        - OIL_SEEDS
+        - SPICES
+        - CASH_CROPS
+        - FODDER
+        - MEDICINAL
+        - OTHER
+        example: CEREALS
+        type: string
+      duration_days:
+        example: 120
+        maximum: 365
+        minimum: 1
+        type: integer
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      name:
+        example: Wheat
+        maxLength: 255
+        minLength: 2
+        type: string
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        example:
+          climate: temperate
+          water_requirement: medium
+        type: object
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      scientific_name:
+        example: Triticum aestivum
+        maxLength: 255
+        type: string
+      seasons:
+        example:
+        - RABI
+        items:
+          type: string
+        minItems: 1
+        type: array
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      unit:
+        example: kg
+        maxLength: 50
+        minLength: 1
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - category
+    - name
+    - seasons
+    - unit
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropVarietyRequest:
+    properties:
+      crop_id:
+        example: crop_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      description:
+        example: High yielding wheat variety suitable for irrigated conditions
+        type: string
+      duration_days:
+        example: 120
+        maximum: 365
+        minimum: 1
+        type: integer
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      name:
+        example: HD-2967
+        maxLength: 255
+        minLength: 2
+        type: string
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        example:
+          disease_resistance: high
+          recommended_for: punjab_haryana
+        type: object
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      yield_by_age:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.YieldByAgeRequest'
+        type: array
+      yield_per_acre:
+        example: 25.5
+        minimum: 0
+        type: number
+      yield_per_tree:
+        example: 0
+        minimum: 0
+        type: number
+    required:
+    - crop_id
+    - name
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPORequest:
+    properties:
+      business_config:
+        additionalProperties:
+          type: string
+        example:
+          max_farmers: "1000"
+          procurement_enabled: "true"
+        type: object
+      ceo_user:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CEOUserData'
+      description:
+        example: A farmer producer organization serving 500+ farmers in Rampur region
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          district: Indore
+          established: "2024"
+          state: MP
+        type: object
+      name:
+        example: Rampur Farmers Producer Company
+        type: string
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      registration_no:
+        example: FPO/MP/2024/001234
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - ceo_user
+    - name
+    - registration_no
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmRequest:
+    properties:
+      aaa_farmer_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      area_ha:
+        example: 2.5
+        minimum: 0.01
+        type: number
+      bore_well_count:
+        example: 2
+        minimum: 0
+        type: integer
+      geometry:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.GeometryData'
+      irrigation_sources:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.IrrigationSourceRequest'
+        type: array
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          elevation: 450m
+          soil_test_date: "2024-01-10"
+        type: object
+      name:
+        example: North Field Farm
+        type: string
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      other_irrigation_details:
+        example: Canal irrigation available during monsoon
+        type: string
+      ownership_type:
+        enum:
+        - OWN
+        - LEASE
+        - SHARED
+        example: OWN
+        type: string
+      primary_irrigation_source_id:
+        example: irr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      soil_type_id:
+        example: soil_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - aaa_farmer_user_id
+    - aaa_org_id
+    - area_ha
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmerRequest:
+    properties:
+      aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      aaa_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      kisan_sathi_user_id:
+        example: ks_123e4567-e89b-12d3-a456-426614174001
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      profile:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerProfileData'
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.CreateKisanSathiUserRequest:
+    properties:
+      country_code:
+        example: "+91"
+        type: string
+      email:
+        example: pradeep.ks@fpo.com
+        type: string
+      full_name:
+        example: Pradeep Kumar
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          experience_years: "5"
+          villages_covered: "10"
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      password:
+        example: SecureKS@123
+        minLength: 8
+        type: string
+      phone_number:
+        example: +91-9876543211
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      username:
+        example: pradeep.ks
+        type: string
+    required:
+    - full_name
+    - password
+    - phone_number
+    - username
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.DetectFarmOverlapsRequest:
+    properties:
+      limit:
+        description: Maximum number of overlaps to return
+        example: 100
+        type: integer
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      min_overlap_area_ha:
+        description: Minimum overlap area in hectares to report
+        example: 0.1
+        type: number
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.EndCycleRequest:
+    properties:
+      end_date:
+        example: "2024-03-15T00:00:00Z"
+        type: string
+      id:
+        example: cycle_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      outcome:
+        additionalProperties:
+          type: string
+        example:
+          notes: good_harvest
+          quality: good
+          yield_kg: "2500"
+        type: object
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      status:
+        enum:
+        - COMPLETED
+        - CANCELLED
+        example: COMPLETED
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - end_date
+    - id
+    - status
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.ExportFarmerPortfolioRequest:
+    properties:
+      end_date:
+        example: "2024-12-31T23:59:59Z"
+        type: string
+      farmer_id:
+        example: farmer_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      format:
+        enum:
+        - json
+        - csv
+        example: json
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      season:
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        example: RABI
+        type: string
+      start_date:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - farmer_id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerBulkData:
+    properties:
+      city:
+        example: Ratlam
+        type: string
+      country:
+        example: India
+        type: string
+      custom_fields:
+        additionalProperties:
+          type: string
+        example:
+          education: high_school
+          family_size: "5"
+        type: object
+      date_of_birth:
+        example: "1975-08-20"
+        type: string
+      email:
+        example: suresh.patel@example.com
+        type: string
+      external_id:
+        description: For tracking and idempotency
+        example: EXT_FARMER_001
+        type: string
+      first_name:
+        example: Suresh
+        maxLength: 50
+        minLength: 2
+        type: string
+      gender:
+        enum:
+        - male
+        - female
+        - other
+        example: male
+        type: string
+      land_ownership_type:
+        example: OWN
+        type: string
+      last_name:
+        example: Patel
+        maxLength: 50
+        minLength: 2
+        type: string
+      password:
+        description: Optional password, will be generated if not provided
+        example: Farmer@123
+        type: string
+      phone_number:
+        example: +91-9876543220
+        type: string
+      postal_code:
+        example: "457001"
+        type: string
+      state:
+        example: Madhya Pradesh
+        type: string
+      street_address:
+        example: Village Khandwa, Post Ratlam
+        type: string
+    required:
+    - first_name
+    - last_name
+    - phone_number
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerProfileData:
+    properties:
+      address:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.AddressData'
+      date_of_birth:
+        example: "1980-05-15"
+        type: string
+      email:
+        example: ramesh.kumar@example.com
+        type: string
+      first_name:
+        example: Ramesh
+        type: string
+      gender:
+        example: male
+        type: string
+      last_name:
+        example: Kumar
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: field_survey
+          verified: "true"
+        type: object
+      phone_number:
+        example: +91-9876543210
+        type: string
+      preferences:
+        additionalProperties:
+          type: string
+        example:
+          language: hindi
+          notification: sms
+        type: object
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.GeometryData:
+    properties:
+      wkb:
+        description: Well-Known Binary format
+        items:
+          type: integer
+        type: array
+      wkt:
+        description: Well-Known Text format (~50 ha)
+        example: POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663,
+          75.85 22.71))
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.IrrigationSourceRequest:
+    properties:
+      count:
+        example: 2
+        minimum: 0
+        type: integer
+      details:
+        example: Bore well depth 150ft
+        type: string
+      irrigation_source_id:
+        example: irr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      is_primary:
+        example: true
+        type: boolean
+    required:
+    - irrigation_source_id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.LinkFarmerRequest:
+    properties:
+      aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      aaa_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.OrgDashboardCountersRequest:
+    properties:
+      end_date:
+        example: "2024-12-31T23:59:59Z"
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      season:
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        example: RABI
+        type: string
+      start_date:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.ReassignKisanSathiRequest:
+    properties:
+      aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      aaa_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      new_kisan_sathi_user_id:
+        description: nil means remove
+        example: ks_123e4567-e89b-12d3-a456-426614174002
+        type: string
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.RebuildSpatialIndexesRequest:
+    properties:
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.ReconcileAAALinksRequest:
+    properties:
+      dry_run:
+        description: If true, only report what would be fixed without making changes
+        example: false
+        type: boolean
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.RegisterFPORefRequest:
+    properties:
+      aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      business_config:
+        additionalProperties:
+          type: string
+        example:
+          credit_limit: "500000"
+          payment_terms: net30
+        type: object
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          crop_focus: wheat_soybean
+          region: central_india
+        type: object
+      name:
+        example: Rampur Farmers Producer Company
+        type: string
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      registration_no:
+        example: FPO/MP/2024/001234
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - aaa_org_id
+    - name
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.RetryBulkOperationRequest:
+    properties:
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      operation_id:
+        example: op_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      options:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.BulkProcessingOptions'
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      record_indices:
+        example:
+        - 5
+        - 12
+        - 25
+        - 48
+        items:
+          type: integer
+        type: array
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      retry_all:
+        example: false
+        type: boolean
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - operation_id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.SeedRolesAndPermissionsRequest:
+    properties:
+      dry_run:
+        description: DryRun indicates whether to perform a dry run without making
+          changes
+        example: false
+        type: boolean
+      force:
+        description: Force indicates whether to force re-seeding even if already seeded
+        example: false
+        type: boolean
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.StartCycleRequest:
+    properties:
+      crop_id:
+        example: crop_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      farm_id:
+        example: farm_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      season:
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        example: RABI
+        type: string
+      start_date:
+        example: "2024-11-01T00:00:00Z"
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      variety_id:
+        example: variety_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - crop_id
+    - farm_id
+    - season
+    - start_date
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.UnlinkFarmerRequest:
+    properties:
+      aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      aaa_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateActivityRequest:
+    properties:
+      activity_type:
+        example: IRRIGATION
+        type: string
+      id:
+        example: activity_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          duration: 2hours
+          water_source: borewell
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      planned_at:
+        example: "2024-12-01T08:00:00Z"
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropRequest:
+    properties:
+      category:
+        enum:
+        - CEREALS
+        - PULSES
+        - VEGETABLES
+        - FRUITS
+        - OIL_SEEDS
+        - SPICES
+        - CASH_CROPS
+        - FODDER
+        - MEDICINAL
+        - OTHER
+        example: CEREALS
+        type: string
+      duration_days:
+        example: 125
+        maximum: 365
+        minimum: 1
+        type: integer
+      id:
+        example: crop_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      name:
+        example: Wheat - HD2967
+        maxLength: 255
+        minLength: 2
+        type: string
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        example:
+          fertilizer: high
+          irrigation: required
+        type: object
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      scientific_name:
+        example: Triticum aestivum L.
+        maxLength: 255
+        type: string
+      seasons:
+        example:
+        - RABI
+        items:
+          type: string
+        minItems: 1
+        type: array
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      unit:
+        example: quintal
+        maxLength: 50
+        minLength: 1
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropVarietyRequest:
+    properties:
+      description:
+        example: Updated description with latest cultivation practices
+        type: string
+      duration_days:
+        example: 118
+        maximum: 365
+        minimum: 1
+        type: integer
+      id:
+        example: variety_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      name:
+        example: HD-2967 (Improved)
+        maxLength: 255
+        minLength: 2
+        type: string
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        example:
+          drought_tolerance: medium
+          market_demand: high
+        type: object
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      yield_by_age:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.YieldByAgeRequest'
+        type: array
+      yield_per_acre:
+        example: 27
+        minimum: 0
+        type: number
+      yield_per_tree:
+        example: 0
+        minimum: 0
+        type: number
+    required:
+    - id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCycleRequest:
+    properties:
+      crop_id:
+        example: crop_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      id:
+        example: cycle_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      season:
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        example: RABI
+        type: string
+      start_date:
+        example: "2024-11-05T00:00:00Z"
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      variety_id:
+        example: variety_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmRequest:
+    properties:
+      aaa_farmer_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      area_ha:
+        example: 3
+        type: number
+      bore_well_count:
+        example: 3
+        minimum: 0
+        type: integer
+      geometry:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.GeometryData'
+      id:
+        example: farm_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      irrigation_sources:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.IrrigationSourceRequest'
+        type: array
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          certification: organic
+          last_survey: "2024-02-15"
+        type: object
+      name:
+        example: North Field Farm - Updated
+        type: string
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      other_irrigation_details:
+        example: Drip irrigation installed
+        type: string
+      ownership_type:
+        enum:
+        - OWN
+        - LEASE
+        - SHARED
+        example: LEASE
+        type: string
+      primary_irrigation_source_id:
+        example: irr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      soil_type_id:
+        example: soil_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - id
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmerRequest:
+    properties:
+      aaa_org_id:
+        description: Optional org filter
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      aaa_user_id:
+        description: User ID lookup (no org required)
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      farmer_id:
+        description: Primary key lookup
+        example: farmer_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      kisan_sathi_user_id:
+        example: ks_123e4567-e89b-12d3-a456-426614174001
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      profile:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerProfileData'
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.ValidateBulkDataRequest:
+    properties:
+      data:
+        items:
+          type: integer
+        type: array
+      farmers:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerBulkData'
+        type: array
+      fpo_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      input_format:
+        enum:
+        - csv
+        - excel
+        - json
+        example: json
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - fpo_org_id
+    - input_format
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.ValidateGeometryRequest:
+    properties:
+      check_bounds:
+        description: Whether to check if geometry is within India bounds (~50 ha)
+        example: true
+        type: boolean
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: mobile_app
+          version: 1.0.0
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      wkt:
+        example: POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663,
+          75.85 22.71))
+        type: string
+    required:
+    - wkt
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.YieldByAgeRequest:
+    properties:
+      age_from:
+        example: 5
+        minimum: 0
+        type: integer
+      age_to:
+        example: 10
+        type: integer
+      yield_per_tree:
+        example: 50.5
+        minimum: 0
+        type: number
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.AddressData:
+    properties:
+      city:
+        example: Indore
+        type: string
+      coordinates:
+        example: POINT(75.8577 22.7196)
+        type: string
+      country:
+        example: India
+        type: string
+      postal_code:
+        example: "452001"
+        type: string
+      state:
+        example: Madhya Pradesh
+        type: string
+      street_address:
+        example: Village Rampur, Post Khandwa
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationData:
+    properties:
+      estimated_completion:
+        example: "2024-01-15T11:00:00Z"
+        type: string
+      message:
+        example: Processing 150 records
+        type: string
+      operation_id:
+        example: op_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      result_url:
+        example: /api/v1/bulk-operations/op_123e4567-e89b-12d3-a456-426614174000/results
+        type: string
+      status:
+        example: PROCESSING
+        type: string
+      status_url:
+        example: /api/v1/bulk-operations/op_123e4567-e89b-12d3-a456-426614174000/status
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationData'
+      message:
+        example: Bulk operation initiated successfully
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      success:
+        example: true
+        type: boolean
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationStatusData:
+    properties:
+      can_retry:
+        type: boolean
+      current_batch:
+        type: integer
+      end_time:
+        type: string
+      error_summary:
+        additionalProperties:
+          type: integer
+        type: object
+      estimated_completion:
+        type: string
+      fpo_org_id:
+        type: string
+      metadata:
+        additionalProperties: true
+        type: object
+      operation_id:
+        type: string
+      processing_time:
+        type: string
+      progress:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ProgressInfo'
+      result_file_url:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      total_batches:
+        type: integer
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationStatusResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationStatusData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.BulkValidationData:
+    properties:
+      errors:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ValidationError'
+        type: array
+      is_valid:
+        type: boolean
+      summary:
+        additionalProperties: true
+        type: object
+      total_records:
+        type: integer
+      valid_records:
+        type: integer
+      warnings:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ValidationWarning'
+        type: array
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.BulkValidationResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkValidationData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.ComponentHealth:
+    properties:
+      details:
+        additionalProperties: true
+        type: object
+      error:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.CreateFPOData:
+    properties:
+      aaa_org_id:
+        type: string
+      ceo_user_id:
+        type: string
+      created_at:
+        type: string
+      fpo_id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      user_groups:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.UserGroupData'
+        type: array
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.CropCategoriesResponse:
+    properties:
+      data:
+        items:
+          type: string
+        type: array
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.CropCycleData:
+    properties:
+      created_at:
+        type: string
+      crop_id:
+        type: string
+      crop_name:
+        type: string
+      end_date:
+        type: string
+      farm_id:
+        type: string
+      farmer_id:
+        type: string
+      id:
+        type: string
+      outcome:
+        additionalProperties:
+          type: string
+        type: object
+      season:
+        type: string
+      start_date:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      variety_id:
+        type: string
+      variety_name:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.CropData:
+    properties:
+      category:
+        type: string
+      created_at:
+        type: string
+      duration_days:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        type: object
+      scientific_name:
+        type: string
+      seasons:
+        items:
+          type: string
+        type: array
+      unit:
+        type: string
+      updated_at:
+        type: string
+      variety_count:
+        description: Count of active varieties
+        type: integer
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.CropLookupData:
+    properties:
+      category:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      seasons:
+        items:
+          type: string
+        type: array
+      unit:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.CropSeasonsResponse:
+    properties:
+      data:
+        items:
+          type: string
+        type: array
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyData:
+    properties:
+      created_at:
+        type: string
+      crop_id:
+        type: string
+      crop_name:
+        type: string
+      description:
+        type: string
+      duration_days:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        type: object
+      updated_at:
+        type: string
+      yield_by_age:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.YieldByAgeData'
+        type: array
+      yield_per_acre:
+        type: number
+      yield_per_tree:
+        type: number
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyData'
+        type: array
+      message:
+        type: string
+      page:
+        type: integer
+      page_size:
+        type: integer
+      request_id:
+        type: string
+      success:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyLookupData:
+    properties:
+      duration_days:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyLookupResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyLookupData'
+        type: array
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse:
+    properties:
+      code:
+        type: string
+      correlation_id:
+        type: string
+      details:
+        additionalProperties:
+          type: string
+        type: object
+      error:
+        type: string
+      message:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.FPORefData:
+    properties:
+      aaa_org_id:
+        type: string
+      business_config:
+        additionalProperties:
+          type: string
+        type: object
+      created_at:
+        type: string
+      created_by:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      registration_no:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmActivityData:
+    properties:
+      activity_type:
+        type: string
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      crop_cycle_id:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      output:
+        additionalProperties:
+          type: string
+        type: object
+      planned_at:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData:
+    properties:
+      aaa_farmer_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      area_ha:
+        example: 2.5
+        type: number
+      created_at:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      geometry:
+        example: POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663,
+          75.85 22.71))
+        type: string
+      id:
+        example: farm_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          irrigation: drip
+          soil_type: loamy
+        type: object
+      name:
+        example: North Field Farm
+        type: string
+      updated_at:
+        example: "2024-01-20T15:45:00Z"
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerLinkageData:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      kisan_sathi_user_id:
+        type: string
+      linked_at:
+        type: string
+      status:
+        type: string
+      unlinked_at:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData:
+    properties:
+      aaa_org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      aaa_user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      address:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.AddressData'
+      created_at:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      date_of_birth:
+        example: "1980-05-15"
+        type: string
+      email:
+        example: ramesh.kumar@example.com
+        type: string
+      farms:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData'
+        type: array
+      first_name:
+        example: Ramesh
+        type: string
+      gender:
+        example: male
+        type: string
+      id:
+        description: Farmer ID (primary key)
+        example: farmer_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      kisan_sathi_user_id:
+        example: ks_123e4567-e89b-12d3-a456-426614174001
+        type: string
+      last_name:
+        example: Kumar
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        example:
+          source: field_survey
+          verified: "true"
+        type: object
+      phone_number:
+        example: +91-9876543210
+        type: string
+      preferences:
+        additionalProperties:
+          type: string
+        example:
+          language: hindi
+          notification: sms
+        type: object
+      updated_at:
+        example: "2024-01-20T15:45:00Z"
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.KisanSathiAssignmentData:
+    properties:
+      aaa_org_id:
+        type: string
+      aaa_user_id:
+        type: string
+      assigned_at:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      kisan_sathi_user_id:
+        type: string
+      status:
+        type: string
+      unassigned_at:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.KisanSathiUserData:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      phone_number:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+      username:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.ProgressInfo:
+    properties:
+      failed:
+        example: 3
+        type: integer
+      percentage:
+        example: 50
+        type: number
+      processed:
+        example: 75
+        type: integer
+      skipped:
+        example: 2
+        type: integer
+      successful:
+        example: 70
+        type: integer
+      total:
+        example: 150
+        type: integer
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAdminHealthResponse:
+    properties:
+      components:
+        additionalProperties:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ComponentHealth'
+        type: object
+      duration:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAdminSeedResponse:
+    properties:
+      duration:
+        type: string
+      error:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailData:
+    properties:
+      audit_logs:
+        items: {}
+        type: array
+      filters:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailFilters'
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total_count:
+        type: integer
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailFilters:
+    properties:
+      action:
+        type: string
+      end_date:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailResponse:
+    properties:
+      correlation_id:
+        type: string
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailData'
+      message:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCheckPermissionData:
+    properties:
+      action:
+        type: string
+      allowed:
+        type: boolean
+      object:
+        type: string
+      org_id:
+        type: string
+      resource:
+        type: string
+      subject:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCheckPermissionResponse:
+    properties:
+      correlation_id:
+        type: string
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCheckPermissionData'
+      message:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCreateFPOResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CreateFPOData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropCycleData'
+        type: array
+      message:
+        type: string
+      page:
+        type: integer
+      page_size:
+        type: integer
+      request_id:
+        type: string
+      success:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropCycleData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropData'
+        type: array
+      message:
+        example: Crops retrieved successfully
+        type: string
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 20
+        type: integer
+      request_id:
+        example: req_123456789
+        type: string
+      success:
+        example: true
+        type: boolean
+      total:
+        example: 50
+        type: integer
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropLookupResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropLookupData'
+        type: array
+      message:
+        example: Crop lookup data retrieved successfully
+        type: string
+      request_id:
+        example: req_123456789
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropData'
+      message:
+        example: Crop created successfully
+        type: string
+      request_id:
+        example: req_123456789
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropVarietyResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyData'
+      message:
+        example: Crop variety created successfully
+        type: string
+      request_id:
+        example: req_123456789
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse:
+    properties:
+      correlation_id:
+        type: string
+      details:
+        additionalProperties:
+          type: string
+        type: object
+      error:
+        type: string
+      message:
+        type: string
+      request_id:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerExportFarmerPortfolioResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPORefResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FPORefData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmActivityResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmActivityData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData'
+        type: array
+      message:
+        type: string
+      page:
+        type: integer
+      page_size:
+        type: integer
+      request_id:
+        type: string
+      success:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerLinkageResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerLinkageData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData'
+        type: array
+      message:
+        type: string
+      page:
+        type: integer
+      page_size:
+        type: integer
+      request_id:
+        type: string
+      success:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerKisanSathiAssignmentResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.KisanSathiAssignmentData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerKisanSathiUserResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.KisanSathiUserData'
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerOrgDashboardCountersResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.UserGroupData:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      group_id:
+        type: string
+      name:
+        type: string
+      org_id:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.ValidationError:
+    properties:
+      code:
+        type: string
+      field:
+        type: string
+      message:
+        type: string
+      record_index:
+        type: integer
+      value: {}
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.ValidationWarning:
+    properties:
+      code:
+        type: string
+      field:
+        type: string
+      message:
+        type: string
+      record_index:
+        type: integer
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.YieldByAgeData:
+    properties:
+      age_from:
+        type: integer
+      age_to:
+        type: integer
+      yield_per_tree:
+        type: number
+    type: object
+  internal_handlers.CheckPermissionRequest:
+    properties:
+      action:
+        type: string
+      object:
+        type: string
+      org_id:
+        type: string
+      resource:
+        type: string
+      subject:
+        type: string
+    required:
+    - action
+    - resource
+    - subject
+    type: object
+  internal_handlers.DetectFarmOverlapsResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  internal_handlers.ErrorResponse:
+    properties:
+      error:
+        example: Failed to retrieve data
+        type: string
+    type: object
+  internal_handlers.FarmActivityListResponse:
+    properties:
+      data:
+        items: {}
+        type: array
+      message:
+        type: string
+      page:
+        type: integer
+      page_size:
+        type: integer
+      request_id:
+        type: string
+      success:
+        type: boolean
+      total:
+        type: integer
+    type: object
+  internal_handlers.IrrigationSourcesResponse:
+    properties:
+      data: {}
+      message:
+        example: Irrigation sources retrieved successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  internal_handlers.RebuildSpatialIndexesResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  internal_handlers.ReconcileAAALinksResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  internal_handlers.SimpleResponse:
+    properties:
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+  internal_handlers.SoilTypesResponse:
+    properties:
+      data: {}
+      message:
+        example: Soil types retrieved successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  internal_handlers.ValidateGeometryResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: Farmers Module Service with Workflow-Based Architecture for Farm Management
+  title: Farmers Module API
+  version: 1.0.0
+paths:
+  /admin/audit:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the audit trail for system activities
+      parameters:
+      - description: Start date for audit logs (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End date for audit logs (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      - description: Filter by user ID
+        in: query
+        name: user_id
+        type: string
+      - description: Filter by action
+        in: query
+        name: action
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get audit trail
+      tags:
+      - admin
+  /admin/check-permission:
+    post:
+      consumes:
+      - application/json
+      description: Check if a user has permission to perform a specific action
+      parameters:
+      - description: Permission check data
+        in: body
+        name: permission
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.CheckPermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCheckPermissionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Check user permission
+      tags:
+      - admin
+  /admin/health:
+    get:
+      consumes:
+      - application/json
+      description: Check the health status of the service and its dependencies
+      parameters:
+      - description: Comma-separated list of components to check
+        in: query
+        name: components
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAdminHealthResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAdminHealthResponse'
+      security:
+      - BearerAuth: []
+      summary: Health check
+      tags:
+      - admin
+  /admin/seed:
+    post:
+      consumes:
+      - application/json
+      description: Initialize the system with default roles and permissions
+      parameters:
+      - description: Seed request parameters
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.SeedRolesAndPermissionsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAdminSeedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Seed roles and permissions
+      tags:
+      - admin
+  /api/v1/reports/farmer-portfolio:
+    post:
+      consumes:
+      - application/json
+      description: Aggregates farms, cycles, and activities data for a farmer with
+        proper scope validation
+      parameters:
+      - description: Export farmer portfolio request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.ExportFarmerPortfolioRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerExportFarmerPortfolioResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Export farmer portfolio
+      tags:
+      - Reporting
+  /api/v1/reports/farmer-portfolio/{farmer_id}:
+    get:
+      consumes:
+      - application/json
+      description: Exports farmer portfolio data for a specific farmer ID from URL
+        path
+      parameters:
+      - description: Farmer ID
+        in: path
+        name: farmer_id
+        required: true
+        type: string
+      - description: Season filter
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        in: query
+        name: season
+        type: string
+      - description: Start date filter (RFC3339 format)
+        in: query
+        name: start_date
+        type: string
+      - description: End date filter (RFC3339 format)
+        in: query
+        name: end_date
+        type: string
+      - default: json
+        description: Export format
+        enum:
+        - json
+        - csv
+        in: query
+        name: format
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerExportFarmerPortfolioResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Export farmer portfolio by ID
+      tags:
+      - Reporting
+  /api/v1/reports/org-dashboard:
+    post:
+      consumes:
+      - application/json
+      description: Provides org-level KPIs including counts and areas by season/status
+        with proper scope validation
+      parameters:
+      - description: Organization dashboard counters request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.OrgDashboardCountersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerOrgDashboardCountersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Get organization dashboard counters
+      tags:
+      - Reporting
+  /api/v1/reports/org-dashboard/{org_id}:
+    get:
+      consumes:
+      - application/json
+      description: Gets organization dashboard counters for a specific org ID from
+        URL path
+      parameters:
+      - description: Organization ID
+        in: path
+        name: org_id
+        required: true
+        type: string
+      - description: Season filter
+        enum:
+        - RABI
+        - KHARIF
+        - ZAID
+        in: query
+        name: season
+        type: string
+      - description: Start date filter (RFC3339 format)
+        in: query
+        name: start_date
+        type: string
+      - description: End date filter (RFC3339 format)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerOrgDashboardCountersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Get organization dashboard counters by ID
+      tags:
+      - Reporting
+  /bulk/cancel/{operation_id}:
+    post:
+      consumes:
+      - application/json
+      description: Cancel an in-progress bulk operation
+      parameters:
+      - description: Operation ID
+        in: path
+        name: operation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Cancel bulk operation
+      tags:
+      - Bulk Operations
+  /bulk/farmers/add:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Add multiple farmers to an FPO in a single operation
+      parameters:
+      - description: FPO Organization ID
+        in: formData
+        name: fpo_org_id
+        required: true
+        type: string
+      - description: Input format (csv, excel, json)
+        in: formData
+        name: input_format
+        required: true
+        type: string
+      - description: Processing mode (sync, async, batch)
+        in: formData
+        name: processing_mode
+        required: true
+        type: string
+      - description: File containing farmer data
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Processing options as JSON string
+        in: formData
+        name: options
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: For synchronous operations
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationResponse'
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "413":
+          description: File too large
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "415":
+          description: Unsupported media type
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Bulk add farmers to FPO
+      tags:
+      - Bulk Operations
+  /bulk/results/{operation_id}:
+    get:
+      description: Download a file containing the results of a bulk operation
+      parameters:
+      - description: Operation ID
+        in: path
+        name: operation_id
+        required: true
+        type: string
+      - description: Output format (csv, excel, json)
+        in: query
+        name: format
+        type: string
+      - description: Include all records or just failures
+        in: query
+        name: include_all
+        type: boolean
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Download bulk operation results
+      tags:
+      - Bulk Operations
+  /bulk/retry/{operation_id}:
+    post:
+      consumes:
+      - application/json
+      description: Retry processing of failed records from a bulk operation
+      parameters:
+      - description: Original operation ID
+        in: path
+        name: operation_id
+        required: true
+        type: string
+      - description: Retry request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.RetryBulkOperationRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Retry failed records
+      tags:
+      - Bulk Operations
+  /bulk/status/{operation_id}:
+    get:
+      description: Get the current status and progress of a bulk operation
+      parameters:
+      - description: Operation ID
+        in: path
+        name: operation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationStatusResponse'
+        "400":
+          description: Invalid operation ID
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Access denied to this operation
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Operation not found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get bulk operation status
+      tags:
+      - Bulk Operations
+  /bulk/template:
+    get:
+      description: Download a template file for bulk farmer upload
+      parameters:
+      - description: Template format (csv, excel)
+        in: query
+        name: format
+        required: true
+        type: string
+      - description: Include sample data
+        in: query
+        name: include_sample
+        type: boolean
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Get bulk upload template
+      tags:
+      - Bulk Operations
+  /bulk/validate:
+    post:
+      consumes:
+      - application/json
+      description: Validate farmer data without actually processing it
+      parameters:
+      - description: Validation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.ValidateBulkDataRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkValidationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Validate bulk data
+      tags:
+      - Bulk Operations
+  /crops:
+    get:
+      consumes:
+      - application/json
+      description: List crops with optional filtering by category, season, etc.
+      parameters:
+      - description: Filter by category
+        in: query
+        name: category
+        type: string
+      - description: Filter by season
+        in: query
+        name: season
+        type: string
+      - description: Search in name or scientific name
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List crops
+      tags:
+      - Crop Master Data
+    post:
+      consumes:
+      - application/json
+      description: Create a new crop with master data
+      parameters:
+      - description: Crop data
+        in: body
+        name: crop
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new crop
+      tags:
+      - Crop Master Data
+  /crops/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a crop (marks as inactive)
+      parameters:
+      - description: Crop ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete crop
+      tags:
+      - Crop Master Data
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific crop
+      parameters:
+      - description: Crop ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get crop by ID
+      tags:
+      - Crop Master Data
+    put:
+      consumes:
+      - application/json
+      description: Update crop master data
+      parameters:
+      - description: Crop ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Crop update data
+        in: body
+        name: crop
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update crop
+      tags:
+      - Crop Master Data
+  /crops/activities:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of farm activities with optional filtering
+      parameters:
+      - description: Filter by crop cycle ID
+        in: query
+        name: crop_cycle_id
+        type: string
+      - description: Filter by activity type
+        in: query
+        name: activity_type
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by date from (YYYY-MM-DD)
+        in: query
+        name: date_from
+        type: string
+      - description: Filter by date to (YYYY-MM-DD)
+        in: query
+        name: date_to
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.FarmActivityListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List farm activities
+      tags:
+      - farm-activities
+    post:
+      consumes:
+      - application/json
+      description: Create a new farm activity within a crop cycle
+      parameters:
+      - description: Farm activity data
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmActivityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new farm activity
+      tags:
+      - farm-activities
+  /crops/activities/{activity_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific farm activity by its ID
+      parameters:
+      - description: Activity ID
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmActivityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a farm activity by ID
+      tags:
+      - farm-activities
+    put:
+      consumes:
+      - application/json
+      description: Update farm activity details (only for non-completed activities)
+      parameters:
+      - description: Activity ID
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: Update activity data
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmActivityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a farm activity
+      tags:
+      - farm-activities
+  /crops/activities/{activity_id}/complete:
+    put:
+      consumes:
+      - application/json
+      description: Mark a farm activity as completed with output data
+      parameters:
+      - description: Activity ID
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: Complete activity data
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CompleteActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmActivityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Complete a farm activity
+      tags:
+      - farm-activities
+  /crops/cycles:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of crop cycles with optional filtering
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Filter by farm ID
+        in: query
+        name: farm_id
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by season
+        in: query
+        name: season
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List crop cycles
+      tags:
+      - Crop Cycles
+    post:
+      consumes:
+      - application/json
+      description: Start a new crop cycle with farm and crop details
+      parameters:
+      - description: Start cycle request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.StartCycleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Start a new crop cycle
+      tags:
+      - Crop Cycles
+  /crops/cycles/{cycle_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific crop cycle
+      parameters:
+      - description: Cycle ID
+        in: path
+        name: cycle_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get crop cycle by ID
+      tags:
+      - Crop Cycles
+    put:
+      consumes:
+      - application/json
+      description: Update details of an existing crop cycle
+      parameters:
+      - description: Cycle ID
+        in: path
+        name: cycle_id
+        required: true
+        type: string
+      - description: Update cycle request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCycleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a crop cycle
+      tags:
+      - Crop Cycles
+  /crops/cycles/{cycle_id}/end:
+    put:
+      consumes:
+      - application/json
+      description: End a crop cycle and mark it as completed
+      parameters:
+      - description: Cycle ID
+        in: path
+        name: cycle_id
+        required: true
+        type: string
+      - description: End cycle request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.EndCycleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: End a crop cycle
+      tags:
+      - Crop Cycles
+  /data-quality/detect-farm-overlaps:
+    post:
+      consumes:
+      - application/json
+      description: Detects spatial intersections between farm boundaries within an
+        organization
+      parameters:
+      - description: Detect farm overlaps request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.DetectFarmOverlapsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.DetectFarmOverlapsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+      summary: Detect farm overlaps
+      tags:
+      - Data Quality
+  /data-quality/rebuild-spatial-indexes:
+    post:
+      consumes:
+      - application/json
+      description: Rebuilds GIST indexes for spatial tables for database maintenance
+      parameters:
+      - description: Rebuild spatial indexes request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.RebuildSpatialIndexesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.RebuildSpatialIndexesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+      summary: Rebuild spatial indexes
+      tags:
+      - Data Quality
+  /data-quality/reconcile-aaa-links:
+    post:
+      consumes:
+      - application/json
+      description: Heals broken AAA references in farmer_links by checking against
+        AAA service
+      parameters:
+      - description: Reconcile AAA links request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.ReconcileAAALinksRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ReconcileAAALinksResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+      summary: Reconcile AAA links
+      tags:
+      - Data Quality
+  /data-quality/validate-geometry:
+    post:
+      consumes:
+      - application/json
+      description: Validates WKT geometry using PostGIS with SRID enforcement and
+        integrity checks
+      parameters:
+      - description: Validate geometry request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.ValidateGeometryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ValidateGeometryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+      summary: Validate geometry
+      tags:
+      - Data Quality
+  /farms:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all farms with optional filtering
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Filter by farmer ID
+        in: query
+        name: farmer_id
+        type: string
+      - description: Filter by organization ID
+        in: query
+        name: org_id
+        type: string
+      - description: Minimum area in hectares
+        in: query
+        name: min_area
+        type: number
+      - description: Maximum area in hectares
+        in: query
+        name: max_area
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List all farms
+      tags:
+      - farms
+    post:
+      consumes:
+      - application/json
+      description: Create a new farm with geographic boundaries and metadata
+      parameters:
+      - description: Farm data
+        in: body
+        name: farm
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Create a new farm
+      tags:
+      - farms
+  /farms/{farm_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a farm by ID
+      parameters:
+      - description: Farm ID
+        in: path
+        name: farm_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Farm deleted successfully
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a farm
+      tags:
+      - farms
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific farm by its ID
+      parameters:
+      - description: Farm ID
+        in: path
+        name: farm_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get farm by ID
+      tags:
+      - farms
+    put:
+      consumes:
+      - application/json
+      description: Update farm details including name, geometry, and location
+      parameters:
+      - description: Farm ID
+        in: path
+        name: farm_id
+        required: true
+        type: string
+      - description: Farm update data
+        in: body
+        name: farm
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an existing farm
+      tags:
+      - farms
+  /identity/farmer/link:
+    post:
+      consumes:
+      - application/json
+      description: Link a farmer to a Farmer Producer Organization with AAA validation
+      parameters:
+      - description: Farmer linkage data
+        in: body
+        name: linkage
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.LinkFarmerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerLinkageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Link farmer to FPO
+      tags:
+      - identity
+  /identity/farmer/linkage/{farmer_id}/{org_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the linkage status between a farmer and FPO
+      parameters:
+      - description: Farmer ID
+        in: path
+        name: farmer_id
+        required: true
+        type: string
+      - description: Organization ID
+        in: path
+        name: org_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerLinkageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get farmer linkage status
+      tags:
+      - identity
+  /identity/farmer/unlink:
+    delete:
+      consumes:
+      - application/json
+      description: Unlink a farmer from a Farmer Producer Organization with soft delete
+      parameters:
+      - description: Farmer unlinkage data
+        in: body
+        name: linkage
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UnlinkFarmerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerLinkageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unlink farmer from FPO
+      tags:
+      - identity
+  /identity/farmers:
+    get:
+      consumes:
+      - application/json
+      description: List farmers with filtering and pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: AAA Org ID filter
+        in: query
+        name: aaa_org_id
+        type: string
+      - description: KisanSathi User ID filter
+        in: query
+        name: kisan_sathi_user_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: List farmers
+      tags:
+      - identity
+    post:
+      consumes:
+      - application/json
+      description: Create a new farmer profile
+      parameters:
+      - description: Farmer data
+        in: body
+        name: farmer
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new farmer
+      tags:
+      - identity
+  /identity/farmers/{aaa_user_id}/{aaa_org_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a farmer profile by user ID and org ID
+      parameters:
+      - description: AAA User ID
+        in: path
+        name: aaa_user_id
+        required: true
+        type: string
+      - description: AAA Org ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.SimpleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Delete farmer by user ID and org ID
+      tags:
+      - identity
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a farmer profile by AAA user ID and org ID
+      parameters:
+      - description: AAA User ID
+        in: path
+        name: aaa_user_id
+        required: true
+        type: string
+      - description: AAA Org ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get farmer by user ID and org ID
+      tags:
+      - identity
+    put:
+      consumes:
+      - application/json
+      description: Update an existing farmer profile by user ID and org ID
+      parameters:
+      - description: AAA User ID
+        in: path
+        name: aaa_user_id
+        required: true
+        type: string
+      - description: AAA Org ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      - description: Farmer update data
+        in: body
+        name: farmer
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Update farmer by user ID and org ID
+      tags:
+      - identity
+  /identity/farmers/id/{farmer_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a farmer profile by farmer ID (primary key)
+      parameters:
+      - description: Farmer ID
+        in: path
+        name: farmer_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.SimpleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Delete farmer by farmer ID
+      tags:
+      - identity
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a farmer profile by farmer ID (primary key)
+      parameters:
+      - description: Farmer ID
+        in: path
+        name: farmer_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Get farmer by farmer ID
+      tags:
+      - identity
+    put:
+      consumes:
+      - application/json
+      description: Update an existing farmer profile by farmer ID (primary key)
+      parameters:
+      - description: Farmer ID
+        in: path
+        name: farmer_id
+        required: true
+        type: string
+      - description: Farmer update data
+        in: body
+        name: farmer
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Update farmer by farmer ID
+      tags:
+      - identity
+  /identity/farmers/user/{aaa_user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a farmer profile by user ID (no org required)
+      parameters:
+      - description: AAA User ID
+        in: path
+        name: aaa_user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.SimpleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Delete farmer by user ID only
+      tags:
+      - identity
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a farmer profile by AAA user ID (no org required)
+      parameters:
+      - description: AAA User ID
+        in: path
+        name: aaa_user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Get farmer by user ID only
+      tags:
+      - identity
+    put:
+      consumes:
+      - application/json
+      description: Update an existing farmer profile by user ID (no org required)
+      parameters:
+      - description: AAA User ID
+        in: path
+        name: aaa_user_id
+        required: true
+        type: string
+      - description: Farmer update data
+        in: body
+        name: farmer
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Update farmer by user ID only
+      tags:
+      - identity
+  /identity/fpo/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new FPO organization with CEO user setup and user groups
+      parameters:
+      - description: Create FPO Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPORequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCreateFPOResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create FPO Organization
+      tags:
+      - FPO Management
+  /identity/fpo/reference/{aaa_org_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves FPO reference information by AAA organization ID
+      parameters:
+      - description: AAA Organization ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPORefResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Get FPO Reference
+      tags:
+      - FPO Management
+  /identity/fpo/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers an existing FPO organization for local reference management
+      parameters:
+      - description: Register FPO Reference Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.RegisterFPORefRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPORefResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      summary: Register FPO Reference
+      tags:
+      - FPO Management
+  /kisansathi/assign:
+    post:
+      consumes:
+      - application/json
+      description: Assign a KisanSathi user to a specific farmer
+      parameters:
+      - description: KisanSathi assignment data
+        in: body
+        name: assignment
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.AssignKisanSathiRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerKisanSathiAssignmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Assign KisanSathi to farmer
+      tags:
+      - kisansathi
+  /kisansathi/assignment/{farmer_id}/{org_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the KisanSathi assignment for a specific farmer
+      parameters:
+      - description: Farmer ID
+        in: path
+        name: farmer_id
+        required: true
+        type: string
+      - description: Organization ID
+        in: path
+        name: org_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get KisanSathi assignment
+      tags:
+      - kisansathi
+  /kisansathi/create-user:
+    post:
+      consumes:
+      - application/json
+      description: Create a new KisanSathi user with role assignment
+      parameters:
+      - description: KisanSathi user data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateKisanSathiUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerKisanSathiUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create KisanSathi user
+      tags:
+      - kisansathi
+  /kisansathi/reassign:
+    put:
+      consumes:
+      - application/json
+      description: Reassign a KisanSathi to a different farmer or remove the assignment
+      parameters:
+      - description: KisanSathi reassignment data
+        in: body
+        name: assignment
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.ReassignKisanSathiRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerKisanSathiAssignmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reassign or remove KisanSathi
+      tags:
+      - kisansathi
+  /lookups/crop-categories:
+    get:
+      consumes:
+      - application/json
+      description: Get list of available crop categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropCategoriesResponse'
+      security:
+      - BearerAuth: []
+      summary: Get crop categories
+      tags:
+      - Crop Master Data
+  /lookups/crop-seasons:
+    get:
+      consumes:
+      - application/json
+      description: Get list of available crop seasons
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropSeasonsResponse'
+      security:
+      - BearerAuth: []
+      summary: Get crop seasons
+      tags:
+      - Crop Master Data
+  /lookups/crops:
+    get:
+      consumes:
+      - application/json
+      description: Get simplified crop data for dropdown/lookup purposes
+      parameters:
+      - description: Filter by category
+        in: query
+        name: category
+        type: string
+      - description: Filter by season
+        in: query
+        name: season
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropLookupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get crop lookup data
+      tags:
+      - Crop Master Data
+  /lookups/irrigation-sources:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all available irrigation sources for farm management
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.IrrigationSourcesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Get all irrigation sources
+      tags:
+      - lookups
+  /lookups/soil-types:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all available soil types for farm management
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.SoilTypesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Get all soil types
+      tags:
+      - lookups
+  /lookups/varieties/{crop_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get simplified variety data for dropdown/lookup purposes
+      parameters:
+      - description: Crop ID
+        in: path
+        name: crop_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyLookupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get variety lookup data
+      tags:
+      - Crop Master Data
+  /varieties:
+    get:
+      consumes:
+      - application/json
+      description: List crop varieties with optional filtering
+      parameters:
+      - description: Filter by crop ID
+        in: query
+        name: crop_id
+        type: string
+      - description: Search in name or description
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List crop varieties
+      tags:
+      - Crop Master Data
+    post:
+      consumes:
+      - application/json
+      description: Create a new variety for a specific crop
+      parameters:
+      - description: Crop variety data
+        in: body
+        name: variety
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropVarietyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropVarietyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create crop variety
+      tags:
+      - Crop Master Data
+  /varieties/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a crop variety (marks as inactive)
+      parameters:
+      - description: Crop variety ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropVarietyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete crop variety
+      tags:
+      - Crop Master Data
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific crop variety
+      parameters:
+      - description: Crop variety ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropVarietyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get crop variety by ID
+      tags:
+      - Crop Master Data
+    put:
+      consumes:
+      - application/json
+      description: Update crop variety data
+      parameters:
+      - description: Crop variety ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Crop variety update data
+        in: body
+        name: variety
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropVarietyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropVarietyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update crop variety
+      tags:
+      - Crop Master Data
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

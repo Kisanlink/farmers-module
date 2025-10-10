@@ -61,13 +61,13 @@ func NewFarmerHandler(farmerService services.FarmerService, logger interfaces.Lo
 // @Tags identity
 // @Accept json
 // @Produce json
-// @Param farmer body requests.CreateFarmerRequest true "Farmer data"
-// @Success 201 {object} responses.SwaggerFarmerResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 401 {object} responses.SwaggerErrorResponse
-// @Failure 403 {object} responses.SwaggerErrorResponse
-// @Failure 409 {object} responses.SwaggerErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Param farmer body github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmerRequest true "Farmer data"
+// @Success 201 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 409 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /identity/farmers [post]
 func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
@@ -121,12 +121,12 @@ func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
 // @Produce json
 // @Param aaa_user_id path string true "AAA User ID"
 // @Param aaa_org_id path string true "AAA Org ID"
-// @Success 200 {object} responses.SwaggerFarmerResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 401 {object} responses.SwaggerErrorResponse
-// @Failure 403 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [get]
 func (h *FarmerHandler) GetFarmer(c *gin.Context) {
@@ -175,10 +175,10 @@ func (h *FarmerHandler) GetFarmer(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param aaa_user_id path string true "AAA User ID"
-// @Success 200 {object} responses.SwaggerFarmerResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Router /identity/farmers/user/{aaa_user_id} [get]
 func (h *FarmerHandler) GetFarmerByUserID(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")
@@ -223,10 +223,10 @@ func (h *FarmerHandler) GetFarmerByUserID(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param farmer_id path string true "Farmer ID"
-// @Success 200 {object} responses.SwaggerFarmerResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Router /identity/farmers/id/{farmer_id} [get]
 func (h *FarmerHandler) GetFarmerByID(c *gin.Context) {
 	farmerID := c.Param("farmer_id")
@@ -274,9 +274,9 @@ func (h *FarmerHandler) GetFarmerByID(c *gin.Context) {
 // @Param page_size query int false "Page size" default(10)
 // @Param aaa_org_id query string false "AAA Org ID filter"
 // @Param kisan_sathi_user_id query string false "KisanSathi User ID filter"
-// @Success 200 {object} responses.SwaggerFarmerListResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerListResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Router /identity/farmers [get]
 func (h *FarmerHandler) ListFarmers(c *gin.Context) {
 	h.logger.Info("Listing farmers with filters",
@@ -342,11 +342,11 @@ func (h *FarmerHandler) ListFarmers(c *gin.Context) {
 // @Produce json
 // @Param aaa_user_id path string true "AAA User ID"
 // @Param aaa_org_id path string true "AAA Org ID"
-// @Param farmer body requests.UpdateFarmerRequest true "Farmer update data"
-// @Success 200 {object} responses.SwaggerFarmerResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Param farmer body github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmerRequest true "Farmer update data"
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [put]
 func (h *FarmerHandler) UpdateFarmer(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")
@@ -401,11 +401,11 @@ func (h *FarmerHandler) UpdateFarmer(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param aaa_user_id path string true "AAA User ID"
-// @Param farmer body requests.UpdateFarmerRequest true "Farmer update data"
-// @Success 200 {object} responses.SwaggerFarmerResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Param farmer body github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmerRequest true "Farmer update data"
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Router /identity/farmers/user/{aaa_user_id} [put]
 func (h *FarmerHandler) UpdateFarmerByUserID(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")
@@ -457,11 +457,11 @@ func (h *FarmerHandler) UpdateFarmerByUserID(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param farmer_id path string true "Farmer ID"
-// @Param farmer body requests.UpdateFarmerRequest true "Farmer update data"
-// @Success 200 {object} responses.SwaggerFarmerResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Param farmer body github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmerRequest true "Farmer update data"
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Router /identity/farmers/id/{farmer_id} [put]
 func (h *FarmerHandler) UpdateFarmerByID(c *gin.Context) {
 	farmerID := c.Param("farmer_id")
@@ -515,9 +515,9 @@ func (h *FarmerHandler) UpdateFarmerByID(c *gin.Context) {
 // @Param aaa_user_id path string true "AAA User ID"
 // @Param aaa_org_id path string true "AAA Org ID"
 // @Success 200 {object} SimpleResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Router /identity/farmers/{aaa_user_id}/{aaa_org_id} [delete]
 func (h *FarmerHandler) DeleteFarmer(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")
@@ -570,9 +570,9 @@ func (h *FarmerHandler) DeleteFarmer(c *gin.Context) {
 // @Produce json
 // @Param aaa_user_id path string true "AAA User ID"
 // @Success 200 {object} SimpleResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Router /identity/farmers/user/{aaa_user_id} [delete]
 func (h *FarmerHandler) DeleteFarmerByUserID(c *gin.Context) {
 	aaaUserID := c.Param("aaa_user_id")
@@ -621,9 +621,9 @@ func (h *FarmerHandler) DeleteFarmerByUserID(c *gin.Context) {
 // @Produce json
 // @Param farmer_id path string true "Farmer ID"
 // @Success 200 {object} SimpleResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Router /identity/farmers/id/{farmer_id} [delete]
 func (h *FarmerHandler) DeleteFarmerByID(c *gin.Context) {
 	farmerID := c.Param("farmer_id")
