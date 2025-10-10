@@ -13,7 +13,7 @@ func TestNewFarmer(t *testing.T) {
 	assert.NotEmpty(t, farmer.ID)
 	assert.NotNil(t, farmer.Preferences)
 	assert.NotNil(t, farmer.Metadata)
-	assert.Equal(t, "farmer", farmer.GetTableIdentifier())
+	assert.Equal(t, "FMRR", farmer.GetTableIdentifier())
 }
 
 func TestFarmerValidate(t *testing.T) {
@@ -139,10 +139,10 @@ func TestFarmerLinkTableName(t *testing.T) {
 
 func TestFarmerGetTableIdentifier(t *testing.T) {
 	farmer := &Farmer{}
-	assert.Equal(t, "farmer", farmer.GetTableIdentifier())
+	assert.Equal(t, "FMRR", farmer.GetTableIdentifier())
 }
 
 func TestFarmerLinkGetTableIdentifier(t *testing.T) {
 	farmerLink := &FarmerLink{}
-	assert.Equal(t, "farmer_link", farmerLink.GetTableIdentifier())
+	assert.Equal(t, "FMLK", farmerLink.GetTableIdentifier())
 }

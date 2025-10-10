@@ -40,7 +40,7 @@ func (cv *CropVariety) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (cv *CropVariety) GetTableIdentifier() string {
-	return "crop_variety"
+	return "CRPV"
 }
 
 // GetTableSize returns the table size for ID generation
@@ -50,7 +50,7 @@ func (cv *CropVariety) GetTableSize() hash.TableSize {
 
 // NewCropVariety creates a new crop variety model with proper initialization
 func NewCropVariety() *CropVariety {
-	baseModel := base.NewBaseModel("crop_variety", hash.Medium)
+	baseModel := base.NewBaseModel("CRPV", hash.Medium)
 	return &CropVariety{
 		BaseModel:  *baseModel,
 		Properties: make(map[string]string),
@@ -109,7 +109,7 @@ func (cv *CropVariety) validateYieldByAge() error {
 		// Check for overlapping ranges
 		for j := i + 1; j < len(cv.YieldByAge); j++ {
 			other := cv.YieldByAge[j]
-			if (yieldRange.AgeFrom <= other.AgeTo && yieldRange.AgeTo >= other.AgeFrom) {
+			if yieldRange.AgeFrom <= other.AgeTo && yieldRange.AgeTo >= other.AgeFrom {
 				return fmt.Errorf("overlapping age ranges at indices %d and %d", i, j)
 			}
 		}

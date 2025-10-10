@@ -61,7 +61,7 @@ func TestFPORefTableName(t *testing.T) {
 
 func TestFPORefGetTableIdentifier(t *testing.T) {
 	fpoRef := &FPORef{}
-	assert.Equal(t, "fpo_ref", fpoRef.GetTableIdentifier())
+	assert.Equal(t, "FPOR", fpoRef.GetTableIdentifier())
 }
 
 func TestFPORefFields(t *testing.T) {

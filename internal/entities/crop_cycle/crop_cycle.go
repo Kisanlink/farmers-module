@@ -35,7 +35,7 @@ func (cc *CropCycle) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (cc *CropCycle) GetTableIdentifier() string {
-	return "crop_cycle"
+	return "CRCY"
 }
 
 // GetTableSize returns the table size for ID generation

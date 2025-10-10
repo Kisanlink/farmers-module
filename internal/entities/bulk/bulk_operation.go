@@ -65,7 +65,7 @@ func (b *BulkOperation) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (b *BulkOperation) GetTableIdentifier() string {
-	return "bulk_op"
+	return "BLKO"
 }
 
 // GetTableSize returns the table size for ID generation
@@ -75,7 +75,7 @@ func (b *BulkOperation) GetTableSize() hash.TableSize {
 
 // NewBulkOperation creates a new bulk operation with proper initialization
 func NewBulkOperation() *BulkOperation {
-	baseModel := base.NewBaseModel("bulk_op", hash.Medium)
+	baseModel := base.NewBaseModel("BLKO", hash.Medium)
 	return &BulkOperation{
 		BaseModel:    *baseModel,
 		Status:       StatusPending,

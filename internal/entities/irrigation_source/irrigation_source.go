@@ -21,7 +21,7 @@ func (i *IrrigationSource) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (i *IrrigationSource) GetTableIdentifier() string {
-	return "irrigation_source"
+	return "IRRG"
 }
 
 // GetTableSize returns the table size for ID generation

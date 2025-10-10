@@ -72,7 +72,7 @@ func TestCropCycleTableName(t *testing.T) {
 
 func TestCropCycleGetTableIdentifier(t *testing.T) {
 	cropCycle := &CropCycle{}
-	assert.Equal(t, "crop_cycle", cropCycle.GetTableIdentifier())
+	assert.Equal(t, "CRCY", cropCycle.GetTableIdentifier())
 }
 
 func TestCropCycleFields(t *testing.T) {

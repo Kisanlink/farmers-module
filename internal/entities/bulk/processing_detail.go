@@ -42,7 +42,7 @@ func (p *ProcessingDetail) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (p *ProcessingDetail) GetTableIdentifier() string {
-	return "bulk_detail"
+	return "BLKD"
 }
 
 // GetTableSize returns the table size for ID generation
@@ -52,7 +52,7 @@ func (p *ProcessingDetail) GetTableSize() hash.TableSize {
 
 // NewProcessingDetail creates a new processing detail with proper initialization
 func NewProcessingDetail(bulkOperationID string, recordIndex int) *ProcessingDetail {
-	baseModel := base.NewBaseModel("bulk_detail", hash.Large)
+	baseModel := base.NewBaseModel("BLKD", hash.Large)
 	return &ProcessingDetail{
 		BaseModel:       *baseModel,
 		BulkOperationID: bulkOperationID,

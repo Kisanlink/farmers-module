@@ -84,7 +84,7 @@ func (f *Farm) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (f *Farm) GetTableIdentifier() string {
-	return "farm"
+	return "FARM"
 }
 
 // GetTableSize returns the table size for ID generation

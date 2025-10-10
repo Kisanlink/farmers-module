@@ -20,7 +20,7 @@ func (s *SoilType) TableName() string {
 
 // GetTableIdentifier returns the table identifier for ID generation
 func (s *SoilType) GetTableIdentifier() string {
-	return "soil_type"
+	return "SOIL"
 }
 
 // GetTableSize returns the table size for ID generation

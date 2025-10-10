@@ -71,7 +71,7 @@ func TestFarmActivityTableName(t *testing.T) {
 
 func TestFarmActivityGetTableIdentifier(t *testing.T) {
 	farmActivity := &FarmActivity{}
-	assert.Equal(t, "farm_activity", farmActivity.GetTableIdentifier())
+	assert.Equal(t, "FACT", farmActivity.GetTableIdentifier())
 }
 
 func TestFarmActivityFields(t *testing.T) {
