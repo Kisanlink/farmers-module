@@ -34,13 +34,14 @@ type FarmActivityListResponse struct {
 // @Tags farm-activities
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param activity body requests.CreateActivityRequest true "Farm activity data"
 // @Success 201 {object} responses.SwaggerFarmActivityResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /activities [post]
+// @Router /crops/activities [post]
 func CreateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req requests.CreateActivityRequest
@@ -92,7 +93,8 @@ func CreateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 // @Tags farm-activities
 // @Accept json
 // @Produce json
-// @Param id path string true "Activity ID"
+// @Security BearerAuth
+// @Param activity_id path string true "Activity ID"
 // @Param activity body requests.CompleteActivityRequest true "Complete activity data"
 // @Success 200 {object} responses.SwaggerFarmActivityResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
@@ -100,13 +102,13 @@ func CreateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /activities/{id}/complete [put]
+// @Router /crops/activities/{activity_id}/complete [put]
 func CompleteFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req requests.CompleteActivityRequest
 
 		// Get activity ID from path
-		activityID := c.Param("id")
+		activityID := c.Param("activity_id")
 		if activityID == "" {
 			c.JSON(http.StatusBadRequest, responses.NewValidationError("Activity ID is required", "Missing activity ID in path"))
 			return
@@ -160,7 +162,8 @@ func CompleteFarmActivity(service services.FarmActivityService) gin.HandlerFunc 
 // @Tags farm-activities
 // @Accept json
 // @Produce json
-// @Param id path string true "Activity ID"
+// @Security BearerAuth
+// @Param activity_id path string true "Activity ID"
 // @Param activity body requests.UpdateActivityRequest true "Update activity data"
 // @Success 200 {object} responses.SwaggerFarmActivityResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
@@ -168,13 +171,13 @@ func CompleteFarmActivity(service services.FarmActivityService) gin.HandlerFunc 
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /activities/{id} [put]
+// @Router /crops/activities/{activity_id} [put]
 func UpdateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req requests.UpdateActivityRequest
 
 		// Get activity ID from path
-		activityID := c.Param("id")
+		activityID := c.Param("activity_id")
 		if activityID == "" {
 			c.JSON(http.StatusBadRequest, responses.NewValidationError("Activity ID is required", "Missing activity ID in path"))
 			return
@@ -228,6 +231,7 @@ func UpdateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 // @Tags farm-activities
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param crop_cycle_id query string false "Filter by crop cycle ID"
 // @Param activity_type query string false "Filter by activity type"
 // @Param status query string false "Filter by status"
@@ -240,7 +244,7 @@ func UpdateFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 // @Failure 401 {object} responses.ErrorResponse
 // @Failure 403 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
-// @Router /activities [get]
+// @Router /crops/activities [get]
 func ListFarmActivities(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Parse query parameters
@@ -299,18 +303,19 @@ func ListFarmActivities(service services.FarmActivityService) gin.HandlerFunc {
 // @Tags farm-activities
 // @Accept json
 // @Produce json
-// @Param id path string true "Activity ID"
+// @Security BearerAuth
+// @Param activity_id path string true "Activity ID"
 // @Success 200 {object} responses.SwaggerFarmActivityResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /activities/{id} [get]
+// @Router /crops/activities/{activity_id} [get]
 func GetFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get activity ID from path
-		activityID := c.Param("id")
+		activityID := c.Param("activity_id")
 		if activityID == "" {
 			c.JSON(http.StatusBadRequest, responses.NewValidationError("Activity ID is required", "Missing activity ID in path"))
 			return

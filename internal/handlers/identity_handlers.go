@@ -23,7 +23,7 @@ import (
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
 // @Security BearerAuth
-// @Router /identity/link-farmer [post]
+// @Router /identity/farmer/link [post]
 func LinkFarmerToFPO(service services.FarmerLinkageService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req requests.LinkFarmerRequest
@@ -87,7 +87,7 @@ func LinkFarmerToFPO(service services.FarmerLinkageService) gin.HandlerFunc {
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
 // @Security BearerAuth
-// @Router /identity/unlink-farmer [post]
+// @Router /identity/farmer/unlink [delete]
 func UnlinkFarmerFromFPO(service services.FarmerLinkageService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req requests.UnlinkFarmerRequest
@@ -152,7 +152,7 @@ func UnlinkFarmerFromFPO(service services.FarmerLinkageService) gin.HandlerFunc 
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
 // @Security BearerAuth
-// @Router /identity/linkage/{farmer_id}/{org_id} [get]
+// @Router /identity/farmer/linkage/{farmer_id}/{org_id} [get]
 func GetFarmerLinkage(service services.FarmerLinkageService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		farmerID := c.Param("farmer_id")
@@ -178,20 +178,7 @@ func GetFarmerLinkage(service services.FarmerLinkageService) gin.HandlerFunc {
 }
 
 // RegisterFPORef handles W3: Register FPO reference
-// @Summary Register FPO reference
-// @Description Register a new FPO reference with business configuration
-// @Tags identity
-// @Accept json
-// @Produce json
-// @Param fpo body requests.RegisterFPORefRequest true "FPO reference data"
-// @Success 200 {object} responses.SwaggerFPORefResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 401 {object} responses.SwaggerErrorResponse
-// @Failure 403 {object} responses.SwaggerErrorResponse
-// @Failure 409 {object} responses.SwaggerErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
-// @Security BearerAuth
-// @Router /identity/fpo [post]
+// NOTE: This function is NOT used in routes - see fpo_handlers.go for the active implementation
 func RegisterFPORef(service services.FPOService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req requests.RegisterFPORefRequest
@@ -221,20 +208,7 @@ func RegisterFPORef(service services.FPOService) gin.HandlerFunc {
 }
 
 // GetFPORef handles getting FPO reference
-// @Summary Get FPO reference
-// @Description Retrieve FPO reference configuration by organization ID
-// @Tags identity
-// @Accept json
-// @Produce json
-// @Param org_id path string true "Organization ID"
-// @Success 200 {object} responses.SwaggerFPORefResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
-// @Failure 401 {object} responses.SwaggerErrorResponse
-// @Failure 403 {object} responses.SwaggerErrorResponse
-// @Failure 404 {object} responses.SwaggerErrorResponse
-// @Failure 500 {object} responses.SwaggerErrorResponse
-// @Security BearerAuth
-// @Router /identity/fpo/{org_id} [get]
+// NOTE: This function is NOT used in routes - see fpo_handlers.go for the active implementation
 func GetFPORef(service services.FPOService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		orgID := c.Param("org_id")

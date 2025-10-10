@@ -23,6 +23,7 @@ import (
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /kisansathi/assign [post]
 func AssignKisanSathi(service services.FarmerLinkageService, logger interfaces.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -106,6 +107,7 @@ func AssignKisanSathi(service services.FarmerLinkageService, logger interfaces.L
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /kisansathi/reassign [put]
 func ReassignOrRemoveKisanSathi(service services.FarmerLinkageService, logger interfaces.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -199,6 +201,7 @@ func ReassignOrRemoveKisanSathi(service services.FarmerLinkageService, logger in
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 409 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /kisansathi/create-user [post]
 func CreateKisanSathiUser(service services.FarmerLinkageService, logger interfaces.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -282,6 +285,7 @@ func CreateKisanSathiUser(service services.FarmerLinkageService, logger interfac
 // @Failure 400 {object} map[string]interface{}
 // @Failure 403 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
+// @Security BearerAuth
 // @Router /kisansathi/assignment/{farmer_id}/{org_id} [get]
 func GetKisanSathiAssignment(service services.FarmerLinkageService, logger interfaces.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {

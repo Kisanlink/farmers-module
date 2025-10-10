@@ -38,7 +38,8 @@ func NewFPOHandler(fpoService services.FPOService, logger interfaces.Logger) *FP
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /fpo/create [post]
+// @Security BearerAuth
+// @Router /identity/fpo/create [post]
 func (h *FPOHandler) CreateFPO(c *gin.Context) {
 	h.logger.Info("Creating FPO organization")
 
@@ -116,7 +117,7 @@ func (h *FPOHandler) CreateFPO(c *gin.Context) {
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 409 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /fpo/register [post]
+// @Router /identity/fpo/register [post]
 func (h *FPOHandler) RegisterFPORef(c *gin.Context) {
 	h.logger.Info("Registering FPO reference")
 
@@ -191,7 +192,7 @@ func (h *FPOHandler) RegisterFPORef(c *gin.Context) {
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /fpo/reference/{aaa_org_id} [get]
+// @Router /identity/fpo/reference/{aaa_org_id} [get]
 func (h *FPOHandler) GetFPORef(c *gin.Context) {
 	aaaOrgID := c.Param("aaa_org_id")
 	requestID := c.GetString("request_id")

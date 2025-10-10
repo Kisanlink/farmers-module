@@ -1,8 +1,11 @@
 package middleware
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -46,9 +49,23 @@ func NewValidationMiddleware(aaaClient *aaa.Client, config *config.Config) *Vali
 // ValidateFPOCreation validates FPO creation requests and ensures AAA service consistency
 func (vm *ValidationMiddleware) ValidateFPOCreation() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Extract request data for validation
+		// Read the body
+		bodyBytes, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Failed to read request body",
+				"message": err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		// Restore the body so the handler can read it again
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+		// Parse the JSON for validation
 		var requestData map[string]interface{}
-		if err := c.ShouldBindJSON(&requestData); err != nil {
+		if err := json.Unmarshal(bodyBytes, &requestData); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error":   "Invalid request format",
 				"message": err.Error(),
@@ -76,9 +93,23 @@ func (vm *ValidationMiddleware) ValidateFPOCreation() gin.HandlerFunc {
 // ValidateFarmerCreation validates farmer creation requests and ensures AAA service consistency
 func (vm *ValidationMiddleware) ValidateFarmerCreation() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Extract request data for validation
+		// Read the body
+		bodyBytes, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Failed to read request body",
+				"message": err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		// Restore the body so the handler can read it again
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+		// Parse the JSON for validation
 		var requestData map[string]interface{}
-		if err := c.ShouldBindJSON(&requestData); err != nil {
+		if err := json.Unmarshal(bodyBytes, &requestData); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error":   "Invalid request format",
 				"message": err.Error(),
@@ -194,8 +225,23 @@ func (vm *ValidationMiddleware) ValidateOrganizationAccess(orgIDParam string) gi
 // ValidateFarmCreation validates farm creation requests
 func (vm *ValidationMiddleware) ValidateFarmCreation() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Read the body
+		bodyBytes, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Failed to read request body",
+				"message": err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		// Restore the body so the handler can read it again
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+		// Parse the JSON for validation
 		var requestData map[string]interface{}
-		if err := c.ShouldBindJSON(&requestData); err != nil {
+		if err := json.Unmarshal(bodyBytes, &requestData); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error":   "Invalid request format",
 				"message": err.Error(),

@@ -2748,239 +2748,6 @@ info:
   title: Farmers Module API
   version: 1.0.0
 paths:
-  /activities:
-    get:
-      consumes:
-      - application/json
-      description: Get a paginated list of farm activities with optional filtering
-      parameters:
-      - description: Filter by crop cycle ID
-        in: query
-        name: crop_cycle_id
-        type: string
-      - description: Filter by activity type
-        in: query
-        name: activity_type
-        type: string
-      - description: Filter by status
-        in: query
-        name: status
-        type: string
-      - description: Filter by date from (YYYY-MM-DD)
-        in: query
-        name: date_from
-        type: string
-      - description: Filter by date to (YYYY-MM-DD)
-        in: query
-        name: date_to
-        type: string
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Page size
-        in: query
-        name: page_size
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.FarmActivityListResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      summary: List farm activities
-      tags:
-      - farm-activities
-    post:
-      consumes:
-      - application/json
-      description: Create a new farm activity within a crop cycle
-      parameters:
-      - description: Farm activity data
-        in: body
-        name: activity
-        required: true
-        schema:
-          $ref: '#/definitions/requests.CreateActivityRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/responses.SwaggerFarmActivityResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-      summary: Create a new farm activity
-      tags:
-      - farm-activities
-  /activities/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve a specific farm activity by its ID
-      parameters:
-      - description: Activity ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/responses.SwaggerFarmActivityResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-      summary: Get a farm activity by ID
-      tags:
-      - farm-activities
-    put:
-      consumes:
-      - application/json
-      description: Update farm activity details (only for non-completed activities)
-      parameters:
-      - description: Activity ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Update activity data
-        in: body
-        name: activity
-        required: true
-        schema:
-          $ref: '#/definitions/requests.UpdateActivityRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/responses.SwaggerFarmActivityResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-      summary: Update a farm activity
-      tags:
-      - farm-activities
-  /activities/{id}/complete:
-    put:
-      consumes:
-      - application/json
-      description: Mark a farm activity as completed with output data
-      parameters:
-      - description: Activity ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Complete activity data
-        in: body
-        name: activity
-        required: true
-        schema:
-          $ref: '#/definitions/requests.CompleteActivityRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/responses.SwaggerFarmActivityResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-      summary: Complete a farm activity
-      tags:
-      - farm-activities
   /admin/audit:
     get:
       consumes:
@@ -3014,34 +2781,12 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get audit trail
       tags:
       - admin
-  /admin/health:
-    get:
-      consumes:
-      - application/json
-      description: Check the health status of the service and its dependencies
-      parameters:
-      - description: Comma-separated list of components to check
-        in: query
-        name: components
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/responses.SwaggerAdminHealthResponse'
-        "503":
-          description: Service Unavailable
-          schema:
-            $ref: '#/definitions/responses.SwaggerAdminHealthResponse'
-      summary: Health check
-      tags:
-      - admin
-  /admin/permissions/check:
+  /admin/check-permission:
     post:
       consumes:
       - application/json
@@ -3068,7 +2813,35 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Check user permission
+      tags:
+      - admin
+  /admin/health:
+    get:
+      consumes:
+      - application/json
+      description: Check the health status of the service and its dependencies
+      parameters:
+      - description: Comma-separated list of components to check
+        in: query
+        name: components
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerAdminHealthResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/responses.SwaggerAdminHealthResponse'
+      security:
+      - BearerAuth: []
+      summary: Health check
       tags:
       - admin
   /admin/seed:
@@ -3097,164 +2870,11 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Seed roles and permissions
       tags:
       - admin
-  /api/v1/data-quality/detect-farm-overlaps:
-    post:
-      consumes:
-      - application/json
-      description: Detects spatial intersections between farm boundaries within an
-        organization
-      parameters:
-      - description: Detect farm overlaps request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/requests.DetectFarmOverlapsRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.DetectFarmOverlapsResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      summary: Detect farm overlaps
-      tags:
-      - Data Quality
-  /api/v1/data-quality/rebuild-spatial-indexes:
-    post:
-      consumes:
-      - application/json
-      description: Rebuilds GIST indexes for spatial tables for database maintenance
-      parameters:
-      - description: Rebuild spatial indexes request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/requests.RebuildSpatialIndexesRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.RebuildSpatialIndexesResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      summary: Rebuild spatial indexes
-      tags:
-      - Data Quality
-  /api/v1/data-quality/reconcile-aaa-links:
-    post:
-      consumes:
-      - application/json
-      description: Heals broken AAA references in farmer_links by checking against
-        AAA service
-      parameters:
-      - description: Reconcile AAA links request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/requests.ReconcileAAALinksRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.ReconcileAAALinksResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      summary: Reconcile AAA links
-      tags:
-      - Data Quality
-  /api/v1/data-quality/validate-geometry:
-    post:
-      consumes:
-      - application/json
-      description: Validates WKT geometry using PostGIS with SRID enforcement and
-        integrity checks
-      parameters:
-      - description: Validate geometry request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/requests.ValidateGeometryRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.ValidateGeometryResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      summary: Validate geometry
-      tags:
-      - Data Quality
   /api/v1/reports/farmer-portfolio:
     post:
       consumes:
@@ -3780,6 +3400,8 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: List crops
       tags:
       - Crop Master Data
@@ -3809,6 +3431,8 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Create a new crop
       tags:
       - Crop Master Data
@@ -3842,6 +3466,8 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Delete crop
       tags:
       - Crop Master Data
@@ -3874,6 +3500,8 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get crop by ID
       tags:
       - Crop Master Data
@@ -3912,9 +3540,254 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Update crop
       tags:
       - Crop Master Data
+  /crops/activities:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of farm activities with optional filtering
+      parameters:
+      - description: Filter by crop cycle ID
+        in: query
+        name: crop_cycle_id
+        type: string
+      - description: Filter by activity type
+        in: query
+        name: activity_type
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by date from (YYYY-MM-DD)
+        in: query
+        name: date_from
+        type: string
+      - description: Filter by date to (YYYY-MM-DD)
+        in: query
+        name: date_to
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.FarmActivityListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List farm activities
+      tags:
+      - farm-activities
+    post:
+      consumes:
+      - application/json
+      description: Create a new farm activity within a crop cycle
+      parameters:
+      - description: Farm activity data
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmActivityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new farm activity
+      tags:
+      - farm-activities
+  /crops/activities/{activity_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific farm activity by its ID
+      parameters:
+      - description: Activity ID
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmActivityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a farm activity by ID
+      tags:
+      - farm-activities
+    put:
+      consumes:
+      - application/json
+      description: Update farm activity details (only for non-completed activities)
+      parameters:
+      - description: Activity ID
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: Update activity data
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdateActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmActivityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a farm activity
+      tags:
+      - farm-activities
+  /crops/activities/{activity_id}/complete:
+    put:
+      consumes:
+      - application/json
+      description: Mark a farm activity as completed with output data
+      parameters:
+      - description: Activity ID
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: Complete activity data
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CompleteActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmActivityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Complete a farm activity
+      tags:
+      - farm-activities
   /crops/cycles:
     get:
       consumes:
@@ -3966,6 +3839,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: List crop cycles
       tags:
       - Crop Cycles
@@ -4003,6 +3878,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Start a new crop cycle
       tags:
       - Crop Cycles
@@ -4044,6 +3921,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get crop cycle by ID
       tags:
       - Crop Cycles
@@ -4090,6 +3969,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Update a crop cycle
       tags:
       - Crop Cycles
@@ -4137,9 +4018,166 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: End a crop cycle
       tags:
       - Crop Cycles
+  /data-quality/detect-farm-overlaps:
+    post:
+      consumes:
+      - application/json
+      description: Detects spatial intersections between farm boundaries within an
+        organization
+      parameters:
+      - description: Detect farm overlaps request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.DetectFarmOverlapsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DetectFarmOverlapsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Detect farm overlaps
+      tags:
+      - Data Quality
+  /data-quality/rebuild-spatial-indexes:
+    post:
+      consumes:
+      - application/json
+      description: Rebuilds GIST indexes for spatial tables for database maintenance
+      parameters:
+      - description: Rebuild spatial indexes request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RebuildSpatialIndexesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.RebuildSpatialIndexesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Rebuild spatial indexes
+      tags:
+      - Data Quality
+  /data-quality/reconcile-aaa-links:
+    post:
+      consumes:
+      - application/json
+      description: Heals broken AAA references in farmer_links by checking against
+        AAA service
+      parameters:
+      - description: Reconcile AAA links request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ReconcileAAALinksRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ReconcileAAALinksResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Reconcile AAA links
+      tags:
+      - Data Quality
+  /data-quality/validate-geometry:
+    post:
+      consumes:
+      - application/json
+      description: Validates WKT geometry using PostGIS with SRID enforcement and
+        integrity checks
+      parameters:
+      - description: Validate geometry request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ValidateGeometryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ValidateGeometryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Validate geometry
+      tags:
+      - Data Quality
   /farms:
     get:
       consumes:
@@ -4187,6 +4225,8 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: List all farms
       tags:
       - farms
@@ -4247,6 +4287,8 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Delete a farm
       tags:
       - farms
@@ -4279,6 +4321,8 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get farm by ID
       tags:
       - farms
@@ -4317,65 +4361,30 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Update an existing farm
       tags:
       - farms
-  /fpo/create:
+  /identity/farmer/link:
     post:
       consumes:
       - application/json
-      description: Creates a new FPO organization with CEO user setup and user groups
+      description: Link a farmer to a Farmer Producer Organization with AAA validation
       parameters:
-      - description: Create FPO Request
+      - description: Farmer linkage data
         in: body
-        name: request
+        name: linkage
         required: true
         schema:
-          $ref: '#/definitions/requests.CreateFPORequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/responses.SwaggerCreateFPOResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-      summary: Create FPO Organization
-      tags:
-      - FPO Management
-  /fpo/reference/{aaa_org_id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves FPO reference information by AAA organization ID
-      parameters:
-      - description: AAA Organization ID
-        in: path
-        name: aaa_org_id
-        required: true
-        type: string
+          $ref: '#/definitions/requests.LinkFarmerRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SwaggerFPORefResponse'
+            $ref: '#/definitions/responses.SwaggerFarmerLinkageResponse'
         "400":
           description: Bad Request
           schema:
@@ -4396,28 +4405,34 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
-      summary: Get FPO Reference
+      security:
+      - BearerAuth: []
+      summary: Link farmer to FPO
       tags:
-      - FPO Management
-  /fpo/register:
-    post:
+      - identity
+  /identity/farmer/linkage/{farmer_id}/{org_id}:
+    get:
       consumes:
       - application/json
-      description: Registers an existing FPO organization for local reference management
+      description: Retrieve the linkage status between a farmer and FPO
       parameters:
-      - description: Register FPO Reference Request
-        in: body
-        name: request
+      - description: Farmer ID
+        in: path
+        name: farmer_id
         required: true
-        schema:
-          $ref: '#/definitions/requests.RegisterFPORefRequest'
+        type: string
+      - description: Organization ID
+        in: path
+        name: org_id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/responses.SwaggerFPORefResponse'
+            $ref: '#/definitions/responses.SwaggerFarmerLinkageResponse'
         "400":
           description: Bad Request
           schema:
@@ -4430,17 +4445,63 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "409":
-          description: Conflict
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
-      summary: Register FPO Reference
+      security:
+      - BearerAuth: []
+      summary: Get farmer linkage status
       tags:
-      - FPO Management
+      - identity
+  /identity/farmer/unlink:
+    delete:
+      consumes:
+      - application/json
+      description: Unlink a farmer from a Farmer Producer Organization with soft delete
+      parameters:
+      - description: Farmer unlinkage data
+        in: body
+        name: linkage
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UnlinkFarmerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFarmerLinkageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unlink farmer from FPO
+      tags:
+      - identity
   /identity/farmers:
     get:
       consumes:
@@ -4860,23 +4921,104 @@ paths:
       summary: Update farmer by user ID only
       tags:
       - identity
-  /identity/fpo:
+  /identity/fpo/create:
     post:
       consumes:
       - application/json
-      description: Register a new FPO reference with business configuration
+      description: Creates a new FPO organization with CEO user setup and user groups
       parameters:
-      - description: FPO reference data
+      - description: Create FPO Request
         in: body
-        name: fpo
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateFPORequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responses.SwaggerCreateFPOResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create FPO Organization
+      tags:
+      - FPO Management
+  /identity/fpo/reference/{aaa_org_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves FPO reference information by AAA organization ID
+      parameters:
+      - description: AAA Organization ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SwaggerFPORefResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      summary: Get FPO Reference
+      tags:
+      - FPO Management
+  /identity/fpo/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers an existing FPO organization for local reference management
+      parameters:
+      - description: Register FPO Reference Request
+        in: body
+        name: request
         required: true
         schema:
           $ref: '#/definitions/requests.RegisterFPORefRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/responses.SwaggerFPORefResponse'
         "400":
@@ -4899,190 +5041,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Register FPO reference
+      summary: Register FPO Reference
       tags:
-      - identity
-  /identity/fpo/{org_id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve FPO reference configuration by organization ID
-      parameters:
-      - description: Organization ID
-        in: path
-        name: org_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/responses.SwaggerFPORefResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get FPO reference
-      tags:
-      - identity
-  /identity/link-farmer:
-    post:
-      consumes:
-      - application/json
-      description: Link a farmer to a Farmer Producer Organization with AAA validation
-      parameters:
-      - description: Farmer linkage data
-        in: body
-        name: linkage
-        required: true
-        schema:
-          $ref: '#/definitions/requests.LinkFarmerRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/responses.SwaggerFarmerLinkageResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Link farmer to FPO
-      tags:
-      - identity
-  /identity/linkage/{farmer_id}/{org_id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve the linkage status between a farmer and FPO
-      parameters:
-      - description: Farmer ID
-        in: path
-        name: farmer_id
-        required: true
-        type: string
-      - description: Organization ID
-        in: path
-        name: org_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/responses.SwaggerFarmerLinkageResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get farmer linkage status
-      tags:
-      - identity
-  /identity/unlink-farmer:
-    post:
-      consumes:
-      - application/json
-      description: Unlink a farmer from a Farmer Producer Organization with soft delete
-      parameters:
-      - description: Farmer unlinkage data
-        in: body
-        name: linkage
-        required: true
-        schema:
-          $ref: '#/definitions/requests.UnlinkFarmerRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/responses.SwaggerFarmerLinkageResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.SwaggerErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Unlink farmer from FPO
-      tags:
-      - identity
+      - FPO Management
   /kisansathi/assign:
     post:
       consumes:
@@ -5114,6 +5075,8 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Assign KisanSathi to farmer
       tags:
       - kisansathi
@@ -5156,6 +5119,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - BearerAuth: []
       summary: Get KisanSathi assignment
       tags:
       - kisansathi
@@ -5190,6 +5155,8 @@ paths:
           description: Conflict
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Create KisanSathi user
       tags:
       - kisansathi
@@ -5224,6 +5191,8 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Reassign or remove KisanSathi
       tags:
       - kisansathi
@@ -5239,6 +5208,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/responses.CropCategoriesResponse'
+      security:
+      - BearerAuth: []
       summary: Get crop categories
       tags:
       - Crop Master Data
@@ -5254,6 +5225,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/responses.CropSeasonsResponse'
+      security:
+      - BearerAuth: []
       summary: Get crop seasons
       tags:
       - Crop Master Data
@@ -5282,6 +5255,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get crop lookup data
       tags:
       - Crop Master Data
@@ -5345,6 +5320,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get variety lookup data
       tags:
       - Crop Master Data
@@ -5387,6 +5364,8 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: List crop varieties
       tags:
       - Crop Master Data
@@ -5416,6 +5395,8 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Create crop variety
       tags:
       - Crop Master Data
@@ -5449,6 +5430,8 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Delete crop variety
       tags:
       - Crop Master Data
@@ -5481,6 +5464,8 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get crop variety by ID
       tags:
       - Crop Master Data
@@ -5519,6 +5504,8 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Update crop variety
       tags:
       - Crop Master Data

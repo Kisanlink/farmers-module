@@ -66,7 +66,7 @@ func NewDataQualityHandlers(dataQualityService services.DataQualityService) *Dat
 // @Failure 401 {object} responses.ErrorResponse
 // @Failure 403 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
-// @Router /api/v1/data-quality/validate-geometry [post]
+// @Router /data-quality/validate-geometry [post]
 func (h *DataQualityHandlers) ValidateGeometry(c *gin.Context) {
 	var req requests.ValidateGeometryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -114,7 +114,7 @@ func (h *DataQualityHandlers) ValidateGeometry(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse
 // @Failure 403 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
-// @Router /api/v1/data-quality/reconcile-aaa-links [post]
+// @Router /data-quality/reconcile-aaa-links [post]
 func (h *DataQualityHandlers) ReconcileAAALinks(c *gin.Context) {
 	var req requests.ReconcileAAALinksRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -162,7 +162,7 @@ func (h *DataQualityHandlers) ReconcileAAALinks(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse
 // @Failure 403 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
-// @Router /api/v1/data-quality/rebuild-spatial-indexes [post]
+// @Router /data-quality/rebuild-spatial-indexes [post]
 func (h *DataQualityHandlers) RebuildSpatialIndexes(c *gin.Context) {
 	var req requests.RebuildSpatialIndexesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -210,7 +210,7 @@ func (h *DataQualityHandlers) RebuildSpatialIndexes(c *gin.Context) {
 // @Failure 401 {object} responses.ErrorResponse
 // @Failure 403 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
-// @Router /api/v1/data-quality/detect-farm-overlaps [post]
+// @Router /data-quality/detect-farm-overlaps [post]
 func (h *DataQualityHandlers) DetectFarmOverlaps(c *gin.Context) {
 	var req requests.DetectFarmOverlapsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

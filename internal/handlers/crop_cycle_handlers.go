@@ -21,6 +21,7 @@ import (
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops/cycles [post]
 func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -70,6 +71,7 @@ func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops/cycles/{cycle_id} [put]
 func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -122,6 +124,7 @@ func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops/cycles/{cycle_id}/end [put]
 func EndCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -170,6 +173,7 @@ func EndCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops/cycles [get]
 func ListCycles(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -221,6 +225,7 @@ func ListCycles(service services.CropCycleService) gin.HandlerFunc {
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops/cycles/{cycle_id} [get]
 func GetCropCycle(service services.CropCycleService) gin.HandlerFunc {
 	return func(c *gin.Context) {

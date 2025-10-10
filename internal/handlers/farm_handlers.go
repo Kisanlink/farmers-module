@@ -83,6 +83,7 @@ func CreateFarm(service services.FarmService) gin.HandlerFunc {
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /farms/{farm_id} [put]
 func UpdateFarm(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -128,6 +129,7 @@ func UpdateFarm(service services.FarmService) gin.HandlerFunc {
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /farms/{farm_id} [delete]
 func DeleteFarm(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -166,6 +168,7 @@ func DeleteFarm(service services.FarmService) gin.HandlerFunc {
 // @Success 200 {object} responses.SwaggerFarmListResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /farms [get]
 func ListFarms(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -232,6 +235,7 @@ func ListFarms(service services.FarmService) gin.HandlerFunc {
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /farms/{farm_id} [get]
 func GetFarm(service services.FarmService) gin.HandlerFunc {
 	return func(c *gin.Context) {

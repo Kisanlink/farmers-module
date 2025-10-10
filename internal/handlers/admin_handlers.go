@@ -50,6 +50,7 @@ type ComponentHealth struct {
 // @Success 200 {object} responses.SwaggerAdminSeedResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /admin/seed [post]
 func SeedRolesAndPermissions(service services.AdministrativeService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -144,7 +145,8 @@ type CheckPermissionData struct {
 // @Success 200 {object} responses.SwaggerCheckPermissionResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
-// @Router /admin/permissions/check [post]
+// @Security BearerAuth
+// @Router /admin/check-permission [post]
 func CheckPermission(service services.AAAService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req CheckPermissionRequest
@@ -198,6 +200,7 @@ func CheckPermission(service services.AAAService) gin.HandlerFunc {
 // @Param components query string false "Comma-separated list of components to check"
 // @Success 200 {object} responses.SwaggerAdminHealthResponse
 // @Failure 503 {object} responses.SwaggerAdminHealthResponse
+// @Security BearerAuth
 // @Router /admin/health [get]
 func HealthCheck(service services.AdministrativeService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -286,6 +289,7 @@ type AuditTrailFilters struct {
 // @Param action query string false "Filter by action"
 // @Success 200 {object} responses.SwaggerAuditTrailResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /admin/audit [get]
 func GetAuditTrail(auditService *audit.AuditService) gin.HandlerFunc {
 	return func(c *gin.Context) {

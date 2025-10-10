@@ -42,6 +42,7 @@ func getUserContext(c *gin.Context) (userID, orgID string) {
 // @Success 201 {object} responses.SwaggerCropResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops [post]
 func CreateCrop(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -89,6 +90,7 @@ func CreateCrop(service services.CropService) gin.HandlerFunc {
 // @Success 200 {object} responses.SwaggerCropListResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops [get]
 func ListCrops(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -150,6 +152,7 @@ func ListCrops(service services.CropService) gin.HandlerFunc {
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops/{id} [get]
 func GetCrop(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -196,6 +199,7 @@ func GetCrop(service services.CropService) gin.HandlerFunc {
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops/{id} [put]
 func UpdateCrop(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -247,6 +251,7 @@ func UpdateCrop(service services.CropService) gin.HandlerFunc {
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /crops/{id} [delete]
 func DeleteCrop(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -293,6 +298,7 @@ func DeleteCrop(service services.CropService) gin.HandlerFunc {
 // @Success 201 {object} responses.SwaggerCropVarietyResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /varieties [post]
 func CreateCropVariety(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -339,6 +345,7 @@ func CreateCropVariety(service services.CropService) gin.HandlerFunc {
 // @Success 200 {object} responses.CropVarietyListResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /varieties [get]
 func ListCropVarieties(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -397,6 +404,7 @@ func ListCropVarieties(service services.CropService) gin.HandlerFunc {
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /varieties/{id} [get]
 func GetCropVariety(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -443,6 +451,7 @@ func GetCropVariety(service services.CropService) gin.HandlerFunc {
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /varieties/{id} [put]
 func UpdateCropVariety(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -494,6 +503,7 @@ func UpdateCropVariety(service services.CropService) gin.HandlerFunc {
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /varieties/{id} [delete]
 func DeleteCropVariety(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -540,6 +550,7 @@ func DeleteCropVariety(service services.CropService) gin.HandlerFunc {
 // @Param season query string false "Filter by season"
 // @Success 200 {object} responses.SwaggerCropLookupResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /lookups/crops [get]
 func GetCropLookupData(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -584,6 +595,7 @@ func GetCropLookupData(service services.CropService) gin.HandlerFunc {
 // @Param crop_id path string true "Crop ID"
 // @Success 200 {object} responses.CropVarietyLookupResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /lookups/varieties/{crop_id} [get]
 func GetVarietyLookupData(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -624,6 +636,7 @@ func GetVarietyLookupData(service services.CropService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Success 200 {object} responses.CropCategoriesResponse
+// @Security BearerAuth
 // @Router /lookups/crop-categories [get]
 func GetCropCategories(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -651,6 +664,7 @@ func GetCropCategories(service services.CropService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Success 200 {object} responses.CropSeasonsResponse
+// @Security BearerAuth
 // @Router /lookups/crop-seasons [get]
 func GetCropSeasons(service services.CropService) gin.HandlerFunc {
 	return func(c *gin.Context) {
