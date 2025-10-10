@@ -19,7 +19,7 @@ func RegisterFarmRoutes(router *gin.RouterGroup, services *services.ServiceFacto
 	farms.Use(authenticationMW, authorizationMW) // Apply auth middleware to all farm routes
 	{
 		// W6: Create farm
-		farms.POST("/", handlers.CreateFarm(services.FarmService))
+		farms.POST("", handlers.CreateFarm(services.FarmService))
 
 		// W7: Update farm
 		farms.PUT("/:farm_id", handlers.UpdateFarm(services.FarmService))
@@ -28,7 +28,7 @@ func RegisterFarmRoutes(router *gin.RouterGroup, services *services.ServiceFacto
 		farms.DELETE("/:farm_id", handlers.DeleteFarm(services.FarmService))
 
 		// W9: List farms
-		farms.GET("/", handlers.ListFarms(services.FarmService))
+		farms.GET("", handlers.ListFarms(services.FarmService))
 
 		// Get farm by ID
 		farms.GET("/:farm_id", handlers.GetFarm(services.FarmService))
