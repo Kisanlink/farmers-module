@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	pb "github.com/Kisanlink/aaa-service/pkg/proto"
+	pb "github.com/Kisanlink/aaa-service/v2/pkg/proto"
 	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"google.golang.org/grpc"
@@ -203,13 +203,16 @@ func (c *Client) Close() error {
 
 // CreateUser creates a user in the AAA service
 func (c *Client) CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
-	log.Printf("AAA CreateUser: username=%s, phone=%s", req.Username, req.PhoneNumber)
+	log.Printf("AAA CreateUser: username=%s, phone=%s, country_code=%s", req.Username, req.PhoneNumber, req.CountryCode)
 
-	// Create gRPC request
+	// Create gRPC request with phone_number and country_code
 	grpcReq := &pb.RegisterRequest{
-		Username: req.Username,
-		Email:    req.Email,
-		Password: req.Password,
+		Username:    req.Username,
+		Email:       req.Email,
+		Password:    req.Password,
+		FullName:    req.FullName,
+		PhoneNumber: req.PhoneNumber,
+		CountryCode: req.CountryCode,
 	}
 
 	// Call the AAA service

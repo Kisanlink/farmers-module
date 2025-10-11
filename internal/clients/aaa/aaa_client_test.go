@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	pb "github.com/Kisanlink/aaa-service/pkg/proto"
+	pb "github.com/Kisanlink/aaa-service/v2/pkg/proto"
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

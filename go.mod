@@ -5,7 +5,7 @@ go 1.24.0
 toolchain go1.24.4
 
 require (
-	github.com/Kisanlink/aaa-service v0.0.0-20251005202512-c77bc7734feb
+	github.com/Kisanlink/aaa-service/v2 v2.0.2
 	github.com/Kisanlink/kisanlink-db v0.2.0
 	github.com/MarceloPetrucio/go-scalar-api-reference v0.0.0-20240521013641-ce5d2efe0e06
 	github.com/gin-contrib/cors v1.7.3
