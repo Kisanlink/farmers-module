@@ -461,6 +461,123 @@ func (s *FarmerLinkageServiceImpl) getFarmerLinkByUserAndOrg(ctx context.Context
 	return results[0], nil
 }
 
+// ListKisanSathis lists all KisanSathis (users assigned to at least one farmer)
+func (s *FarmerLinkageServiceImpl) ListKisanSathis(ctx context.Context, req interface{}) (interface{}, error) {
+	listReq, ok := req.(*requests.ListKisanSathisRequest)
+	if !ok {
+		listReq = &requests.ListKisanSathisRequest{
+			Page:     1,
+			PageSize: 50,
+		}
+	}
+
+	// Set default pagination
+	if listReq.Page < 1 {
+		listReq.Page = 1
+	}
+	if listReq.PageSize < 1 {
+		listReq.PageSize = 50
+	}
+	if listReq.PageSize > 100 {
+		listReq.PageSize = 100
+	}
+
+	// Query all farmer links (we'll filter for non-null kisan_sathi_user_id in-memory)
+	filter := base.NewFilterBuilder().Build()
+
+	farmerLinks, err := s.farmerLinkageRepo.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query farmer links: %w", err)
+	}
+
+	// Extract unique KisanSathi user IDs
+	kisanSathiMap := make(map[string]bool)
+	for _, link := range farmerLinks {
+		if link.KisanSathiUserID != nil && *link.KisanSathiUserID != "" {
+			kisanSathiMap[*link.KisanSathiUserID] = true
+		}
+	}
+
+	// Convert map keys to slice
+	uniqueKisanSathis := make([]string, 0, len(kisanSathiMap))
+	for userID := range kisanSathiMap {
+		uniqueKisanSathis = append(uniqueKisanSathis, userID)
+	}
+
+	// Apply pagination
+	totalCount := int64(len(uniqueKisanSathis))
+	start := (listReq.Page - 1) * listReq.PageSize
+	end := start + listReq.PageSize
+
+	if start >= len(uniqueKisanSathis) {
+		// Return empty result if page is beyond available data
+		return &responses.KisanSathiListResponse{
+			Success:   true,
+			Message:   "KisanSathis retrieved successfully",
+			Data:      []*responses.KisanSathiData{},
+			Page:      listReq.Page,
+			PageSize:  listReq.PageSize,
+			Total:     totalCount,
+			RequestID: listReq.RequestID,
+		}, nil
+	}
+
+	if end > len(uniqueKisanSathis) {
+		end = len(uniqueKisanSathis)
+	}
+
+	paginatedKisanSathis := uniqueKisanSathis[start:end]
+
+	// Fetch user details from AAA for each KisanSathi
+	kisanSathiList := make([]*responses.KisanSathiData, 0, len(paginatedKisanSathis))
+	for _, userID := range paginatedKisanSathis {
+		// Get user details from AAA
+		userData, err := s.aaaService.GetUser(ctx, userID)
+		if err != nil {
+			// If we can't get user details, skip this user but log the error
+			fmt.Printf("Warning: failed to get user details for KisanSathi %s: %v\n", userID, err)
+			continue
+		}
+
+		// Convert user data to map
+		userMap, ok := userData.(map[string]interface{})
+		if !ok {
+			fmt.Printf("Warning: invalid user data format for KisanSathi %s\n", userID)
+			continue
+		}
+
+		// Extract user fields
+		username, _ := userMap["username"].(string)
+		phoneNumber, _ := userMap["phone"].(string)
+		email, _ := userMap["email"].(string)
+		fullName, _ := userMap["full_name"].(string)
+		status, _ := userMap["status"].(string)
+
+		kisanSathiData := &responses.KisanSathiData{
+			ID:          userID,
+			Username:    username,
+			PhoneNumber: phoneNumber,
+			Email:       email,
+			FullName:    fullName,
+			Status:      status,
+		}
+
+		kisanSathiList = append(kisanSathiList, kisanSathiData)
+	}
+
+	response := &responses.KisanSathiListResponse{
+		Success:   true,
+		Message:   "KisanSathis retrieved successfully",
+		Data:      kisanSathiList,
+		Page:      listReq.Page,
+		PageSize:  listReq.PageSize,
+		Total:     totalCount,
+		RequestID: listReq.RequestID,
+	}
+
+	return response, nil
+}
+
 // ensureKisanSathiRole ensures that the KisanSathi role exists in AAA service and assigns it to the user
 func (s *FarmerLinkageServiceImpl) ensureKisanSathiRole(ctx context.Context, userID, orgID string) error {
 	// First, check if user already has the KisanSathi role

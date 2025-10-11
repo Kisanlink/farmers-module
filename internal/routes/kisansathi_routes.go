@@ -12,6 +12,9 @@ import (
 func RegisterKisanSathiRoutes(router *gin.RouterGroup, services *services.ServiceFactory, cfg *config.Config, logger interfaces.Logger) {
 	kisansathi := router.Group("/kisansathi")
 	{
+		// List all KisanSathis
+		kisansathi.GET("", handlers.ListKisanSathis(services.FarmerLinkageService, logger))
+
 		// W4: Assign KisanSathi to farmer
 		kisansathi.POST("/assign", handlers.AssignKisanSathi(services.FarmerLinkageService, logger))
 

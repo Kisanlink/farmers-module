@@ -28,6 +28,13 @@ type CreateKisanSathiUserRequest struct {
 	Metadata    map[string]string `json:"metadata,omitempty" example:"experience_years:5,villages_covered:10"`
 }
 
+// ListKisanSathisRequest represents a request to list all KisanSathis
+type ListKisanSathisRequest struct {
+	FilterRequest
+	Page     int `json:"page,omitempty" example:"1"`
+	PageSize int `json:"page_size,omitempty" example:"50"`
+}
+
 // NewAssignKisanSathiRequest creates a new assign KisanSathi request
 func NewAssignKisanSathiRequest() AssignKisanSathiRequest {
 	return AssignKisanSathiRequest{

@@ -71,3 +71,25 @@ func (r *KisanSathiUserResponse) SetRequestID(requestID string) {
 		r.BaseResponse.RequestID = requestID
 	}
 }
+
+// KisanSathiListResponse represents a list of KisanSathis response
+type KisanSathiListResponse struct {
+	Success   bool              `json:"success"`
+	Message   string            `json:"message"`
+	Data      []*KisanSathiData `json:"data"`
+	Page      int               `json:"page"`
+	PageSize  int               `json:"page_size"`
+	Total     int64             `json:"total"`
+	RequestID string            `json:"request_id,omitempty"`
+	Timestamp string            `json:"timestamp,omitempty"`
+}
+
+// KisanSathiData represents KisanSathi user data in list responses
+type KisanSathiData struct {
+	ID          string `json:"id"`
+	Username    string `json:"username"`
+	PhoneNumber string `json:"phone_number"`
+	Email       string `json:"email"`
+	FullName    string `json:"full_name"`
+	Status      string `json:"status"`
+}

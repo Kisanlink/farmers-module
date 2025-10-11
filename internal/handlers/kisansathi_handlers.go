@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
@@ -318,5 +319,60 @@ func GetKisanSathiAssignment(service services.FarmerLinkageService, logger inter
 			"message": "KisanSathi assignment retrieved successfully",
 			"data":    linkageData,
 		})
+	}
+}
+
+// ListKisanSathis handles listing all KisanSathis
+// @Summary List all KisanSathis
+// @Description Retrieve a list of all KisanSathis (users assigned to at least one farmer)
+// @Tags kisansathi
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(50)
+// @Success 200 {object} responses.KisanSathiListResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /kisansathi [get]
+func ListKisanSathis(service services.FarmerLinkageService, logger interfaces.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Parse query parameters
+		page := 1
+		pageSize := 50
+
+		if pageStr := c.Query("page"); pageStr != "" {
+			if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+				page = p
+			}
+		}
+
+		if pageSizeStr := c.Query("page_size"); pageSizeStr != "" {
+			if ps, err := strconv.Atoi(pageSizeStr); err == nil && ps > 0 && ps <= 100 {
+				pageSize = ps
+			}
+		}
+
+		req := &requests.ListKisanSathisRequest{
+			Page:     page,
+			PageSize: pageSize,
+		}
+
+		logger.Info("Listing KisanSathis",
+			zap.Int("page", page),
+			zap.Int("page_size", pageSize))
+
+		// Call the service
+		response, err := service.ListKisanSathis(c.Request.Context(), req)
+		if err != nil {
+			logger.Error("Failed to list KisanSathis", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		logger.Info("KisanSathis listed successfully")
+
+		c.JSON(http.StatusOK, response)
 	}
 }

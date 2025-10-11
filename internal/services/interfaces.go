@@ -20,6 +20,8 @@ type FarmerLinkageService interface {
 	ReassignOrRemoveKisanSathi(ctx context.Context, req interface{}) (interface{}, error)
 	// Create KisanSathi user with role assignment
 	CreateKisanSathiUser(ctx context.Context, req interface{}) (interface{}, error)
+	// List KisanSathis (users assigned to farmers)
+	ListKisanSathis(ctx context.Context, req interface{}) (interface{}, error)
 }
 
 // FPOService handles FPO creation and management workflows
