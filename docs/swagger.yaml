@@ -583,13 +583,15 @@ definitions:
   requests.CreateFarmerRequest:
     properties:
       aaa_org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
+        description: 'Required: AAA Org ID'
+        example: ORGN00000001
         type: string
       aaa_user_id:
-        example: usr_123e4567-e89b-12d3-a456-426614174000
+        description: 'Optional: AAA User ID (if known)'
+        example: USER00000001
         type: string
       kisan_sathi_user_id:
-        example: ks_123e4567-e89b-12d3-a456-426614174001
+        example: USER00000002
         type: string
       metadata:
         additionalProperties:
@@ -602,7 +604,10 @@ definitions:
         example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       profile:
-        $ref: '#/definitions/requests.FarmerProfileData'
+        allOf:
+        - $ref: '#/definitions/requests.FarmerProfileData'
+        description: 'Required: Farmer profile (must include country_code + phone_number
+          if aaa_user_id not provided)'
       request_id:
         example: req_123e4567e89b12d3
         type: string
@@ -617,7 +622,7 @@ definitions:
         type: string
     required:
     - aaa_org_id
-    - aaa_user_id
+    - profile
     type: object
   requests.CreateKisanSathiUserRequest:
     properties:
@@ -869,6 +874,9 @@ definitions:
     properties:
       address:
         $ref: '#/definitions/requests.AddressData'
+      country_code:
+        example: "+91"
+        type: string
       date_of_birth:
         example: "1980-05-15"
         type: string
@@ -892,7 +900,7 @@ definitions:
           verified: "true"
         type: object
       phone_number:
-        example: +91-9876543210
+        example: "9876543210"
         type: string
       preferences:
         additionalProperties:
@@ -901,6 +909,9 @@ definitions:
           language: hindi
           notification: sms
         type: object
+      username:
+        example: ramesh_kumar
+        type: string
     type: object
   requests.GeometryData:
     properties:
@@ -1601,18 +1612,18 @@ definitions:
     properties:
       aaa_org_id:
         description: Optional org filter
-        example: org_123e4567-e89b-12d3-a456-426614174000
+        example: ORGN00000001
         type: string
       aaa_user_id:
         description: User ID lookup (no org required)
-        example: usr_123e4567-e89b-12d3-a456-426614174000
+        example: USER00000001
         type: string
       farmer_id:
         description: Primary key lookup
-        example: farmer_123e4567-e89b-12d3-a456-426614174000
+        example: FMRR0000000001
         type: string
       kisan_sathi_user_id:
-        example: ks_123e4567-e89b-12d3-a456-426614174001
+        example: USER00000002
         type: string
       metadata:
         additionalProperties:
@@ -2220,10 +2231,10 @@ definitions:
   responses.FarmerProfileData:
     properties:
       aaa_org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
+        example: ORGN00000001
         type: string
       aaa_user_id:
-        example: usr_123e4567-e89b-12d3-a456-426614174000
+        example: USER00000001
         type: string
       address:
         $ref: '#/definitions/responses.AddressData'
@@ -2248,10 +2259,10 @@ definitions:
         type: string
       id:
         description: Farmer ID (primary key)
-        example: farmer_123e4567-e89b-12d3-a456-426614174000
+        example: FMRR0000000001
         type: string
       kisan_sathi_user_id:
-        example: ks_123e4567-e89b-12d3-a456-426614174001
+        example: USER00000002
         type: string
       last_name:
         example: Kumar
@@ -2259,19 +2270,13 @@ definitions:
       metadata:
         additionalProperties:
           type: string
-        example:
-          source: field_survey
-          verified: "true"
         type: object
       phone_number:
-        example: +91-9876543210
+        example: "9876543210"
         type: string
       preferences:
         additionalProperties:
           type: string
-        example:
-          language: hindi
-          notification: sms
         type: object
       updated_at:
         example: "2024-01-20T15:45:00Z"
@@ -2297,6 +2302,42 @@ definitions:
         type: string
       updated_at:
         type: string
+    type: object
+  responses.KisanSathiData:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      phone_number:
+        type: string
+      status:
+        type: string
+      username:
+        type: string
+    type: object
+  responses.KisanSathiListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/responses.KisanSathiData'
+        type: array
+      message:
+        type: string
+      page:
+        type: integer
+      page_size:
+        type: integer
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+      total:
+        type: integer
     type: object
   responses.KisanSathiUserData:
     properties:
@@ -4547,7 +4588,10 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new farmer profile
+      description: |-
+        Create a new farmer profile. Supports two workflows:
+        1. **Existing AAA User**: Provide aaa_user_id + aaa_org_id to link an existing AAA user
+        2. **New AAA User**: Provide country_code + phone_number + aaa_org_id to auto-create/find AAA user. If user exists (conflict), retrieves existing user ID and proceeds with farmer profile creation.
       parameters:
       - description: Farmer data
         in: body
@@ -5044,6 +5088,39 @@ paths:
       summary: Register FPO Reference
       tags:
       - FPO Management
+  /kisansathi:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all KisanSathis (users assigned to at least
+        one farmer)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.KisanSathiListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List all KisanSathis
+      tags:
+      - kisansathi
   /kisansathi/assign:
     post:
       consumes:

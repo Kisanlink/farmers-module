@@ -3,48 +3,48 @@ package requests
 // CreateFarmerRequest represents a request to create a new farmer
 // Supports two workflows:
 // 1. Provide aaa_user_id + aaa_org_id: Use existing AAA user
-// 2. Provide country_code + mobile_number + aaa_org_id: Create/find AAA user automatically
+// 2. Provide country_code + phone_number + aaa_org_id: Create/find AAA user automatically
 //   - If user doesn't exist, creates new user in AAA
 //   - If user exists (conflict), retrieves existing user ID from AAA
 type CreateFarmerRequest struct {
 	BaseRequest
 	AAAUserID        string            `json:"aaa_user_id,omitempty" example:"USER00000001"`          // Optional: AAA User ID (if known)
-	AAAOrgID         string            `json:"aaa_org_id" validate:"required" example:"ORGN00000003"` // Required: AAA Org ID
-	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"ks_123e4567-e89b-12d3-a456-426614174001"`
+	AAAOrgID         string            `json:"aaa_org_id" validate:"required" example:"ORGN00000001"` // Required: AAA Org ID
+	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"USER00000002"`
 	Profile          FarmerProfileData `json:"profile" validate:"required"` // Required: Farmer profile (must include country_code + phone_number if aaa_user_id not provided)
 }
 
 // UpdateFarmerRequest represents a request to update an existing farmer
 type UpdateFarmerRequest struct {
 	BaseRequest
-	FarmerID         string            `json:"farmer_id,omitempty" example:"farmer_123e4567-e89b-12d3-a456-426614174000"` // Primary key lookup
-	AAAUserID        string            `json:"aaa_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`  // User ID lookup (no org required)
-	AAAOrgID         string            `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`   // Optional org filter
-	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"ks_123e4567-e89b-12d3-a456-426614174001"`
+	FarmerID         string            `json:"farmer_id,omitempty" example:"FMRR0000000001"` // Primary key lookup
+	AAAUserID        string            `json:"aaa_user_id,omitempty" example:"USER00000001"` // User ID lookup (no org required)
+	AAAOrgID         string            `json:"aaa_org_id,omitempty" example:"ORGN00000001"`  // Optional org filter
+	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"USER00000002"`
 	Profile          FarmerProfileData `json:"profile,omitempty"`
 }
 
 // DeleteFarmerRequest represents a request to delete a farmer
 type DeleteFarmerRequest struct {
 	BaseRequest
-	FarmerID  string `json:"farmer_id,omitempty" example:"farmer_123e4567-e89b-12d3-a456-426614174000"` // Primary key lookup
-	AAAUserID string `json:"aaa_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`  // User ID lookup (no org required)
-	AAAOrgID  string `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`   // Optional org filter
+	FarmerID  string `json:"farmer_id,omitempty" example:"FMRR0000000001"` // Primary key lookup
+	AAAUserID string `json:"aaa_user_id,omitempty" example:"USER00000001"` // User ID lookup (no org required)
+	AAAOrgID  string `json:"aaa_org_id,omitempty" example:"ORGN00000001"`  // Optional org filter
 }
 
 // GetFarmerRequest represents a request to retrieve a farmer
 type GetFarmerRequest struct {
 	BaseRequest
-	FarmerID  string `json:"farmer_id,omitempty" example:"farmer_123e4567-e89b-12d3-a456-426614174000"` // Primary key lookup
-	AAAUserID string `json:"aaa_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`  // User ID lookup (no org required)
-	AAAOrgID  string `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`   // Optional org filter
+	FarmerID  string `json:"farmer_id,omitempty" example:"FMRR0000000001"` // Primary key lookup
+	AAAUserID string `json:"aaa_user_id,omitempty" example:"USER00000001"` // User ID lookup (no org required)
+	AAAOrgID  string `json:"aaa_org_id,omitempty" example:"ORGN00000001"`  // Optional org filter
 }
 
 // ListFarmersRequest represents a request to list farmers with filtering
 type ListFarmersRequest struct {
 	FilterRequest
-	AAAOrgID         string `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
-	KisanSathiUserID string `json:"kisan_sathi_user_id,omitempty" example:"ks_123e4567-e89b-12d3-a456-426614174001"`
+	AAAOrgID         string `json:"aaa_org_id,omitempty" example:"ORGN00000001"`
+	KisanSathiUserID string `json:"kisan_sathi_user_id,omitempty" example:"USER00000002"`
 	Page             int    `json:"page,omitempty" example:"1"`
 	PageSize         int    `json:"page_size,omitempty" example:"20"`
 }

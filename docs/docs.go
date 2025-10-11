@@ -2777,7 +2777,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a new farmer profile",
+                "description": "Create a new farmer profile. Supports two workflows:\n1. **Existing AAA User**: Provide aaa_user_id + aaa_org_id to link an existing AAA user\n2. **New AAA User**: Provide country_code + phone_number + aaa_org_id to auto-create/find AAA user. If user exists (conflict), retrieves existing user ID and proceeds with farmer profile creation.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3520,6 +3520,56 @@ const docTemplate = `{
                         "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/kisansathi": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a list of all KisanSathis (users assigned to at least one farmer)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "kisansathi"
+                ],
+                "summary": "List all KisanSathis",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.KisanSathiListResponse"
                         }
                     },
                     "500": {
@@ -5061,20 +5111,22 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "aaa_org_id",
-                "aaa_user_id"
+                "profile"
             ],
             "properties": {
                 "aaa_org_id": {
+                    "description": "Required: AAA Org ID",
                     "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                    "example": "ORGN00000001"
                 },
                 "aaa_user_id": {
+                    "description": "Optional: AAA User ID (if known)",
                     "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                    "example": "USER00000001"
                 },
                 "kisan_sathi_user_id": {
                     "type": "string",
-                    "example": "ks_123e4567-e89b-12d3-a456-426614174001"
+                    "example": "USER00000002"
                 },
                 "metadata": {
                     "type": "object",
@@ -5091,7 +5143,12 @@ const docTemplate = `{
                     "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "profile": {
-                    "$ref": "#/definitions/requests.FarmerProfileData"
+                    "description": "Required: Farmer profile (must include country_code + phone_number if aaa_user_id not provided)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/requests.FarmerProfileData"
+                        }
+                    ]
                 },
                 "request_id": {
                     "type": "string",
@@ -5449,6 +5506,10 @@ const docTemplate = `{
                 "address": {
                     "$ref": "#/definitions/requests.AddressData"
                 },
+                "country_code": {
+                    "type": "string",
+                    "example": "+91"
+                },
                 "date_of_birth": {
                     "type": "string",
                     "example": "1980-05-15"
@@ -5481,7 +5542,7 @@ const docTemplate = `{
                 },
                 "phone_number": {
                     "type": "string",
-                    "example": "+91-9876543210"
+                    "example": "9876543210"
                 },
                 "preferences": {
                     "type": "object",
@@ -5492,6 +5553,10 @@ const docTemplate = `{
                         "language": "hindi",
                         "notification": "sms"
                     }
+                },
+                "username": {
+                    "type": "string",
+                    "example": "ramesh_kumar"
                 }
             }
         },
@@ -6448,21 +6513,21 @@ const docTemplate = `{
                 "aaa_org_id": {
                     "description": "Optional org filter",
                     "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                    "example": "ORGN00000001"
                 },
                 "aaa_user_id": {
                     "description": "User ID lookup (no org required)",
                     "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                    "example": "USER00000001"
                 },
                 "farmer_id": {
                     "description": "Primary key lookup",
                     "type": "string",
-                    "example": "farmer_123e4567-e89b-12d3-a456-426614174000"
+                    "example": "FMRR0000000001"
                 },
                 "kisan_sathi_user_id": {
                     "type": "string",
-                    "example": "ks_123e4567-e89b-12d3-a456-426614174001"
+                    "example": "USER00000002"
                 },
                 "metadata": {
                     "type": "object",
@@ -7354,11 +7419,11 @@ const docTemplate = `{
             "properties": {
                 "aaa_org_id": {
                     "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                    "example": "ORGN00000001"
                 },
                 "aaa_user_id": {
                     "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                    "example": "USER00000001"
                 },
                 "address": {
                     "$ref": "#/definitions/responses.AddressData"
@@ -7392,11 +7457,11 @@ const docTemplate = `{
                 "id": {
                     "description": "Farmer ID (primary key)",
                     "type": "string",
-                    "example": "farmer_123e4567-e89b-12d3-a456-426614174000"
+                    "example": "FMRR0000000001"
                 },
                 "kisan_sathi_user_id": {
                     "type": "string",
-                    "example": "ks_123e4567-e89b-12d3-a456-426614174001"
+                    "example": "USER00000002"
                 },
                 "last_name": {
                     "type": "string",
@@ -7406,24 +7471,16 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
-                    },
-                    "example": {
-                        "source": "field_survey",
-                        "verified": "true"
                     }
                 },
                 "phone_number": {
                     "type": "string",
-                    "example": "+91-9876543210"
+                    "example": "9876543210"
                 },
                 "preferences": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
-                    },
-                    "example": {
-                        "language": "hindi",
-                        "notification": "sms"
                     }
                 },
                 "updated_at": {
@@ -7461,6 +7518,61 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "responses.KisanSathiData": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.KisanSathiListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.KisanSathiData"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

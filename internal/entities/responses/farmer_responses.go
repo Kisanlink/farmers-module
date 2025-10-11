@@ -36,19 +36,19 @@ type FarmerProfileResponse struct {
 
 // FarmerProfileData represents the profile data in responses
 type FarmerProfileData struct {
-	ID               string            `json:"id" example:"farmer_123e4567-e89b-12d3-a456-426614174000"` // Farmer ID (primary key)
-	AAAUserID        string            `json:"aaa_user_id" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
-	AAAOrgID         string            `json:"aaa_org_id" example:"org_123e4567-e89b-12d3-a456-426614174000"`
-	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"ks_123e4567-e89b-12d3-a456-426614174001"`
+	ID               string            `json:"id" example:"FMRR0000000001"` // Farmer ID (primary key)
+	AAAUserID        string            `json:"aaa_user_id" example:"USER00000001"`
+	AAAOrgID         string            `json:"aaa_org_id" example:"ORGN00000001"`
+	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"USER00000002"`
 	FirstName        string            `json:"first_name,omitempty" example:"Ramesh"`
 	LastName         string            `json:"last_name,omitempty" example:"Kumar"`
-	PhoneNumber      string            `json:"phone_number,omitempty" example:"+91-9876543210"`
+	PhoneNumber      string            `json:"phone_number,omitempty" example:"9876543210"`
 	Email            string            `json:"email,omitempty" example:"ramesh.kumar@example.com"`
 	DateOfBirth      string            `json:"date_of_birth,omitempty" example:"1980-05-15"`
 	Gender           string            `json:"gender,omitempty" example:"male"`
 	Address          AddressData       `json:"address,omitempty"`
-	Preferences      map[string]string `json:"preferences,omitempty" example:"language:hindi,notification:sms"`
-	Metadata         map[string]string `json:"metadata,omitempty" example:"source:field_survey,verified:true"`
+	Preferences      map[string]string `json:"preferences,omitempty"`
+	Metadata         map[string]string `json:"metadata,omitempty"`
 	Farms            []*FarmData       `json:"farms,omitempty"`
 	CreatedAt        string            `json:"created_at,omitempty" example:"2024-01-15T10:30:00Z"`
 	UpdatedAt        string            `json:"updated_at,omitempty" example:"2024-01-20T15:45:00Z"`
@@ -66,10 +66,10 @@ type AddressData struct {
 
 // FarmerLinkData represents farmer link data in responses
 type FarmerLinkData struct {
-	ID               string  `json:"id" example:"link_123e4567-e89b-12d3-a456-426614174000"`
-	AAAUserID        string  `json:"aaa_user_id" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
-	AAAOrgID         string  `json:"aaa_org_id" example:"org_123e4567-e89b-12d3-a456-426614174000"`
-	KisanSathiUserID *string `json:"kisan_sathi_user_id,omitempty" example:"ks_123e4567-e89b-12d3-a456-426614174001"`
+	ID               string  `json:"id" example:"FMLK0000000001"`
+	AAAUserID        string  `json:"aaa_user_id" example:"USER00000001"`
+	AAAOrgID         string  `json:"aaa_org_id" example:"ORGN00000001"`
+	KisanSathiUserID *string `json:"kisan_sathi_user_id,omitempty" example:"USER00000002"`
 	Status           string  `json:"status" example:"ACTIVE"`
 	CreatedAt        string  `json:"created_at,omitempty" example:"2024-01-15T10:30:00Z"`
 	UpdatedAt        string  `json:"updated_at,omitempty" example:"2024-01-20T15:45:00Z"`
