@@ -92,6 +92,17 @@ func (f *Farm) GetTableSize() hash.TableSize {
 	return hash.Medium
 }
 
+// NewFarm creates a new farm with initialized BaseModel
+func NewFarm() *Farm {
+	baseModel := base.NewBaseModel("FARM", hash.Medium)
+	return &Farm{
+		BaseModel:     *baseModel,
+		Metadata:      make(Metadata),
+		BoreWellCount: 0,
+		OwnershipType: OwnershipOwn, // Default ownership type
+	}
+}
+
 // Validation methods
 func (f *Farm) Validate() error {
 	if f.AAAFarmerUserID == "" {

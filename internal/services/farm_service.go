@@ -67,28 +67,21 @@ func (s *FarmServiceImpl) CreateFarm(ctx context.Context, req interface{}) (inte
 		geometryWKT = createReq.Geometry.WKT
 	}
 
-	// Create farm entity
-	// Generate default name if not provided
-	var defaultName *string
-	if createReq.Name != nil {
-		defaultName = createReq.Name
-	}
-
-	farm := &farmEntity.Farm{
-		AAAFarmerUserID:           createReq.AAAFarmerUserID,
-		AAAOrgID:                  createReq.AAAOrgID,
-		Name:                      defaultName,
-		OwnershipType:             farmEntity.OwnershipType(createReq.OwnershipType),
-		Geometry:                  geometryWKT,
-		SoilTypeID:                createReq.SoilTypeID,
-		PrimaryIrrigationSourceID: createReq.PrimaryIrrigationSourceID,
-		BoreWellCount:             createReq.BoreWellCount,
-		OtherIrrigationDetails:    createReq.OtherIrrigationDetails,
-		Metadata:                  createReq.Metadata,
-	}
+	// Create farm entity with proper BaseModel initialization
+	farm := farmEntity.NewFarm()
+	farm.AAAFarmerUserID = createReq.AAAFarmerUserID
+	farm.AAAOrgID = createReq.AAAOrgID
+	farm.Name = createReq.Name
+	farm.OwnershipType = farmEntity.OwnershipType(createReq.OwnershipType)
+	farm.Geometry = geometryWKT
+	farm.SoilTypeID = createReq.SoilTypeID
+	farm.PrimaryIrrigationSourceID = createReq.PrimaryIrrigationSourceID
+	farm.BoreWellCount = createReq.BoreWellCount
+	farm.OtherIrrigationDetails = createReq.OtherIrrigationDetails
+	farm.Metadata = createReq.Metadata
 
 	// Set name from metadata if provided (legacy support)
-	if name, exists := createReq.Metadata["name"]; exists && defaultName == nil {
+	if name, exists := createReq.Metadata["name"]; exists && farm.Name == nil {
 		farm.Name = &name
 	}
 
