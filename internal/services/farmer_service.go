@@ -9,7 +9,6 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/repo/farmer"
-	"github.com/Kisanlink/farmers-module/internal/utils"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
@@ -24,17 +23,17 @@ type FarmerService interface {
 
 // FarmerServiceImpl implements FarmerService
 type FarmerServiceImpl struct {
-	repository  *farmer.FarmerRepository
-	aaaService  AAAService
-	passwordGen *utils.PasswordGenerator
+	repository      *farmer.FarmerRepository
+	aaaService      AAAService
+	defaultPassword string
 }
 
-// NewFarmerService creates a new farmer service with repository and AAA service
-func NewFarmerService(repository *farmer.FarmerRepository, aaaService AAAService) FarmerService {
+// NewFarmerService creates a new farmer service with repository, AAA service, and default password
+func NewFarmerService(repository *farmer.FarmerRepository, aaaService AAAService, defaultPassword string) FarmerService {
 	return &FarmerServiceImpl{
-		repository:  repository,
-		aaaService:  aaaService,
-		passwordGen: utils.NewPasswordGenerator(),
+		repository:      repository,
+		aaaService:      aaaService,
+		defaultPassword: defaultPassword,
 	}
 }
 
@@ -94,21 +93,18 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		// Workflow 2: Create or find AAA user by phone number
 		// Business Rule 5.1: RegisterFarmer idempotency - return existing farmer if phone exists
 
-		// Generate secure password first (needed for user creation)
-		password, err := s.passwordGen.GenerateSecurePassword()
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate secure password: %w", err)
-		}
-
 		// Attempt to create user in AAA
 		log.Printf("Creating user in AAA with mobile: %s, country_code: %s", req.Profile.PhoneNumber, req.Profile.CountryCode)
 
 		createUserReq := map[string]interface{}{
-			"username":       fmt.Sprintf("farmer_%s", req.Profile.PhoneNumber),
-			"mobile_number":  req.Profile.PhoneNumber,
-			"password":       password,
-			"country_code":   req.Profile.CountryCode,
-			"aadhaar_number": "", // TODO: Add to request if available
+			"phone_number": req.Profile.PhoneNumber,
+			"password":     s.defaultPassword,
+			"country_code": req.Profile.CountryCode,
+		}
+
+		// Add username if provided, otherwise AAA will auto-generate one
+		if req.Profile.Username != "" {
+			createUserReq["username"] = req.Profile.Username
 		}
 
 		aaaUser, err := s.aaaService.CreateUser(ctx, createUserReq)

@@ -76,7 +76,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	aaaService := NewAAAService(cfg)
 
 	// Initialize identity services
-	farmerService := NewFarmerService(repoFactory.FarmerRepo, aaaService)
+	farmerService := NewFarmerService(repoFactory.FarmerRepo, aaaService, cfg.AAA.DefaultPassword)
 	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo, aaaService)
 	fpoService := NewFPOService(repoFactory.FPORefRepo, aaaService)
 	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo, aaaService)

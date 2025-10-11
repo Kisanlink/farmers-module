@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
+	pb "github.com/Kisanlink/aaa-service/pkg/proto"
 	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/config"
-	"github.com/Kisanlink/farmers-module/pkg/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -21,14 +21,14 @@ import (
 type Client struct {
 	conn          *grpc.ClientConn
 	config        *config.Config
-	userClient    proto.UserServiceClient
-	authzClient   proto.AuthorizationServiceClient
-	orgClient     proto.OrganizationServiceClient
-	groupClient   proto.GroupServiceClient
-	roleClient    proto.RoleServiceClient
-	permClient    proto.PermissionServiceClient
-	catalogClient proto.CatalogServiceClient
-	tokenClient   proto.TokenServiceClient
+	userClient    pb.UserServiceClient
+	authzClient   pb.AuthorizationServiceClient
+	orgClient     pb.OrganizationServiceClient
+	groupClient   pb.GroupServiceClient
+	roleClient    pb.RoleServiceClient
+	permClient    pb.PermissionServiceClient
+	catalogClient pb.CatalogServiceClient
+	tokenClient   pb.TokenServiceClient
 }
 
 // UserData represents user information from AAA service
@@ -171,14 +171,14 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	}
 
 	// Initialize gRPC clients
-	userClient := proto.NewUserServiceClient(conn)
-	authzClient := proto.NewAuthorizationServiceClient(conn)
-	orgClient := proto.NewOrganizationServiceClient(conn)
-	groupClient := proto.NewGroupServiceClient(conn)
-	roleClient := proto.NewRoleServiceClient(conn)
-	permClient := proto.NewPermissionServiceClient(conn)
-	catalogClient := proto.NewCatalogServiceClient(conn)
-	tokenClient := proto.NewTokenServiceClient(conn)
+	userClient := pb.NewUserServiceClient(conn)
+	authzClient := pb.NewAuthorizationServiceClient(conn)
+	orgClient := pb.NewOrganizationServiceClient(conn)
+	groupClient := pb.NewGroupServiceClient(conn)
+	roleClient := pb.NewRoleServiceClient(conn)
+	permClient := pb.NewPermissionServiceClient(conn)
+	catalogClient := pb.NewCatalogServiceClient(conn)
+	tokenClient := pb.NewTokenServiceClient(conn)
 
 	log.Printf("AAA Client: Successfully initialized with endpoint %s", cfg.AAA.GRPCEndpoint)
 
@@ -206,7 +206,7 @@ func (c *Client) CreateUser(ctx context.Context, req *CreateUserRequest) (*Creat
 	log.Printf("AAA CreateUser: username=%s, phone=%s", req.Username, req.PhoneNumber)
 
 	// Create gRPC request
-	grpcReq := &proto.RegisterRequest{
+	grpcReq := &pb.RegisterRequest{
 		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
@@ -247,7 +247,7 @@ func (c *Client) GetUser(ctx context.Context, userID string) (*UserData, error) 
 	log.Printf("AAA GetUser: userID=%s", userID)
 
 	// Create gRPC request
-	req := &proto.GetUserRequest{
+	req := &pb.GetUserRequest{
 		Id: userID,
 	}
 
@@ -296,7 +296,7 @@ func (c *Client) GetUserByPhone(ctx context.Context, phone string) (*UserData, e
 	}
 
 	// Create gRPC request to get user by phone number
-	req := &proto.GetUserByPhoneRequest{
+	req := &pb.GetUserByPhoneRequest{
 		PhoneNumber:        phone,
 		CountryCode:        "+91", // Default to India, should be configurable
 		IncludeRoles:       false,
@@ -353,7 +353,7 @@ func (c *Client) GetUserByEmail(ctx context.Context, email string) (*UserData, e
 
 	// Get all users and filter by email
 	// Note: This is inefficient but works until AAA service adds GetUserByEmail
-	req := &proto.GetAllUsersRequest{
+	req := &pb.GetAllUsersRequest{
 		// No pagination fields available in current proto
 	}
 
@@ -403,7 +403,7 @@ func (c *Client) CreateOrganization(ctx context.Context, req *CreateOrganization
 	}
 
 	// Create gRPC request
-	grpcReq := &proto.CreateOrganizationRequest{
+	grpcReq := &pb.CreateOrganizationRequest{
 		Name:        req.Name,
 		DisplayName: req.Name, // Use name as display name if not provided
 		Description: req.Description,
@@ -450,7 +450,7 @@ func (c *Client) GetOrganization(ctx context.Context, orgID string) (*Organizati
 	}
 
 	// Create gRPC request
-	grpcReq := &proto.GetOrganizationRequest{
+	grpcReq := &pb.GetOrganizationRequest{
 		Id: orgID,
 	}
 
@@ -500,7 +500,7 @@ func (c *Client) CreateUserGroup(ctx context.Context, req *CreateUserGroupReques
 	}
 
 	// Create gRPC request
-	grpcReq := &proto.CreateGroupRequest{
+	grpcReq := &pb.CreateGroupRequest{
 		Name:           req.Name,
 		Description:    req.Description,
 		OrganizationId: req.OrgID,
@@ -545,7 +545,7 @@ func (c *Client) AddUserToGroup(ctx context.Context, userID, groupID string) err
 	}
 
 	// Create gRPC request
-	grpcReq := &proto.AddGroupMemberRequest{
+	grpcReq := &pb.AddGroupMemberRequest{
 		GroupId:       groupID,
 		PrincipalId:   userID,
 		PrincipalType: "user",
@@ -581,7 +581,7 @@ func (c *Client) RemoveUserFromGroup(ctx context.Context, userID, groupID string
 	}
 
 	// Create gRPC request
-	grpcReq := &proto.RemoveGroupMemberRequest{
+	grpcReq := &pb.RemoveGroupMemberRequest{
 		GroupId:     groupID,
 		PrincipalId: userID,
 	}
@@ -631,7 +631,7 @@ func (c *Client) AssignRole(ctx context.Context, userID, orgID, roleName string)
 	}
 
 	// Create gRPC request
-	grpcReq := &proto.AssignRoleRequest{
+	grpcReq := &pb.AssignRoleRequest{
 		UserId:   userID,
 		OrgId:    orgID,
 		RoleName: roleName,
@@ -674,7 +674,7 @@ func (c *Client) CheckUserRole(ctx context.Context, userID, roleName string) (bo
 	}
 
 	// Try to get user and check roles from UserService
-	req := &proto.GetUserRequest{Id: userID}
+	req := &pb.GetUserRequest{Id: userID}
 	resp, err := c.userClient.GetUser(ctx, req)
 	if err != nil {
 		log.Printf("Failed to get user for role check: %v", err)
@@ -722,7 +722,7 @@ func (c *Client) AssignPermissionToGroup(ctx context.Context, groupID, resource,
 	}
 
 	// Create gRPC request
-	grpcReq := &proto.AssignPermissionToGroupRequest{
+	grpcReq := &pb.AssignPermissionToGroupRequest{
 		GroupId:  groupID,
 		Resource: resource,
 		Action:   action,
@@ -767,7 +767,7 @@ func (c *Client) CheckPermission(ctx context.Context, subject, resource, action,
 		resourceID = "*"
 	}
 
-	req := &proto.CheckRequest{
+	req := &pb.CheckRequest{
 		PrincipalId:  subject,
 		ResourceType: resource,
 		ResourceId:   resourceID,
@@ -830,7 +830,7 @@ func (c *Client) ValidateToken(ctx context.Context, token string) (map[string]in
 	}
 
 	// Call AAA service for token validation
-	req := &proto.ValidateTokenRequest{
+	req := &pb.ValidateTokenRequest{
 		Token:               token,
 		IncludeUserDetails:  true,
 		IncludePermissions:  true,
@@ -898,7 +898,7 @@ func (c *Client) SeedRolesAndPermissions(ctx context.Context) error {
 	log.Println("AAA SeedRolesAndPermissions: Seeding roles and permissions")
 
 	// Create gRPC request
-	grpcReq := &proto.SeedRolesAndPermissionsRequest{
+	grpcReq := &pb.SeedRolesAndPermissionsRequest{
 		Force: false, // Don't force reseed if data exists
 	}
 
@@ -926,7 +926,7 @@ func (c *Client) HealthCheck(ctx context.Context) error {
 
 	// Use a simple call to UserService which we know exists
 	// Try to get a non-existent user - if service responds (even with NotFound), it's healthy
-	req := &proto.GetUserRequest{
+	req := &pb.GetUserRequest{
 		Id: "health-check-user-id",
 	}
 

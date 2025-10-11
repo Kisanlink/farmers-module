@@ -38,15 +38,16 @@ type ServerConfig struct {
 
 // AAAConfig holds AAA service configuration
 type AAAConfig struct {
-	GRPCEndpoint   string
-	Token          string
-	APIKey         string
-	RetryAttempts  int
-	RetryBackoff   string
-	RequestTimeout string
-	Enabled        bool
-	JWTSecret      string
-	JWTPublicKey   string
+	GRPCEndpoint    string
+	Token           string
+	APIKey          string
+	RetryAttempts   int
+	RetryBackoff    string
+	RequestTimeout  string
+	Enabled         bool
+	JWTSecret       string
+	JWTPublicKey    string
+	DefaultPassword string
 }
 
 // ObservabilityConfig holds observability configuration
@@ -81,15 +82,16 @@ func Load() *Config {
 			Host: getEnv("HOST", "0.0.0.0"),
 		},
 		AAA: AAAConfig{
-			GRPCEndpoint:   getEnv("AAA_GRPC_ADDR", "localhost:50051"),
-			Token:          getEnv("AAA_TOKEN", ""),
-			APIKey:         getEnv("AAA_API_KEY", ""),
-			RetryAttempts:  getEnvAsInt("AAA_RETRY_ATTEMPTS", 3),
-			RetryBackoff:   getEnv("AAA_RETRY_BACKOFF", "100ms"),
-			RequestTimeout: getEnv("AAA_REQUEST_TIMEOUT", "5s"),
-			Enabled:        getEnvAsBool("AAA_ENABLED", true),
-			JWTSecret:      getEnv("JWT_SECRET", "dev-secret-change-in-production"),
-			JWTPublicKey:   getEnv("JWT_PUBLIC_KEY", ""),
+			GRPCEndpoint:    getEnv("AAA_GRPC_ADDR", "localhost:50051"),
+			Token:           getEnv("AAA_TOKEN", ""),
+			APIKey:          getEnv("AAA_API_KEY", ""),
+			RetryAttempts:   getEnvAsInt("AAA_RETRY_ATTEMPTS", 3),
+			RetryBackoff:    getEnv("AAA_RETRY_BACKOFF", "100ms"),
+			RequestTimeout:  getEnv("AAA_REQUEST_TIMEOUT", "5s"),
+			Enabled:         getEnvAsBool("AAA_ENABLED", true),
+			JWTSecret:       getEnv("JWT_SECRET", "dev-secret-change-in-production"),
+			JWTPublicKey:    getEnv("JWT_PUBLIC_KEY", ""),
+			DefaultPassword: getEnv("AAA_DEFAULT_PASSWORD", "Welcome@123"),
 		},
 		Observability: ObservabilityConfig{
 			LogLevel:                 getEnv("LOG_LEVEL", "info"),

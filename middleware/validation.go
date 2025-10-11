@@ -394,8 +394,8 @@ func (vm *ValidationMiddleware) verifyOrganization(ctx context.Context, orgID st
 // Custom validators
 func validatePhone(fl validator.FieldLevel) bool {
 	phone := fl.Field().String()
-	// Basic phone validation - can be enhanced
-	return len(phone) >= 10 && strings.Contains(phone, "+")
+	// Basic phone validation - just check length since country_code is separate
+	return len(phone) >= 10
 }
 
 func validateEmail(fl validator.FieldLevel) bool {

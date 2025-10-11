@@ -51,6 +51,7 @@ type ListFarmersRequest struct {
 
 // FarmerProfileData represents the profile data for a farmer
 type FarmerProfileData struct {
+	Username    string            `json:"username,omitempty" example:"ramesh_kumar"`
 	FirstName   string            `json:"first_name,omitempty" example:"Ramesh"`
 	LastName    string            `json:"last_name,omitempty" example:"Kumar"`
 	PhoneNumber string            `json:"phone_number,omitempty" example:"9876543210"`
