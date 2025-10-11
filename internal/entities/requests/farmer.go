@@ -53,8 +53,8 @@ type ListFarmersRequest struct {
 type FarmerProfileData struct {
 	FirstName   string            `json:"first_name,omitempty" example:"Ramesh"`
 	LastName    string            `json:"last_name,omitempty" example:"Kumar"`
-	PhoneNumber string            `json:"phone_number" validate:"required" example:"9876543210"`
-	CountryCode string            `json:"country_code" validate:"required" example:"+91"`
+	PhoneNumber string            `json:"phone_number,omitempty" example:"9876543210"`
+	CountryCode string            `json:"country_code,omitempty" example:"+91"`
 	Email       string            `json:"email,omitempty" example:"ramesh.kumar@example.com"`
 	DateOfBirth string            `json:"date_of_birth,omitempty" example:"1980-05-15"`
 	Gender      string            `json:"gender,omitempty" example:"male"`
