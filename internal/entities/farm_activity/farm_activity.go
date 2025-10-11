@@ -3,6 +3,7 @@ package farm_activity
 import (
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
@@ -11,14 +12,14 @@ import (
 // FarmActivity represents an individual activity within a crop cycle
 type FarmActivity struct {
 	base.BaseModel
-	CropCycleID  string            `json:"crop_cycle_id" gorm:"type:varchar(255);not null"`
-	ActivityType string            `json:"activity_type" gorm:"type:varchar(255);not null"`
-	PlannedAt    *time.Time        `json:"planned_at" gorm:"type:timestamptz"`
-	CompletedAt  *time.Time        `json:"completed_at" gorm:"type:timestamptz"`
-	CreatedBy    string            `json:"created_by" gorm:"type:varchar(255);not null"`
-	Status       string            `json:"status" gorm:"type:activity_status;not null;default:'PLANNED'"`
-	Output       map[string]string `json:"output" gorm:"type:jsonb;default:'{}'"`
-	Metadata     map[string]string `json:"metadata" gorm:"type:jsonb;default:'{}'"`
+	CropCycleID  string         `json:"crop_cycle_id" gorm:"type:varchar(255);not null"`
+	ActivityType string         `json:"activity_type" gorm:"type:varchar(255);not null"`
+	PlannedAt    *time.Time     `json:"planned_at" gorm:"type:timestamptz"`
+	CompletedAt  *time.Time     `json:"completed_at" gorm:"type:timestamptz"`
+	CreatedBy    string         `json:"created_by" gorm:"type:varchar(255);not null"`
+	Status       string         `json:"status" gorm:"type:activity_status;not null;default:'PLANNED'"`
+	Output       entities.JSONB `json:"output" gorm:"type:jsonb;default:'{}'"`
+	Metadata     entities.JSONB `json:"metadata" gorm:"type:jsonb;default:'{}'"`
 }
 
 // TableName returns the table name for the FarmActivity model

@@ -3,6 +3,7 @@ package fpo
 import (
 	"testing"
 
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -70,12 +71,12 @@ func TestFPORefFields(t *testing.T) {
 		Name:           "Test FPO",
 		RegistrationNo: "REG123",
 		Status:         FPOStatusActive,
-		BusinessConfig: map[string]string{"type": "agricultural"},
+		BusinessConfig: entities.JSONB{"type": "agricultural"},
 	}
 
 	assert.Equal(t, "org123", fpoRef.AAAOrgID)
 	assert.Equal(t, "Test FPO", fpoRef.Name)
 	assert.Equal(t, "REG123", fpoRef.RegistrationNo)
 	assert.Equal(t, FPOStatusActive, fpoRef.Status)
-	assert.Equal(t, map[string]string{"type": "agricultural"}, fpoRef.BusinessConfig)
+	assert.Equal(t, entities.JSONB{"type": "agricultural"}, fpoRef.BusinessConfig)
 }

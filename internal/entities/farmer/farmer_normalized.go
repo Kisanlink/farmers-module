@@ -1,6 +1,7 @@
 package farmer
 
 import (
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
@@ -70,8 +71,8 @@ type Farmer struct {
 	Status            string `json:"status" gorm:"type:farmer_status;not null;default:'ACTIVE'"`
 
 	// Flexible Data (JSONB for extensibility)
-	Preferences map[string]string `json:"preferences" gorm:"type:jsonb;default:'{}'::jsonb"`
-	Metadata    map[string]string `json:"metadata" gorm:"type:jsonb;default:'{}'::jsonb"`
+	Preferences entities.JSONB `json:"preferences" gorm:"type:jsonb;default:'{}'::jsonb"`
+	Metadata    entities.JSONB `json:"metadata" gorm:"type:jsonb;default:'{}'::jsonb"`
 }
 
 // TableName returns the table name for the Farmer model
@@ -95,8 +96,8 @@ func NewFarmer() *Farmer {
 	return &Farmer{
 		BaseModel:   *baseModel,
 		Status:      "ACTIVE",
-		Preferences: make(map[string]string),
-		Metadata:    make(map[string]string),
+		Preferences: make(entities.JSONB),
+		Metadata:    make(entities.JSONB),
 	}
 }
 

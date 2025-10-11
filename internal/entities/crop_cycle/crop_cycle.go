@@ -3,6 +3,7 @@ package crop_cycle
 import (
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/crop"
 	"github.com/Kisanlink/farmers-module/internal/entities/crop_variety"
 	"github.com/Kisanlink/farmers-module/pkg/common"
@@ -13,15 +14,15 @@ import (
 // CropCycle represents an agricultural cycle within a farm
 type CropCycle struct {
 	base.BaseModel
-	FarmID    string            `json:"farm_id" gorm:"type:varchar(255);not null"`
-	FarmerID  string            `json:"farmer_id" gorm:"type:uuid"`
-	Season    string            `json:"season" gorm:"type:season;not null"`
-	Status    string            `json:"status" gorm:"type:cycle_status;not null;default:'PLANNED'"`
-	StartDate *time.Time        `json:"start_date" gorm:"type:date"`
-	EndDate   *time.Time        `json:"end_date" gorm:"type:date"`
-	CropID    string            `json:"crop_id" gorm:"type:uuid;not null;index"`
-	VarietyID *string           `json:"variety_id" gorm:"type:uuid;index"`
-	Outcome   map[string]string `json:"outcome" gorm:"type:jsonb;default:'{}'"`
+	FarmID    string         `json:"farm_id" gorm:"type:varchar(255);not null"`
+	FarmerID  string         `json:"farmer_id" gorm:"type:uuid"`
+	Season    string         `json:"season" gorm:"type:season;not null"`
+	Status    string         `json:"status" gorm:"type:cycle_status;not null;default:'PLANNED'"`
+	StartDate *time.Time     `json:"start_date" gorm:"type:date"`
+	EndDate   *time.Time     `json:"end_date" gorm:"type:date"`
+	CropID    string         `json:"crop_id" gorm:"type:uuid;not null;index"`
+	VarietyID *string        `json:"variety_id" gorm:"type:uuid;index"`
+	Outcome   entities.JSONB `json:"outcome" gorm:"type:jsonb;default:'{}'"`
 
 	// Relationships
 	Crop    *crop.Crop                `json:"crop,omitempty" gorm:"foreignKey:CropID;references:ID"`

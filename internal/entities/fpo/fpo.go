@@ -3,6 +3,7 @@ package fpo
 import (
 	"fmt"
 
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
@@ -43,12 +44,12 @@ func (s FPOStatus) String() string {
 // FPORef represents a reference to an FPO organization
 type FPORef struct {
 	base.BaseModel
-	AAAOrgID       string            `json:"aaa_org_id" gorm:"type:varchar(255);unique;not null"`
-	Name           string            `json:"name" gorm:"type:varchar(255);not null"`
-	RegistrationNo string            `json:"registration_no" gorm:"type:varchar(255)"`
-	Status         FPOStatus         `json:"status" gorm:"type:varchar(50);default:'ACTIVE'"`
-	BusinessConfig map[string]string `json:"business_config" gorm:"type:jsonb;default:'{}'"`
-	SetupErrors    map[string]string `json:"setup_errors,omitempty" gorm:"type:jsonb"` // Track partial setup failures
+	AAAOrgID       string         `json:"aaa_org_id" gorm:"type:varchar(255);unique;not null"`
+	Name           string         `json:"name" gorm:"type:varchar(255);not null"`
+	RegistrationNo string         `json:"registration_no" gorm:"type:varchar(255)"`
+	Status         FPOStatus      `json:"status" gorm:"type:varchar(50);default:'ACTIVE'"`
+	BusinessConfig entities.JSONB `json:"business_config" gorm:"type:jsonb;default:'{}'"`
+	SetupErrors    entities.JSONB `json:"setup_errors,omitempty" gorm:"type:jsonb"` // Track partial setup failures
 }
 
 // TableName returns the table name for the FPORef model

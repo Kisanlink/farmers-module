@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -86,7 +87,7 @@ func TestCropCycleFields(t *testing.T) {
 		StartDate: &now,
 		CropID:    "crop123",
 		VarietyID: &varietyID,
-		Outcome:   map[string]string{"yield": "good"},
+		Outcome:   entities.JSONB{"yield": "good"},
 	}
 
 	assert.Equal(t, "farm123", cropCycle.FarmID)
@@ -96,5 +97,5 @@ func TestCropCycleFields(t *testing.T) {
 	assert.Equal(t, &now, cropCycle.StartDate)
 	assert.Equal(t, "crop123", cropCycle.CropID)
 	assert.Equal(t, &varietyID, cropCycle.VarietyID)
-	assert.Equal(t, map[string]string{"yield": "good"}, cropCycle.Outcome)
+	assert.Equal(t, entities.JSONB{"yield": "good"}, cropCycle.Outcome)
 }

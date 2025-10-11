@@ -3,6 +3,7 @@ package crop_variety
 import (
 	"fmt"
 
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/crop"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
@@ -19,15 +20,15 @@ type YieldByAge struct {
 // CropVariety represents a variety of a crop with specific characteristics
 type CropVariety struct {
 	base.BaseModel
-	CropID       string            `json:"crop_id" gorm:"type:uuid;not null;index"`
-	Name         string            `json:"name" gorm:"type:varchar(255);not null"`
-	Description  *string           `json:"description" gorm:"type:text"`
-	DurationDays *int              `json:"duration_days" gorm:"type:integer"`
-	YieldPerAcre *float64          `json:"yield_per_acre" gorm:"type:numeric(10,2)"`
-	YieldPerTree *float64          `json:"yield_per_tree" gorm:"type:numeric(10,2)"`
-	YieldByAge   []YieldByAge      `json:"yield_by_age" gorm:"type:jsonb"`
-	Properties   map[string]string `json:"properties" gorm:"type:jsonb;not null;default:'{}'"`
-	IsActive     bool              `json:"is_active" gorm:"type:boolean;not null;default:true"`
+	CropID       string         `json:"crop_id" gorm:"type:uuid;not null;index"`
+	Name         string         `json:"name" gorm:"type:varchar(255);not null"`
+	Description  *string        `json:"description" gorm:"type:text"`
+	DurationDays *int           `json:"duration_days" gorm:"type:integer"`
+	YieldPerAcre *float64       `json:"yield_per_acre" gorm:"type:numeric(10,2)"`
+	YieldPerTree *float64       `json:"yield_per_tree" gorm:"type:numeric(10,2)"`
+	YieldByAge   []YieldByAge   `json:"yield_by_age" gorm:"type:jsonb"`
+	Properties   entities.JSONB `json:"properties" gorm:"type:jsonb;not null;default:'{}'"`
+	IsActive     bool           `json:"is_active" gorm:"type:boolean;not null;default:true"`
 
 	// Relationships
 	Crop crop.Crop `json:"crop" gorm:"foreignKey:CropID;references:ID"`
@@ -53,7 +54,7 @@ func NewCropVariety() *CropVariety {
 	baseModel := base.NewBaseModel("CRPV", hash.Medium)
 	return &CropVariety{
 		BaseModel:  *baseModel,
-		Properties: make(map[string]string),
+		Properties: make(entities.JSONB),
 		IsActive:   true,
 	}
 }

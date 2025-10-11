@@ -55,23 +55,43 @@ func stringToPtr(s string) *string {
 }
 
 // CreateFarmer creates a new farmer
+// Supports two workflows:
+// 1. Existing AAA user: Provide aaa_user_id + aaa_org_id
+// 2. New AAA user: Provide profile.phone_number + aaa_org_id (auto-creates user in AAA)
 func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error) {
-	// Check if farmer already exists using filter
-	existingFilter := base.NewFilterBuilder().
-		Where("aaa_user_id", base.OpEqual, req.AAAUserID).
-		Where("aaa_org_id", base.OpEqual, req.AAAOrgID).
-		Build()
-
-	existing, err := s.repository.FindOne(ctx, existingFilter)
-	if err == nil && existing != nil {
-		return nil, fmt.Errorf("farmer already exists")
+	// Validate request: Either aaa_user_id or profile.phone_number must be provided
+	if req.AAAUserID == "" && req.Profile.PhoneNumber == "" {
+		return nil, fmt.Errorf("either aaa_user_id or profile.phone_number must be provided")
 	}
 
-	// Check if user exists in AAA by mobile number
+	// Validate org_id is always required
+	if req.AAAOrgID == "" {
+		return nil, fmt.Errorf("aaa_org_id is required")
+	}
+
+	// If aaa_user_id is provided, check if farmer already exists
+	if req.AAAUserID != "" {
+		existingFilter := base.NewFilterBuilder().
+			Where("aaa_user_id", base.OpEqual, req.AAAUserID).
+			Where("aaa_org_id", base.OpEqual, req.AAAOrgID).
+			Build()
+
+		existing, err := s.repository.FindOne(ctx, existingFilter)
+		if err == nil && existing != nil {
+			return nil, fmt.Errorf("farmer already exists")
+		}
+	}
+
+	// Determine AAA user ID - either use provided or create from phone number
 	var aaaUserID string
 	var aaaOrgID string
 
-	if req.Profile.PhoneNumber != "" {
+	// Workflow 1: Use existing AAA user ID if provided
+	if req.AAAUserID != "" {
+		aaaUserID = req.AAAUserID
+		aaaOrgID = req.AAAOrgID
+	} else if req.Profile.PhoneNumber != "" {
+		// Workflow 2: Create or find AAA user by phone number
 		// Business Rule 5.1: RegisterFarmer idempotency - return existing farmer if phone exists
 		// Try to find existing user by mobile number
 		aaaUser, err := s.aaaService.GetUserByMobile(ctx, req.Profile.PhoneNumber)
@@ -178,10 +198,6 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 				log.Printf("Warning: could not verify AAA organization %s: %v", aaaOrgID, err)
 			}
 		}
-	} else {
-		// Use provided AAA user ID and org ID
-		aaaUserID = req.AAAUserID
-		aaaOrgID = req.AAAOrgID
 	}
 
 	// Business Rule 2.2: Validate KisanSathi if provided

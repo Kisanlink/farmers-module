@@ -1,6 +1,7 @@
 package crop
 
 import (
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
@@ -34,14 +35,14 @@ const (
 // Crop represents a crop master data entity
 type Crop struct {
 	base.BaseModel
-	Name           string            `json:"name" gorm:"type:varchar(255);not null;uniqueIndex"`
-	ScientificName *string           `json:"scientific_name" gorm:"type:varchar(255)"`
-	Category       CropCategory      `json:"category" gorm:"type:crop_category;not null"`
-	DurationDays   *int              `json:"duration_days" gorm:"type:integer"`
-	Seasons        []string          `json:"seasons" gorm:"type:jsonb;not null;default:'[]'"`
-	Unit           string            `json:"unit" gorm:"type:varchar(50);not null;default:'kg'"`
-	Properties     map[string]string `json:"properties" gorm:"type:jsonb;not null;default:'{}'"`
-	IsActive       bool              `json:"is_active" gorm:"type:boolean;not null;default:true"`
+	Name           string         `json:"name" gorm:"type:varchar(255);not null;uniqueIndex"`
+	ScientificName *string        `json:"scientific_name" gorm:"type:varchar(255)"`
+	Category       CropCategory   `json:"category" gorm:"type:crop_category;not null"`
+	DurationDays   *int           `json:"duration_days" gorm:"type:integer"`
+	Seasons        []string       `json:"seasons" gorm:"type:jsonb;not null;default:'[]'"`
+	Unit           string         `json:"unit" gorm:"type:varchar(50);not null;default:'kg'"`
+	Properties     entities.JSONB `json:"properties" gorm:"type:jsonb;not null;default:'{}'"`
+	IsActive       bool           `json:"is_active" gorm:"type:boolean;not null;default:true"`
 }
 
 // TableName returns the table name for the Crop model
@@ -64,7 +65,7 @@ func NewCrop() *Crop {
 	baseModel := base.NewBaseModel("CROP", hash.Medium)
 	return &Crop{
 		BaseModel:  *baseModel,
-		Properties: make(map[string]string),
+		Properties: make(entities.JSONB),
 		Seasons:    make([]string, 0),
 		Unit:       "kg",
 		IsActive:   true,

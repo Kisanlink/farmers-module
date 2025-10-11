@@ -1,6 +1,7 @@
 package soil_type
 
 import (
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
 )
@@ -8,9 +9,9 @@ import (
 // SoilType represents different soil types available
 type SoilType struct {
 	base.BaseModel
-	Name        string            `json:"name" gorm:"type:varchar(100);not null;uniqueIndex"`
-	Description string            `json:"description" gorm:"type:text"`
-	Properties  map[string]string `json:"properties" gorm:"type:jsonb;default:'{}'"`
+	Name        string         `json:"name" gorm:"type:varchar(100);not null;uniqueIndex"`
+	Description string         `json:"description" gorm:"type:text"`
+	Properties  entities.JSONB `json:"properties" gorm:"type:jsonb;default:'{}'"`
 }
 
 // TableName returns the table name for the SoilType model

@@ -57,7 +57,9 @@ func NewFarmerHandler(farmerService services.FarmerService, logger interfaces.Lo
 
 // CreateFarmer handles POST /api/v1/identity/farmers
 // @Summary Create a new farmer
-// @Description Create a new farmer profile
+// @Description Create a new farmer profile. Supports two workflows:
+// @Description 1. **Existing AAA User**: Provide aaa_user_id + aaa_org_id to link an existing AAA user
+// @Description 2. **New AAA User**: Provide profile.phone_number + aaa_org_id to auto-create AAA user and farmer profile
 // @Tags identity
 // @Accept json
 // @Produce json

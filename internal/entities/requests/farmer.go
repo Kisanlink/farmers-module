@@ -1,12 +1,15 @@
 package requests
 
 // CreateFarmerRequest represents a request to create a new farmer
+// Supports two workflows:
+// 1. Provide aaa_user_id + aaa_org_id to link an existing AAA user
+// 2. Provide profile.phone_number + aaa_org_id to auto-create AAA user
 type CreateFarmerRequest struct {
 	BaseRequest
-	AAAUserID        string            `json:"aaa_user_id" validate:"required" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
-	AAAOrgID         string            `json:"aaa_org_id" validate:"required" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+	AAAUserID        string            `json:"aaa_user_id,omitempty" example:"USER00000001"`          // Optional: AAA User ID (if user already exists)
+	AAAOrgID         string            `json:"aaa_org_id" validate:"required" example:"ORGN00000003"` // Required: AAA Org ID
 	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"ks_123e4567-e89b-12d3-a456-426614174001"`
-	Profile          FarmerProfileData `json:"profile,omitempty"`
+	Profile          FarmerProfileData `json:"profile" validate:"required"` // Required: Farmer profile (must include phone_number if aaa_user_id not provided)
 }
 
 // UpdateFarmerRequest represents a request to update an existing farmer
