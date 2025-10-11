@@ -17,6 +17,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/fpo"
 	"github.com/Kisanlink/farmers-module/internal/entities/irrigation_source"
 	"github.com/Kisanlink/farmers-module/internal/entities/soil_type"
+	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -103,6 +104,11 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 
 		// Post-migration setup (without PostGIS features)
 		setupPostMigration(gormDB)
+
+		// Initialize ID counters from existing database records
+		if err := initializeCounters(gormDB); err != nil {
+			log.Printf("Warning: Failed to initialize ID counters: %v", err)
+		}
 	} else {
 		// Enable PostGIS extension
 		if err := gormDB.Exec(`CREATE EXTENSION IF NOT EXISTS postgis;`).Error; err != nil {
@@ -148,6 +154,12 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 			}
 
 			setupPostMigration(gormDB)
+
+			// Initialize ID counters from existing database records
+			if err := initializeCounters(gormDB); err != nil {
+				log.Printf("Warning: Failed to initialize ID counters: %v", err)
+			}
+
 			log.Println("Database setup completed successfully (without PostGIS)")
 			return nil
 		}
@@ -197,6 +209,12 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 
 		// Post-migration setup (with PostGIS features)
 		setupPostMigration(gormDB)
+	}
+
+	// Initialize ID counters from existing database records
+	if err := initializeCounters(gormDB); err != nil {
+		log.Printf("Warning: Failed to initialize ID counters: %v", err)
+		// Don't fail the setup, but log the warning
 	}
 
 	log.Println("Database setup completed successfully")
@@ -326,6 +344,53 @@ func setupPostMigration(gormDB *gorm.DB) {
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farm_activities_planned_at_idx ON farm_activities (planned_at);`)
 
 	log.Println("Post-migration setup completed")
+}
+
+// initializeCounters initializes ID counters for all tables from existing database records
+func initializeCounters(gormDB *gorm.DB) error {
+	// Define tables to initialize with their identifiers and sizes
+	tables := []struct {
+		TableName  string
+		Identifier string
+		Size       hash.TableSize
+	}{
+		{"farmers", "FMRR", hash.Large},
+		{"addresses", "ADDR", hash.Medium},
+		{"farmer_links", "FMLK", hash.Large},
+		{"farms", "FARM", hash.Large},
+		{"crop_cycles", "CRCY", hash.XLarge},
+		{"farm_activities", "FACT", hash.XLarge},
+		{"fpo_refs", "FPOR", hash.Medium},
+		{"crops", "CROP", hash.Small},
+		{"crop_varieties", "CVAR", hash.Medium},
+		{"soil_types", "SOIL", hash.Tiny},
+		{"irrigation_sources", "IRRG", hash.Tiny},
+		{"bulk_operations", "BULK", hash.Medium},
+		{"processing_details", "PROC", hash.XLarge},
+	}
+
+	for _, table := range tables {
+		// Query all IDs from the table
+		var ids []string
+		if err := gormDB.Table(table.TableName).Pluck("id", &ids).Error; err != nil {
+			// If table doesn't exist or error occurs, skip it
+			log.Printf("Skipping counter initialization for %s: %v", table.TableName, err)
+			continue
+		}
+
+		// Initialize counter using the hash package function
+		log.Printf("Initializing counter for %s (%s) with %d existing IDs",
+			table.TableName, table.Identifier, len(ids))
+
+		// Call the initialization function from kisanlink-db
+		hash.InitializeGlobalCountersFromDatabase(table.Identifier, ids, table.Size)
+
+		log.Printf("✓ Counter initialized for %s: %d existing records",
+			table.TableName, len(ids))
+	}
+
+	log.Println("✅ All ID counters initialized successfully")
+	return nil
 }
 
 // Close closes the database connection
