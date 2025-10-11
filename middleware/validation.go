@@ -300,12 +300,28 @@ func (vm *ValidationMiddleware) validateFPOFields(data map[string]interface{}) e
 
 // validateFarmerFields validates farmer-specific fields
 func (vm *ValidationMiddleware) validateFarmerFields(data map[string]interface{}) error {
-	requiredFields := []string{"aaa_user_id", "aaa_org_id"}
+	// Always require aaa_org_id
+	if value, exists := data["aaa_org_id"]; !exists || value == "" {
+		return fmt.Errorf("required field 'aaa_org_id' is missing or empty")
+	}
 
-	for _, field := range requiredFields {
-		if value, exists := data[field]; !exists || value == "" {
-			return fmt.Errorf("required field '%s' is missing or empty", field)
+	// Validate that either aaa_user_id OR (country_code + phone_number) is provided
+	aaaUserID, hasAAAUserID := data["aaa_user_id"]
+	hasValidAAAUserID := hasAAAUserID && aaaUserID != ""
+
+	// Check for country_code + phone_number in profile
+	hasCountryCodeAndPhone := false
+	if profile, exists := data["profile"]; exists {
+		if profileMap, ok := profile.(map[string]interface{}); ok {
+			countryCode, hasCC := profileMap["country_code"]
+			phoneNumber, hasPN := profileMap["phone_number"]
+			hasCountryCodeAndPhone = hasCC && hasPN && countryCode != "" && phoneNumber != ""
 		}
+	}
+
+	// Either aaa_user_id OR (country_code + phone_number) must be provided
+	if !hasValidAAAUserID && !hasCountryCodeAndPhone {
+		return fmt.Errorf("either 'aaa_user_id' or both 'country_code' and 'phone_number' in profile must be provided")
 	}
 
 	// Validate profile fields if present
