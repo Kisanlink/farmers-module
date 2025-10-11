@@ -2,14 +2,16 @@ package requests
 
 // CreateFarmerRequest represents a request to create a new farmer
 // Supports two workflows:
-// 1. Provide aaa_user_id + aaa_org_id to link an existing AAA user
-// 2. Provide profile.phone_number + aaa_org_id to auto-create AAA user
+// 1. Provide aaa_user_id + aaa_org_id: Use existing AAA user
+// 2. Provide country_code + mobile_number + aaa_org_id: Create/find AAA user automatically
+//   - If user doesn't exist, creates new user in AAA
+//   - If user exists (conflict), retrieves existing user ID from AAA
 type CreateFarmerRequest struct {
 	BaseRequest
-	AAAUserID        string            `json:"aaa_user_id,omitempty" example:"USER00000001"`          // Optional: AAA User ID (if user already exists)
+	AAAUserID        string            `json:"aaa_user_id,omitempty" example:"USER00000001"`          // Optional: AAA User ID (if known)
 	AAAOrgID         string            `json:"aaa_org_id" validate:"required" example:"ORGN00000003"` // Required: AAA Org ID
 	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"ks_123e4567-e89b-12d3-a456-426614174001"`
-	Profile          FarmerProfileData `json:"profile" validate:"required"` // Required: Farmer profile (must include phone_number if aaa_user_id not provided)
+	Profile          FarmerProfileData `json:"profile" validate:"required"` // Required: Farmer profile (must include country_code + phone_number if aaa_user_id not provided)
 }
 
 // UpdateFarmerRequest represents a request to update an existing farmer
@@ -51,7 +53,8 @@ type ListFarmersRequest struct {
 type FarmerProfileData struct {
 	FirstName   string            `json:"first_name,omitempty" example:"Ramesh"`
 	LastName    string            `json:"last_name,omitempty" example:"Kumar"`
-	PhoneNumber string            `json:"phone_number,omitempty" example:"+91-9876543210"`
+	PhoneNumber string            `json:"phone_number" validate:"required" example:"9876543210"`
+	CountryCode string            `json:"country_code" validate:"required" example:"+91"`
 	Email       string            `json:"email,omitempty" example:"ramesh.kumar@example.com"`
 	DateOfBirth string            `json:"date_of_birth,omitempty" example:"1980-05-15"`
 	Gender      string            `json:"gender,omitempty" example:"male"`

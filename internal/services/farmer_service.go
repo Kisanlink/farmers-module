@@ -57,11 +57,11 @@ func stringToPtr(s string) *string {
 // CreateFarmer creates a new farmer
 // Supports two workflows:
 // 1. Existing AAA user: Provide aaa_user_id + aaa_org_id
-// 2. New AAA user: Provide profile.phone_number + aaa_org_id (auto-creates user in AAA)
+// 2. New AAA user: Provide country_code + phone_number + aaa_org_id (auto-creates/finds user in AAA)
 func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error) {
-	// Validate request: Either aaa_user_id or profile.phone_number must be provided
-	if req.AAAUserID == "" && req.Profile.PhoneNumber == "" {
-		return nil, fmt.Errorf("either aaa_user_id or profile.phone_number must be provided")
+	// Validate request: Either aaa_user_id OR (country_code + phone_number) must be provided
+	if req.AAAUserID == "" && (req.Profile.CountryCode == "" || req.Profile.PhoneNumber == "") {
+		return nil, fmt.Errorf("either aaa_user_id or (country_code + phone_number) must be provided")
 	}
 
 	// Validate org_id is always required
@@ -93,36 +93,36 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 	} else if req.Profile.PhoneNumber != "" {
 		// Workflow 2: Create or find AAA user by phone number
 		// Business Rule 5.1: RegisterFarmer idempotency - return existing farmer if phone exists
-		// Try to find existing user by mobile number
-		aaaUser, err := s.aaaService.GetUserByMobile(ctx, req.Profile.PhoneNumber)
+
+		// Generate secure password first (needed for user creation)
+		password, err := s.passwordGen.GenerateSecurePassword()
 		if err != nil {
-			// User doesn't exist, create new user in AAA
-			log.Printf("User not found in AAA, creating new user with mobile: %s", req.Profile.PhoneNumber)
+			return nil, fmt.Errorf("failed to generate secure password: %w", err)
+		}
 
-			// Generate secure password
-			password, err := s.passwordGen.GenerateSecurePassword()
+		// Attempt to create user in AAA
+		log.Printf("Creating user in AAA with mobile: %s, country_code: %s", req.Profile.PhoneNumber, req.Profile.CountryCode)
+
+		createUserReq := map[string]interface{}{
+			"username":       fmt.Sprintf("farmer_%s", req.Profile.PhoneNumber),
+			"mobile_number":  req.Profile.PhoneNumber,
+			"password":       password,
+			"country_code":   req.Profile.CountryCode,
+			"aadhaar_number": "", // TODO: Add to request if available
+		}
+
+		aaaUser, err := s.aaaService.CreateUser(ctx, createUserReq)
+		if err != nil {
+			// Check if it's a conflict error (user already exists)
+			log.Printf("Failed to create user in AAA (likely already exists), attempting to get existing user: %v", err)
+
+			// Try to get existing user by mobile number
+			aaaUser, err = s.aaaService.GetUserByMobile(ctx, req.Profile.PhoneNumber)
 			if err != nil {
-				return nil, fmt.Errorf("failed to generate secure password: %w", err)
+				return nil, fmt.Errorf("failed to create or retrieve user from AAA: %w", err)
 			}
+			log.Printf("Found existing user in AAA with mobile: %s", req.Profile.PhoneNumber)
 
-			// Log password generation (remove in production)
-			log.Printf("Generated secure password for farmer %s", req.Profile.PhoneNumber)
-
-			// Create user in AAA
-			createUserReq := map[string]interface{}{
-				"username":       fmt.Sprintf("farmer_%s", req.Profile.PhoneNumber),
-				"mobile_number":  req.Profile.PhoneNumber,
-				"password":       password,
-				"country_code":   "+91", // TODO: Make configurable
-				"aadhaar_number": "",    // TODO: Add to request if available
-			}
-
-			aaaUser, err = s.aaaService.CreateUser(ctx, createUserReq)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create user in AAA: %w", err)
-			}
-		} else {
-			// User exists in AAA - check if farmer profile exists locally
 			// Extract AAA user ID from existing user
 			if userMap, ok := aaaUser.(map[string]interface{}); ok {
 				if id, exists := userMap["id"]; exists {
@@ -130,7 +130,7 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 				}
 			}
 
-			// Try to get existing farmer profile
+			// Check if farmer profile already exists locally (idempotent operation)
 			if aaaUserID != "" {
 				existingFarmerFilter := base.NewFilterBuilder().
 					Where("aaa_user_id", base.OpEqual, aaaUserID).
@@ -177,6 +177,9 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 				}
 				log.Printf("AAA user exists but no local farmer profile found, proceeding with registration")
 			}
+		} else {
+			// User created successfully in AAA
+			log.Printf("User created successfully in AAA with mobile: %s", req.Profile.PhoneNumber)
 		}
 
 		// Extract AAA user ID from response
