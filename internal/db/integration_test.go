@@ -16,6 +16,10 @@ import (
 )
 
 func TestModelValidation(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
 	// Use in-memory SQLite for testing
 	gormDB, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	require.NoError(t, err)
@@ -84,6 +88,7 @@ func TestModelValidation(t *testing.T) {
 
 	t.Run("Farm", func(t *testing.T) {
 		farm := &farm.Farm{
+			FarmerID:  "farmer123",
 			AAAUserID: "user123",
 			AAAOrgID:  "org123",
 			Name:      testutils.StringPtr("Test Farm"),
@@ -116,6 +121,7 @@ func TestModelValidation(t *testing.T) {
 	t.Run("FarmActivity", func(t *testing.T) {
 		farmActivity := &farm_activity.FarmActivity{
 			CropCycleID:  "cycle123",
+			FarmerID:     "farmer123",
 			ActivityType: "PLANTING",
 			CreatedBy:    "user123",
 			Status:       "PLANNED",
@@ -130,6 +136,10 @@ func TestModelValidation(t *testing.T) {
 }
 
 func TestModelRelationships(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
 	// Test model relationships conceptually without database operations
 	// This tests the model structure and validation logic
 
@@ -142,6 +152,7 @@ func TestModelRelationships(t *testing.T) {
 	}
 
 	testFarm := &farm.Farm{
+		FarmerID:  "farmer123", // Would be testFarmer.ID in real scenario
 		AAAUserID: testFarmer.AAAUserID,
 		AAAOrgID:  testFarmer.AAAOrgID,
 		Name:      testutils.StringPtr("Test Farm"),
@@ -157,7 +168,8 @@ func TestModelRelationships(t *testing.T) {
 	}
 
 	testFarmActivity := &farm_activity.FarmActivity{
-		CropCycleID:  "cycle123", // Would be testCropCycle.ID in real scenario
+		CropCycleID:  "cycle123",  // Would be testCropCycle.ID in real scenario
+		FarmerID:     "farmer123", // Would be testFarmer.ID in real scenario
 		ActivityType: "PLANTING",
 		CreatedBy:    testFarmer.AAAUserID,
 		Status:       "PLANNED",

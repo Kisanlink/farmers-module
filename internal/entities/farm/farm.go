@@ -58,6 +58,7 @@ func (m Metadata) Value() (driver.Value, error) {
 // Farm represents a farm with geographic boundaries
 type Farm struct {
 	base.BaseModel
+	FarmerID                  string        `json:"farmer_id" gorm:"type:varchar(255);not null;index"`
 	AAAUserID                 string        `json:"aaa_user_id" gorm:"type:varchar(255);not null"`
 	AAAOrgID                  string        `json:"aaa_org_id" gorm:"type:varchar(255);not null"`
 	Name                      *string       `json:"name" gorm:"type:varchar(255)"`
@@ -71,10 +72,10 @@ type Farm struct {
 	Metadata                  Metadata      `json:"metadata" gorm:"type:jsonb;default:'{}'"`
 
 	// Relationships
-	SoilType                *soil_type.SoilType                           `json:"soil_type" gorm:"foreignKey:SoilTypeID;references:ID"`
-	PrimaryIrrigationSource *irrigation_source.IrrigationSource           `json:"primary_irrigation_source" gorm:"foreignKey:PrimaryIrrigationSourceID;references:ID"`
-	IrrigationSources       []farm_irrigation_source.FarmIrrigationSource `json:"irrigation_sources" gorm:"foreignKey:FarmID;references:ID"`
-	SoilTypes               []farm_soil_type.FarmSoilType                 `json:"soil_types" gorm:"foreignKey:FarmID;references:ID"`
+	SoilType                *soil_type.SoilType                           `json:"soil_type,omitempty" gorm:"foreignKey:SoilTypeID;references:ID"`
+	PrimaryIrrigationSource *irrigation_source.IrrigationSource           `json:"primary_irrigation_source,omitempty" gorm:"foreignKey:PrimaryIrrigationSourceID;references:ID"`
+	IrrigationSources       []farm_irrigation_source.FarmIrrigationSource `json:"irrigation_sources,omitempty" gorm:"foreignKey:FarmID;references:ID"`
+	SoilTypes               []farm_soil_type.FarmSoilType                 `json:"soil_types,omitempty" gorm:"foreignKey:FarmID;references:ID"`
 }
 
 // TableName returns the table name for the Farm model
@@ -105,6 +106,9 @@ func NewFarm() *Farm {
 
 // Validation methods
 func (f *Farm) Validate() error {
+	if f.FarmerID == "" {
+		return common.ErrInvalidFarmData
+	}
 	if f.AAAUserID == "" {
 		return common.ErrInvalidFarmData
 	}

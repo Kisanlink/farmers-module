@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/entities"
+	"github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
@@ -12,7 +13,8 @@ import (
 // FarmActivity represents an individual activity within a crop cycle
 type FarmActivity struct {
 	base.BaseModel
-	CropCycleID  string         `json:"crop_cycle_id" gorm:"type:varchar(255);not null"`
+	CropCycleID  string         `json:"crop_cycle_id" gorm:"type:varchar(255);not null;index"`
+	FarmerID     string         `json:"farmer_id" gorm:"type:varchar(255);not null;index"`
 	ActivityType string         `json:"activity_type" gorm:"type:varchar(255);not null"`
 	PlannedAt    *time.Time     `json:"planned_at" gorm:"type:timestamptz"`
 	CompletedAt  *time.Time     `json:"completed_at" gorm:"type:timestamptz"`
@@ -20,6 +22,9 @@ type FarmActivity struct {
 	Status       string         `json:"status" gorm:"type:activity_status;not null;default:'PLANNED'"`
 	Output       entities.JSONB `json:"output" gorm:"type:jsonb;default:'{}'"`
 	Metadata     entities.JSONB `json:"metadata" gorm:"type:jsonb;default:'{}'"`
+
+	// Relationships
+	Farmer *farmer.Farmer `json:"farmer,omitempty" gorm:"foreignKey:FarmerID;references:ID;constraint:OnDelete:CASCADE"`
 }
 
 // TableName returns the table name for the FarmActivity model
@@ -40,6 +45,9 @@ func (fa *FarmActivity) GetTableSize() hash.TableSize {
 // Validation methods
 func (fa *FarmActivity) Validate() error {
 	if fa.CropCycleID == "" {
+		return common.ErrInvalidFarmActivityData
+	}
+	if fa.FarmerID == "" {
 		return common.ErrInvalidFarmActivityData
 	}
 	if fa.ActivityType == "" {

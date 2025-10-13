@@ -84,7 +84,7 @@ func (s *StageServiceImpl) CreateStage(ctx context.Context, req interface{}) (in
 	}
 
 	return &responses.StageResponse{
-		BaseResponse: responses.BaseResponse{
+		BaseResponse: &responses.BaseResponse{
 			Success:   true,
 			Message:   "Stage created successfully",
 			RequestID: createReq.RequestID,
@@ -131,7 +131,7 @@ func (s *StageServiceImpl) GetStage(ctx context.Context, req interface{}) (inter
 	}
 
 	return &responses.StageResponse{
-		BaseResponse: responses.BaseResponse{
+		BaseResponse: &responses.BaseResponse{
 			Success:   true,
 			Message:   "Stage retrieved successfully",
 			RequestID: getReq.RequestID,
@@ -210,7 +210,7 @@ func (s *StageServiceImpl) UpdateStage(ctx context.Context, req interface{}) (in
 	}
 
 	return &responses.StageResponse{
-		BaseResponse: responses.BaseResponse{
+		BaseResponse: &responses.BaseResponse{
 			Success:   true,
 			Message:   "Stage updated successfully",
 			RequestID: updateReq.RequestID,
@@ -313,7 +313,7 @@ func (s *StageServiceImpl) ListStages(ctx context.Context, req interface{}) (int
 	}
 
 	return &responses.StageListResponse{
-		BaseResponse: responses.BaseResponse{
+		BaseResponse: &responses.BaseResponse{
 			Success:   true,
 			Message:   "Stages retrieved successfully",
 			RequestID: listReq.RequestID,
@@ -358,7 +358,7 @@ func (s *StageServiceImpl) GetStageLookup(ctx context.Context, req interface{}) 
 	}
 
 	return &responses.StageLookupResponse{
-		BaseResponse: responses.BaseResponse{
+		BaseResponse: &responses.BaseResponse{
 			Success:   true,
 			Message:   "Stage lookup data retrieved successfully",
 			RequestID: lookupReq.RequestID,
@@ -446,7 +446,7 @@ func (s *StageServiceImpl) AssignStageToCrop(ctx context.Context, req interface{
 	cropStageData := s.convertCropStageToResponse(cropStage)
 
 	return &responses.CropStageResponse{
-		BaseResponse: responses.BaseResponse{
+		BaseResponse: &responses.BaseResponse{
 			Success:   true,
 			Message:   "Stage assigned to crop successfully",
 			RequestID: assignReq.RequestID,
@@ -529,7 +529,7 @@ func (s *StageServiceImpl) UpdateCropStage(ctx context.Context, req interface{})
 	cropStageData := s.convertCropStageToResponse(updatedCropStage)
 
 	return &responses.CropStageResponse{
-		BaseResponse: responses.BaseResponse{
+		BaseResponse: &responses.BaseResponse{
 			Success:   true,
 			Message:   "Crop stage updated successfully",
 			RequestID: updateReq.RequestID,
@@ -604,7 +604,7 @@ func (s *StageServiceImpl) GetCropStages(ctx context.Context, req interface{}) (
 	}
 
 	return &responses.CropStagesResponse{
-		BaseResponse: responses.BaseResponse{
+		BaseResponse: &responses.BaseResponse{
 			Success:   true,
 			Message:   "Crop stages retrieved successfully",
 			RequestID: getReq.RequestID,

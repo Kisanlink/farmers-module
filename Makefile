@@ -51,7 +51,7 @@ test-benchmark: ## Run benchmark tests
 # Documentation
 docs: ## Generate Swagger documentation
 	@echo "Generating Swagger documentation..."
-	swag init -g cmd/farmers-service/main.go
+	swag init -g cmd/farmers-service/main.go --parseVendor --parseDependency
 	@echo "✅ Swagger documentation generated"
 
 # Protocol Buffers

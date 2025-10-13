@@ -18,6 +18,7 @@ func TestFarmActivityValidate(t *testing.T) {
 			name: "valid farm activity",
 			farmActivity: &FarmActivity{
 				CropCycleID:  "cycle123",
+				FarmerID:     "farmer123",
 				ActivityType: "PLANTING",
 				CreatedBy:    "user123",
 				Status:       "PLANNED",
@@ -27,6 +28,17 @@ func TestFarmActivityValidate(t *testing.T) {
 		{
 			name: "missing crop cycle ID",
 			farmActivity: &FarmActivity{
+				FarmerID:     "farmer123",
+				ActivityType: "PLANTING",
+				CreatedBy:    "user123",
+				Status:       "PLANNED",
+			},
+			wantErr: true,
+		},
+		{
+			name: "missing farmer ID",
+			farmActivity: &FarmActivity{
+				CropCycleID:  "cycle123",
 				ActivityType: "PLANTING",
 				CreatedBy:    "user123",
 				Status:       "PLANNED",
@@ -37,6 +49,7 @@ func TestFarmActivityValidate(t *testing.T) {
 			name: "missing activity type",
 			farmActivity: &FarmActivity{
 				CropCycleID: "cycle123",
+				FarmerID:    "farmer123",
 				CreatedBy:   "user123",
 				Status:      "PLANNED",
 			},
@@ -46,6 +59,7 @@ func TestFarmActivityValidate(t *testing.T) {
 			name: "missing created by",
 			farmActivity: &FarmActivity{
 				CropCycleID:  "cycle123",
+				FarmerID:     "farmer123",
 				ActivityType: "PLANTING",
 				Status:       "PLANNED",
 			},
@@ -79,6 +93,7 @@ func TestFarmActivityFields(t *testing.T) {
 	now := time.Now()
 	farmActivity := &FarmActivity{
 		CropCycleID:  "cycle123",
+		FarmerID:     "farmer123",
 		ActivityType: "PLANTING",
 		PlannedAt:    &now,
 		CompletedAt:  &now,
@@ -89,6 +104,7 @@ func TestFarmActivityFields(t *testing.T) {
 	}
 
 	assert.Equal(t, "cycle123", farmActivity.CropCycleID)
+	assert.Equal(t, "farmer123", farmActivity.FarmerID)
 	assert.Equal(t, "PLANTING", farmActivity.ActivityType)
 	assert.Equal(t, &now, farmActivity.PlannedAt)
 	assert.Equal(t, &now, farmActivity.CompletedAt)

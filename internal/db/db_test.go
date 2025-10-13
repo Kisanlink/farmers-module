@@ -37,7 +37,8 @@ func TestSetupPostMigration(t *testing.T) {
 	// Create test tables first
 	err = gormDB.Exec(`CREATE TABLE IF NOT EXISTS farms (
 		id TEXT PRIMARY KEY,
-		aaa_farmer_user_id TEXT,
+		farmer_id TEXT,
+		aaa_user_id TEXT,
 		aaa_org_id TEXT,
 		geometry TEXT,
 		created_at DATETIME

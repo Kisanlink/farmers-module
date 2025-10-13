@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/entities"
+	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
 
 // StageData represents stage data in responses
@@ -19,17 +20,17 @@ type StageData struct {
 
 // StageResponse represents a single stage response
 type StageResponse struct {
-	BaseResponse
-	Data *StageData `json:"data,omitempty"`
+	*base.BaseResponse `json:",inline"`
+	Data               *StageData `json:"data,omitempty"`
 }
 
 // StageListResponse represents a list of stages response
 type StageListResponse struct {
-	BaseResponse
-	Data     []*StageData `json:"data"`
-	Page     int          `json:"page" example:"1"`
-	PageSize int          `json:"page_size" example:"20"`
-	Total    int          `json:"total" example:"50"`
+	*base.BaseResponse `json:",inline"`
+	Data               []*StageData `json:"data"`
+	Page               int          `json:"page" example:"1"`
+	PageSize           int          `json:"page_size" example:"20"`
+	Total              int          `json:"total" example:"50"`
 }
 
 // CropStageData represents crop stage data in responses
@@ -50,14 +51,14 @@ type CropStageData struct {
 
 // CropStageResponse represents a single crop stage response
 type CropStageResponse struct {
-	BaseResponse
-	Data *CropStageData `json:"data,omitempty"`
+	*base.BaseResponse `json:",inline"`
+	Data               *CropStageData `json:"data,omitempty"`
 }
 
 // CropStagesResponse represents a list of crop stages response
 type CropStagesResponse struct {
-	BaseResponse
-	Data []*CropStageData `json:"data"`
+	*base.BaseResponse `json:",inline"`
+	Data               []*CropStageData `json:"data"`
 }
 
 // StageLookupData represents simplified stage data for lookups
@@ -69,6 +70,6 @@ type StageLookupData struct {
 
 // StageLookupResponse represents stage lookup response
 type StageLookupResponse struct {
-	BaseResponse
-	Data []*StageLookupData `json:"data"`
+	*base.BaseResponse `json:",inline"`
+	Data               []*StageLookupData `json:"data"`
 }

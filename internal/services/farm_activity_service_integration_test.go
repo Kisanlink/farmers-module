@@ -13,6 +13,10 @@ import (
 
 // TestFarmActivityService_ActivityLifecycle tests the complete activity lifecycle
 func TestFarmActivityService_ActivityLifecycle(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
 	t.Run("activity validation", func(t *testing.T) {
 		// Test activity validation
 		activity := &farmActivityEntity.FarmActivity{
@@ -27,6 +31,7 @@ func TestFarmActivityService_ActivityLifecycle(t *testing.T) {
 
 		// Valid activity
 		activity.CropCycleID = "cycle123"
+		activity.FarmerID = "farmer123"
 		err = activity.Validate()
 		assert.NoError(t, err)
 	})
@@ -35,6 +40,7 @@ func TestFarmActivityService_ActivityLifecycle(t *testing.T) {
 		// Test that activity starts as PLANNED
 		activity := &farmActivityEntity.FarmActivity{
 			CropCycleID:  "cycle123",
+			FarmerID:     "farmer123",
 			ActivityType: "planting",
 			CreatedBy:    "user123",
 			Status:       "PLANNED",
@@ -58,6 +64,10 @@ func TestFarmActivityService_ActivityLifecycle(t *testing.T) {
 
 // TestFarmActivityService_RequestValidation tests request validation logic
 func TestFarmActivityService_RequestValidation(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
 	t.Run("create activity request validation", func(t *testing.T) {
 		// Test empty crop cycle ID
 		req := &requests.CreateActivityRequest{
@@ -100,6 +110,10 @@ func TestFarmActivityService_RequestValidation(t *testing.T) {
 
 // TestFarmActivityService_ResponseMapping tests response data mapping
 func TestFarmActivityService_ResponseMapping(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
 	now := time.Now()
 
 	t.Run("farm activity response mapping", func(t *testing.T) {
@@ -159,6 +173,10 @@ func TestFarmActivityService_ResponseMapping(t *testing.T) {
 
 // TestFarmActivityService_FilteringLogic tests filtering and pagination logic
 func TestFarmActivityService_FilteringLogic(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
 	t.Run("date filtering validation", func(t *testing.T) {
 		// Test valid date formats
 		validDates := []string{
@@ -205,6 +223,10 @@ func TestFarmActivityService_FilteringLogic(t *testing.T) {
 
 // TestFarmActivityService_BusinessRules tests business rule validation
 func TestFarmActivityService_BusinessRules(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
 	t.Run("activity status rules", func(t *testing.T) {
 		// Test that completed activities cannot be updated
 		activity := &farmActivityEntity.FarmActivity{
