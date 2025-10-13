@@ -109,6 +109,21 @@ var RoutePermissionMap = map[string]Permission{
 	"GET /api/v1/lookups/crop-categories": {Resource: "crop", Action: "list"},
 	"GET /api/v1/lookups/crop-seasons":    {Resource: "crop", Action: "list"},
 
+	// Stage master data routes
+	"POST /api/v1/stages":       {Resource: "stage", Action: "create"},
+	"GET /api/v1/stages":        {Resource: "stage", Action: "list"},
+	"GET /api/v1/stages/lookup": {Resource: "stage", Action: "list"},
+	"GET /api/v1/stages/:id":    {Resource: "stage", Action: "read"},
+	"PUT /api/v1/stages/:id":    {Resource: "stage", Action: "update"},
+	"DELETE /api/v1/stages/:id": {Resource: "stage", Action: "delete"},
+
+	// Crop-Stage relationship routes
+	"POST /api/v1/crops/:id/stages":             {Resource: "crop_stage", Action: "create"},
+	"GET /api/v1/crops/:id/stages":              {Resource: "crop_stage", Action: "read"},
+	"POST /api/v1/crops/:id/stages/reorder":     {Resource: "crop_stage", Action: "update"},
+	"PUT /api/v1/crops/:id/stages/:stage_id":    {Resource: "crop_stage", Action: "update"},
+	"DELETE /api/v1/crops/:id/stages/:stage_id": {Resource: "crop_stage", Action: "delete"},
+
 	// Data quality routes
 	"POST /api/v1/data-quality/validate-geometry":       {Resource: "farm", Action: "audit"},
 	"POST /api/v1/data-quality/reconcile-aaa-links":     {Resource: "admin", Action: "maintain"},
@@ -137,6 +152,11 @@ func GetPermissionForRoute(method, path string) (Permission, bool) {
 // normalizePath converts actual paths to route patterns
 // e.g., "/api/v1/identity/farmers/123" -> "/api/v1/identity/farmers/:id"
 func normalizePath(path string) string {
+	// Remove query parameters first
+	if idx := strings.Index(path, "?"); idx != -1 {
+		path = path[:idx]
+	}
+
 	// Remove trailing slash if present (except for root "/")
 	if len(path) > 1 && strings.HasSuffix(path, "/") {
 		path = strings.TrimSuffix(path, "/")
@@ -170,6 +190,40 @@ func normalizePath(path string) string {
 			subPath := segments[5] // id, user, etc.
 			// Pattern: /api/v1/identity/farmers/id/123/action -> /api/v1/identity/farmers/id/:id/action
 			return fmt.Sprintf("/api/v1/identity/%s/%s/:id/%s", resource, subPath, segments[7])
+		}
+	}
+
+	// Handle nested crop-stage routes: /api/v1/crops/:id/stages/...
+	if len(segments) >= 6 && segments[1] == "api" && segments[2] == "v1" && segments[3] == "crops" && segments[5] == "stages" {
+		if len(segments) == 6 {
+			// Pattern: /api/v1/crops/CROP123/stages -> /api/v1/crops/:id/stages
+			return "/api/v1/crops/:id/stages"
+		}
+		if len(segments) == 7 {
+			// Check if it's an action like "reorder" or a stage ID
+			if segments[6] == "reorder" {
+				// Pattern: /api/v1/crops/CROP123/stages/reorder -> /api/v1/crops/:id/stages/reorder
+				return "/api/v1/crops/:id/stages/reorder"
+			}
+			// Pattern: /api/v1/crops/CROP123/stages/STGE456 -> /api/v1/crops/:id/stages/:stage_id
+			return "/api/v1/crops/:id/stages/:stage_id"
+		}
+	}
+
+	// Handle stage special routes before generic ID pattern
+	if len(segments) >= 4 && segments[1] == "api" && segments[2] == "v1" && segments[3] == "stages" {
+		if len(segments) == 4 {
+			// Pattern: /api/v1/stages -> /api/v1/stages (no normalization needed)
+			return path
+		}
+		if len(segments) == 5 {
+			// Check for special routes like "lookup"
+			if segments[4] == "lookup" {
+				// Pattern: /api/v1/stages/lookup -> /api/v1/stages/lookup
+				return "/api/v1/stages/lookup"
+			}
+			// Pattern: /api/v1/stages/STGE123 -> /api/v1/stages/:id
+			return "/api/v1/stages/:id"
 		}
 	}
 
