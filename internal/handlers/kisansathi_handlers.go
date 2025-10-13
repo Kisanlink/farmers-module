@@ -330,7 +330,7 @@ func GetKisanSathiAssignment(service services.FarmerLinkageService, logger inter
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(50)
-// @Success 200 {object} responses.KisanSathiListResponse
+// @Success 200 {object} responses.SwaggerKisanSathiListResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /kisansathi [get]

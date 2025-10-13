@@ -1,9 +1,14 @@
 package requests
 
+import "errors"
+
 // CreateFarmRequest represents a request to create a new farm
+// Either farmer_id or aaa_user_id must be provided. If only aaa_user_id is provided,
+// the service will look up the corresponding farmer_id.
 type CreateFarmRequest struct {
 	BaseRequest
-	AAAUserID                 string                    `json:"aaa_user_id" validate:"required" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	FarmerID                  string                    `json:"farmer_id,omitempty" example:"FMRR0000000001"`
+	AAAUserID                 string                    `json:"aaa_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
 	AAAOrgID                  string                    `json:"aaa_org_id" validate:"required" example:"org_123e4567-e89b-12d3-a456-426614174000"`
 	Name                      *string                   `json:"name,omitempty" example:"North Field Farm"`
 	OwnershipType             string                    `json:"ownership_type,omitempty" validate:"omitempty,oneof=OWN LEASE SHARED" example:"OWN"`
@@ -17,10 +22,26 @@ type CreateFarmRequest struct {
 	Metadata                  map[string]string         `json:"metadata,omitempty" example:"soil_test_date:2024-01-10,elevation:450m"`
 }
 
+// Validate validates the CreateFarmRequest
+func (r *CreateFarmRequest) Validate() error {
+	// At least one of farmer_id or aaa_user_id must be provided
+	if r.FarmerID == "" && r.AAAUserID == "" {
+		return errors.New("either farmer_id or aaa_user_id must be provided")
+	}
+
+	// aaa_org_id is always required
+	if r.AAAOrgID == "" {
+		return errors.New("aaa_org_id is required")
+	}
+
+	return nil
+}
+
 // UpdateFarmRequest represents a request to update an existing farm
 type UpdateFarmRequest struct {
 	BaseRequest
 	ID                        string                    `json:"id" validate:"required" example:"farm_123e4567-e89b-12d3-a456-426614174000"`
+	FarmerID                  string                    `json:"farmer_id,omitempty" example:"FMRR0000000001"`
 	AAAUserID                 string                    `json:"aaa_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
 	AAAOrgID                  string                    `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
 	Name                      *string                   `json:"name,omitempty" example:"North Field Farm - Updated"`
@@ -50,6 +71,7 @@ type GetFarmRequest struct {
 // ListFarmsRequest represents a request to list farms with filtering
 type ListFarmsRequest struct {
 	FilterRequest
+	FarmerID  string   `json:"farmer_id,omitempty" example:"FMRR0000000001"`
 	AAAUserID string   `json:"aaa_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
 	AAAOrgID  string   `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
 	MinArea   *float64 `json:"min_area,omitempty" example:"1.0"`
@@ -57,10 +79,21 @@ type ListFarmsRequest struct {
 }
 
 // GetFarmsByFarmerRequest represents a request to get farms by farmer
+// Either farmer_id or aaa_user_id must be provided
 type GetFarmsByFarmerRequest struct {
 	PaginationRequest
-	AAAUserID string `json:"aaa_user_id" validate:"required" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	FarmerID  string `json:"farmer_id,omitempty" example:"FMRR0000000001"`
+	AAAUserID string `json:"aaa_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
 	AAAOrgID  string `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+}
+
+// Validate validates the GetFarmsByFarmerRequest
+func (r *GetFarmsByFarmerRequest) Validate() error {
+	// At least one of farmer_id or aaa_user_id must be provided
+	if r.FarmerID == "" && r.AAAUserID == "" {
+		return errors.New("either farmer_id or aaa_user_id must be provided")
+	}
+	return nil
 }
 
 // GetFarmsByOrgRequest represents a request to get farms by organization

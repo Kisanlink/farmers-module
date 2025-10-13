@@ -221,10 +221,11 @@ func (h *BulkFarmerHandler) GetBulkOperationStatus(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param operation_id path string true "Operation ID"
-// @Success 200 {object} map[string]interface{}
+// @Success 200 {object} responses.SwaggerBaseResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /bulk/cancel/{operation_id} [post]
 func (h *BulkFarmerHandler) CancelBulkOperation(c *gin.Context) {
 	operationID := c.Param("operation_id")
@@ -291,6 +292,7 @@ func (h *BulkFarmerHandler) CancelBulkOperation(c *gin.Context) {
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /bulk/retry/{operation_id} [post]
 func (h *BulkFarmerHandler) RetryFailedRecords(c *gin.Context) {
 	operationID := c.Param("operation_id")
@@ -475,6 +477,7 @@ func (h *BulkFarmerHandler) DownloadBulkResults(c *gin.Context) {
 // @Success 200 {object} responses.BulkValidationResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /bulk/validate [post]
 func (h *BulkFarmerHandler) ValidateBulkData(c *gin.Context) {
 	var req requests.ValidateBulkDataRequest

@@ -12,7 +12,7 @@ type StageData struct {
 	ID          string         `json:"id" example:"STGE00000001"`
 	StageName   string         `json:"stage_name" example:"Germination"`
 	Description *string        `json:"description,omitempty" example:"Seeds sprouting and initial growth"`
-	Properties  entities.JSONB `json:"properties,omitempty" swaggertype:"object" example:"{\"color\":\"green\"}"`
+	Properties  entities.JSONB `json:"properties,omitempty" swaggertype:"object"`
 	IsActive    bool           `json:"is_active" example:"true"`
 	CreatedAt   time.Time      `json:"created_at" example:"2025-01-15T10:30:00Z"`
 	UpdatedAt   time.Time      `json:"updated_at" example:"2025-01-15T10:30:00Z"`
@@ -43,7 +43,7 @@ type CropStageData struct {
 	StageOrder   int            `json:"stage_order" example:"1"`
 	DurationDays *int           `json:"duration_days,omitempty" example:"14"`
 	DurationUnit string         `json:"duration_unit" example:"DAYS"`
-	Properties   entities.JSONB `json:"properties,omitempty" swaggertype:"object" example:"{\"notes\":\"Critical stage\"}"`
+	Properties   entities.JSONB `json:"properties,omitempty" swaggertype:"object"`
 	IsActive     bool           `json:"is_active" example:"true"`
 	CreatedAt    time.Time      `json:"created_at" example:"2025-01-15T10:30:00Z"`
 	UpdatedAt    time.Time      `json:"updated_at" example:"2025-01-15T10:30:00Z"`

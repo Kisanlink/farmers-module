@@ -7,7 +7,7 @@ type CreateStageRequest struct {
 	BaseRequest
 	StageName   string         `json:"stage_name" binding:"required,min=1,max=100" example:"Germination"`
 	Description *string        `json:"description,omitempty" example:"Seeds sprouting and initial growth"`
-	Properties  entities.JSONB `json:"properties,omitempty" swaggertype:"object" example:"{\"color\":\"green\"}"`
+	Properties  entities.JSONB `json:"properties,omitempty" swaggertype:"object"`
 }
 
 // UpdateStageRequest represents the request to update a stage
@@ -16,7 +16,7 @@ type UpdateStageRequest struct {
 	ID          string         `json:"-"`
 	StageName   *string        `json:"stage_name,omitempty" binding:"omitempty,min=1,max=100" example:"Germination Updated"`
 	Description *string        `json:"description,omitempty" example:"Updated description"`
-	Properties  entities.JSONB `json:"properties,omitempty" swaggertype:"object" example:"{\"color\":\"blue\"}"`
+	Properties  entities.JSONB `json:"properties,omitempty" swaggertype:"object"`
 	IsActive    *bool          `json:"is_active,omitempty" example:"true"`
 }
 
@@ -53,7 +53,7 @@ type AssignStageToCropRequest struct {
 	StageOrder   int            `json:"stage_order" binding:"required,min=1" example:"1"`
 	DurationDays *int           `json:"duration_days,omitempty" binding:"omitempty,min=1" example:"14"`
 	DurationUnit string         `json:"duration_unit,omitempty" binding:"omitempty,oneof=DAYS WEEKS MONTHS" example:"DAYS"`
-	Properties   entities.JSONB `json:"properties,omitempty" swaggertype:"object" example:"{\"notes\":\"Critical stage\"}"`
+	Properties   entities.JSONB `json:"properties,omitempty" swaggertype:"object"`
 }
 
 // UpdateCropStageRequest represents the request to update a crop stage
@@ -64,7 +64,7 @@ type UpdateCropStageRequest struct {
 	StageOrder   *int           `json:"stage_order,omitempty" binding:"omitempty,min=1" example:"2"`
 	DurationDays *int           `json:"duration_days,omitempty" binding:"omitempty,min=1" example:"21"`
 	DurationUnit *string        `json:"duration_unit,omitempty" binding:"omitempty,oneof=DAYS WEEKS MONTHS" example:"DAYS"`
-	Properties   entities.JSONB `json:"properties,omitempty" swaggertype:"object" example:"{\"notes\":\"Updated notes\"}"`
+	Properties   entities.JSONB `json:"properties,omitempty" swaggertype:"object"`
 	IsActive     *bool          `json:"is_active,omitempty" example:"true"`
 }
 
@@ -85,5 +85,5 @@ type GetCropStagesRequest struct {
 type ReorderCropStagesRequest struct {
 	BaseRequest
 	CropID      string         `json:"-"`
-	StageOrders map[string]int `json:"stage_orders" binding:"required" example:"{\"STGE00000001\":1,\"STGE00000002\":2}"` // map[stage_id]order
+	StageOrders map[string]int `json:"stage_orders" binding:"required"` // map[stage_id]order
 }

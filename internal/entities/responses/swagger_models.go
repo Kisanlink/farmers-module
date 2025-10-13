@@ -177,25 +177,6 @@ type SwaggerCropCycleListResponse struct {
 	Total     int              `json:"total"`
 }
 
-// SwaggerFarmerResponse represents a farmer response for Swagger
-type SwaggerFarmerResponse struct {
-	Success   bool               `json:"success"`
-	Message   string             `json:"message"`
-	RequestID string             `json:"request_id"`
-	Data      *FarmerProfileData `json:"data"`
-}
-
-// SwaggerFarmerListResponse represents a farmer list response for Swagger
-type SwaggerFarmerListResponse struct {
-	Success   bool                 `json:"success"`
-	Message   string               `json:"message"`
-	RequestID string               `json:"request_id"`
-	Data      []*FarmerProfileData `json:"data"`
-	Page      int                  `json:"page"`
-	PageSize  int                  `json:"page_size"`
-	Total     int                  `json:"total"`
-}
-
 // SwaggerExportFarmerPortfolioResponse represents an export farmer portfolio response for Swagger
 type SwaggerExportFarmerPortfolioResponse struct {
 	Success   bool        `json:"success"`
@@ -210,4 +191,161 @@ type SwaggerOrgDashboardCountersResponse struct {
 	Message   string      `json:"message"`
 	RequestID string      `json:"request_id"`
 	Data      interface{} `json:"data"`
+}
+
+// SwaggerKisanSathiListResponse represents a KisanSathi list response for Swagger
+type SwaggerKisanSathiListResponse struct {
+	Success   bool              `json:"success" example:"true"`
+	Message   string            `json:"message" example:"KisanSathis retrieved successfully"`
+	Data      []*KisanSathiData `json:"data"`
+	Page      int               `json:"page" example:"1"`
+	PageSize  int               `json:"page_size" example:"50"`
+	Total     int64             `json:"total" example:"100"`
+	RequestID string            `json:"request_id,omitempty" example:"req_123456789"`
+	Timestamp string            `json:"timestamp,omitempty" example:"2024-01-15T10:30:00Z"`
+}
+
+// SwaggerValidateGeometryResponse represents a geometry validation response for Swagger
+type SwaggerValidateGeometryResponse struct {
+	Success   bool     `json:"success" example:"true"`
+	Message   string   `json:"message" example:"Geometry validated successfully"`
+	RequestID string   `json:"request_id,omitempty" example:"req_123456789"`
+	WKT       string   `json:"wkt" example:"POLYGON((...))"`
+	IsValid   bool     `json:"is_valid" example:"true"`
+	Errors    []string `json:"errors,omitempty"`
+	Warnings  []string `json:"warnings,omitempty"`
+	SRID      int      `json:"srid" example:"4326"`
+	AreaHa    *float64 `json:"area_ha,omitempty" example:"2.5"`
+}
+
+// SwaggerReconcileAAALinksResponse represents an AAA links reconciliation response for Swagger
+type SwaggerReconcileAAALinksResponse struct {
+	Success        bool     `json:"success" example:"true"`
+	Message        string   `json:"message" example:"AAA links reconciled successfully"`
+	RequestID      string   `json:"request_id,omitempty" example:"req_123456789"`
+	ProcessedLinks int      `json:"processed_links" example:"150"`
+	FixedLinks     int      `json:"fixed_links" example:"10"`
+	BrokenLinks    int      `json:"broken_links" example:"5"`
+	Errors         []string `json:"errors,omitempty"`
+}
+
+// SwaggerRebuildSpatialIndexesResponse represents a spatial indexes rebuild response for Swagger
+type SwaggerRebuildSpatialIndexesResponse struct {
+	Success        bool     `json:"success" example:"true"`
+	Message        string   `json:"message" example:"Spatial indexes rebuilt successfully"`
+	RequestID      string   `json:"request_id,omitempty" example:"req_123456789"`
+	RebuiltIndexes []string `json:"rebuilt_indexes" example:"idx_farms_boundary,idx_plots_location"`
+	Errors         []string `json:"errors,omitempty"`
+}
+
+// SwaggerDetectFarmOverlapsResponse represents a farm overlaps detection response for Swagger
+type SwaggerDetectFarmOverlapsResponse struct {
+	Success       bool          `json:"success" example:"true"`
+	Message       string        `json:"message" example:"Farm overlaps detected successfully"`
+	RequestID     string        `json:"request_id,omitempty" example:"req_123456789"`
+	Overlaps      []FarmOverlap `json:"overlaps"`
+	TotalOverlaps int           `json:"total_overlaps" example:"3"`
+}
+
+// SwaggerSoilTypesResponse represents a soil types lookup response for Swagger
+type SwaggerSoilTypesResponse struct {
+	Success bool        `json:"success" example:"true"`
+	Message string      `json:"message" example:"Soil types retrieved successfully"`
+	Data    interface{} `json:"data"`
+}
+
+// SwaggerIrrigationSourcesResponse represents an irrigation sources lookup response for Swagger
+type SwaggerIrrigationSourcesResponse struct {
+	Success bool        `json:"success" example:"true"`
+	Message string      `json:"message" example:"Irrigation sources retrieved successfully"`
+	Data    interface{} `json:"data"`
+}
+
+// SwaggerBaseResponse represents a generic success response for Swagger
+type SwaggerBaseResponse struct {
+	Success   bool        `json:"success" example:"true"`
+	Message   string      `json:"message" example:"Operation completed successfully"`
+	RequestID string      `json:"request_id,omitempty" example:"req_123456789"`
+	Data      interface{} `json:"data,omitempty"`
+}
+
+// SwaggerCropVarietyListResponse represents a crop variety list response for Swagger
+type SwaggerCropVarietyListResponse struct {
+	Success   bool               `json:"success" example:"true"`
+	Message   string             `json:"message" example:"Crop varieties retrieved successfully"`
+	RequestID string             `json:"request_id" example:"req_123456789"`
+	Data      []*CropVarietyData `json:"data"`
+	Page      int                `json:"page" example:"1"`
+	PageSize  int                `json:"page_size" example:"20"`
+	Total     int                `json:"total" example:"50"`
+}
+
+// SwaggerCropVarietyLookupResponse represents a crop variety lookup response for Swagger
+type SwaggerCropVarietyLookupResponse struct {
+	Success   bool                     `json:"success" example:"true"`
+	Message   string                   `json:"message" example:"Crop variety lookup data retrieved successfully"`
+	RequestID string                   `json:"request_id" example:"req_123456789"`
+	Data      []*CropVarietyLookupData `json:"data"`
+}
+
+// SwaggerFarmerResponse represents a farmer response for Swagger
+type SwaggerFarmerResponse struct {
+	Success   bool               `json:"success" example:"true"`
+	Message   string             `json:"message" example:"Farmer created successfully"`
+	RequestID string             `json:"request_id" example:"req_123456789"`
+	Data      *FarmerProfileData `json:"data"`
+}
+
+// SwaggerFarmerListResponse represents a farmer list response for Swagger
+type SwaggerFarmerListResponse struct {
+	Success   bool                 `json:"success" example:"true"`
+	Message   string               `json:"message" example:"Farmers retrieved successfully"`
+	RequestID string               `json:"request_id" example:"req_123456789"`
+	Data      []*FarmerProfileData `json:"data"`
+	Page      int                  `json:"page" example:"1"`
+	PageSize  int                  `json:"page_size" example:"10"`
+	Total     int                  `json:"total" example:"100"`
+}
+
+// SwaggerStageResponse represents a stage response for Swagger
+type SwaggerStageResponse struct {
+	Success   bool       `json:"success" example:"true"`
+	Message   string     `json:"message" example:"Stage created successfully"`
+	RequestID string     `json:"request_id" example:"req_123456789"`
+	Data      *StageData `json:"data"`
+}
+
+// SwaggerStageListResponse represents a stage list response for Swagger
+type SwaggerStageListResponse struct {
+	Success   bool         `json:"success" example:"true"`
+	Message   string       `json:"message" example:"Stages retrieved successfully"`
+	RequestID string       `json:"request_id" example:"req_123456789"`
+	Data      []*StageData `json:"data"`
+	Page      int          `json:"page" example:"1"`
+	PageSize  int          `json:"page_size" example:"20"`
+	Total     int          `json:"total" example:"50"`
+}
+
+// SwaggerCropStageResponse represents a crop stage response for Swagger
+type SwaggerCropStageResponse struct {
+	Success   bool           `json:"success" example:"true"`
+	Message   string         `json:"message" example:"Stage assigned to crop successfully"`
+	RequestID string         `json:"request_id" example:"req_123456789"`
+	Data      *CropStageData `json:"data"`
+}
+
+// SwaggerCropStagesResponse represents a crop stages list response for Swagger
+type SwaggerCropStagesResponse struct {
+	Success   bool             `json:"success" example:"true"`
+	Message   string           `json:"message" example:"Crop stages retrieved successfully"`
+	RequestID string           `json:"request_id" example:"req_123456789"`
+	Data      []*CropStageData `json:"data"`
+}
+
+// SwaggerStageLookupResponse represents a stage lookup response for Swagger
+type SwaggerStageLookupResponse struct {
+	Success   bool               `json:"success" example:"true"`
+	Message   string             `json:"message" example:"Stage lookup data retrieved successfully"`
+	RequestID string             `json:"request_id" example:"req_123456789"`
+	Data      []*StageLookupData `json:"data"`
 }

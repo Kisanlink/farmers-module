@@ -10,6 +10,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	farmRepo "github.com/Kisanlink/farmers-module/internal/repo/farm"
+	farmerRepo "github.com/Kisanlink/farmers-module/internal/repo/farmer"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"gorm.io/gorm"
@@ -18,14 +19,16 @@ import (
 // FarmServiceImpl implements FarmService
 type FarmServiceImpl struct {
 	farmRepo   *farmRepo.FarmRepository
+	farmerRepo *farmerRepo.FarmerRepository
 	aaaService AAAService
 	db         *gorm.DB
 }
 
 // NewFarmService creates a new farm service
-func NewFarmService(farmRepo *farmRepo.FarmRepository, aaaService AAAService, db *gorm.DB) FarmService {
+func NewFarmService(farmRepo *farmRepo.FarmRepository, farmerRepo *farmerRepo.FarmerRepository, aaaService AAAService, db *gorm.DB) FarmService {
 	return &FarmServiceImpl{
 		farmRepo:   farmRepo,
+		farmerRepo: farmerRepo,
 		aaaService: aaaService,
 		db:         db,
 	}
@@ -58,6 +61,25 @@ func (s *FarmServiceImpl) CreateFarm(ctx context.Context, req interface{}) (inte
 		return nil, common.ErrForbidden
 	}
 
+	// Resolve farmer_id if not provided
+	farmerID := createReq.FarmerID
+	if farmerID == "" && createReq.AAAUserID != "" {
+		// Look up farmer_id using farmer repository
+		filter := base.NewFilterBuilder().
+			Where("aaa_user_id", base.OpEqual, createReq.AAAUserID).
+			Where("aaa_org_id", base.OpEqual, createReq.AAAOrgID).
+			Build()
+
+		farmer, err := s.farmerRepo.FindOne(ctx, filter)
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return nil, fmt.Errorf("no farmer found for aaa_user_id: %s and aaa_org_id: %s", createReq.AAAUserID, createReq.AAAOrgID)
+			}
+			return nil, fmt.Errorf("failed to lookup farmer: %w", err)
+		}
+		farmerID = farmer.ID
+	}
+
 	// Validate geometry if provided
 	var geometryWKT string
 	if createReq.Geometry.WKT != "" {
@@ -69,6 +91,7 @@ func (s *FarmServiceImpl) CreateFarm(ctx context.Context, req interface{}) (inte
 
 	// Create farm entity with proper BaseModel initialization
 	farm := farmEntity.NewFarm()
+	farm.FarmerID = farmerID
 	farm.AAAUserID = createReq.AAAUserID
 	farm.AAAOrgID = createReq.AAAOrgID
 	farm.Name = createReq.Name
@@ -267,6 +290,9 @@ func (s *FarmServiceImpl) ListFarms(ctx context.Context, req interface{}) (inter
 
 	// Build filters
 	filters := make(map[string]interface{})
+	if listReq.FarmerID != "" {
+		filters["farmer_id"] = listReq.FarmerID
+	}
 	if listReq.AAAUserID != "" {
 		filters["aaa_user_id"] = listReq.AAAUserID
 	}
@@ -278,6 +304,9 @@ func (s *FarmServiceImpl) ListFarms(ctx context.Context, req interface{}) (inter
 	filterBuilder := base.NewFilterBuilder().Page(listReq.Page, listReq.PageSize)
 
 	// Add filters
+	if listReq.FarmerID != "" {
+		filterBuilder = filterBuilder.Where("farmer_id", base.OpEqual, listReq.FarmerID)
+	}
 	if listReq.AAAUserID != "" {
 		filterBuilder = filterBuilder.Where("aaa_user_id", base.OpEqual, listReq.AAAUserID)
 	}
@@ -378,6 +407,9 @@ func (s *FarmServiceImpl) ListFarmsByBoundingBox(ctx context.Context, bbox reque
 	query := s.db.Where("ST_Intersects(geometry, ST_GeomFromText(?, 4326))", bboxWKT)
 
 	// Apply additional filters
+	if filters.FarmerID != "" {
+		query = query.Where("farmer_id = ?", filters.FarmerID)
+	}
 	if filters.AAAUserID != "" {
 		query = query.Where("aaa_user_id = ?", filters.AAAUserID)
 	}
@@ -409,11 +441,9 @@ func (s *FarmServiceImpl) ValidateGeometry(ctx context.Context, wkt string) erro
 // Helper methods
 
 func (s *FarmServiceImpl) validateCreateFarmRequest(req *requests.CreateFarmRequest) error {
-	if req.AAAUserID == "" {
-		return fmt.Errorf("farmer user ID is required")
-	}
-	if req.AAAOrgID == "" {
-		return fmt.Errorf("organization ID is required")
+	// Use the request's built-in validation
+	if err := req.Validate(); err != nil {
+		return err
 	}
 	if req.Geometry.WKT == "" {
 		return fmt.Errorf("geometry is required")

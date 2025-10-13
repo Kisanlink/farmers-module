@@ -61,11 +61,12 @@ func NewDataQualityHandlers(dataQualityService services.DataQualityService) *Dat
 // @Accept json
 // @Produce json
 // @Param request body requests.ValidateGeometryRequest true "Validate geometry request"
-// @Success 200 {object} ValidateGeometryResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerValidateGeometryResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /data-quality/validate-geometry [post]
 func (h *DataQualityHandlers) ValidateGeometry(c *gin.Context) {
 	var req requests.ValidateGeometryRequest
@@ -109,11 +110,12 @@ func (h *DataQualityHandlers) ValidateGeometry(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body requests.ReconcileAAALinksRequest true "Reconcile AAA links request"
-// @Success 200 {object} ReconcileAAALinksResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerReconcileAAALinksResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /data-quality/reconcile-aaa-links [post]
 func (h *DataQualityHandlers) ReconcileAAALinks(c *gin.Context) {
 	var req requests.ReconcileAAALinksRequest
@@ -157,11 +159,12 @@ func (h *DataQualityHandlers) ReconcileAAALinks(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body requests.RebuildSpatialIndexesRequest true "Rebuild spatial indexes request"
-// @Success 200 {object} RebuildSpatialIndexesResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerRebuildSpatialIndexesResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /data-quality/rebuild-spatial-indexes [post]
 func (h *DataQualityHandlers) RebuildSpatialIndexes(c *gin.Context) {
 	var req requests.RebuildSpatialIndexesRequest
@@ -205,11 +208,12 @@ func (h *DataQualityHandlers) RebuildSpatialIndexes(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body requests.DetectFarmOverlapsRequest true "Detect farm overlaps request"
-// @Success 200 {object} DetectFarmOverlapsResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} responses.SwaggerDetectFarmOverlapsResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /data-quality/detect-farm-overlaps [post]
 func (h *DataQualityHandlers) DetectFarmOverlaps(c *gin.Context) {
 	var req requests.DetectFarmOverlapsRequest

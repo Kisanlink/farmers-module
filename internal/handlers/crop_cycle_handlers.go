@@ -65,7 +65,7 @@ func StartCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Produce json
 // @Param cycle_id path string true "Cycle ID"
 // @Param request body requests.UpdateCycleRequest true "Update cycle request"
-// @Success 201 {object} responses.SwaggerCropCycleResponse
+// @Success 200 {object} responses.SwaggerCropCycleResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
@@ -118,7 +118,7 @@ func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 // @Produce json
 // @Param cycle_id path string true "Cycle ID"
 // @Param request body requests.EndCycleRequest true "End cycle request"
-// @Success 201 {object} responses.SwaggerCropCycleResponse
+// @Success 200 {object} responses.SwaggerCropCycleResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
@@ -219,7 +219,7 @@ func ListCycles(service services.CropCycleService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param cycle_id path string true "Cycle ID"
-// @Success 201 {object} responses.SwaggerCropCycleResponse
+// @Success 200 {object} responses.SwaggerCropCycleResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse

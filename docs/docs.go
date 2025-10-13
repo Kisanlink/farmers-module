@@ -63,13 +63,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerAuditTrailResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -100,7 +100,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CheckPermissionRequest"
+                            "$ref": "#/definitions/internal_handlers.CheckPermissionRequest"
                         }
                     }
                 ],
@@ -108,19 +108,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCheckPermissionResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCheckPermissionResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -156,13 +156,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerAdminHealthResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAdminHealthResponse"
                         }
                     },
                     "503": {
                         "description": "Service Unavailable",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerAdminHealthResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAdminHealthResponse"
                         }
                     }
                 }
@@ -192,7 +192,7 @@ const docTemplate = `{
                         "name": "request",
                         "in": "body",
                         "schema": {
-                            "$ref": "#/definitions/requests.SeedRolesAndPermissionsRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.SeedRolesAndPermissionsRequest"
                         }
                     }
                 ],
@@ -200,19 +200,391 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerAdminSeedResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAdminSeedResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/crops/{id}/stages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all growth stages assigned to a crop in order",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Stages"
+                ],
+                "summary": "Get all stages for a crop",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crop ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropStagesResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Assign a growth stage to a crop with order and duration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Stages"
+                ],
+                "summary": "Assign a stage to a crop",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crop ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Crop stage details",
+                        "name": "crop_stage",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.AssignStageToCropRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropStageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/crops/{id}/stages/reorder": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reorder the growth stages for a crop",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Stages"
+                ],
+                "summary": "Reorder crop stages",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crop ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Stage reorder details",
+                        "name": "reorder",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.ReorderCropStagesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerBaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/crops/{id}/stages/{stage_id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update a growth stage assigned to a crop",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Stages"
+                ],
+                "summary": "Update a crop stage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crop ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Stage ID",
+                        "name": "stage_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Crop stage update details",
+                        "name": "crop_stage",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropStageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropStageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove a growth stage from a crop (soft delete)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Crop Stages"
+                ],
+                "summary": "Remove a stage from a crop",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Crop ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Stage ID",
+                        "name": "stage_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerBaseResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -238,7 +610,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.ExportFarmerPortfolioRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.ExportFarmerPortfolioRequest"
                         }
                     }
                 ],
@@ -246,37 +618,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerExportFarmerPortfolioResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerExportFarmerPortfolioResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -342,37 +714,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerExportFarmerPortfolioResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerExportFarmerPortfolioResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -398,7 +770,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.OrgDashboardCountersRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.OrgDashboardCountersRequest"
                         }
                     }
                 ],
@@ -406,31 +778,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerOrgDashboardCountersResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerOrgDashboardCountersResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -485,31 +857,424 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerOrgDashboardCountersResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerOrgDashboardCountersResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/stages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List all growth stages with pagination and filtering",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stages"
+                ],
+                "summary": "List all stages",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by stage name or description",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by active status",
+                        "name": "is_active",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new growth stage for crops",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stages"
+                ],
+                "summary": "Create a new stage",
+                "parameters": [
+                    {
+                        "description": "Stage details",
+                        "name": "stage",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateStageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/stages/lookup": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get simplified stage data for dropdowns/lookups",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stages"
+                ],
+                "summary": "Get stage lookup data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageLookupResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/stages/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a growth stage by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stages"
+                ],
+                "summary": "Get a stage by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Stage ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update an existing growth stage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stages"
+                ],
+                "summary": "Update a stage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Stage ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Stage update details",
+                        "name": "stage",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateStageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a growth stage (soft delete)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stages"
+                ],
+                "summary": "Delete a stage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Stage ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerBaseResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -517,6 +1282,11 @@ const docTemplate = `{
         },
         "/bulk/cancel/{operation_id}": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Cancel an in-progress bulk operation",
                 "consumes": [
                     "application/json"
@@ -541,26 +1311,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerBaseResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -624,49 +1393,49 @@ const docTemplate = `{
                     "200": {
                         "description": "For synchronous operations",
                         "schema": {
-                            "$ref": "#/definitions/responses.BulkOperationResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationResponse"
                         }
                     },
                     "202": {
                         "description": "Accepted",
                         "schema": {
-                            "$ref": "#/definitions/responses.BulkOperationResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "413": {
                         "description": "File too large",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "415": {
                         "description": "Unsupported media type",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -713,13 +1482,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -727,6 +1496,11 @@ const docTemplate = `{
         },
         "/bulk/retry/{operation_id}": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retry processing of failed records from a bulk operation",
                 "consumes": [
                     "application/json"
@@ -752,7 +1526,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.RetryBulkOperationRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.RetryBulkOperationRequest"
                         }
                     }
                 ],
@@ -760,25 +1534,25 @@ const docTemplate = `{
                     "202": {
                         "description": "Accepted",
                         "schema": {
-                            "$ref": "#/definitions/responses.BulkOperationResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -812,37 +1586,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.BulkOperationStatusResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationStatusResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid operation ID",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Access denied to this operation",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Operation not found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -883,13 +1657,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -897,6 +1671,11 @@ const docTemplate = `{
         },
         "/bulk/validate": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Validate farmer data without actually processing it",
                 "consumes": [
                     "application/json"
@@ -915,7 +1694,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.ValidateBulkDataRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.ValidateBulkDataRequest"
                         }
                     }
                 ],
@@ -923,19 +1702,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.BulkValidationResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkValidationResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -997,19 +1776,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropListResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropListResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1038,7 +1817,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.CreateCropRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropRequest"
                         }
                     }
                 ],
@@ -1046,19 +1825,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1132,31 +1911,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.FarmActivityListResponse"
+                            "$ref": "#/definitions/internal_handlers.FarmActivityListResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse"
                         }
                     }
                 }
@@ -1185,7 +1964,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.CreateActivityRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateActivityRequest"
                         }
                     }
                 ],
@@ -1193,31 +1972,31 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmActivityResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmActivityResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1254,37 +2033,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmActivityResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmActivityResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1320,7 +2099,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.UpdateActivityRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateActivityRequest"
                         }
                     }
                 ],
@@ -1328,37 +2107,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmActivityResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmActivityResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1396,7 +2175,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.CompleteActivityRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CompleteActivityRequest"
                         }
                     }
                 ],
@@ -1404,37 +2183,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmActivityResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmActivityResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1496,31 +2275,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropCycleListResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleListResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1549,7 +2328,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.StartCycleRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.StartCycleRequest"
                         }
                     }
                 ],
@@ -1557,31 +2336,31 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropCycleResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1615,40 +2394,40 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropCycleResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1684,45 +2463,45 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.UpdateCycleRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCycleRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropCycleResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1760,45 +2539,45 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.EndCycleRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.EndCycleRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropCycleResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1835,25 +2614,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1889,7 +2668,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.UpdateCropRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropRequest"
                         }
                     }
                 ],
@@ -1897,25 +2676,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1950,25 +2729,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -1976,6 +2755,11 @@ const docTemplate = `{
         },
         "/data-quality/detect-farm-overlaps": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Detects spatial intersections between farm boundaries within an organization",
                 "consumes": [
                     "application/json"
@@ -1994,7 +2778,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.DetectFarmOverlapsRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.DetectFarmOverlapsRequest"
                         }
                     }
                 ],
@@ -2002,31 +2786,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.DetectFarmOverlapsResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerDetectFarmOverlapsResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2034,6 +2818,11 @@ const docTemplate = `{
         },
         "/data-quality/rebuild-spatial-indexes": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Rebuilds GIST indexes for spatial tables for database maintenance",
                 "consumes": [
                     "application/json"
@@ -2052,7 +2841,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.RebuildSpatialIndexesRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.RebuildSpatialIndexesRequest"
                         }
                     }
                 ],
@@ -2060,31 +2849,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.RebuildSpatialIndexesResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerRebuildSpatialIndexesResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2092,6 +2881,11 @@ const docTemplate = `{
         },
         "/data-quality/reconcile-aaa-links": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Heals broken AAA references in farmer_links by checking against AAA service",
                 "consumes": [
                     "application/json"
@@ -2110,7 +2904,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.ReconcileAAALinksRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.ReconcileAAALinksRequest"
                         }
                     }
                 ],
@@ -2118,31 +2912,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ReconcileAAALinksResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerReconcileAAALinksResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2150,6 +2944,11 @@ const docTemplate = `{
         },
         "/data-quality/validate-geometry": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Validates WKT geometry using PostGIS with SRID enforcement and integrity checks",
                 "consumes": [
                     "application/json"
@@ -2168,7 +2967,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.ValidateGeometryRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.ValidateGeometryRequest"
                         }
                     }
                 ],
@@ -2176,31 +2975,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ValidateGeometryResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerValidateGeometryResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2268,19 +3067,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmListResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmListResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2304,7 +3103,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.CreateFarmRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmRequest"
                         }
                     }
                 ],
@@ -2312,19 +3111,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2361,25 +3160,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2415,7 +3214,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.UpdateFarmRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmRequest"
                         }
                     }
                 ],
@@ -2423,25 +3222,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2479,19 +3278,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2522,7 +3321,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.LinkFarmerRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.LinkFarmerRequest"
                         }
                     }
                 ],
@@ -2530,37 +3329,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmerLinkageResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerLinkageResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2604,37 +3403,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmerLinkageResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerLinkageResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2665,7 +3464,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.UnlinkFarmerRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UnlinkFarmerRequest"
                         }
                     }
                 ],
@@ -2673,37 +3472,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmerLinkageResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerLinkageResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2754,19 +3553,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmerListResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerListResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2795,7 +3594,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.CreateFarmerRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmerRequest"
                         }
                     }
                 ],
@@ -2803,37 +3602,37 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmerResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2841,6 +3640,11 @@ const docTemplate = `{
         },
         "/identity/farmers/id/{farmer_id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a farmer profile by farmer ID (primary key)",
                 "consumes": [
                     "application/json"
@@ -2865,25 +3669,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmerResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2914,7 +3718,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.UpdateFarmerRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmerRequest"
                         }
                     }
                 ],
@@ -2922,25 +3726,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmerResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2970,25 +3774,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.SimpleResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerBaseResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2996,6 +3800,11 @@ const docTemplate = `{
         },
         "/identity/farmers/user/{aaa_user_id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a farmer profile by AAA user ID (no org required)",
                 "consumes": [
                     "application/json"
@@ -3020,25 +3829,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmerResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3069,7 +3878,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.UpdateFarmerRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmerRequest"
                         }
                     }
                 ],
@@ -3077,25 +3886,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmerResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3125,25 +3934,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.SimpleResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerBaseResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3187,37 +3996,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmerResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3255,7 +4064,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.UpdateFarmerRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmerRequest"
                         }
                     }
                 ],
@@ -3263,25 +4072,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFarmerResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3318,25 +4127,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.SimpleResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerBaseResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3367,7 +4176,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.CreateFPORequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPORequest"
                         }
                     }
                 ],
@@ -3375,31 +4184,31 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCreateFPOResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCreateFPOResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3431,37 +4240,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFPORefResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPORefResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3487,7 +4296,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.RegisterFPORefRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.RegisterFPORefRequest"
                         }
                     }
                 ],
@@ -3495,37 +4304,37 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerFPORefResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPORefResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3569,13 +4378,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.KisanSathiListResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerKisanSathiListResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3606,7 +4415,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.AssignKisanSathiRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.AssignKisanSathiRequest"
                         }
                     }
                 ],
@@ -3614,25 +4423,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerKisanSathiAssignmentResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerKisanSathiAssignmentResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3729,7 +4538,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.CreateKisanSathiUserRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateKisanSathiUserRequest"
                         }
                     }
                 ],
@@ -3737,25 +4546,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerKisanSathiUserResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerKisanSathiUserResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3786,7 +4595,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.ReassignKisanSathiRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.ReassignKisanSathiRequest"
                         }
                     }
                 ],
@@ -3794,25 +4603,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerKisanSathiAssignmentResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerKisanSathiAssignmentResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3840,7 +4649,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.CropCategoriesResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropCategoriesResponse"
                         }
                     }
                 }
@@ -3868,7 +4677,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.CropSeasonsResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropSeasonsResponse"
                         }
                     }
                 }
@@ -3910,13 +4719,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropLookupResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropLookupResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3924,6 +4733,11 @@ const docTemplate = `{
         },
         "/lookups/irrigation-sources": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a list of all available irrigation sources for farm management",
                 "consumes": [
                     "application/json"
@@ -3939,13 +4753,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.IrrigationSourcesResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerIrrigationSourcesResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -3953,6 +4767,11 @@ const docTemplate = `{
         },
         "/lookups/soil-types": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a list of all available soil types for farm management",
                 "consumes": [
                     "application/json"
@@ -3968,13 +4787,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.SoilTypesResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerSoilTypesResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -4011,13 +4830,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.CropVarietyLookupResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyLookupResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -4073,19 +4892,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.CropVarietyListResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyListResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -4114,7 +4933,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.CreateCropVarietyRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropVarietyRequest"
                         }
                     }
                 ],
@@ -4122,19 +4941,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropVarietyResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropVarietyResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -4171,25 +4990,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropVarietyResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropVarietyResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -4225,7 +5044,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.UpdateCropVarietyRequest"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropVarietyRequest"
                         }
                     }
                 ],
@@ -4233,25 +5052,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropVarietyResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropVarietyResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -4286,25 +5105,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerCropVarietyResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropVarietyResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/responses.SwaggerErrorResponse"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -4312,170 +5131,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handlers.CheckPermissionRequest": {
-            "type": "object",
-            "required": [
-                "action",
-                "resource",
-                "subject"
-            ],
-            "properties": {
-                "action": {
-                    "type": "string"
-                },
-                "object": {
-                    "type": "string"
-                },
-                "org_id": {
-                    "type": "string"
-                },
-                "resource": {
-                    "type": "string"
-                },
-                "subject": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.DetectFarmOverlapsResponse": {
-            "type": "object",
-            "properties": {
-                "data": {},
-                "message": {
-                    "type": "string"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "success": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "handlers.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string",
-                    "example": "Failed to retrieve data"
-                }
-            }
-        },
-        "handlers.FarmActivityListResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {}
-                },
-                "message": {
-                    "type": "string"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "page_size": {
-                    "type": "integer"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "success": {
-                    "type": "boolean"
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handlers.IrrigationSourcesResponse": {
-            "type": "object",
-            "properties": {
-                "data": {},
-                "message": {
-                    "type": "string",
-                    "example": "Irrigation sources retrieved successfully"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "handlers.RebuildSpatialIndexesResponse": {
-            "type": "object",
-            "properties": {
-                "data": {},
-                "message": {
-                    "type": "string"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "success": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "handlers.ReconcileAAALinksResponse": {
-            "type": "object",
-            "properties": {
-                "data": {},
-                "message": {
-                    "type": "string"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "success": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "handlers.SimpleResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "success": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "handlers.SoilTypesResponse": {
-            "type": "object",
-            "properties": {
-                "data": {},
-                "message": {
-                    "type": "string",
-                    "example": "Soil types retrieved successfully"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "handlers.ValidateGeometryResponse": {
-            "type": "object",
-            "properties": {
-                "data": {},
-                "message": {
-                    "type": "string"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "success": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "requests.AddressData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.AddressData": {
             "type": "object",
             "properties": {
                 "city": {
@@ -4505,7 +5161,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.AssignKisanSathiRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.AssignKisanSathiRequest": {
             "type": "object",
             "required": [
                 "aaa_org_id",
@@ -4557,7 +5213,72 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.BulkProcessingOptions": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.AssignStageToCropRequest": {
+            "type": "object",
+            "required": [
+                "stage_id",
+                "stage_order"
+            ],
+            "properties": {
+                "duration_days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 14
+                },
+                "duration_unit": {
+                    "type": "string",
+                    "enum": [
+                        "DAYS",
+                        "WEEKS",
+                        "MONTHS"
+                    ],
+                    "example": "DAYS"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
+                    }
+                },
+                "org_id": {
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "properties": {
+                    "type": "object"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
+                },
+                "request_type": {
+                    "type": "string",
+                    "example": "create_farmer"
+                },
+                "stage_id": {
+                    "type": "string",
+                    "example": "STGE00000001"
+                },
+                "stage_order": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.BulkProcessingOptions": {
             "type": "object",
             "properties": {
                 "assign_kisan_sathi": {
@@ -4623,7 +5344,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.CEOUserData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.CEOUserData": {
             "type": "object",
             "required": [
                 "first_name",
@@ -4655,7 +5376,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.CompleteActivityRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.CompleteActivityRequest": {
             "type": "object",
             "required": [
                 "completed_at",
@@ -4713,7 +5434,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.CreateActivityRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateActivityRequest": {
             "type": "object",
             "required": [
                 "activity_type",
@@ -4764,7 +5485,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.CreateCropRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropRequest": {
             "type": "object",
             "required": [
                 "category",
@@ -4864,7 +5585,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.CreateCropVarietyRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropVarietyRequest": {
             "type": "object",
             "required": [
                 "crop_id",
@@ -4934,7 +5655,7 @@ const docTemplate = `{
                 "yield_by_age": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/requests.YieldByAgeRequest"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.YieldByAgeRequest"
                     }
                 },
                 "yield_per_acre": {
@@ -4949,7 +5670,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.CreateFPORequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPORequest": {
             "type": "object",
             "required": [
                 "ceo_user",
@@ -4968,7 +5689,7 @@ const docTemplate = `{
                     }
                 },
                 "ceo_user": {
-                    "$ref": "#/definitions/requests.CEOUserData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CEOUserData"
                 },
                 "description": {
                     "type": "string",
@@ -5015,21 +5736,20 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.CreateFarmRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmRequest": {
             "type": "object",
             "required": [
-                "aaa_farmer_user_id",
                 "aaa_org_id",
                 "area_ha"
             ],
             "properties": {
-                "aaa_farmer_user_id": {
-                    "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
-                },
                 "aaa_org_id": {
                     "type": "string",
                     "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "aaa_user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "area_ha": {
                     "type": "number",
@@ -5041,13 +5761,17 @@ const docTemplate = `{
                     "minimum": 0,
                     "example": 2
                 },
+                "farmer_id": {
+                    "type": "string",
+                    "example": "FMRR0000000001"
+                },
                 "geometry": {
-                    "$ref": "#/definitions/requests.GeometryData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.GeometryData"
                 },
                 "irrigation_sources": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/requests.IrrigationSourceRequest"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.IrrigationSourceRequest"
                     }
                 },
                 "metadata": {
@@ -5107,7 +5831,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.CreateFarmerRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmerRequest": {
             "type": "object",
             "required": [
                 "aaa_org_id",
@@ -5146,7 +5870,7 @@ const docTemplate = `{
                     "description": "Required: Farmer profile (must include country_code + phone_number if aaa_user_id not provided)",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/requests.FarmerProfileData"
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerProfileData"
                         }
                     ]
                 },
@@ -5168,7 +5892,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.CreateKisanSathiUserRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateKisanSathiUserRequest": {
             "type": "object",
             "required": [
                 "full_name",
@@ -5234,7 +5958,58 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.DetectFarmOverlapsRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateStageRequest": {
+            "type": "object",
+            "required": [
+                "stage_name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Seeds sprouting and initial growth"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
+                    }
+                },
+                "org_id": {
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "properties": {
+                    "type": "object"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
+                },
+                "request_type": {
+                    "type": "string",
+                    "example": "create_farmer"
+                },
+                "stage_name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "example": "Germination"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.DetectFarmOverlapsRequest": {
             "type": "object",
             "properties": {
                 "limit": {
@@ -5279,7 +6054,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.EndCycleRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.EndCycleRequest": {
             "type": "object",
             "required": [
                 "end_date",
@@ -5346,7 +6121,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.ExportFarmerPortfolioRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.ExportFarmerPortfolioRequest": {
             "type": "object",
             "required": [
                 "farmer_id"
@@ -5413,7 +6188,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.FarmerBulkData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerBulkData": {
             "type": "object",
             "required": [
                 "first_name",
@@ -5500,11 +6275,11 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.FarmerProfileData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerProfileData": {
             "type": "object",
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/requests.AddressData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.AddressData"
                 },
                 "country_code": {
                     "type": "string",
@@ -5560,7 +6335,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.GeometryData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.GeometryData": {
             "type": "object",
             "properties": {
                 "wkb": {
@@ -5577,7 +6352,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.IrrigationSourceRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.IrrigationSourceRequest": {
             "type": "object",
             "required": [
                 "irrigation_source_id"
@@ -5602,7 +6377,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.LinkFarmerRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.LinkFarmerRequest": {
             "type": "object",
             "required": [
                 "aaa_org_id",
@@ -5649,7 +6424,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.OrgDashboardCountersRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.OrgDashboardCountersRequest": {
             "type": "object",
             "properties": {
                 "end_date": {
@@ -5701,7 +6476,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.ReassignKisanSathiRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.ReassignKisanSathiRequest": {
             "type": "object",
             "required": [
                 "aaa_org_id",
@@ -5753,7 +6528,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.RebuildSpatialIndexesRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.RebuildSpatialIndexesRequest": {
             "type": "object",
             "properties": {
                 "metadata": {
@@ -5788,7 +6563,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.ReconcileAAALinksRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.ReconcileAAALinksRequest": {
             "type": "object",
             "properties": {
                 "dry_run": {
@@ -5828,7 +6603,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.RegisterFPORefRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.RegisterFPORefRequest": {
             "type": "object",
             "required": [
                 "aaa_org_id",
@@ -5889,7 +6664,52 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.RetryBulkOperationRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.ReorderCropStagesRequest": {
+            "type": "object",
+            "required": [
+                "stage_orders"
+            ],
+            "properties": {
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
+                    }
+                },
+                "org_id": {
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
+                },
+                "request_type": {
+                    "type": "string",
+                    "example": "create_farmer"
+                },
+                "stage_orders": {
+                    "description": "map[stage_id]order",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.RetryBulkOperationRequest": {
             "type": "object",
             "required": [
                 "operation_id"
@@ -5910,7 +6730,7 @@ const docTemplate = `{
                     "example": "op_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "options": {
-                    "$ref": "#/definitions/requests.BulkProcessingOptions"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.BulkProcessingOptions"
                 },
                 "org_id": {
                     "type": "string",
@@ -5950,7 +6770,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.SeedRolesAndPermissionsRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.SeedRolesAndPermissionsRequest": {
             "type": "object",
             "properties": {
                 "dry_run": {
@@ -5995,7 +6815,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.StartCycleRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.StartCycleRequest": {
             "type": "object",
             "required": [
                 "crop_id",
@@ -6061,7 +6881,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.UnlinkFarmerRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.UnlinkFarmerRequest": {
             "type": "object",
             "required": [
                 "aaa_org_id",
@@ -6108,7 +6928,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.UpdateActivityRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateActivityRequest": {
             "type": "object",
             "required": [
                 "id"
@@ -6158,7 +6978,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.UpdateCropRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropRequest": {
             "type": "object",
             "required": [
                 "id"
@@ -6263,7 +7083,68 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.UpdateCropVarietyRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropStageRequest": {
+            "type": "object",
+            "properties": {
+                "duration_days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 21
+                },
+                "duration_unit": {
+                    "type": "string",
+                    "enum": [
+                        "DAYS",
+                        "WEEKS",
+                        "MONTHS"
+                    ],
+                    "example": "DAYS"
+                },
+                "is_active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
+                    }
+                },
+                "org_id": {
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "properties": {
+                    "type": "object"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
+                },
+                "request_type": {
+                    "type": "string",
+                    "example": "create_farmer"
+                },
+                "stage_order": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 2
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropVarietyRequest": {
             "type": "object",
             "required": [
                 "id"
@@ -6336,7 +7217,7 @@ const docTemplate = `{
                 "yield_by_age": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/requests.YieldByAgeRequest"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.YieldByAgeRequest"
                     }
                 },
                 "yield_per_acre": {
@@ -6351,7 +7232,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.UpdateCycleRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCycleRequest": {
             "type": "object",
             "required": [
                 "id"
@@ -6414,19 +7295,19 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.UpdateFarmRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmRequest": {
             "type": "object",
             "required": [
                 "id"
             ],
             "properties": {
-                "aaa_farmer_user_id": {
-                    "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
-                },
                 "aaa_org_id": {
                     "type": "string",
                     "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "aaa_user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "area_ha": {
                     "type": "number",
@@ -6437,8 +7318,12 @@ const docTemplate = `{
                     "minimum": 0,
                     "example": 3
                 },
+                "farmer_id": {
+                    "type": "string",
+                    "example": "FMRR0000000001"
+                },
                 "geometry": {
-                    "$ref": "#/definitions/requests.GeometryData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.GeometryData"
                 },
                 "id": {
                     "type": "string",
@@ -6447,7 +7332,7 @@ const docTemplate = `{
                 "irrigation_sources": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/requests.IrrigationSourceRequest"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.IrrigationSourceRequest"
                     }
                 },
                 "metadata": {
@@ -6507,7 +7392,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.UpdateFarmerRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmerRequest": {
             "type": "object",
             "properties": {
                 "aaa_org_id": {
@@ -6544,7 +7429,7 @@ const docTemplate = `{
                     "example": "org_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "profile": {
-                    "$ref": "#/definitions/requests.FarmerProfileData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerProfileData"
                 },
                 "request_id": {
                     "type": "string",
@@ -6564,7 +7449,59 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.ValidateBulkDataRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateStageRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Updated description"
+                },
+                "is_active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "example": {
+                        "source": "mobile_app",
+                        "version": "1.0.0"
+                    }
+                },
+                "org_id": {
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "properties": {
+                    "type": "object"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
+                },
+                "request_type": {
+                    "type": "string",
+                    "example": "create_farmer"
+                },
+                "stage_name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "example": "Germination Updated"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.ValidateBulkDataRequest": {
             "type": "object",
             "required": [
                 "fpo_org_id",
@@ -6580,7 +7517,7 @@ const docTemplate = `{
                 "farmers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/requests.FarmerBulkData"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerBulkData"
                     }
                 },
                 "fpo_org_id": {
@@ -6628,7 +7565,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.ValidateGeometryRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.ValidateGeometryRequest": {
             "type": "object",
             "required": [
                 "wkt"
@@ -6675,7 +7612,7 @@ const docTemplate = `{
                 }
             }
         },
-        "requests.YieldByAgeRequest": {
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.YieldByAgeRequest": {
             "type": "object",
             "properties": {
                 "age_from": {
@@ -6694,7 +7631,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.AddressData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.AddressData": {
             "type": "object",
             "properties": {
                 "city": {
@@ -6723,7 +7660,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.BulkOperationData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationData": {
             "type": "object",
             "properties": {
                 "estimated_completion": {
@@ -6752,11 +7689,11 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.BulkOperationResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.BulkOperationData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationData"
                 },
                 "message": {
                     "type": "string",
@@ -6776,7 +7713,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.BulkOperationStatusData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationStatusData": {
             "type": "object",
             "properties": {
                 "can_retry": {
@@ -6811,7 +7748,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "progress": {
-                    "$ref": "#/definitions/responses.ProgressInfo"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ProgressInfo"
                 },
                 "result_file_url": {
                     "type": "string"
@@ -6827,11 +7764,11 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.BulkOperationStatusResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationStatusResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.BulkOperationStatusData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationStatusData"
                 },
                 "message": {
                     "type": "string"
@@ -6847,13 +7784,13 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.BulkValidationData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.BulkValidationData": {
             "type": "object",
             "properties": {
                 "errors": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.ValidationError"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ValidationError"
                     }
                 },
                 "is_valid": {
@@ -6872,16 +7809,16 @@ const docTemplate = `{
                 "warnings": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.ValidationWarning"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ValidationWarning"
                     }
                 }
             }
         },
-        "responses.BulkValidationResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.BulkValidationResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.BulkValidationData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkValidationData"
                 },
                 "message": {
                     "type": "string"
@@ -6897,7 +7834,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.ComponentHealth": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.ComponentHealth": {
             "type": "object",
             "properties": {
                 "details": {
@@ -6921,7 +7858,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.CreateFPOData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.CreateFPOData": {
             "type": "object",
             "properties": {
                 "aaa_org_id": {
@@ -6945,12 +7882,12 @@ const docTemplate = `{
                 "user_groups": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.UserGroupData"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.UserGroupData"
                     }
                 }
             }
         },
-        "responses.CropCategoriesResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.CropCategoriesResponse": {
             "type": "object",
             "properties": {
                 "data": {
@@ -6970,7 +7907,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.CropCycleData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.CropCycleData": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -7020,7 +7957,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.CropData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.CropData": {
             "type": "object",
             "properties": {
                 "category": {
@@ -7068,7 +8005,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.CropLookupData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.CropLookupData": {
             "type": "object",
             "properties": {
                 "category": {
@@ -7091,7 +8028,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.CropSeasonsResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.CropSeasonsResponse": {
             "type": "object",
             "properties": {
                 "data": {
@@ -7111,7 +8048,59 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.CropVarietyData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.CropStageData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2025-01-15T10:30:00Z"
+                },
+                "crop_id": {
+                    "type": "string",
+                    "example": "CROP00000001"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Seeds sprouting and initial growth"
+                },
+                "duration_days": {
+                    "type": "integer",
+                    "example": 14
+                },
+                "duration_unit": {
+                    "type": "string",
+                    "example": "DAYS"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "CSTG00000001"
+                },
+                "is_active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "properties": {
+                    "type": "object"
+                },
+                "stage_id": {
+                    "type": "string",
+                    "example": "STGE00000001"
+                },
+                "stage_name": {
+                    "type": "string",
+                    "example": "Germination"
+                },
+                "stage_order": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2025-01-15T10:30:00Z"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyData": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -7150,7 +8139,7 @@ const docTemplate = `{
                 "yield_by_age": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.YieldByAgeData"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.YieldByAgeData"
                     }
                 },
                 "yield_per_acre": {
@@ -7161,13 +8150,13 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.CropVarietyListResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyListResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.CropVarietyData"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyData"
                     }
                 },
                 "message": {
@@ -7190,7 +8179,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.CropVarietyLookupData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyLookupData": {
             "type": "object",
             "properties": {
                 "duration_days": {
@@ -7204,13 +8193,13 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.CropVarietyLookupResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyLookupResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.CropVarietyLookupData"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyLookupData"
                     }
                 },
                 "message": {
@@ -7224,7 +8213,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.ErrorResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -7250,7 +8239,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.FPORefData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FPORefData": {
             "type": "object",
             "properties": {
                 "aaa_org_id": {
@@ -7291,7 +8280,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.FarmActivityData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmActivityData": {
             "type": "object",
             "properties": {
                 "activity_type": {
@@ -7335,16 +8324,16 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.FarmData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData": {
             "type": "object",
             "properties": {
-                "aaa_farmer_user_id": {
-                    "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
-                },
                 "aaa_org_id": {
                     "type": "string",
                     "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "aaa_user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "area_ha": {
                     "type": "number",
@@ -7382,7 +8371,45 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.FarmerLinkageData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmOverlap": {
+            "type": "object",
+            "properties": {
+                "farm1_area_ha": {
+                    "type": "number"
+                },
+                "farm1_farmer_id": {
+                    "type": "string"
+                },
+                "farm1_id": {
+                    "type": "string"
+                },
+                "farm1_name": {
+                    "type": "string"
+                },
+                "farm2_area_ha": {
+                    "type": "number"
+                },
+                "farm2_farmer_id": {
+                    "type": "string"
+                },
+                "farm2_id": {
+                    "type": "string"
+                },
+                "farm2_name": {
+                    "type": "string"
+                },
+                "overlap_area_ha": {
+                    "type": "number"
+                },
+                "overlap_percentage_farm1": {
+                    "type": "number"
+                },
+                "overlap_percentage_farm2": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerLinkageData": {
             "type": "object",
             "properties": {
                 "aaa_org_id": {
@@ -7414,7 +8441,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.FarmerProfileData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData": {
             "type": "object",
             "properties": {
                 "aaa_org_id": {
@@ -7426,7 +8453,7 @@ const docTemplate = `{
                     "example": "USER00000001"
                 },
                 "address": {
-                    "$ref": "#/definitions/responses.AddressData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.AddressData"
                 },
                 "created_at": {
                     "type": "string",
@@ -7443,7 +8470,7 @@ const docTemplate = `{
                 "farms": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.FarmData"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData"
                     }
                 },
                 "first_name": {
@@ -7489,7 +8516,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.KisanSathiAssignmentData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.KisanSathiAssignmentData": {
             "type": "object",
             "properties": {
                 "aaa_org_id": {
@@ -7521,7 +8548,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.KisanSathiData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.KisanSathiData": {
             "type": "object",
             "properties": {
                 "email": {
@@ -7544,39 +8571,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.KisanSathiListResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/responses.KisanSathiData"
-                    }
-                },
-                "message": {
-                    "type": "string"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "page_size": {
-                    "type": "integer"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "success": {
-                    "type": "boolean"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "responses.KisanSathiUserData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.KisanSathiUserData": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -7611,7 +8606,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.ProgressInfo": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.ProgressInfo": {
             "type": "object",
             "properties": {
                 "failed": {
@@ -7640,13 +8635,62 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerAdminHealthResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.StageData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2025-01-15T10:30:00Z"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Seeds sprouting and initial growth"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "STGE00000001"
+                },
+                "is_active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "properties": {
+                    "type": "object"
+                },
+                "stage_name": {
+                    "type": "string",
+                    "example": "Germination"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2025-01-15T10:30:00Z"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.StageLookupData": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Seeds sprouting and initial growth"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "STGE00000001"
+                },
+                "stage_name": {
+                    "type": "string",
+                    "example": "Germination"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAdminHealthResponse": {
             "type": "object",
             "properties": {
                 "components": {
                     "type": "object",
                     "additionalProperties": {
-                        "$ref": "#/definitions/responses.ComponentHealth"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.ComponentHealth"
                     }
                 },
                 "duration": {
@@ -7663,7 +8707,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerAdminSeedResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAdminSeedResponse": {
             "type": "object",
             "properties": {
                 "duration": {
@@ -7683,7 +8727,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerAuditTrailData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailData": {
             "type": "object",
             "properties": {
                 "audit_logs": {
@@ -7691,7 +8735,7 @@ const docTemplate = `{
                     "items": {}
                 },
                 "filters": {
-                    "$ref": "#/definitions/responses.SwaggerAuditTrailFilters"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailFilters"
                 },
                 "page": {
                     "type": "integer"
@@ -7704,7 +8748,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerAuditTrailFilters": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailFilters": {
             "type": "object",
             "properties": {
                 "action": {
@@ -7721,14 +8765,14 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerAuditTrailResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailResponse": {
             "type": "object",
             "properties": {
                 "correlation_id": {
                     "type": "string"
                 },
                 "data": {
-                    "$ref": "#/definitions/responses.SwaggerAuditTrailData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailData"
                 },
                 "message": {
                     "type": "string"
@@ -7738,7 +8782,25 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerCheckPermissionData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerBaseResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string",
+                    "example": "Operation completed successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCheckPermissionData": {
             "type": "object",
             "properties": {
                 "action": {
@@ -7761,14 +8823,14 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerCheckPermissionResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCheckPermissionResponse": {
             "type": "object",
             "properties": {
                 "correlation_id": {
                     "type": "string"
                 },
                 "data": {
-                    "$ref": "#/definitions/responses.SwaggerCheckPermissionData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCheckPermissionData"
                 },
                 "message": {
                     "type": "string"
@@ -7778,11 +8840,11 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerCreateFPOResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCreateFPOResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.CreateFPOData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CreateFPOData"
                 },
                 "message": {
                     "type": "string"
@@ -7795,13 +8857,13 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerCropCycleListResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleListResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.CropCycleData"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropCycleData"
                     }
                 },
                 "message": {
@@ -7824,11 +8886,11 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerCropCycleResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropCycleResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.CropCycleData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropCycleData"
                 },
                 "message": {
                     "type": "string"
@@ -7841,13 +8903,13 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerCropListResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropListResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.CropData"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropData"
                     }
                 },
                 "message": {
@@ -7876,13 +8938,13 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerCropLookupResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropLookupResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.CropLookupData"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropLookupData"
                     }
                 },
                 "message": {
@@ -7899,11 +8961,11 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerCropResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.CropData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropData"
                 },
                 "message": {
                     "type": "string",
@@ -7919,11 +8981,54 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerCropVarietyResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropStageResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.CropVarietyData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropStageData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Stage assigned to crop successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropStagesResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropStageData"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Crop stages retrieved successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropVarietyResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropVarietyData"
                 },
                 "message": {
                     "type": "string",
@@ -7939,7 +9044,34 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerErrorResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerDetectFarmOverlapsResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Farm overlaps detected successfully"
+                },
+                "overlaps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmOverlap"
+                    }
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "total_overlaps": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse": {
             "type": "object",
             "properties": {
                 "correlation_id": {
@@ -7962,7 +9094,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerExportFarmerPortfolioResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerExportFarmerPortfolioResponse": {
             "type": "object",
             "properties": {
                 "data": {},
@@ -7977,11 +9109,11 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerFPORefResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPORefResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.FPORefData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FPORefData"
                 },
                 "message": {
                     "type": "string"
@@ -7994,11 +9126,11 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerFarmActivityResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmActivityResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.FarmActivityData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmActivityData"
                 },
                 "message": {
                     "type": "string"
@@ -8011,13 +9143,13 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerFarmListResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmListResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.FarmData"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData"
                     }
                 },
                 "message": {
@@ -8040,11 +9172,11 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerFarmResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.FarmData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmData"
                 },
                 "message": {
                     "type": "string"
@@ -8057,11 +9189,11 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerFarmerLinkageResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerLinkageResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.FarmerLinkageData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerLinkageData"
                 },
                 "message": {
                     "type": "string"
@@ -8074,40 +9206,80 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerFarmerListResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerListResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/responses.FarmerProfileData"
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData"
                     }
                 },
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Farmers retrieved successfully"
                 },
                 "page": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "page_size": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 10
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "req_123456789"
                 },
                 "success": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "total": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 100
                 }
             }
         },
-        "responses.SwaggerFarmerResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.FarmerProfileData"
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerProfileData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Farmer created successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerIrrigationSourcesResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string",
+                    "example": "Irrigation sources retrieved successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerKisanSathiAssignmentResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.KisanSathiAssignmentData"
                 },
                 "message": {
                     "type": "string"
@@ -8120,11 +9292,50 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerKisanSathiAssignmentResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerKisanSathiListResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/responses.KisanSathiAssignmentData"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.KisanSathiData"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "KisanSathis retrieved successfully"
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "page_size": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerKisanSathiUserResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.KisanSathiUserData"
                 },
                 "message": {
                     "type": "string"
@@ -8137,24 +9348,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SwaggerKisanSathiUserResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/responses.KisanSathiUserData"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "success": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "responses.SwaggerOrgDashboardCountersResponse": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerOrgDashboardCountersResponse": {
             "type": "object",
             "properties": {
                 "data": {},
@@ -8169,7 +9363,212 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.UserGroupData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerRebuildSpatialIndexesResponse": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Spatial indexes rebuilt successfully"
+                },
+                "rebuilt_indexes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "idx_farms_boundary",
+                        "idx_plots_location"
+                    ]
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerReconcileAAALinksResponse": {
+            "type": "object",
+            "properties": {
+                "broken_links": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fixed_links": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "message": {
+                    "type": "string",
+                    "example": "AAA links reconciled successfully"
+                },
+                "processed_links": {
+                    "type": "integer",
+                    "example": 150
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerSoilTypesResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string",
+                    "example": "Soil types retrieved successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.StageData"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Stages retrieved successfully"
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "page_size": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 50
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageLookupResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.StageLookupData"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Stage lookup data retrieved successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.StageData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Stage created successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerValidateGeometryResponse": {
+            "type": "object",
+            "properties": {
+                "area_ha": {
+                    "type": "number",
+                    "example": 2.5
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "is_valid": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Geometry validated successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "srid": {
+                    "type": "integer",
+                    "example": 4326
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "warnings": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "wkt": {
+                    "type": "string",
+                    "example": "POLYGON((...))"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.UserGroupData": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -8195,7 +9594,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.ValidationError": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.ValidationError": {
             "type": "object",
             "properties": {
                 "code": {
@@ -8213,7 +9612,7 @@ const docTemplate = `{
                 "value": {}
             }
         },
-        "responses.ValidationWarning": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.ValidationWarning": {
             "type": "object",
             "properties": {
                 "code": {
@@ -8230,7 +9629,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.YieldByAgeData": {
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.YieldByAgeData": {
             "type": "object",
             "properties": {
                 "age_from": {
@@ -8241,6 +9640,58 @@ const docTemplate = `{
                 },
                 "yield_per_tree": {
                     "type": "number"
+                }
+            }
+        },
+        "internal_handlers.CheckPermissionRequest": {
+            "type": "object",
+            "required": [
+                "action",
+                "resource",
+                "subject"
+            ],
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "object": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.FarmActivityListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {}
+                },
+                "message": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         }

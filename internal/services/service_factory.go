@@ -90,7 +90,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	if db, err := postgresManager.GetDB(context.Background(), false); err == nil {
 		gormDB = db
 	}
-	farmService := NewFarmService(repoFactory.FarmRepo, aaaService, gormDB)
+	farmService := NewFarmService(repoFactory.FarmRepo, repoFactory.FarmerRepo, aaaService, gormDB)
 
 	// Initialize crop management services
 	cropService := NewCropService(repoFactory.CropRepo, repoFactory.CropVarietyRepo, aaaService)

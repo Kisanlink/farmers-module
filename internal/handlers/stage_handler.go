@@ -34,12 +34,12 @@ func NewStageHandler(stageService services.StageService, logger interfaces.Logge
 // @Accept json
 // @Produce json
 // @Param stage body requests.CreateStageRequest true "Stage details"
-// @Success 201 {object} responses.StageResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 409 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 201 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 409 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/stages [post]
 func (h *StageHandler) CreateStage(c *gin.Context) {
@@ -77,11 +77,11 @@ func (h *StageHandler) CreateStage(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Stage ID"
-// @Success 200 {object} responses.StageResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/stages/{id} [get]
 func (h *StageHandler) GetStage(c *gin.Context) {
@@ -116,13 +116,13 @@ func (h *StageHandler) GetStage(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Stage ID"
 // @Param stage body requests.UpdateStageRequest true "Stage update details"
-// @Success 200 {object} responses.StageResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 409 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 409 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/stages/{id} [put]
 func (h *StageHandler) UpdateStage(c *gin.Context) {
@@ -162,11 +162,11 @@ func (h *StageHandler) UpdateStage(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Stage ID"
-// @Success 200 {object} responses.BaseResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerBaseResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/stages/{id} [delete]
 func (h *StageHandler) DeleteStage(c *gin.Context) {
@@ -204,11 +204,11 @@ func (h *StageHandler) DeleteStage(c *gin.Context) {
 // @Param page_size query int false "Page size" default(20)
 // @Param search query string false "Search by stage name or description"
 // @Param is_active query bool false "Filter by active status"
-// @Success 200 {object} responses.StageListResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageListResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/stages [get]
 func (h *StageHandler) ListStages(c *gin.Context) {
@@ -274,10 +274,10 @@ func (h *StageHandler) ListStages(c *gin.Context) {
 // @Tags Stages
 // @Accept json
 // @Produce json
-// @Success 200 {object} responses.StageLookupResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerStageLookupResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/stages/lookup [get]
 func (h *StageHandler) GetStageLookup(c *gin.Context) {
@@ -309,13 +309,13 @@ func (h *StageHandler) GetStageLookup(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Crop ID"
 // @Param crop_stage body requests.AssignStageToCropRequest true "Crop stage details"
-// @Success 201 {object} responses.CropStageResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 409 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 201 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropStageResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 409 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/crops/{id}/stages [post]
 func (h *StageHandler) AssignStageToCrop(c *gin.Context) {
@@ -357,11 +357,11 @@ func (h *StageHandler) AssignStageToCrop(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Crop ID"
-// @Success 200 {object} responses.CropStagesResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropStagesResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/crops/{id}/stages [get]
 func (h *StageHandler) GetCropStages(c *gin.Context) {
@@ -397,13 +397,13 @@ func (h *StageHandler) GetCropStages(c *gin.Context) {
 // @Param id path string true "Crop ID"
 // @Param stage_id path string true "Stage ID"
 // @Param crop_stage body requests.UpdateCropStageRequest true "Crop stage update details"
-// @Success 200 {object} responses.CropStageResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 409 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerCropStageResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 409 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/crops/{id}/stages/{stage_id} [put]
 func (h *StageHandler) UpdateCropStage(c *gin.Context) {
@@ -450,11 +450,11 @@ func (h *StageHandler) UpdateCropStage(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Crop ID"
 // @Param stage_id path string true "Stage ID"
-// @Success 200 {object} responses.BaseResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerBaseResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/crops/{id}/stages/{stage_id} [delete]
 func (h *StageHandler) RemoveStageFromCrop(c *gin.Context) {
@@ -496,12 +496,12 @@ func (h *StageHandler) RemoveStageFromCrop(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Crop ID"
 // @Param reorder body requests.ReorderCropStagesRequest true "Stage reorder details"
-// @Success 200 {object} responses.BaseResponse
-// @Failure 400 {object} responses.ErrorResponse
-// @Failure 401 {object} responses.ErrorResponse
-// @Failure 403 {object} responses.ErrorResponse
-// @Failure 404 {object} responses.ErrorResponse
-// @Failure 500 {object} responses.ErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerBaseResponse
+// @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 401 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 403 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 404 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/crops/{id}/stages/reorder [post]
 func (h *StageHandler) ReorderCropStages(c *gin.Context) {

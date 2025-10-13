@@ -25,8 +25,9 @@ func NewLookupHandlers(lookupService services.LookupService) *LookupHandlers {
 // @Tags lookups
 // @Accept json
 // @Produce json
-// @Success 200 {object} SoilTypesResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerSoilTypesResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /lookups/soil-types [get]
 func (h *LookupHandlers) GetSoilTypes(c *gin.Context) {
 	soilTypes, err := h.lookupService.GetSoilTypes(c.Request.Context())
@@ -48,8 +49,9 @@ func (h *LookupHandlers) GetSoilTypes(c *gin.Context) {
 // @Tags lookups
 // @Accept json
 // @Produce json
-// @Success 200 {object} IrrigationSourcesResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerIrrigationSourcesResponse
+// @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
+// @Security BearerAuth
 // @Router /lookups/irrigation-sources [get]
 func (h *LookupHandlers) GetIrrigationSources(c *gin.Context) {
 	irrigationSources, err := h.lookupService.GetIrrigationSources(c.Request.Context())
