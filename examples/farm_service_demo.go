@@ -49,8 +49,8 @@ func main() {
 		{
 			"Valid Request",
 			&requests.CreateFarmRequest{
-				AAAFarmerUserID: "farmer123",
-				AAAOrgID:        "org123",
+				AAAUserID: "farmer123",
+				AAAOrgID:  "org123",
 				Geometry: requests.GeometryData{
 					WKT: "POLYGON((77.5946 12.9716, 77.6046 12.9716, 77.6046 12.9816, 77.5946 12.9816, 77.5946 12.9716))",
 				},
@@ -74,7 +74,7 @@ func main() {
 	for _, test := range testRequests {
 		// This would normally be a private method, but for demo purposes we'll show the concept
 		var err error
-		if test.req.AAAFarmerUserID == "" {
+		if test.req.AAAUserID == "" {
 			err = fmt.Errorf("farmer user ID is required")
 		} else if test.req.AAAOrgID == "" {
 			err = fmt.Errorf("organization ID is required")

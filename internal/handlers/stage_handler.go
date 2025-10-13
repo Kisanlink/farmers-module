@@ -307,7 +307,7 @@ func (h *StageHandler) GetStageLookup(c *gin.Context) {
 // @Tags Crop Stages
 // @Accept json
 // @Produce json
-// @Param crop_id path string true "Crop ID"
+// @Param id path string true "Crop ID"
 // @Param crop_stage body requests.AssignStageToCropRequest true "Crop stage details"
 // @Success 201 {object} responses.CropStageResponse
 // @Failure 400 {object} responses.ErrorResponse
@@ -317,7 +317,7 @@ func (h *StageHandler) GetStageLookup(c *gin.Context) {
 // @Failure 409 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
 // @Security BearerAuth
-// @Router /api/v1/crops/{crop_id}/stages [post]
+// @Router /api/v1/crops/{id}/stages [post]
 func (h *StageHandler) AssignStageToCrop(c *gin.Context) {
 	cropID := c.Param("id")
 	var req requests.AssignStageToCropRequest
@@ -356,14 +356,14 @@ func (h *StageHandler) AssignStageToCrop(c *gin.Context) {
 // @Tags Crop Stages
 // @Accept json
 // @Produce json
-// @Param crop_id path string true "Crop ID"
+// @Param id path string true "Crop ID"
 // @Success 200 {object} responses.CropStagesResponse
 // @Failure 401 {object} responses.ErrorResponse
 // @Failure 403 {object} responses.ErrorResponse
 // @Failure 404 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
 // @Security BearerAuth
-// @Router /api/v1/crops/{crop_id}/stages [get]
+// @Router /api/v1/crops/{id}/stages [get]
 func (h *StageHandler) GetCropStages(c *gin.Context) {
 	cropID := c.Param("id")
 
@@ -394,7 +394,7 @@ func (h *StageHandler) GetCropStages(c *gin.Context) {
 // @Tags Crop Stages
 // @Accept json
 // @Produce json
-// @Param crop_id path string true "Crop ID"
+// @Param id path string true "Crop ID"
 // @Param stage_id path string true "Stage ID"
 // @Param crop_stage body requests.UpdateCropStageRequest true "Crop stage update details"
 // @Success 200 {object} responses.CropStageResponse
@@ -405,7 +405,7 @@ func (h *StageHandler) GetCropStages(c *gin.Context) {
 // @Failure 409 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
 // @Security BearerAuth
-// @Router /api/v1/crops/{crop_id}/stages/{stage_id} [put]
+// @Router /api/v1/crops/{id}/stages/{stage_id} [put]
 func (h *StageHandler) UpdateCropStage(c *gin.Context) {
 	cropID := c.Param("id")
 	stageID := c.Param("stage_id")
@@ -448,7 +448,7 @@ func (h *StageHandler) UpdateCropStage(c *gin.Context) {
 // @Tags Crop Stages
 // @Accept json
 // @Produce json
-// @Param crop_id path string true "Crop ID"
+// @Param id path string true "Crop ID"
 // @Param stage_id path string true "Stage ID"
 // @Success 200 {object} responses.BaseResponse
 // @Failure 401 {object} responses.ErrorResponse
@@ -456,7 +456,7 @@ func (h *StageHandler) UpdateCropStage(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
 // @Security BearerAuth
-// @Router /api/v1/crops/{crop_id}/stages/{stage_id} [delete]
+// @Router /api/v1/crops/{id}/stages/{stage_id} [delete]
 func (h *StageHandler) RemoveStageFromCrop(c *gin.Context) {
 	cropID := c.Param("id")
 	stageID := c.Param("stage_id")
@@ -494,7 +494,7 @@ func (h *StageHandler) RemoveStageFromCrop(c *gin.Context) {
 // @Tags Crop Stages
 // @Accept json
 // @Produce json
-// @Param crop_id path string true "Crop ID"
+// @Param id path string true "Crop ID"
 // @Param reorder body requests.ReorderCropStagesRequest true "Stage reorder details"
 // @Success 200 {object} responses.BaseResponse
 // @Failure 400 {object} responses.ErrorResponse
@@ -503,7 +503,7 @@ func (h *StageHandler) RemoveStageFromCrop(c *gin.Context) {
 // @Failure 404 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
 // @Security BearerAuth
-// @Router /api/v1/crops/{crop_id}/stages/reorder [post]
+// @Router /api/v1/crops/{id}/stages/reorder [post]
 func (h *StageHandler) ReorderCropStages(c *gin.Context) {
 	cropID := c.Param("id")
 	var req requests.ReorderCropStagesRequest

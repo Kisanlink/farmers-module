@@ -475,10 +475,10 @@ func (s *DataQualityServiceImpl) DetectFarmOverlaps(ctx context.Context, req int
 		SELECT
 			f1.id as farm1_id,
 			f1.name as farm1_name,
-			f1.aaa_farmer_user_id as farm1_farmer_id,
+			f1.aaa_user_id as farm1_farmer_id,
 			f2.id as farm2_id,
 			f2.name as farm2_name,
-			f2.aaa_farmer_user_id as farm2_farmer_id,
+			f2.aaa_user_id as farm2_farmer_id,
 			ST_Area(ST_Intersection(f1.geometry, f2.geometry))/10000.0 as overlap_area_ha,
 			ST_Area(f1.geometry)/10000.0 as farm1_area_ha,
 			ST_Area(f2.geometry)/10000.0 as farm2_area_ha

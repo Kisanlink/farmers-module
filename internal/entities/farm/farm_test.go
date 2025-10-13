@@ -16,10 +16,10 @@ func TestFarmValidate(t *testing.T) {
 		{
 			name: "valid farm",
 			farm: &Farm{
-				AAAFarmerUserID: "user123",
-				AAAOrgID:        "org123",
-				Name:            testutils.StringPtr("Test Farm"),
-				Geometry:        "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
+				AAAUserID: "user123",
+				AAAOrgID:  "org123",
+				Name:      testutils.StringPtr("Test Farm"),
+				Geometry:  "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 			},
 			wantErr: false,
 		},
@@ -35,18 +35,18 @@ func TestFarmValidate(t *testing.T) {
 		{
 			name: "missing AAA org ID",
 			farm: &Farm{
-				AAAFarmerUserID: "user123",
-				Name:            testutils.StringPtr("Test Farm"),
-				Geometry:        "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
+				AAAUserID: "user123",
+				Name:      testutils.StringPtr("Test Farm"),
+				Geometry:  "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 			},
 			wantErr: true,
 		},
 		{
 			name: "missing geometry",
 			farm: &Farm{
-				AAAFarmerUserID: "user123",
-				AAAOrgID:        "org123",
-				Name:            testutils.StringPtr("Test Farm"),
+				AAAUserID: "user123",
+				AAAOrgID:  "org123",
+				Name:      testutils.StringPtr("Test Farm"),
 			},
 			wantErr: true,
 		},

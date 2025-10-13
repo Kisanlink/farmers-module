@@ -84,10 +84,10 @@ func TestModelValidation(t *testing.T) {
 
 	t.Run("Farm", func(t *testing.T) {
 		farm := &farm.Farm{
-			AAAFarmerUserID: "user123",
-			AAAOrgID:        "org123",
-			Name:            testutils.StringPtr("Test Farm"),
-			Geometry:        "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
+			AAAUserID: "user123",
+			AAAOrgID:  "org123",
+			Name:      testutils.StringPtr("Test Farm"),
+			Geometry:  "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 		}
 
 		err := farm.Validate()
@@ -142,10 +142,10 @@ func TestModelRelationships(t *testing.T) {
 	}
 
 	testFarm := &farm.Farm{
-		AAAFarmerUserID: testFarmer.AAAUserID,
-		AAAOrgID:        testFarmer.AAAOrgID,
-		Name:            testutils.StringPtr("Test Farm"),
-		Geometry:        "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
+		AAAUserID: testFarmer.AAAUserID,
+		AAAOrgID:  testFarmer.AAAOrgID,
+		Name:      testutils.StringPtr("Test Farm"),
+		Geometry:  "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 	}
 
 	testCropCycle := &crop_cycle.CropCycle{
@@ -170,7 +170,7 @@ func TestModelRelationships(t *testing.T) {
 	assert.NoError(t, testFarmActivity.Validate())
 
 	// Test that relationships are properly structured
-	assert.Equal(t, testFarmer.AAAUserID, testFarm.AAAFarmerUserID)
+	assert.Equal(t, testFarmer.AAAUserID, testFarm.AAAUserID)
 	assert.Equal(t, testFarmer.AAAOrgID, testFarm.AAAOrgID)
 	assert.Equal(t, testFarmer.AAAUserID, testFarmActivity.CreatedBy)
 }

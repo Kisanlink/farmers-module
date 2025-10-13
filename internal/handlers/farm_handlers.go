@@ -186,7 +186,7 @@ func ListFarms(service services.FarmService) gin.HandlerFunc {
 			}
 		}
 		if farmerID := c.Query("farmer_id"); farmerID != "" {
-			req.AAAFarmerUserID = farmerID
+			req.AAAUserID = farmerID
 		}
 		if orgID := c.Query("org_id"); orgID != "" {
 			req.AAAOrgID = orgID

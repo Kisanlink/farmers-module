@@ -41,10 +41,10 @@ func TestPostGISIntegration(t *testing.T) {
 	t.Run("validates geometry data types", func(t *testing.T) {
 		// Create a test farm with geometry
 		testFarm := &farm.Farm{
-			AAAFarmerUserID: "user123",
-			AAAOrgID:        "org123",
-			Name:            testutils.StringPtr("Test Farm"),
-			Geometry:        "POLYGON((77.5946 12.9716, 77.6046 12.9716, 77.6046 12.9816, 77.5946 12.9816, 77.5946 12.9716))",
+			AAAUserID: "user123",
+			AAAOrgID:  "org123",
+			Name:      testutils.StringPtr("Test Farm"),
+			Geometry:  "POLYGON((77.5946 12.9716, 77.6046 12.9716, 77.6046 12.9816, 77.5946 12.9816, 77.5946 12.9716))",
 		}
 
 		// Insert the farm
@@ -233,10 +233,10 @@ func TestModelRelationshipsWithRealDB(t *testing.T) {
 
 		// Create Farm
 		testFarm := &farm.Farm{
-			AAAFarmerUserID: testFarmer.AAAUserID,
-			AAAOrgID:        testFPO.AAAOrgID,
-			Name:            testutils.StringPtr("Workflow Test Farm"),
-			Geometry:        "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
+			AAAUserID: testFarmer.AAAUserID,
+			AAAOrgID:  testFPO.AAAOrgID,
+			Name:      testutils.StringPtr("Workflow Test Farm"),
+			Geometry:  "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 		}
 		err = db.Create(testFarm).Error
 		require.NoError(t, err)
@@ -298,10 +298,10 @@ func TestParallelDatabaseOperations(t *testing.T) {
 		defer cleanup()
 
 		testFarm := &farm.Farm{
-			AAAFarmerUserID: "parallel_user_2",
-			AAAOrgID:        "parallel_org_2",
-			Name:            testutils.StringPtr("Parallel Farm"),
-			Geometry:        "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
+			AAAUserID: "parallel_user_2",
+			AAAOrgID:  "parallel_org_2",
+			Name:      testutils.StringPtr("Parallel Farm"),
+			Geometry:  "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 		}
 
 		err := db.Create(testFarm).Error
@@ -325,16 +325,16 @@ func TestSpatialIndexes(t *testing.T) {
 		// Insert test farms
 		farms := []*farm.Farm{
 			{
-				AAAFarmerUserID: "user1",
-				AAAOrgID:        "org1",
-				Name:            testutils.StringPtr("Farm 1"),
-				Geometry:        "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
+				AAAUserID: "user1",
+				AAAOrgID:  "org1",
+				Name:      testutils.StringPtr("Farm 1"),
+				Geometry:  "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 			},
 			{
-				AAAFarmerUserID: "user2",
-				AAAOrgID:        "org1",
-				Name:            testutils.StringPtr("Farm 2"),
-				Geometry:        "POLYGON((2 2, 3 2, 3 3, 2 3, 2 2))",
+				AAAUserID: "user2",
+				AAAOrgID:  "org1",
+				Name:      testutils.StringPtr("Farm 2"),
+				Geometry:  "POLYGON((2 2, 3 2, 3 3, 2 3, 2 2))",
 			},
 		}
 

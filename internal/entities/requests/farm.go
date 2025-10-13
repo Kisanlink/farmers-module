@@ -3,7 +3,7 @@ package requests
 // CreateFarmRequest represents a request to create a new farm
 type CreateFarmRequest struct {
 	BaseRequest
-	AAAFarmerUserID           string                    `json:"aaa_farmer_user_id" validate:"required" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	AAAUserID                 string                    `json:"aaa_user_id" validate:"required" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
 	AAAOrgID                  string                    `json:"aaa_org_id" validate:"required" example:"org_123e4567-e89b-12d3-a456-426614174000"`
 	Name                      *string                   `json:"name,omitempty" example:"North Field Farm"`
 	OwnershipType             string                    `json:"ownership_type,omitempty" validate:"omitempty,oneof=OWN LEASE SHARED" example:"OWN"`
@@ -21,7 +21,7 @@ type CreateFarmRequest struct {
 type UpdateFarmRequest struct {
 	BaseRequest
 	ID                        string                    `json:"id" validate:"required" example:"farm_123e4567-e89b-12d3-a456-426614174000"`
-	AAAFarmerUserID           string                    `json:"aaa_farmer_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	AAAUserID                 string                    `json:"aaa_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
 	AAAOrgID                  string                    `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
 	Name                      *string                   `json:"name,omitempty" example:"North Field Farm - Updated"`
 	OwnershipType             *string                   `json:"ownership_type,omitempty" validate:"omitempty,oneof=OWN LEASE SHARED" example:"LEASE"`
@@ -50,17 +50,17 @@ type GetFarmRequest struct {
 // ListFarmsRequest represents a request to list farms with filtering
 type ListFarmsRequest struct {
 	FilterRequest
-	AAAFarmerUserID string   `json:"aaa_farmer_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
-	AAAOrgID        string   `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
-	MinArea         *float64 `json:"min_area,omitempty" example:"1.0"`
-	MaxArea         *float64 `json:"max_area,omitempty" example:"10.0"`
+	AAAUserID string   `json:"aaa_user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	AAAOrgID  string   `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+	MinArea   *float64 `json:"min_area,omitempty" example:"1.0"`
+	MaxArea   *float64 `json:"max_area,omitempty" example:"10.0"`
 }
 
 // GetFarmsByFarmerRequest represents a request to get farms by farmer
 type GetFarmsByFarmerRequest struct {
 	PaginationRequest
-	AAAFarmerUserID string `json:"aaa_farmer_user_id" validate:"required" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
-	AAAOrgID        string `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+	AAAUserID string `json:"aaa_user_id" validate:"required" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	AAAOrgID  string `json:"aaa_org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
 }
 
 // GetFarmsByOrgRequest represents a request to get farms by organization

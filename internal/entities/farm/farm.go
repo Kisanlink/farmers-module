@@ -58,7 +58,7 @@ func (m Metadata) Value() (driver.Value, error) {
 // Farm represents a farm with geographic boundaries
 type Farm struct {
 	base.BaseModel
-	AAAFarmerUserID           string        `json:"aaa_farmer_user_id" gorm:"type:varchar(255);not null"`
+	AAAUserID                 string        `json:"aaa_user_id" gorm:"type:varchar(255);not null"`
 	AAAOrgID                  string        `json:"aaa_org_id" gorm:"type:varchar(255);not null"`
 	Name                      *string       `json:"name" gorm:"type:varchar(255)"`
 	OwnershipType             OwnershipType `json:"ownership_type" gorm:"type:varchar(20);default:'OWN'"`
@@ -105,7 +105,7 @@ func NewFarm() *Farm {
 
 // Validation methods
 func (f *Farm) Validate() error {
-	if f.AAAFarmerUserID == "" {
+	if f.AAAUserID == "" {
 		return common.ErrInvalidFarmData
 	}
 	if f.AAAOrgID == "" {

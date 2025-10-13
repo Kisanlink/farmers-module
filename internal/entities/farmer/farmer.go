@@ -41,13 +41,13 @@ type FarmerProfile struct {
 
 // Farm represents a minimal farm reference for the farmer profile
 type Farm struct {
-	ID              string            `json:"id"`
-	AAAFarmerUserID string            `json:"aaa_farmer_user_id"`
-	AAAOrgID        string            `json:"aaa_org_id"`
-	AreaHa          float64           `json:"area_ha"`
-	Metadata        map[string]string `json:"metadata"`
-	CreatedAt       string            `json:"created_at"`
-	UpdatedAt       string            `json:"updated_at"`
+	ID        string            `json:"id"`
+	AAAUserID string            `json:"aaa_user_id"`
+	AAAOrgID  string            `json:"aaa_org_id"`
+	AreaHa    float64           `json:"area_ha"`
+	Metadata  map[string]string `json:"metadata"`
+	CreatedAt string            `json:"created_at"`
+	UpdatedAt string            `json:"updated_at"`
 }
 
 // FarmerLegacy represents the legacy farmer model with denormalized address fields

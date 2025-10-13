@@ -69,7 +69,7 @@ func (s *FarmServiceImpl) CreateFarm(ctx context.Context, req interface{}) (inte
 
 	// Create farm entity with proper BaseModel initialization
 	farm := farmEntity.NewFarm()
-	farm.AAAFarmerUserID = createReq.AAAFarmerUserID
+	farm.AAAUserID = createReq.AAAUserID
 	farm.AAAOrgID = createReq.AAAOrgID
 	farm.Name = createReq.Name
 	farm.OwnershipType = farmEntity.OwnershipType(createReq.OwnershipType)
@@ -267,8 +267,8 @@ func (s *FarmServiceImpl) ListFarms(ctx context.Context, req interface{}) (inter
 
 	// Build filters
 	filters := make(map[string]interface{})
-	if listReq.AAAFarmerUserID != "" {
-		filters["aaa_farmer_user_id"] = listReq.AAAFarmerUserID
+	if listReq.AAAUserID != "" {
+		filters["aaa_user_id"] = listReq.AAAUserID
 	}
 	if listReq.AAAOrgID != "" {
 		filters["aaa_org_id"] = listReq.AAAOrgID
@@ -278,8 +278,8 @@ func (s *FarmServiceImpl) ListFarms(ctx context.Context, req interface{}) (inter
 	filterBuilder := base.NewFilterBuilder().Page(listReq.Page, listReq.PageSize)
 
 	// Add filters
-	if listReq.AAAFarmerUserID != "" {
-		filterBuilder = filterBuilder.Where("aaa_farmer_user_id", base.OpEqual, listReq.AAAFarmerUserID)
+	if listReq.AAAUserID != "" {
+		filterBuilder = filterBuilder.Where("aaa_user_id", base.OpEqual, listReq.AAAUserID)
 	}
 	if listReq.AAAOrgID != "" {
 		filterBuilder = filterBuilder.Where("aaa_org_id", base.OpEqual, listReq.AAAOrgID)
@@ -378,8 +378,8 @@ func (s *FarmServiceImpl) ListFarmsByBoundingBox(ctx context.Context, bbox reque
 	query := s.db.Where("ST_Intersects(geometry, ST_GeomFromText(?, 4326))", bboxWKT)
 
 	// Apply additional filters
-	if filters.AAAFarmerUserID != "" {
-		query = query.Where("aaa_farmer_user_id = ?", filters.AAAFarmerUserID)
+	if filters.AAAUserID != "" {
+		query = query.Where("aaa_user_id = ?", filters.AAAUserID)
 	}
 	if filters.AAAOrgID != "" {
 		query = query.Where("aaa_org_id = ?", filters.AAAOrgID)
@@ -409,7 +409,7 @@ func (s *FarmServiceImpl) ValidateGeometry(ctx context.Context, wkt string) erro
 // Helper methods
 
 func (s *FarmServiceImpl) validateCreateFarmRequest(req *requests.CreateFarmRequest) error {
-	if req.AAAFarmerUserID == "" {
+	if req.AAAUserID == "" {
 		return fmt.Errorf("farmer user ID is required")
 	}
 	if req.AAAOrgID == "" {
@@ -537,14 +537,14 @@ func (s *FarmServiceImpl) convertFarmToData(farm *farmEntity.Farm) *responses.Fa
 		farmName = *farm.Name
 	}
 	return &responses.FarmData{
-		ID:              farm.ID,
-		AAAFarmerUserID: farm.AAAFarmerUserID,
-		AAAOrgID:        farm.AAAOrgID,
-		Name:            farmName,
-		Geometry:        farm.Geometry,
-		AreaHa:          farm.AreaHa,
-		Metadata:        farm.Metadata,
-		CreatedAt:       farm.CreatedAt,
-		UpdatedAt:       farm.UpdatedAt,
+		ID:        farm.ID,
+		AAAUserID: farm.AAAUserID,
+		AAAOrgID:  farm.AAAOrgID,
+		Name:      farmName,
+		Geometry:  farm.Geometry,
+		AreaHa:    farm.AreaHa,
+		Metadata:  farm.Metadata,
+		CreatedAt: farm.CreatedAt,
+		UpdatedAt: farm.UpdatedAt,
 	}
 }

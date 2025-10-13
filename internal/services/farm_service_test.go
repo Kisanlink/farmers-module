@@ -67,8 +67,8 @@ func TestFarmService_ValidateCreateFarmRequest(t *testing.T) {
 		{
 			name: "valid request",
 			request: &requests.CreateFarmRequest{
-				AAAFarmerUserID: "farmer123",
-				AAAOrgID:        "org123",
+				AAAUserID: "farmer123",
+				AAAOrgID:  "org123",
 				Geometry: requests.GeometryData{
 					WKT: "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 				},
@@ -90,7 +90,7 @@ func TestFarmService_ValidateCreateFarmRequest(t *testing.T) {
 		{
 			name: "missing org ID",
 			request: &requests.CreateFarmRequest{
-				AAAFarmerUserID: "farmer123",
+				AAAUserID: "farmer123",
 				Geometry: requests.GeometryData{
 					WKT: "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
 				},
@@ -101,8 +101,8 @@ func TestFarmService_ValidateCreateFarmRequest(t *testing.T) {
 		{
 			name: "missing geometry",
 			request: &requests.CreateFarmRequest{
-				AAAFarmerUserID: "farmer123",
-				AAAOrgID:        "org123",
+				AAAUserID: "farmer123",
+				AAAOrgID:  "org123",
 			},
 			expectError: true,
 			description: "Missing geometry",

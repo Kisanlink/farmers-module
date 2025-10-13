@@ -62,7 +62,7 @@ func (s *ReportingServiceImpl) ExportFarmerPortfolio(ctx context.Context, req in
 
 	// Build filters for farms
 	farmFilterBuilder := base.NewFilterBuilder().
-		Where("aaa_farmer_user_id", base.OpEqual, farmer.AAAUserID).
+		Where("aaa_user_id", base.OpEqual, farmer.AAAUserID).
 		Where("aaa_org_id", base.OpEqual, request.OrgID)
 
 	// Get farms
