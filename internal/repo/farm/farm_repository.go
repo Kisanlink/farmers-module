@@ -116,28 +116,9 @@ func (r *FarmRepository) ValidateGeometry(ctx context.Context, wkt string) error
 	return nil
 }
 
-// Count overrides the base Count method to properly set the model
-func (r *FarmRepository) Count(ctx context.Context, filter *base.Filter, model *farm.Farm) (int64, error) {
-	if r.db == nil {
-		return 0, fmt.Errorf("database connection not available")
-	}
-
-	query := r.db.Model(&farm.Farm{}).WithContext(ctx)
-
-	// Apply filters
-	if filter != nil && filter.Group.Conditions != nil {
-		for _, condition := range filter.Group.Conditions {
-			query = query.Where(condition.Field+" "+string(condition.Operator)+" ?", condition.Value)
-		}
-	}
-
-	var count int64
-	if err := query.Count(&count).Error; err != nil {
-		return 0, err
-	}
-
-	return count, nil
-}
+// Note: Count method is inherited from BaseFilterableRepository
+// which properly delegates to PostgresManager.Count()
+// No need to override it here
 
 // CheckOverlap checks if a geometry overlaps with existing farms
 func (r *FarmRepository) CheckOverlap(ctx context.Context, wkt string, excludeFarmID string, orgID string) (bool, []string, float64, error) {

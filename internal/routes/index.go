@@ -28,6 +28,9 @@ func RegisterAllRoutes(router *gin.Engine, services *services.ServiceFactory, cf
 		// Crop Management (W10-W17)
 		RegisterCropRoutes(api, services, cfg, logger)
 
+		// Stage Management
+		RegisterStageRoutes(api, services, cfg, logger)
+
 		// Data Quality and Validation
 		RegisterDataQualityRoutes(api, services, cfg, logger)
 

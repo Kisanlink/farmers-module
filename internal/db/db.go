@@ -17,6 +17,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/fpo"
 	"github.com/Kisanlink/farmers-module/internal/entities/irrigation_source"
 	"github.com/Kisanlink/farmers-module/internal/entities/soil_type"
+	"github.com/Kisanlink/farmers-module/internal/entities/stage"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
 	"go.uber.org/zap"
@@ -88,6 +89,10 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 			// Crop variety (depends on Crop)
 			&crop_variety.CropVariety{},
 
+			// Stage tables (depends on Crop)
+			&stage.Stage{},
+			&stage.CropStage{},
+
 			// Farm entity skipped (requires PostGIS)
 
 			// Crop cycle (depends on Farm - skipped without PostGIS)
@@ -139,6 +144,10 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 				// Crop variety (depends on Crop)
 				&crop_variety.CropVariety{},
 
+				// Stage tables (depends on Crop)
+				&stage.Stage{},
+				&stage.CropStage{},
+
 				// Farm entity skipped (PostGIS extension failed)
 
 				// Crop cycle (depends on Farm - skipped without PostGIS)
@@ -187,6 +196,10 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 
 			// Crop variety (depends on Crop)
 			&crop_variety.CropVariety{},
+
+			// Stage tables (depends on Crop)
+			&stage.Stage{},
+			&stage.CropStage{},
 
 			// Crop cycle (depends on Farm, Farmer, Crop, CropVariety)
 			&crop_cycle.CropCycle{},

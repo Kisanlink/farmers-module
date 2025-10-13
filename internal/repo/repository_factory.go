@@ -11,6 +11,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/repo/farm_activity"
 	"github.com/Kisanlink/farmers-module/internal/repo/farmer"
 	"github.com/Kisanlink/farmers-module/internal/repo/fpo_ref"
+	"github.com/Kisanlink/farmers-module/internal/repo/stage"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
 )
@@ -27,6 +28,8 @@ type RepositoryFactory struct {
 	FarmActivityRepo     *farm_activity.FarmActivityRepository
 	BulkOperationRepo    bulk.BulkOperationRepository
 	ProcessingDetailRepo bulk.ProcessingDetailRepository
+	StageRepo            *stage.StageRepository
+	CropStageRepo        *stage.CropStageRepository
 }
 
 // NewRepositoryFactory creates a new repository factory
@@ -48,5 +51,7 @@ func NewRepositoryFactory(dbManager *db.PostgresManager) *RepositoryFactory {
 		FarmActivityRepo:     farm_activity.NewFarmActivityRepository(dbManager),
 		BulkOperationRepo:    bulk.NewBulkOperationRepository(gormDB),
 		ProcessingDetailRepo: bulk.NewProcessingDetailRepository(gormDB),
+		StageRepo:            stage.NewStageRepository(gormDB),
+		CropStageRepo:        stage.NewCropStageRepository(gormDB),
 	}
 }

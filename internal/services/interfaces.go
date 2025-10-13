@@ -178,3 +178,23 @@ type AdministrativeService interface {
 	// HealthCheck verifies database connectivity and AAA service availability
 	HealthCheck(ctx context.Context, req interface{}) (interface{}, error)
 }
+
+// StageService handles stage-related operations
+type StageService interface {
+	// Stage CRUD
+	CreateStage(ctx context.Context, req interface{}) (interface{}, error)
+	GetStage(ctx context.Context, req interface{}) (interface{}, error)
+	UpdateStage(ctx context.Context, req interface{}) (interface{}, error)
+	DeleteStage(ctx context.Context, req interface{}) (interface{}, error)
+	ListStages(ctx context.Context, req interface{}) (interface{}, error)
+
+	// CropStage operations
+	AssignStageToCrop(ctx context.Context, req interface{}) (interface{}, error)
+	RemoveStageFromCrop(ctx context.Context, req interface{}) (interface{}, error)
+	UpdateCropStage(ctx context.Context, req interface{}) (interface{}, error)
+	GetCropStages(ctx context.Context, req interface{}) (interface{}, error)
+	ReorderCropStages(ctx context.Context, req interface{}) (interface{}, error)
+
+	// Lookup operations
+	GetStageLookup(ctx context.Context, req interface{}) (interface{}, error)
+}

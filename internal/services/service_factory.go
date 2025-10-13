@@ -52,6 +52,9 @@ type ServiceFactory struct {
 
 	// AAA Client for direct integration
 	AAAClient *aaa.Client
+
+	// Stage Management Services
+	StageService StageService
 }
 
 // NewServiceFactory creates a new service factory
@@ -123,6 +126,13 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	// Initialize audit service
 	auditService := audit.NewAuditService(logger.GetZapLogger(), nil) // No remote client for now
 
+	// Initialize stage service
+	stageService := NewStageService(
+		repoFactory.StageRepo,
+		repoFactory.CropStageRepo,
+		aaaService,
+	)
+
 	return &ServiceFactory{
 		FarmerService:         farmerService,
 		FarmerLinkageService:  farmerLinkageService,
@@ -140,5 +150,6 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		AAAService:            aaaService,
 		AuditService:          auditService,
 		AAAClient:             aaaClient,
+		StageService:          stageService,
 	}
 }
