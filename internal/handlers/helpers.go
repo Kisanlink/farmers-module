@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/gin-gonic/gin"
 )
@@ -33,4 +34,23 @@ func parseIntQuery(c *gin.Context, key string, defaultValue int) int {
 // handleServiceError converts service errors to appropriate HTTP responses
 func handleServiceError(c *gin.Context, err error) {
 	common.HandleServiceError(c, err)
+}
+
+// getUserContext extracts user and org context from gin context
+func getUserContext(c *gin.Context) (userID, orgID string) {
+	// Extract user context
+	if userCtx, exists := c.Get("user_context"); exists {
+		if uc, ok := userCtx.(*auth.UserContext); ok && uc != nil {
+			userID = uc.AAAUserID
+		}
+	}
+
+	// Extract org context
+	if orgCtx, exists := c.Get("org_context"); exists {
+		if oc, ok := orgCtx.(*auth.OrgContext); ok && oc != nil {
+			orgID = oc.AAAOrgID
+		}
+	}
+
+	return userID, orgID
 }

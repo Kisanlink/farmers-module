@@ -55,8 +55,7 @@ func (h *StageHandler) CreateStage(c *gin.Context) {
 	}
 
 	// Add user context from middleware
-	req.UserID = c.GetString("user_id")
-	req.OrgID = c.GetString("org_id")
+	req.UserID, req.OrgID = getUserContext(c)
 	req.RequestID = c.GetString("request_id")
 
 	response, err := h.stageService.CreateStage(c.Request.Context(), &req)
@@ -89,10 +88,11 @@ func (h *StageHandler) GetStage(c *gin.Context) {
 
 	h.logger.Info("Getting stage", zap.String("stage_id", stageID))
 
+	userID, orgID := getUserContext(c)
 	req := &requests.GetStageRequest{
 		BaseRequest: requests.BaseRequest{
-			UserID:    c.GetString("user_id"),
-			OrgID:     c.GetString("org_id"),
+			UserID:    userID,
+			OrgID:     orgID,
 			RequestID: c.GetString("request_id"),
 		},
 		ID: stageID,
@@ -140,8 +140,7 @@ func (h *StageHandler) UpdateStage(c *gin.Context) {
 
 	// Set ID from path parameter
 	req.ID = stageID
-	req.UserID = c.GetString("user_id")
-	req.OrgID = c.GetString("org_id")
+	req.UserID, req.OrgID = getUserContext(c)
 	req.RequestID = c.GetString("request_id")
 
 	response, err := h.stageService.UpdateStage(c.Request.Context(), &req)
@@ -174,10 +173,11 @@ func (h *StageHandler) DeleteStage(c *gin.Context) {
 
 	h.logger.Info("Deleting stage", zap.String("stage_id", stageID))
 
+	userID, orgID := getUserContext(c)
 	req := &requests.DeleteStageRequest{
 		BaseRequest: requests.BaseRequest{
-			UserID:    c.GetString("user_id"),
-			OrgID:     c.GetString("org_id"),
+			UserID:    userID,
+			OrgID:     orgID,
 			RequestID: c.GetString("request_id"),
 		},
 		ID: stageID,
@@ -217,10 +217,11 @@ func (h *StageHandler) ListStages(c *gin.Context) {
 		zap.String("page_size", c.Query("page_size")),
 		zap.String("search", c.Query("search")))
 
+	userID, orgID := getUserContext(c)
 	req := &requests.ListStagesRequest{
 		BaseRequest: requests.BaseRequest{
-			UserID:    c.GetString("user_id"),
-			OrgID:     c.GetString("org_id"),
+			UserID:    userID,
+			OrgID:     orgID,
 			RequestID: c.GetString("request_id"),
 		},
 	}
@@ -283,10 +284,11 @@ func (h *StageHandler) ListStages(c *gin.Context) {
 func (h *StageHandler) GetStageLookup(c *gin.Context) {
 	h.logger.Info("Getting stage lookup data")
 
+	userID, orgID := getUserContext(c)
 	req := &requests.GetStageLookupRequest{
 		BaseRequest: requests.BaseRequest{
-			UserID:    c.GetString("user_id"),
-			OrgID:     c.GetString("org_id"),
+			UserID:    userID,
+			OrgID:     orgID,
 			RequestID: c.GetString("request_id"),
 		},
 	}
@@ -333,8 +335,7 @@ func (h *StageHandler) AssignStageToCrop(c *gin.Context) {
 
 	// Set crop ID from path parameter
 	req.CropID = cropID
-	req.UserID = c.GetString("user_id")
-	req.OrgID = c.GetString("org_id")
+	req.UserID, req.OrgID = getUserContext(c)
 	req.RequestID = c.GetString("request_id")
 
 	response, err := h.stageService.AssignStageToCrop(c.Request.Context(), &req)
@@ -369,10 +370,11 @@ func (h *StageHandler) GetCropStages(c *gin.Context) {
 
 	h.logger.Info("Getting crop stages", zap.String("crop_id", cropID))
 
+	userID, orgID := getUserContext(c)
 	req := &requests.GetCropStagesRequest{
 		BaseRequest: requests.BaseRequest{
-			UserID:    c.GetString("user_id"),
-			OrgID:     c.GetString("org_id"),
+			UserID:    userID,
+			OrgID:     orgID,
 			RequestID: c.GetString("request_id"),
 		},
 		CropID: cropID,
@@ -425,8 +427,7 @@ func (h *StageHandler) UpdateCropStage(c *gin.Context) {
 	// Set IDs from path parameters
 	req.CropID = cropID
 	req.StageID = stageID
-	req.UserID = c.GetString("user_id")
-	req.OrgID = c.GetString("org_id")
+	req.UserID, req.OrgID = getUserContext(c)
 	req.RequestID = c.GetString("request_id")
 
 	response, err := h.stageService.UpdateCropStage(c.Request.Context(), &req)
@@ -465,10 +466,11 @@ func (h *StageHandler) RemoveStageFromCrop(c *gin.Context) {
 		zap.String("crop_id", cropID),
 		zap.String("stage_id", stageID))
 
+	userID, orgID := getUserContext(c)
 	req := &requests.RemoveStageFromCropRequest{
 		BaseRequest: requests.BaseRequest{
-			UserID:    c.GetString("user_id"),
-			OrgID:     c.GetString("org_id"),
+			UserID:    userID,
+			OrgID:     orgID,
 			RequestID: c.GetString("request_id"),
 		},
 		CropID:  cropID,
@@ -519,8 +521,7 @@ func (h *StageHandler) ReorderCropStages(c *gin.Context) {
 
 	// Set crop ID from path parameter
 	req.CropID = cropID
-	req.UserID = c.GetString("user_id")
-	req.OrgID = c.GetString("org_id")
+	req.UserID, req.OrgID = getUserContext(c)
 	req.RequestID = c.GetString("request_id")
 
 	response, err := h.stageService.ReorderCropStages(c.Request.Context(), &req)

@@ -4,31 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/gin-gonic/gin"
 )
-
-// getUserContext extracts user context from gin context
-func getUserContext(c *gin.Context) (userID, orgID string) {
-	// Extract user context
-	if userCtx, exists := c.Get("user_context"); exists {
-		if uc, ok := userCtx.(*auth.UserContext); ok && uc != nil {
-			userID = uc.AAAUserID
-		}
-	}
-
-	// Extract org context
-	if orgCtx, exists := c.Get("org_context"); exists {
-		if oc, ok := orgCtx.(*auth.OrgContext); ok && oc != nil {
-			orgID = oc.AAAOrgID
-		}
-	}
-
-	return userID, orgID
-}
 
 // Crop Handlers
 
