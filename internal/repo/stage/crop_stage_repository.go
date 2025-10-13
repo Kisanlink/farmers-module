@@ -6,93 +6,90 @@ import (
 
 	"github.com/Kisanlink/farmers-module/internal/entities/stage"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
-	"gorm.io/gorm"
 )
 
 // CropStageRepository provides data access methods for crop stages
 type CropStageRepository struct {
 	*base.BaseFilterableRepository[*stage.CropStage]
-	db *gorm.DB
 }
 
-// NewCropStageRepository creates a new crop stage repository
-func NewCropStageRepository(db *gorm.DB) *CropStageRepository {
+// NewCropStageRepository creates a new crop stage repository using BaseFilterableRepository
+func NewCropStageRepository(dbManager interface{}) *CropStageRepository {
 	baseRepo := base.NewBaseFilterableRepository[*stage.CropStage]()
+	baseRepo.SetDBManager(dbManager)
+
 	return &CropStageRepository{
 		BaseFilterableRepository: baseRepo,
-		db:                       db,
 	}
 }
 
 // GetCropStages gets all stages for a crop in order
+// Note: Stage preloading handled by service layer if needed
 func (r *CropStageRepository) GetCropStages(ctx context.Context, cropID string) ([]*stage.CropStage, error) {
-	var cropStages []*stage.CropStage
+	filter := base.NewFilterBuilder().
+		Where("crop_id", base.OpEqual, cropID).
+		Where("is_active", base.OpEqual, true).
+		Where("deleted_at", base.OpIsNull, nil).
+		Build()
 
-	err := r.db.WithContext(ctx).
-		Preload("Stage", "deleted_at IS NULL").
-		Where("crop_id = ?", cropID).
-		Where("is_active = ?", true).
-		Where("deleted_at IS NULL").
-		Order("stage_order ASC").
-		Find(&cropStages).Error
+	filter.Sort = []base.SortField{{Field: "stage_order", Direction: "asc"}}
 
+	cropStages, err := r.BaseFilterableRepository.Find(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get crop stages: %w", err)
 	}
 
 	return cropStages, nil
 }
 
 // GetCropStageByID gets a specific crop stage
+// Note: Stage and Crop preloading handled by service layer if needed
 func (r *CropStageRepository) GetCropStageByID(ctx context.Context, id string) (*stage.CropStage, error) {
-	var cropStage stage.CropStage
+	filter := base.NewFilterBuilder().
+		Where("id", base.OpEqual, id).
+		Where("deleted_at", base.OpIsNull, nil).
+		Build()
 
-	err := r.db.WithContext(ctx).
-		Preload("Stage").
-		Preload("Crop").
-		Where("id = ?", id).
-		Where("deleted_at IS NULL").
-		First(&cropStage).Error
-
+	cropStage, err := r.BaseFilterableRepository.FindOne(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get crop stage: %w", err)
 	}
 
-	return &cropStage, nil
+	return cropStage, nil
 }
 
 // GetCropStageByCropAndStage gets a crop stage by crop and stage IDs
 func (r *CropStageRepository) GetCropStageByCropAndStage(ctx context.Context, cropID, stageID string) (*stage.CropStage, error) {
-	var cropStage stage.CropStage
+	filter := base.NewFilterBuilder().
+		Where("crop_id", base.OpEqual, cropID).
+		Where("stage_id", base.OpEqual, stageID).
+		Where("deleted_at", base.OpIsNull, nil).
+		Build()
 
-	err := r.db.WithContext(ctx).
-		Where("crop_id = ?", cropID).
-		Where("stage_id = ?", stageID).
-		Where("deleted_at IS NULL").
-		First(&cropStage).Error
-
+	cropStage, err := r.BaseFilterableRepository.FindOne(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get crop stage: %w", err)
 	}
 
-	return &cropStage, nil
+	return cropStage, nil
 }
 
 // CheckCropStageExists checks if a crop-stage combination exists
 func (r *CropStageRepository) CheckCropStageExists(ctx context.Context, cropID, stageID string, excludeID ...string) (bool, error) {
-	query := r.db.WithContext(ctx).Model(&stage.CropStage{}).
-		Where("crop_id = ?", cropID).
-		Where("stage_id = ?", stageID).
-		Where("deleted_at IS NULL")
+	filterBuilder := base.NewFilterBuilder().
+		Where("crop_id", base.OpEqual, cropID).
+		Where("stage_id", base.OpEqual, stageID).
+		Where("deleted_at", base.OpIsNull, nil)
 
 	if len(excludeID) > 0 && excludeID[0] != "" {
-		query = query.Where("id != ?", excludeID[0])
+		filterBuilder = filterBuilder.Where("id", base.OpNotEqual, excludeID[0])
 	}
 
-	var count int64
-	err := query.Count(&count).Error
+	filter := filterBuilder.Build()
+
+	count, err := r.BaseFilterableRepository.Count(ctx, filter, &stage.CropStage{})
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to check crop stage exists: %w", err)
 	}
 
 	return count > 0, nil
@@ -100,19 +97,20 @@ func (r *CropStageRepository) CheckCropStageExists(ctx context.Context, cropID, 
 
 // CheckStageOrderExists checks if a stage order already exists for a crop
 func (r *CropStageRepository) CheckStageOrderExists(ctx context.Context, cropID string, stageOrder int, excludeID ...string) (bool, error) {
-	query := r.db.WithContext(ctx).Model(&stage.CropStage{}).
-		Where("crop_id = ?", cropID).
-		Where("stage_order = ?", stageOrder).
-		Where("deleted_at IS NULL")
+	filterBuilder := base.NewFilterBuilder().
+		Where("crop_id", base.OpEqual, cropID).
+		Where("stage_order", base.OpEqual, stageOrder).
+		Where("deleted_at", base.OpIsNull, nil)
 
 	if len(excludeID) > 0 && excludeID[0] != "" {
-		query = query.Where("id != ?", excludeID[0])
+		filterBuilder = filterBuilder.Where("id", base.OpNotEqual, excludeID[0])
 	}
 
-	var count int64
-	err := query.Count(&count).Error
+	filter := filterBuilder.Build()
+
+	count, err := r.BaseFilterableRepository.Count(ctx, filter, &stage.CropStage{})
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to check stage order exists: %w", err)
 	}
 
 	return count > 0, nil
@@ -120,16 +118,23 @@ func (r *CropStageRepository) CheckStageOrderExists(ctx context.Context, cropID 
 
 // GetMaxStageOrder gets the maximum stage order for a crop
 func (r *CropStageRepository) GetMaxStageOrder(ctx context.Context, cropID string) (int, error) {
-	var maxOrder int
-	err := r.db.WithContext(ctx).
-		Model(&stage.CropStage{}).
-		Select("COALESCE(MAX(stage_order), 0)").
-		Where("crop_id = ?", cropID).
-		Where("deleted_at IS NULL").
-		Scan(&maxOrder).Error
+	filter := base.NewFilterBuilder().
+		Where("crop_id", base.OpEqual, cropID).
+		Where("deleted_at", base.OpIsNull, nil).
+		Build()
 
+	// Get all crop stages for this crop
+	cropStages, err := r.BaseFilterableRepository.Find(ctx, filter)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to get max stage order: %w", err)
+	}
+
+	// Find max order in-memory
+	maxOrder := 0
+	for _, cs := range cropStages {
+		if cs.StageOrder > maxOrder {
+			maxOrder = cs.StageOrder
+		}
 	}
 
 	return maxOrder, nil
@@ -137,18 +142,25 @@ func (r *CropStageRepository) GetMaxStageOrder(ctx context.Context, cropID strin
 
 // ReorderStages updates stage orders for a crop
 func (r *CropStageRepository) ReorderStages(ctx context.Context, cropID string, stageOrders map[string]int) error {
-	return r.db.Transaction(func(tx *gorm.DB) error {
-		for stageID, order := range stageOrders {
-			err := tx.Model(&stage.CropStage{}).
-				Where("crop_id = ?", cropID).
-				Where("stage_id = ?", stageID).
-				Where("deleted_at IS NULL").
-				Update("stage_order", order).Error
+	// Fetch all crop stages that need to be updated
+	for stageID, order := range stageOrders {
+		filter := base.NewFilterBuilder().
+			Where("crop_id", base.OpEqual, cropID).
+			Where("stage_id", base.OpEqual, stageID).
+			Where("deleted_at", base.OpIsNull, nil).
+			Build()
 
-			if err != nil {
-				return fmt.Errorf("failed to update stage order for stage %s: %w", stageID, err)
-			}
+		cropStage, err := r.BaseFilterableRepository.FindOne(ctx, filter)
+		if err != nil {
+			return fmt.Errorf("failed to find crop stage for reorder (stage_id=%s): %w", stageID, err)
 		}
-		return nil
-	})
+
+		// Update the stage order
+		cropStage.StageOrder = order
+		if err := r.BaseFilterableRepository.Update(ctx, cropStage); err != nil {
+			return fmt.Errorf("failed to update stage order for stage %s: %w", stageID, err)
+		}
+	}
+
+	return nil
 }

@@ -3,201 +3,221 @@ package crop
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/Kisanlink/farmers-module/internal/entities/crop"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
-	"gorm.io/gorm"
 )
 
 // CropRepository provides data access methods for crops
 type CropRepository struct {
 	*base.BaseFilterableRepository[*crop.Crop]
-	db *gorm.DB
 }
 
-// NewCropRepository creates a new crop repository
-func NewCropRepository(db *gorm.DB) *CropRepository {
+// NewCropRepository creates a new crop repository using BaseFilterableRepository
+func NewCropRepository(dbManager interface{}) *CropRepository {
 	baseRepo := base.NewBaseFilterableRepository[*crop.Crop]()
+	baseRepo.SetDBManager(dbManager)
+
 	return &CropRepository{
 		BaseFilterableRepository: baseRepo,
-		db:                      db,
 	}
 }
 
-// FindByName finds a crop by its name (case-insensitive)
+// FindByName finds a crop by its name
 func (r *CropRepository) FindByName(ctx context.Context, name string) (*crop.Crop, error) {
-	var crop crop.Crop
-	err := r.db.WithContext(ctx).
-		Where("LOWER(name) = LOWER(?)", name).
-		Where("is_active = ?", true).
-		First(&crop).Error
+	filter := base.NewFilterBuilder().
+		Where("name", base.OpEqual, name).
+		Where("is_active", base.OpEqual, true).
+		Build()
+
+	cropEntity, err := r.BaseFilterableRepository.FindOne(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
-	return &crop, nil
+	return cropEntity, nil
 }
 
 // FindByCategory finds crops by category
 func (r *CropRepository) FindByCategory(ctx context.Context, category crop.CropCategory, page, pageSize int) ([]*crop.Crop, int, error) {
-	var crops []*crop.Crop
-	var total int64
+	filter := base.NewFilterBuilder().
+		Where("category", base.OpEqual, category).
+		Where("is_active", base.OpEqual, true).
+		Build()
 
-	query := r.db.WithContext(ctx).Model(&crop.Crop{}).
-		Where("category = ?", category).
-		Where("is_active = ?", true)
+	filter.Page = page
+	filter.PageSize = pageSize
 
-	// Get total count
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
+	crops, err := r.BaseFilterableRepository.Find(ctx, filter)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to find crops by category: %w", err)
 	}
 
-	// Get paginated results
-	offset := (page - 1) * pageSize
-	if err := query.Offset(offset).Limit(pageSize).Find(&crops).Error; err != nil {
-		return nil, 0, err
+	count, err := r.BaseFilterableRepository.Count(ctx, filter, &crop.Crop{})
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count crops: %w", err)
 	}
 
-	return crops, int(total), nil
+	return crops, int(count), nil
 }
 
 // FindBySeason finds crops that can be grown in a specific season
+// Note: Season filtering requires JSONB support. Returns all crops and filters in-memory.
+// TODO: Add JSONB operator support to kisanlink-db for database-level filtering
 func (r *CropRepository) FindBySeason(ctx context.Context, season string, page, pageSize int) ([]*crop.Crop, int, error) {
-	var crops []*crop.Crop
-	var total int64
+	filter := base.NewFilterBuilder().
+		Where("is_active", base.OpEqual, true).
+		Build()
 
-	query := r.db.WithContext(ctx).Model(&crop.Crop{}).
-		Where("seasons::jsonb @> ?", fmt.Sprintf(`["%s"]`, season)).
-		Where("is_active = ?", true)
-
-	// Get total count
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
+	// Get all active crops (no pagination yet)
+	crops, err := r.BaseFilterableRepository.Find(ctx, filter)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to find crops: %w", err)
 	}
 
-	// Get paginated results
-	offset := (page - 1) * pageSize
-	if err := query.Offset(offset).Limit(pageSize).Find(&crops).Error; err != nil {
-		return nil, 0, err
+	// Filter by season in-memory
+	filtered := make([]*crop.Crop, 0)
+	for _, c := range crops {
+		if containsSeason(c.Seasons, season) {
+			filtered = append(filtered, c)
+		}
 	}
 
-	return crops, int(total), nil
+	total := len(filtered)
+
+	// Apply pagination manually since we filtered in-memory
+	start := (page - 1) * pageSize
+	end := start + pageSize
+
+	if start >= total {
+		return []*crop.Crop{}, total, nil
+	}
+	if end > total {
+		end = total
+	}
+
+	return filtered[start:end], total, nil
 }
 
 // Search finds crops by name or scientific name
+// Note: LIKE search requires custom SQL. Returns all crops and filters in-memory.
+// TODO: Add LIKE operator support to kisanlink-db for database-level search
 func (r *CropRepository) Search(ctx context.Context, searchTerm string, page, pageSize int) ([]*crop.Crop, int, error) {
-	var crops []*crop.Crop
-	var total int64
+	filter := base.NewFilterBuilder().
+		Where("is_active", base.OpEqual, true).
+		Build()
 
-	searchPattern := "%" + strings.ToLower(searchTerm) + "%"
-	query := r.db.WithContext(ctx).Model(&crop.Crop{}).
-		Where("(LOWER(name) LIKE ? OR LOWER(scientific_name) LIKE ?)", searchPattern, searchPattern).
-		Where("is_active = ?", true)
+	filter.Sort = []base.SortField{{Field: "name", Direction: "asc"}}
 
-	// Get total count
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
+	// Get all active crops (no pagination yet)
+	crops, err := r.BaseFilterableRepository.Find(ctx, filter)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to find crops: %w", err)
 	}
 
-	// Get paginated results
-	offset := (page - 1) * pageSize
-	if err := query.Offset(offset).Limit(pageSize).Order("name ASC").Find(&crops).Error; err != nil {
-		return nil, 0, err
+	// Filter by search term in-memory
+	filtered := filterBySearch(crops, searchTerm)
+
+	total := len(filtered)
+
+	// Apply pagination manually since we filtered in-memory
+	start := (page - 1) * pageSize
+	end := start + pageSize
+
+	if start >= total {
+		return []*crop.Crop{}, total, nil
+	}
+	if end > total {
+		end = total
 	}
 
-	return crops, int(total), nil
+	return filtered[start:end], total, nil
 }
 
 // FindWithFilters finds crops with multiple filters
 func (r *CropRepository) FindWithFilters(ctx context.Context, filters CropFilters) ([]*crop.Crop, int, error) {
-	var crops []*crop.Crop
-	var total int64
+	filterBuilder := base.NewFilterBuilder()
 
-	query := r.db.WithContext(ctx).Model(&crop.Crop{})
-
-	// Apply filters
+	// Apply category filter
 	if filters.Category != "" {
-		query = query.Where("category = ?", filters.Category)
+		filterBuilder = filterBuilder.Where("category", base.OpEqual, filters.Category)
 	}
 
-	if filters.Season != "" {
-		query = query.Where("seasons::jsonb @> ?", fmt.Sprintf(`["%s"]`, filters.Season))
-	}
-
+	// Apply is_active filter
 	if filters.IsActive != nil {
-		query = query.Where("is_active = ?", *filters.IsActive)
+		filterBuilder = filterBuilder.Where("is_active", base.OpEqual, *filters.IsActive)
 	} else {
-		query = query.Where("is_active = ?", true)
+		filterBuilder = filterBuilder.Where("is_active", base.OpEqual, true)
 	}
 
-	if filters.Search != "" {
-		searchPattern := "%" + strings.ToLower(filters.Search) + "%"
-		query = query.Where("(LOWER(name) LIKE ? OR LOWER(scientific_name) LIKE ?)", searchPattern, searchPattern)
+	filter := filterBuilder.Build()
+	filter.Page = filters.Page
+	filter.PageSize = filters.PageSize
+	filter.Sort = []base.SortField{{Field: "name", Direction: "asc"}}
+
+	crops, err := r.BaseFilterableRepository.Find(ctx, filter)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to find crops: %w", err)
+	}
+
+	// Apply in-memory filters for season and search
+	if filters.Season != "" {
+		crops = filterBySeason(crops, filters.Season)
 	}
 
 	if len(filters.Seasons) > 0 {
-		var seasonConditions []string
-		var seasonArgs []interface{}
-		for _, season := range filters.Seasons {
-			seasonConditions = append(seasonConditions, "seasons::jsonb @> ?")
-			seasonArgs = append(seasonArgs, fmt.Sprintf(`["%s"]`, season))
-		}
-		query = query.Where(strings.Join(seasonConditions, " OR "), seasonArgs...)
+		crops = filterBySeasons(crops, filters.Seasons)
 	}
 
-	// Get total count
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
+	if filters.Search != "" {
+		crops = filterBySearch(crops, filters.Search)
 	}
 
-	// Get paginated results
-	offset := (filters.Page - 1) * filters.PageSize
-	if err := query.Offset(offset).Limit(filters.PageSize).Order("name ASC").Find(&crops).Error; err != nil {
-		return nil, 0, err
-	}
-
-	return crops, int(total), nil
+	total := len(crops)
+	return crops, total, nil
 }
 
 // GetCropWithVarietyCount gets crop with count of active varieties
+// Note: Variety count aggregation needs to be done in service layer
 func (r *CropRepository) GetCropWithVarietyCount(ctx context.Context, cropID string) (*CropWithVarietyCount, error) {
-	var result CropWithVarietyCount
+	filter := base.NewFilterBuilder().
+		Where("id", base.OpEqual, cropID).
+		Where("is_active", base.OpEqual, true).
+		Build()
 
-	err := r.db.WithContext(ctx).
-		Model(&crop.Crop{}).
-		Select("crops.*, COALESCE(variety_counts.count, 0) as variety_count").
-		Joins("LEFT JOIN (SELECT crop_id, COUNT(*) as count FROM crop_varieties WHERE is_active = true GROUP BY crop_id) variety_counts ON crops.id = variety_counts.crop_id").
-		Where("crops.id = ?", cropID).
-		Where("crops.is_active = ?", true).
-		First(&result).Error
-
+	cropEntity, err := r.BaseFilterableRepository.FindOne(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get crop: %w", err)
 	}
 
-	return &result, nil
+	// TODO: Move variety count logic to service layer
+	result := &CropWithVarietyCount{
+		Crop:         *cropEntity,
+		VarietyCount: 0, // Service layer should populate this
+	}
+
+	return result, nil
 }
 
 // GetActiveCropsForLookup gets simplified crop data for dropdown/lookup
-func (r *CropRepository) GetActiveCropsForLookup(ctx context.Context, category, season string) ([]*CropLookup, error) {
-	var crops []*CropLookup
-
-	query := r.db.WithContext(ctx).
-		Model(&crop.Crop{}).
-		Select("id, name, category, seasons, unit").
-		Where("is_active = ?", true)
+func (r *CropRepository) GetActiveCropsForLookup(ctx context.Context, category, season string) ([]*crop.Crop, error) {
+	filterBuilder := base.NewFilterBuilder().
+		Where("is_active", base.OpEqual, true)
 
 	if category != "" {
-		query = query.Where("category = ?", category)
+		filterBuilder = filterBuilder.Where("category", base.OpEqual, category)
 	}
 
-	if season != "" {
-		query = query.Where("seasons::jsonb @> ?", fmt.Sprintf(`["%s"]`, season))
-	}
+	filter := filterBuilder.Build()
+	filter.Sort = []base.SortField{{Field: "name", Direction: "asc"}}
 
-	err := query.Order("name ASC").Find(&crops).Error
+	crops, err := r.BaseFilterableRepository.Find(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get crops for lookup: %w", err)
+	}
+
+	// Filter by season in-memory if provided
+	if season != "" {
+		crops = filterBySeason(crops, season)
 	}
 
 	return crops, nil

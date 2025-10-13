@@ -2,215 +2,197 @@ package crop
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/Kisanlink/farmers-module/internal/entities/crop_variety"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
-	"gorm.io/gorm"
 )
 
 // CropVarietyRepository provides data access methods for crop varieties
 type CropVarietyRepository struct {
 	*base.BaseFilterableRepository[*crop_variety.CropVariety]
-	db *gorm.DB
 }
 
-// NewCropVarietyRepository creates a new crop variety repository
-func NewCropVarietyRepository(db *gorm.DB) *CropVarietyRepository {
+// NewCropVarietyRepository creates a new crop variety repository using BaseFilterableRepository
+func NewCropVarietyRepository(dbManager interface{}) *CropVarietyRepository {
 	baseRepo := base.NewBaseFilterableRepository[*crop_variety.CropVariety]()
+	baseRepo.SetDBManager(dbManager)
+
 	return &CropVarietyRepository{
 		BaseFilterableRepository: baseRepo,
-		db:                      db,
 	}
 }
 
 // FindByCropID finds all varieties for a specific crop
 func (r *CropVarietyRepository) FindByCropID(ctx context.Context, cropID string, page, pageSize int) ([]*crop_variety.CropVariety, int, error) {
-	var varieties []*crop_variety.CropVariety
-	var total int64
+	filter := base.NewFilterBuilder().
+		Where("crop_id", base.OpEqual, cropID).
+		Where("is_active", base.OpEqual, true).
+		Build()
 
-	query := r.db.WithContext(ctx).Model(&crop_variety.CropVariety{}).
-		Where("crop_id = ?", cropID).
-		Where("is_active = ?", true)
+	filter.Page = page
+	filter.PageSize = pageSize
+	filter.Sort = []base.SortField{{Field: "name", Direction: "asc"}}
 
-	// Get total count
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
+	varieties, err := r.BaseFilterableRepository.Find(ctx, filter)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to find varieties: %w", err)
 	}
 
-	// Get paginated results with crop data
-	offset := (page - 1) * pageSize
-	if err := query.Preload("Crop").Offset(offset).Limit(pageSize).Order("name ASC").Find(&varieties).Error; err != nil {
-		return nil, 0, err
+	count, err := r.BaseFilterableRepository.Count(ctx, filter, &crop_variety.CropVariety{})
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count varieties: %w", err)
 	}
 
-	return varieties, int(total), nil
+	return varieties, int(count), nil
 }
 
 // FindByCropIDAndName finds a variety by crop ID and name
 func (r *CropVarietyRepository) FindByCropIDAndName(ctx context.Context, cropID, name string) (*crop_variety.CropVariety, error) {
-	var variety crop_variety.CropVariety
-	err := r.db.WithContext(ctx).
-		Where("crop_id = ?", cropID).
-		Where("LOWER(name) = LOWER(?)", name).
-		Where("is_active = ?", true).
-		Preload("Crop").
-		First(&variety).Error
+	filter := base.NewFilterBuilder().
+		Where("crop_id", base.OpEqual, cropID).
+		Where("name", base.OpEqual, name).
+		Where("is_active", base.OpEqual, true).
+		Build()
+
+	variety, err := r.BaseFilterableRepository.FindOne(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to find variety: %w", err)
 	}
-	return &variety, nil
+
+	return variety, nil
 }
 
 // Search finds varieties by name or description
+// Uses in-memory filtering for LIKE pattern matching
 func (r *CropVarietyRepository) Search(ctx context.Context, searchTerm string, page, pageSize int) ([]*crop_variety.CropVariety, int, error) {
-	var varieties []*crop_variety.CropVariety
-	var total int64
+	filter := base.NewFilterBuilder().
+		Where("is_active", base.OpEqual, true).
+		Build()
 
-	searchPattern := "%" + strings.ToLower(searchTerm) + "%"
-	query := r.db.WithContext(ctx).Model(&crop_variety.CropVariety{}).
-		Where("(LOWER(name) LIKE ? OR LOWER(description) LIKE ?)", searchPattern, searchPattern).
-		Where("is_active = ?", true)
+	filter.Sort = []base.SortField{{Field: "name", Direction: "asc"}}
 
-	// Get total count
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
+	// Get all active varieties (no pagination yet)
+	varieties, err := r.BaseFilterableRepository.Find(ctx, filter)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to find varieties: %w", err)
 	}
 
-	// Get paginated results with crop data
-	offset := (page - 1) * pageSize
-	if err := query.Preload("Crop").Offset(offset).Limit(pageSize).Order("name ASC").Find(&varieties).Error; err != nil {
-		return nil, 0, err
+	// Filter by search term in-memory
+	filtered := filterVarietiesBySearch(varieties, searchTerm)
+
+	total := len(filtered)
+
+	// Apply pagination manually
+	start := (page - 1) * pageSize
+	end := start + pageSize
+
+	if start >= total {
+		return []*crop_variety.CropVariety{}, total, nil
+	}
+	if end > total {
+		end = total
 	}
 
-	return varieties, int(total), nil
+	return filtered[start:end], total, nil
 }
 
 // FindWithFilters finds varieties with multiple filters
 func (r *CropVarietyRepository) FindWithFilters(ctx context.Context, filters CropVarietyFilters) ([]*crop_variety.CropVariety, int, error) {
-	var varieties []*crop_variety.CropVariety
-	var total int64
+	filterBuilder := base.NewFilterBuilder()
 
-	query := r.db.WithContext(ctx).Model(&crop_variety.CropVariety{})
-
-	// Apply filters
+	// Apply crop_id filter
 	if filters.CropID != "" {
-		query = query.Where("crop_id = ?", filters.CropID)
+		filterBuilder = filterBuilder.Where("crop_id", base.OpEqual, filters.CropID)
 	}
 
+	// Apply is_active filter
 	if filters.IsActive != nil {
-		query = query.Where("is_active = ?", *filters.IsActive)
+		filterBuilder = filterBuilder.Where("is_active", base.OpEqual, *filters.IsActive)
 	} else {
-		query = query.Where("is_active = ?", true)
+		filterBuilder = filterBuilder.Where("is_active", base.OpEqual, true)
 	}
 
+	filter := filterBuilder.Build()
+	filter.Page = filters.Page
+	filter.PageSize = filters.PageSize
+	filter.Sort = []base.SortField{{Field: "name", Direction: "asc"}}
+
+	varieties, err := r.BaseFilterableRepository.Find(ctx, filter)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to find varieties: %w", err)
+	}
+
+	// Apply search filter in-memory if provided
 	if filters.Search != "" {
-		searchPattern := "%" + strings.ToLower(filters.Search) + "%"
-		query = query.Where("(LOWER(name) LIKE ? OR LOWER(description) LIKE ?)", searchPattern, searchPattern)
+		varieties = filterVarietiesBySearch(varieties, filters.Search)
 	}
 
-	// Get total count
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
-
-	// Get paginated results with crop data
-	offset := (filters.Page - 1) * filters.PageSize
-	if err := query.Preload("Crop").Offset(offset).Limit(filters.PageSize).Order("name ASC").Find(&varieties).Error; err != nil {
-		return nil, 0, err
-	}
-
-	return varieties, int(total), nil
+	total := len(varieties)
+	return varieties, total, nil
 }
 
 // GetActiveVarietiesForLookup gets simplified variety data for dropdown/lookup
-func (r *CropVarietyRepository) GetActiveVarietiesForLookup(ctx context.Context, cropID string) ([]*CropVarietyLookup, error) {
-	var varieties []*CropVarietyLookup
-
-	query := r.db.WithContext(ctx).
-		Model(&crop_variety.CropVariety{}).
-		Select("id, name, duration_days").
-		Where("is_active = ?", true)
+func (r *CropVarietyRepository) GetActiveVarietiesForLookup(ctx context.Context, cropID string) ([]*crop_variety.CropVariety, error) {
+	filterBuilder := base.NewFilterBuilder().
+		Where("is_active", base.OpEqual, true)
 
 	if cropID != "" {
-		query = query.Where("crop_id = ?", cropID)
+		filterBuilder = filterBuilder.Where("crop_id", base.OpEqual, cropID)
 	}
 
-	err := query.Order("name ASC").Find(&varieties).Error
+	filter := filterBuilder.Build()
+	filter.Sort = []base.SortField{{Field: "name", Direction: "asc"}}
+
+	varieties, err := r.BaseFilterableRepository.Find(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get varieties for lookup: %w", err)
 	}
 
 	return varieties, nil
 }
 
 // GetVarietiesWithCropInfo gets varieties with crop information
-func (r *CropVarietyRepository) GetVarietiesWithCropInfo(ctx context.Context, filters CropVarietyFilters) ([]*VarietyWithCropInfo, int, error) {
-	var varieties []*VarietyWithCropInfo
-	var total int64
-
-	query := r.db.WithContext(ctx).
-		Model(&crop_variety.CropVariety{}).
-		Select(`
-			crop_varieties.id,
-			crop_varieties.crop_id,
-			crop_varieties.name,
-			crop_varieties.description,
-			crop_varieties.duration_days,
-			crop_varieties.yield_per_acre,
-			crop_varieties.yield_per_tree,
-			crop_varieties.properties,
-			crop_varieties.is_active,
-			crop_varieties.created_at,
-			crop_varieties.updated_at,
-			crops.name as crop_name
-		`).
-		Joins("JOIN crops ON crop_varieties.crop_id = crops.id")
-
-	// Apply filters
-	if filters.CropID != "" {
-		query = query.Where("crop_varieties.crop_id = ?", filters.CropID)
-	}
-
-	if filters.IsActive != nil {
-		query = query.Where("crop_varieties.is_active = ?", *filters.IsActive)
-	} else {
-		query = query.Where("crop_varieties.is_active = ?", true)
-	}
-
-	if filters.Search != "" {
-		searchPattern := "%" + strings.ToLower(filters.Search) + "%"
-		query = query.Where("(LOWER(crop_varieties.name) LIKE ? OR LOWER(crop_varieties.description) LIKE ?)", searchPattern, searchPattern)
-	}
-
-	// Get total count
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
-
-	// Get paginated results
-	offset := (filters.Page - 1) * filters.PageSize
-	if err := query.Offset(offset).Limit(filters.PageSize).Order("crop_varieties.name ASC").Find(&varieties).Error; err != nil {
-		return nil, 0, err
-	}
-
-	return varieties, int(total), nil
+// Note: JOIN operations need to be done in service layer
+func (r *CropVarietyRepository) GetVarietiesWithCropInfo(ctx context.Context, filters CropVarietyFilters) ([]*crop_variety.CropVariety, int, error) {
+	return r.FindWithFilters(ctx, filters)
 }
 
 // CheckVarietyExists checks if a variety exists for a crop
 func (r *CropVarietyRepository) CheckVarietyExists(ctx context.Context, cropID, name string, excludeID ...string) (bool, error) {
-	query := r.db.WithContext(ctx).
-		Model(&crop_variety.CropVariety{}).
-		Where("crop_id = ?", cropID).
-		Where("LOWER(name) = LOWER(?)", name)
+	filterBuilder := base.NewFilterBuilder().
+		Where("crop_id", base.OpEqual, cropID).
+		Where("name", base.OpEqual, name)
 
 	if len(excludeID) > 0 && excludeID[0] != "" {
-		query = query.Where("id != ?", excludeID[0])
+		filterBuilder = filterBuilder.Where("id", base.OpNotEqual, excludeID[0])
 	}
 
-	var count int64
-	err := query.Count(&count).Error
-	return count > 0, err
+	filter := filterBuilder.Build()
+
+	count, err := r.BaseFilterableRepository.Count(ctx, filter, &crop_variety.CropVariety{})
+	if err != nil {
+		return false, fmt.Errorf("failed to check variety exists: %w", err)
+	}
+
+	return count > 0, nil
+}
+
+// filterVarietiesBySearch filters varieties by name or description
+func filterVarietiesBySearch(varieties []*crop_variety.CropVariety, searchTerm string) []*crop_variety.CropVariety {
+	filtered := make([]*crop_variety.CropVariety, 0)
+	searchLower := strings.ToLower(searchTerm)
+
+	for _, v := range varieties {
+		nameMatch := strings.Contains(strings.ToLower(v.Name), searchLower)
+		descMatch := v.Description != nil && strings.Contains(strings.ToLower(*v.Description), searchLower)
+
+		if nameMatch || descMatch {
+			filtered = append(filtered, v)
+		}
+	}
+	return filtered
 }
 
 // CropVarietyFilters represents filters for crop variety queries

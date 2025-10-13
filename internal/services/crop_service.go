@@ -384,10 +384,10 @@ func (s *CropServiceImpl) CreateCropVariety(ctx context.Context, req interface{}
 
 	// Convert to response
 	varietyData := &responses.CropVarietyData{
-		ID:                 varietyEnt.ID,
-		CropID:             varietyEnt.CropID,
-		Name:               varietyEnt.Name,
-		Description:        varietyEnt.Description,
+		ID:           varietyEnt.ID,
+		CropID:       varietyEnt.CropID,
+		Name:         varietyEnt.Name,
+		Description:  varietyEnt.Description,
 		DurationDays: varietyEnt.DurationDays,
 		YieldPerAcre: varietyEnt.YieldPerAcre,
 		YieldPerTree: varietyEnt.YieldPerTree,
@@ -430,10 +430,10 @@ func (s *CropServiceImpl) GetCropVariety(ctx context.Context, req interface{}) (
 
 	// Convert to response
 	varietyData := &responses.CropVarietyData{
-		ID:                 varietyEnt.ID,
-		CropID:             varietyEnt.CropID,
-		Name:               varietyEnt.Name,
-		Description:        varietyEnt.Description,
+		ID:           varietyEnt.ID,
+		CropID:       varietyEnt.CropID,
+		Name:         varietyEnt.Name,
+		Description:  varietyEnt.Description,
 		DurationDays: varietyEnt.DurationDays,
 		YieldPerAcre: varietyEnt.YieldPerAcre,
 		YieldPerTree: varietyEnt.YieldPerTree,
@@ -522,10 +522,10 @@ func (s *CropServiceImpl) UpdateCropVariety(ctx context.Context, req interface{}
 
 	// Convert to response
 	varietyData := &responses.CropVarietyData{
-		ID:                 varietyEnt.ID,
-		CropID:             varietyEnt.CropID,
-		Name:               varietyEnt.Name,
-		Description:        varietyEnt.Description,
+		ID:           varietyEnt.ID,
+		CropID:       varietyEnt.CropID,
+		Name:         varietyEnt.Name,
+		Description:  varietyEnt.Description,
 		DurationDays: varietyEnt.DurationDays,
 		YieldPerAcre: varietyEnt.YieldPerAcre,
 		YieldPerTree: varietyEnt.YieldPerTree,
@@ -613,21 +613,26 @@ func (s *CropServiceImpl) ListCropVarieties(ctx context.Context, req interface{}
 
 	// Convert to response data
 	var varietyDataList []*responses.CropVarietyData
-	for _, varietyWithCrop := range varieties {
+	for _, variety := range varieties {
 		varietyData := &responses.CropVarietyData{
-			ID:                 varietyWithCrop.ID,
-			CropID:             varietyWithCrop.CropID,
-			CropName:           varietyWithCrop.CropName,
-			Name:               varietyWithCrop.Name,
-			Description:        varietyWithCrop.Description,
-			DurationDays: varietyWithCrop.DurationDays,
-			YieldPerAcre: varietyWithCrop.YieldPerAcre,
-			YieldPerTree: varietyWithCrop.YieldPerTree,
-			Properties:   varietyWithCrop.Properties,
-			IsActive:     varietyWithCrop.IsActive,
-			CreatedAt:          varietyWithCrop.CreatedAt,
-			UpdatedAt:          varietyWithCrop.UpdatedAt,
+			ID:           variety.ID,
+			CropID:       variety.CropID,
+			Name:         variety.Name,
+			Description:  variety.Description,
+			DurationDays: variety.DurationDays,
+			YieldPerAcre: variety.YieldPerAcre,
+			YieldPerTree: variety.YieldPerTree,
+			Properties:   variety.Properties,
+			IsActive:     variety.IsActive,
+			CreatedAt:    variety.CreatedAt,
+			UpdatedAt:    variety.UpdatedAt,
 		}
+
+		// Load crop name if Crop relationship is available
+		if variety.Crop.Name != "" {
+			varietyData.CropName = variety.Crop.Name
+		}
+
 		varietyDataList = append(varietyDataList, varietyData)
 	}
 
@@ -657,13 +662,13 @@ func (s *CropServiceImpl) GetCropLookupData(ctx context.Context, req interface{}
 
 	// Convert to response data
 	var cropLookupDataList []*responses.CropLookupData
-	for _, cropLookup := range crops {
+	for _, cropEnt := range crops {
 		cropLookupData := &responses.CropLookupData{
-			ID:       cropLookup.ID,
-			Name:     cropLookup.Name,
-			Category: cropLookup.Category,
-			Seasons:  cropLookup.Seasons,
-			Unit:     cropLookup.Unit,
+			ID:       cropEnt.ID,
+			Name:     cropEnt.Name,
+			Category: string(cropEnt.Category),
+			Seasons:  cropEnt.Seasons,
+			Unit:     cropEnt.Unit,
 		}
 		cropLookupDataList = append(cropLookupDataList, cropLookupData)
 	}
@@ -907,10 +912,10 @@ func (s *CropServiceImpl) SeedInitialCropData(ctx context.Context) error {
 
 		// Create crop
 		crop := &cropEntity.Crop{
-			Name:        cropInfo.name,
-			Category:    cropInfo.category,
-			Seasons:     cropInfo.seasons,
-			IsActive:    true,
+			Name:     cropInfo.name,
+			Category: cropInfo.category,
+			Seasons:  cropInfo.seasons,
+			IsActive: true,
 		}
 
 		// Save crop
