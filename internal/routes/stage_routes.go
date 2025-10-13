@@ -31,11 +31,11 @@ func RegisterStageRoutes(router *gin.RouterGroup, services *services.ServiceFact
 	}
 
 	// Crop-Stage relationship endpoints
-	// Note: These are registered under /crops/:crop_id/stages
+	// Note: These are registered under /crops/:id/stages
 	crops := router.Group("/crops")
 	crops.Use(authenticationMW, authorizationMW)
 	{
-		cropStages := crops.Group("/:crop_id/stages")
+		cropStages := crops.Group("/:id/stages")
 		{
 			cropStages.POST("", stageHandler.AssignStageToCrop)
 			cropStages.GET("", stageHandler.GetCropStages)

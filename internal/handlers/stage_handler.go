@@ -319,7 +319,7 @@ func (h *StageHandler) GetStageLookup(c *gin.Context) {
 // @Security BearerAuth
 // @Router /api/v1/crops/{crop_id}/stages [post]
 func (h *StageHandler) AssignStageToCrop(c *gin.Context) {
-	cropID := c.Param("crop_id")
+	cropID := c.Param("id")
 	var req requests.AssignStageToCropRequest
 
 	h.logger.Info("Assigning stage to crop", zap.String("crop_id", cropID))
@@ -365,7 +365,7 @@ func (h *StageHandler) AssignStageToCrop(c *gin.Context) {
 // @Security BearerAuth
 // @Router /api/v1/crops/{crop_id}/stages [get]
 func (h *StageHandler) GetCropStages(c *gin.Context) {
-	cropID := c.Param("crop_id")
+	cropID := c.Param("id")
 
 	h.logger.Info("Getting crop stages", zap.String("crop_id", cropID))
 
@@ -407,7 +407,7 @@ func (h *StageHandler) GetCropStages(c *gin.Context) {
 // @Security BearerAuth
 // @Router /api/v1/crops/{crop_id}/stages/{stage_id} [put]
 func (h *StageHandler) UpdateCropStage(c *gin.Context) {
-	cropID := c.Param("crop_id")
+	cropID := c.Param("id")
 	stageID := c.Param("stage_id")
 	var req requests.UpdateCropStageRequest
 
@@ -458,7 +458,7 @@ func (h *StageHandler) UpdateCropStage(c *gin.Context) {
 // @Security BearerAuth
 // @Router /api/v1/crops/{crop_id}/stages/{stage_id} [delete]
 func (h *StageHandler) RemoveStageFromCrop(c *gin.Context) {
-	cropID := c.Param("crop_id")
+	cropID := c.Param("id")
 	stageID := c.Param("stage_id")
 
 	h.logger.Info("Removing stage from crop",
@@ -505,7 +505,7 @@ func (h *StageHandler) RemoveStageFromCrop(c *gin.Context) {
 // @Security BearerAuth
 // @Router /api/v1/crops/{crop_id}/stages/reorder [post]
 func (h *StageHandler) ReorderCropStages(c *gin.Context) {
-	cropID := c.Param("crop_id")
+	cropID := c.Param("id")
 	var req requests.ReorderCropStagesRequest
 
 	h.logger.Info("Reordering crop stages", zap.String("crop_id", cropID))
