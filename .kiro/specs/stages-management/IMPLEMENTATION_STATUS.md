@@ -159,6 +159,11 @@ The stages management feature is **100% complete** with all core components impl
   - `stage:create`, `stage:read`, `stage:update`, `stage:delete`, `stage:list`
   - `crop_stage:create`, `crop_stage:read`, `crop_stage:update`, `crop_stage:delete`
 - ✅ Audit logging via middleware
+- ✅ **Permission mappings configured** (internal/auth/permissions.go):
+  - All stage master data routes mapped
+  - All crop-stage relationship routes mapped
+  - Path normalization handles query params and nested routes
+  - Comprehensive test coverage added
 
 ## Testing Requirements
 
@@ -276,6 +281,59 @@ The stages management feature is **100% complete** with all core components impl
    - Verify query performance with proper indexes
    - Check pagination performance
    - Monitor P95/P99 latencies
+
+## Recent Changes (2025-10-13)
+
+### Permission Mappings Implementation
+**Commit**: `ca99199` - feat: add stage management permission mappings and improve path normalization
+
+**Problem Identified:**
+- Authorization middleware was logging warnings: "No permission mapping found for route"
+- Stage routes (GET /api/v1/stages, POST /api/v1/stages, etc.) were missing from permission map
+- Path normalization didn't handle:
+  - Query parameters (e.g., `?page=1&page_size=20`)
+  - Special routes (e.g., `/stages/lookup`)
+  - Nested routes (e.g., `/crops/:id/stages/:stage_id`)
+
+**Solution Implemented:**
+
+1. **Added Permission Mappings** (internal/auth/permissions.go):
+   - Stage master data routes:
+     - POST /api/v1/stages → stage:create
+     - GET /api/v1/stages → stage:list
+     - GET /api/v1/stages/lookup → stage:list
+     - GET /api/v1/stages/:id → stage:read
+     - PUT /api/v1/stages/:id → stage:update
+     - DELETE /api/v1/stages/:id → stage:delete
+
+   - Crop-Stage relationship routes:
+     - POST /api/v1/crops/:id/stages → crop_stage:create
+     - GET /api/v1/crops/:id/stages → crop_stage:read
+     - POST /api/v1/crops/:id/stages/reorder → crop_stage:update
+     - PUT /api/v1/crops/:id/stages/:stage_id → crop_stage:update
+     - DELETE /api/v1/crops/:id/stages/:stage_id → crop_stage:delete
+
+2. **Enhanced Path Normalization** (internal/auth/permissions.go:normalizePath):
+   - Strip query parameters before normalization
+   - Handle special routes before generic ID pattern matching
+   - Support nested routes with multiple path parameters
+   - Properly normalize `/crops/:id/stages/reorder` vs `/crops/:id/stages/:stage_id`
+
+3. **Added Comprehensive Tests** (internal/auth/permissions_test.go):
+   - 13 test cases covering all stage routes
+   - Query parameter handling tests
+   - Path normalization verification tests
+   - All tests passing: `go test ./internal/auth/... -v`
+
+**Verification:**
+- ✅ Build successful: `make build`
+- ✅ All tests passing: `go test ./internal/auth/... -v`
+- ✅ No more "No permission mapping found" warnings
+- ✅ Authorization middleware now properly checks permissions for all stage routes
+
+**Files Modified:**
+- internal/auth/permissions.go: Added 11 permission mappings + enhanced normalizePath
+- internal/auth/permissions_test.go: Added comprehensive test coverage (new file)
 
 ## Reference Implementation
 Beta branch: https://github.com/Kisanlink/farmers-module/tree/beta
