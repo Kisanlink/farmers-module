@@ -6,12 +6,12 @@ import (
 
 // BaseRequest provides common fields for all API requests
 type BaseRequest struct {
-	RequestID   string            `json:"request_id,omitempty" example:"req_123e4567e89b12d3"`
-	Timestamp   time.Time         `json:"timestamp" example:"2024-01-15T10:30:00Z"`
-	UserID      string            `json:"user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
-	OrgID       string            `json:"org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
-	Metadata    map[string]string `json:"metadata,omitempty" example:"source:mobile_app,version:1.0.0"`
-	RequestType string            `json:"request_type,omitempty" example:"create_farmer"`
+	RequestID   string                 `json:"request_id,omitempty" example:"req_123e4567e89b12d3"`
+	Timestamp   time.Time              `json:"timestamp" example:"2024-01-15T10:30:00Z"`
+	UserID      string                 `json:"user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	OrgID       string                 `json:"org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty" example:"source:mobile_app,version:1.0.0"`
+	RequestType string                 `json:"request_type,omitempty" example:"create_farmer"`
 }
 
 // PaginationRequest provides pagination parameters for list requests
@@ -33,7 +33,7 @@ type FilterRequest struct {
 func NewBaseRequest() BaseRequest {
 	return BaseRequest{
 		Timestamp:   time.Now(),
-		Metadata:    make(map[string]string),
+		Metadata:    make(map[string]interface{}),
 		RequestType: "unknown",
 	}
 }
@@ -69,9 +69,9 @@ func (r *BaseRequest) SetUserContext(userID, orgID string) {
 }
 
 // AddMetadata adds metadata to the request
-func (r *BaseRequest) AddMetadata(key, value string) {
+func (r *BaseRequest) AddMetadata(key string, value interface{}) {
 	if r.Metadata == nil {
-		r.Metadata = make(map[string]string)
+		r.Metadata = make(map[string]interface{})
 	}
 	r.Metadata[key] = value
 }

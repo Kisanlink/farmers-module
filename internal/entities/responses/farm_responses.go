@@ -26,15 +26,15 @@ type FarmOverlapResponse struct {
 
 // FarmData represents farm data in responses
 type FarmData struct {
-	ID        string            `json:"id" example:"farm_123e4567-e89b-12d3-a456-426614174000"`
-	AAAUserID string            `json:"aaa_user_id" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
-	AAAOrgID  string            `json:"aaa_org_id" example:"org_123e4567-e89b-12d3-a456-426614174000"`
-	Name      string            `json:"name" example:"North Field Farm"`
-	Geometry  string            `json:"geometry" example:"POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663, 75.85 22.71))"`
-	AreaHa    float64           `json:"area_ha" example:"2.5"`
-	Metadata  map[string]string `json:"metadata" example:"soil_type:loamy,irrigation:drip"`
-	CreatedAt time.Time         `json:"created_at" example:"2024-01-15T10:30:00Z"`
-	UpdatedAt time.Time         `json:"updated_at" example:"2024-01-20T15:45:00Z"`
+	ID        string                 `json:"id" example:"farm_123e4567-e89b-12d3-a456-426614174000"`
+	AAAUserID string                 `json:"aaa_user_id" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
+	AAAOrgID  string                 `json:"aaa_org_id" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+	Name      string                 `json:"name" example:"North Field Farm"`
+	Geometry  string                 `json:"geometry" example:"POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663, 75.85 22.71))"`
+	AreaHa    float64                `json:"area_ha" example:"2.5"`
+	Metadata  map[string]interface{} `json:"metadata" example:"soil_type:loamy,irrigation:drip"`
+	CreatedAt time.Time              `json:"created_at" example:"2024-01-15T10:30:00Z"`
+	UpdatedAt time.Time              `json:"updated_at" example:"2024-01-20T15:45:00Z"`
 }
 
 // FarmOverlapData represents farm overlap check result

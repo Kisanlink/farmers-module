@@ -17,36 +17,36 @@ type BulkFarmerAdditionRequest struct {
 
 // BulkProcessingOptions represents options for bulk processing
 type BulkProcessingOptions struct {
-	ValidateOnly        bool              `json:"validate_only" example:"false"`                                              // Dry run mode
-	ContinueOnError     bool              `json:"continue_on_error" example:"true"`                                           // Continue processing on individual failures
-	ChunkSize           int               `json:"chunk_size" example:"100"`                                                   // Size of processing chunks (default: 100)
-	MaxConcurrency      int               `json:"max_concurrency" example:"10"`                                               // Max parallel workers (default: 10)
-	DeduplicationMode   string            `json:"deduplication_mode" example:"skip"`                                          // How to handle duplicates: skip, update, error
-	NotificationWebhook string            `json:"notification_webhook" example:"https://webhook.example.com/bulk-completion"` // Webhook for completion notification
-	AssignKisanSathi    bool              `json:"assign_kisan_sathi" example:"true"`                                          // Auto-assign KisanSathi if available
-	KisanSathiUserID    *string           `json:"kisan_sathi_user_id" example:"ks_123e4567-e89b-12d3-a456-426614174001"`      // Specific KisanSathi to assign
-	SendCredentials     bool              `json:"send_credentials" example:"true"`                                            // Send login credentials to farmers
-	CredentialMethod    string            `json:"credential_method" example:"sms"`                                            // sms, email, both
-	Metadata            map[string]string `json:"metadata" example:"batch_name:january_2024,region:central"`                  // Additional metadata
+	ValidateOnly        bool                   `json:"validate_only" example:"false"`                                              // Dry run mode
+	ContinueOnError     bool                   `json:"continue_on_error" example:"true"`                                           // Continue processing on individual failures
+	ChunkSize           int                    `json:"chunk_size" example:"100"`                                                   // Size of processing chunks (default: 100)
+	MaxConcurrency      int                    `json:"max_concurrency" example:"10"`                                               // Max parallel workers (default: 10)
+	DeduplicationMode   string                 `json:"deduplication_mode" example:"skip"`                                          // How to handle duplicates: skip, update, error
+	NotificationWebhook string                 `json:"notification_webhook" example:"https://webhook.example.com/bulk-completion"` // Webhook for completion notification
+	AssignKisanSathi    bool                   `json:"assign_kisan_sathi" example:"true"`                                          // Auto-assign KisanSathi if available
+	KisanSathiUserID    *string                `json:"kisan_sathi_user_id" example:"ks_123e4567-e89b-12d3-a456-426614174001"`      // Specific KisanSathi to assign
+	SendCredentials     bool                   `json:"send_credentials" example:"true"`                                            // Send login credentials to farmers
+	CredentialMethod    string                 `json:"credential_method" example:"sms"`                                            // sms, email, both
+	Metadata            map[string]interface{} `json:"metadata" example:"batch_name:january_2024,region:central"`                  // Additional metadata
 }
 
 // FarmerBulkData represents individual farmer data for bulk processing
 type FarmerBulkData struct {
-	FirstName         string            `json:"first_name" validate:"required,min=2,max=50" example:"Suresh"`
-	LastName          string            `json:"last_name" validate:"required,min=2,max=50" example:"Patel"`
-	PhoneNumber       string            `json:"phone_number" validate:"required,phone" example:"+91-9876543220"`
-	Email             string            `json:"email" validate:"omitempty,email" example:"suresh.patel@example.com"`
-	DateOfBirth       string            `json:"date_of_birth" validate:"omitempty,datetime=2006-01-02" example:"1975-08-20"`
-	Gender            string            `json:"gender" validate:"omitempty,oneof=male female other" example:"male"`
-	StreetAddress     string            `json:"street_address,omitempty" example:"Village Khandwa, Post Ratlam"`
-	City              string            `json:"city,omitempty" example:"Ratlam"`
-	State             string            `json:"state,omitempty" example:"Madhya Pradesh"`
-	PostalCode        string            `json:"postal_code,omitempty" example:"457001"`
-	Country           string            `json:"country,omitempty" example:"India"`
-	LandOwnershipType string            `json:"land_ownership_type,omitempty" example:"OWN"`
-	CustomFields      map[string]string `json:"custom_fields,omitempty" example:"education:high_school,family_size:5"`
-	ExternalID        string            `json:"external_id,omitempty" example:"EXT_FARMER_001"` // For tracking and idempotency
-	Password          string            `json:"password,omitempty" example:"Farmer@123"`        // Optional password, will be generated if not provided
+	FirstName         string                 `json:"first_name" validate:"required,min=2,max=50" example:"Suresh"`
+	LastName          string                 `json:"last_name" validate:"required,min=2,max=50" example:"Patel"`
+	PhoneNumber       string                 `json:"phone_number" validate:"required,phone" example:"+91-9876543220"`
+	Email             string                 `json:"email" validate:"omitempty,email" example:"suresh.patel@example.com"`
+	DateOfBirth       string                 `json:"date_of_birth" validate:"omitempty,datetime=2006-01-02" example:"1975-08-20"`
+	Gender            string                 `json:"gender" validate:"omitempty,oneof=male female other" example:"male"`
+	StreetAddress     string                 `json:"street_address,omitempty" example:"Village Khandwa, Post Ratlam"`
+	City              string                 `json:"city,omitempty" example:"Ratlam"`
+	State             string                 `json:"state,omitempty" example:"Madhya Pradesh"`
+	PostalCode        string                 `json:"postal_code,omitempty" example:"457001"`
+	Country           string                 `json:"country,omitempty" example:"India"`
+	LandOwnershipType string                 `json:"land_ownership_type,omitempty" example:"OWN"`
+	CustomFields      map[string]interface{} `json:"custom_fields,omitempty" example:"education:high_school,family_size:5"`
+	ExternalID        string                 `json:"external_id,omitempty" example:"EXT_FARMER_001"` // For tracking and idempotency
+	Password          string                 `json:"password,omitempty" example:"Farmer@123"`        // Optional password, will be generated if not provided
 }
 
 // BulkFarmerFileUploadRequest represents a file upload request
@@ -135,6 +135,6 @@ func (o *BulkProcessingOptions) SetDefaults() {
 		o.CredentialMethod = "sms"
 	}
 	if o.Metadata == nil {
-		o.Metadata = make(map[string]string)
+		o.Metadata = make(map[string]interface{})
 	}
 }

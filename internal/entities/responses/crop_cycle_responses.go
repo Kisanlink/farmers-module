@@ -20,20 +20,20 @@ type CropCycleListResponse struct {
 
 // CropCycleData represents crop cycle data in responses
 type CropCycleData struct {
-	ID        string            `json:"id"`
-	FarmID    string            `json:"farm_id"`
-	FarmerID  string            `json:"farmer_id"`
-	Season    string            `json:"season"`
-	Status    string            `json:"status"`
-	StartDate *time.Time        `json:"start_date"`
-	EndDate   *time.Time        `json:"end_date"`
-	CropID    string            `json:"crop_id"`
-	VarietyID *string           `json:"variety_id,omitempty"`
-	CropName  string            `json:"crop_name,omitempty"`
-	VarietyName *string         `json:"variety_name,omitempty"`
-	Outcome   map[string]string `json:"outcome"`
-	CreatedAt time.Time         `json:"created_at"`
-	UpdatedAt time.Time         `json:"updated_at"`
+	ID          string                 `json:"id"`
+	FarmID      string                 `json:"farm_id"`
+	FarmerID    string                 `json:"farmer_id"`
+	Season      string                 `json:"season"`
+	Status      string                 `json:"status"`
+	StartDate   *time.Time             `json:"start_date"`
+	EndDate     *time.Time             `json:"end_date"`
+	CropID      string                 `json:"crop_id"`
+	VarietyID   *string                `json:"variety_id,omitempty"`
+	CropName    string                 `json:"crop_name,omitempty"`
+	VarietyName *string                `json:"variety_name,omitempty"`
+	Outcome     map[string]interface{} `json:"outcome"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
 }
 
 // NewCropCycleResponse creates a new crop cycle response

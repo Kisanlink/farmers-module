@@ -53,8 +53,8 @@ func TestFPOService_CreateFPO_Success(t *testing.T) {
 			Email:       "john.doe@example.com",
 			Password:    "password123",
 		},
-		BusinessConfig: map[string]string{"type": "agricultural"},
-		Metadata:       map[string]string{"region": "north"},
+		BusinessConfig: map[string]interface{}{"type": "agricultural"},
+		Metadata:       map[string]interface{}{"region": "north"},
 	}
 
 	// Mock AAA service calls
@@ -226,8 +226,8 @@ func TestFPOService_RegisterFPORef_Success(t *testing.T) {
 		AAAOrgID:       "org123",
 		Name:           "Test FPO",
 		RegistrationNo: "FPO123456",
-		BusinessConfig: map[string]string{"type": "agricultural"},
-		Metadata:       map[string]string{"region": "north"},
+		BusinessConfig: map[string]interface{}{"type": "agricultural"},
+		Metadata:       map[string]interface{}{"region": "north"},
 	}
 
 	// Mock AAA service calls
@@ -322,7 +322,7 @@ func TestFPOService_GetFPORef_Success(t *testing.T) {
 		Name:           "Test FPO",
 		RegistrationNo: "FPO123456",
 		Status:         "ACTIVE",
-		BusinessConfig: map[string]string{"type": "agricultural"},
+		BusinessConfig: map[string]interface{}{"type": "agricultural"},
 	}
 	fpoRef.ID = "fpo_ref_123"
 	fpoRef.CreatedAt = time.Now()

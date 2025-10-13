@@ -44,10 +44,10 @@ var (
 
 // ErrorResponse represents a structured error response
 type ErrorResponse struct {
-	Error         string            `json:"error"`
-	Message       string            `json:"message"`
-	Code          string            `json:"code,omitempty"`
-	CorrelationID string            `json:"correlation_id,omitempty"`
-	Details       map[string]string `json:"details,omitempty"`
-	Timestamp     time.Time         `json:"timestamp"`
+	Error         string                 `json:"error"`
+	Message       string                 `json:"message"`
+	Code          string                 `json:"code,omitempty"`
+	CorrelationID string                 `json:"correlation_id,omitempty"`
+	Details       map[string]interface{} `json:"details,omitempty"`
+	Timestamp     time.Time              `json:"timestamp"`
 }

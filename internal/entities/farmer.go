@@ -11,7 +11,7 @@ import (
 )
 
 // JSONB is a custom type for handling JSONB columns
-type JSONB map[string]string
+type JSONB map[string]interface{}
 
 // Value implements the driver.Valuer interface
 func (j JSONB) Value() (driver.Value, error) {
@@ -33,7 +33,7 @@ func (j *JSONB) Scan(value interface{}) error {
 		return errors.New("failed to unmarshal JSONB value")
 	}
 
-	result := make(map[string]string)
+	result := make(map[string]interface{})
 	if err := json.Unmarshal(bytes, &result); err != nil {
 		return err
 	}

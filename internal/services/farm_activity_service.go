@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/auth"
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	cropCycleEntity "github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
 	farmActivityEntity "github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
@@ -105,10 +106,10 @@ func (s *FarmActivityServiceImpl) CreateActivity(ctx context.Context, req interf
 
 	// Initialize empty maps if nil
 	if activity.Output == nil {
-		activity.Output = make(map[string]string)
+		activity.Output = make(entities.JSONB)
 	}
 	if activity.Metadata == nil {
-		activity.Metadata = make(map[string]string)
+		activity.Metadata = make(entities.JSONB)
 	}
 
 	// Validate the activity

@@ -24,12 +24,12 @@ const (
 )
 
 // Metadata is a custom type for JSONB metadata fields
-type Metadata map[string]string
+type Metadata map[string]interface{}
 
 // Scan implements the sql.Scanner interface for JSONB deserialization
 func (m *Metadata) Scan(value interface{}) error {
 	if value == nil {
-		*m = make(map[string]string)
+		*m = make(map[string]interface{})
 		return nil
 	}
 
@@ -38,7 +38,7 @@ func (m *Metadata) Scan(value interface{}) error {
 		return errors.New("failed to unmarshal JSONB value")
 	}
 
-	result := make(map[string]string)
+	result := make(map[string]interface{})
 	if err := json.Unmarshal(bytes, &result); err != nil {
 		return err
 	}

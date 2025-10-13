@@ -19,7 +19,7 @@ type CreateFarmRequest struct {
 	BoreWellCount             int                       `json:"bore_well_count,omitempty" validate:"min=0" example:"2"`
 	OtherIrrigationDetails    *string                   `json:"other_irrigation_details,omitempty" example:"Canal irrigation available during monsoon"`
 	IrrigationSources         []IrrigationSourceRequest `json:"irrigation_sources,omitempty"`
-	Metadata                  map[string]string         `json:"metadata,omitempty" example:"soil_test_date:2024-01-10,elevation:450m"`
+	Metadata                  map[string]interface{}    `json:"metadata,omitempty" example:"soil_test_date:2024-01-10,elevation:450m"`
 }
 
 // Validate validates the CreateFarmRequest
@@ -53,7 +53,7 @@ type UpdateFarmRequest struct {
 	BoreWellCount             *int                      `json:"bore_well_count,omitempty" validate:"omitempty,min=0" example:"3"`
 	OtherIrrigationDetails    *string                   `json:"other_irrigation_details,omitempty" example:"Drip irrigation installed"`
 	IrrigationSources         []IrrigationSourceRequest `json:"irrigation_sources,omitempty"`
-	Metadata                  map[string]string         `json:"metadata,omitempty" example:"last_survey:2024-02-15,certification:organic"`
+	Metadata                  map[string]interface{}    `json:"metadata,omitempty" example:"last_survey:2024-02-15,certification:organic"`
 }
 
 // DeleteFarmRequest represents a request to delete a farm
@@ -135,7 +135,7 @@ type IrrigationSourceRequest struct {
 func NewCreateFarmRequest() CreateFarmRequest {
 	return CreateFarmRequest{
 		BaseRequest: NewBaseRequest(),
-		Metadata:    make(map[string]string),
+		Metadata:    make(map[string]interface{}),
 	}
 }
 
@@ -143,7 +143,7 @@ func NewCreateFarmRequest() CreateFarmRequest {
 func NewUpdateFarmRequest() UpdateFarmRequest {
 	return UpdateFarmRequest{
 		BaseRequest: NewBaseRequest(),
-		Metadata:    make(map[string]string),
+		Metadata:    make(map[string]interface{}),
 	}
 }
 

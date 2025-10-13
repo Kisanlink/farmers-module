@@ -104,8 +104,10 @@ func (s *FarmServiceImpl) CreateFarm(ctx context.Context, req interface{}) (inte
 	farm.Metadata = createReq.Metadata
 
 	// Set name from metadata if provided (legacy support)
-	if name, exists := createReq.Metadata["name"]; exists && farm.Name == nil {
-		farm.Name = &name
+	if nameVal, exists := createReq.Metadata["name"]; exists && farm.Name == nil {
+		if name, ok := nameVal.(string); ok {
+			farm.Name = &name
+		}
 	}
 
 	// Create farm in database
@@ -201,8 +203,10 @@ func (s *FarmServiceImpl) UpdateFarm(ctx context.Context, req interface{}) (inte
 	if updateReq.Metadata != nil {
 		existingFarm.Metadata = updateReq.Metadata
 		// Update name if provided in metadata (legacy support)
-		if name, exists := updateReq.Metadata["name"]; exists && updateReq.Name == nil {
-			existingFarm.Name = &name
+		if nameVal, exists := updateReq.Metadata["name"]; exists && updateReq.Name == nil {
+			if name, ok := nameVal.(string); ok {
+				existingFarm.Name = &name
+			}
 		}
 	}
 

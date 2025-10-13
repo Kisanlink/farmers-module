@@ -31,15 +31,15 @@ type KisanSathiUserResponse struct {
 
 // KisanSathiUserData represents KisanSathi user data in responses
 type KisanSathiUserData struct {
-	ID          string            `json:"id"`
-	Username    string            `json:"username"`
-	PhoneNumber string            `json:"phone_number"`
-	Email       string            `json:"email"`
-	FullName    string            `json:"full_name"`
-	Role        string            `json:"role"`
-	Status      string            `json:"status"`
-	Metadata    map[string]string `json:"metadata,omitempty"`
-	CreatedAt   string            `json:"created_at,omitempty"`
+	ID          string                 `json:"id"`
+	Username    string                 `json:"username"`
+	PhoneNumber string                 `json:"phone_number"`
+	Email       string                 `json:"email"`
+	FullName    string                 `json:"full_name"`
+	Role        string                 `json:"role"`
+	Status      string                 `json:"status"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	CreatedAt   string                 `json:"created_at,omitempty"`
 }
 
 // NewKisanSathiAssignmentResponse creates a new KisanSathi assignment response

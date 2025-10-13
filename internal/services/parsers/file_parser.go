@@ -432,7 +432,7 @@ func (p *FileParserImpl) parseCSVRecord(headers []string, record []string, rowNu
 	}
 
 	farmer := &requests.FarmerBulkData{
-		CustomFields: make(map[string]string),
+		CustomFields: make(map[string]interface{}),
 	}
 
 	// Map headers to struct fields

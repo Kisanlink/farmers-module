@@ -52,7 +52,7 @@ func TestFarmActivityService_ActivityLifecycle(t *testing.T) {
 		now := time.Now()
 		activity.Status = "COMPLETED"
 		activity.CompletedAt = &now
-		activity.Output = map[string]string{
+		activity.Output = map[string]interface{}{
 			"yield": "500kg",
 		}
 
@@ -97,7 +97,7 @@ func TestFarmActivityService_RequestValidation(t *testing.T) {
 			},
 			ID:          "activity123",
 			CompletedAt: now,
-			Output: map[string]string{
+			Output: map[string]interface{}{
 				"yield": "500kg",
 			},
 		}
@@ -125,8 +125,8 @@ func TestFarmActivityService_ResponseMapping(t *testing.T) {
 			CompletedAt:  nil,
 			CreatedBy:    "user123",
 			Status:       "PLANNED",
-			Output:       map[string]string{"test": "value"},
-			Metadata:     map[string]string{"meta": "data"},
+			Output:       map[string]interface{}{"test": "value"},
+			Metadata:     map[string]interface{}{"meta": "data"},
 			CreatedAt:    now,
 			UpdatedAt:    now,
 		}
@@ -270,8 +270,8 @@ func TestFarmActivityService_BusinessRules(t *testing.T) {
 
 	t.Run("metadata and output handling", func(t *testing.T) {
 		activity := &farmActivityEntity.FarmActivity{
-			Output:   make(map[string]string),
-			Metadata: make(map[string]string),
+			Output:   make(map[string]interface{}),
+			Metadata: make(map[string]interface{}),
 		}
 
 		// Test that maps are properly initialized

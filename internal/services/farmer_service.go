@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
@@ -444,7 +445,7 @@ func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.Upda
 	// Update metadata
 	if req.Profile.Metadata != nil {
 		if existingFarmer.Metadata == nil {
-			existingFarmer.Metadata = make(map[string]string)
+			existingFarmer.Metadata = make(entities.JSONB)
 		}
 		for k, v := range req.Profile.Metadata {
 			existingFarmer.Metadata[k] = v

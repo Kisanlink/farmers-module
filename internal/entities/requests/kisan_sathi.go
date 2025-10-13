@@ -19,13 +19,13 @@ type ReassignKisanSathiRequest struct {
 // CreateKisanSathiUserRequest represents a request to create a new KisanSathi user
 type CreateKisanSathiUserRequest struct {
 	BaseRequest
-	Username    string            `json:"username" validate:"required" example:"pradeep.ks"`
-	PhoneNumber string            `json:"phone_number" validate:"required" example:"+91-9876543211"`
-	Email       string            `json:"email" validate:"email" example:"pradeep.ks@fpo.com"`
-	Password    string            `json:"password" validate:"required,min=8" example:"SecureKS@123"`
-	FullName    string            `json:"full_name" validate:"required" example:"Pradeep Kumar"`
-	CountryCode string            `json:"country_code" example:"+91"`
-	Metadata    map[string]string `json:"metadata,omitempty" example:"experience_years:5,villages_covered:10"`
+	Username    string                 `json:"username" validate:"required" example:"pradeep.ks"`
+	PhoneNumber string                 `json:"phone_number" validate:"required" example:"+91-9876543211"`
+	Email       string                 `json:"email" validate:"email" example:"pradeep.ks@fpo.com"`
+	Password    string                 `json:"password" validate:"required,min=8" example:"SecureKS@123"`
+	FullName    string                 `json:"full_name" validate:"required" example:"Pradeep Kumar"`
+	CountryCode string                 `json:"country_code" example:"+91"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty" example:"experience_years:5,villages_covered:10"`
 }
 
 // ListKisanSathisRequest represents a request to list all KisanSathis

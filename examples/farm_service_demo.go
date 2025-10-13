@@ -54,7 +54,7 @@ func main() {
 				Geometry: requests.GeometryData{
 					WKT: "POLYGON((77.5946 12.9716, 77.6046 12.9716, 77.6046 12.9816, 77.5946 12.9816, 77.5946 12.9716))",
 				},
-				Metadata: map[string]string{
+				Metadata: map[string]interface{}{
 					"name": "Demo Farm",
 					"crop": "Rice",
 				},

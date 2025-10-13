@@ -36,22 +36,22 @@ type FarmerProfileResponse struct {
 
 // FarmerProfileData represents the profile data in responses
 type FarmerProfileData struct {
-	ID               string            `json:"id" example:"FMRR0000000001"` // Farmer ID (primary key)
-	AAAUserID        string            `json:"aaa_user_id" example:"USER00000001"`
-	AAAOrgID         string            `json:"aaa_org_id" example:"ORGN00000001"`
-	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"USER00000002"`
-	FirstName        string            `json:"first_name,omitempty" example:"Ramesh"`
-	LastName         string            `json:"last_name,omitempty" example:"Kumar"`
-	PhoneNumber      string            `json:"phone_number,omitempty" example:"9876543210"`
-	Email            string            `json:"email,omitempty" example:"ramesh.kumar@example.com"`
-	DateOfBirth      string            `json:"date_of_birth,omitempty" example:"1980-05-15"`
-	Gender           string            `json:"gender,omitempty" example:"male"`
-	Address          AddressData       `json:"address,omitempty"`
-	Preferences      map[string]string `json:"preferences,omitempty"`
-	Metadata         map[string]string `json:"metadata,omitempty"`
-	Farms            []*FarmData       `json:"farms,omitempty"`
-	CreatedAt        string            `json:"created_at,omitempty" example:"2024-01-15T10:30:00Z"`
-	UpdatedAt        string            `json:"updated_at,omitempty" example:"2024-01-20T15:45:00Z"`
+	ID               string                 `json:"id" example:"FMRR0000000001"` // Farmer ID (primary key)
+	AAAUserID        string                 `json:"aaa_user_id" example:"USER00000001"`
+	AAAOrgID         string                 `json:"aaa_org_id" example:"ORGN00000001"`
+	KisanSathiUserID *string                `json:"kisan_sathi_user_id,omitempty" example:"USER00000002"`
+	FirstName        string                 `json:"first_name,omitempty" example:"Ramesh"`
+	LastName         string                 `json:"last_name,omitempty" example:"Kumar"`
+	PhoneNumber      string                 `json:"phone_number,omitempty" example:"9876543210"`
+	Email            string                 `json:"email,omitempty" example:"ramesh.kumar@example.com"`
+	DateOfBirth      string                 `json:"date_of_birth,omitempty" example:"1980-05-15"`
+	Gender           string                 `json:"gender,omitempty" example:"male"`
+	Address          AddressData            `json:"address,omitempty"`
+	Preferences      map[string]interface{} `json:"preferences,omitempty"`
+	Metadata         map[string]interface{} `json:"metadata,omitempty"`
+	Farms            []*FarmData            `json:"farms,omitempty"`
+	CreatedAt        string                 `json:"created_at,omitempty" example:"2024-01-15T10:30:00Z"`
+	UpdatedAt        string                 `json:"updated_at,omitempty" example:"2024-01-20T15:45:00Z"`
 }
 
 // AddressData represents address information in responses

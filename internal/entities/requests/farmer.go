@@ -51,17 +51,17 @@ type ListFarmersRequest struct {
 
 // FarmerProfileData represents the profile data for a farmer
 type FarmerProfileData struct {
-	Username    string            `json:"username,omitempty" example:"ramesh_kumar"`
-	FirstName   string            `json:"first_name,omitempty" example:"Ramesh"`
-	LastName    string            `json:"last_name,omitempty" example:"Kumar"`
-	PhoneNumber string            `json:"phone_number,omitempty" example:"9876543210"`
-	CountryCode string            `json:"country_code,omitempty" example:"+91"`
-	Email       string            `json:"email,omitempty" example:"ramesh.kumar@example.com"`
-	DateOfBirth string            `json:"date_of_birth,omitempty" example:"1980-05-15"`
-	Gender      string            `json:"gender,omitempty" example:"male"`
-	Address     AddressData       `json:"address,omitempty"`
-	Preferences map[string]string `json:"preferences,omitempty" example:"language:hindi,notification:sms"`
-	Metadata    map[string]string `json:"metadata,omitempty" example:"source:field_survey,verified:true"`
+	Username    string                 `json:"username,omitempty" example:"ramesh_kumar"`
+	FirstName   string                 `json:"first_name,omitempty" example:"Ramesh"`
+	LastName    string                 `json:"last_name,omitempty" example:"Kumar"`
+	PhoneNumber string                 `json:"phone_number,omitempty" example:"9876543210"`
+	CountryCode string                 `json:"country_code,omitempty" example:"+91"`
+	Email       string                 `json:"email,omitempty" example:"ramesh.kumar@example.com"`
+	DateOfBirth string                 `json:"date_of_birth,omitempty" example:"1980-05-15"`
+	Gender      string                 `json:"gender,omitempty" example:"male"`
+	Address     AddressData            `json:"address,omitempty"`
+	Preferences map[string]interface{} `json:"preferences,omitempty" example:"language:hindi,notification:sms"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty" example:"source:field_survey,verified:true"`
 }
 
 // AddressData represents address information

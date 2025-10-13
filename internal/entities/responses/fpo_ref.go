@@ -46,16 +46,16 @@ type FPORefResponse struct {
 
 // FPORefData represents FPO reference data in responses
 type FPORefData struct {
-	ID             string            `json:"id"`
-	AAAOrgID       string            `json:"aaa_org_id"`
-	Name           string            `json:"name"`
-	RegistrationNo string            `json:"registration_no"`
-	BusinessConfig map[string]string `json:"business_config"`
-	Status         string            `json:"status"`
-	Metadata       map[string]string `json:"metadata,omitempty"`
-	CreatedBy      string            `json:"created_by,omitempty"`
-	CreatedAt      string            `json:"created_at,omitempty"`
-	UpdatedAt      string            `json:"updated_at,omitempty"`
+	ID             string                 `json:"id"`
+	AAAOrgID       string                 `json:"aaa_org_id"`
+	Name           string                 `json:"name"`
+	RegistrationNo string                 `json:"registration_no"`
+	BusinessConfig map[string]interface{} `json:"business_config"`
+	Status         string                 `json:"status"`
+	Metadata       map[string]interface{} `json:"metadata,omitempty"`
+	CreatedBy      string                 `json:"created_by,omitempty"`
+	CreatedAt      string                 `json:"created_at,omitempty"`
+	UpdatedAt      string                 `json:"updated_at,omitempty"`
 }
 
 // NewFPORefResponse creates a new FPO reference response

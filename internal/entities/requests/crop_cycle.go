@@ -28,10 +28,10 @@ type UpdateCycleRequest struct {
 // EndCycleRequest represents a request to end a crop cycle
 type EndCycleRequest struct {
 	BaseRequest
-	ID      string            `json:"id" validate:"required" example:"cycle_123e4567-e89b-12d3-a456-426614174000"`
-	Status  string            `json:"status" validate:"required,oneof=COMPLETED CANCELLED" example:"COMPLETED"`
-	EndDate time.Time         `json:"end_date" validate:"required" example:"2024-03-15T00:00:00Z"`
-	Outcome map[string]string `json:"outcome,omitempty" example:"yield_kg:2500,quality:good,notes:good_harvest"`
+	ID      string                 `json:"id" validate:"required" example:"cycle_123e4567-e89b-12d3-a456-426614174000"`
+	Status  string                 `json:"status" validate:"required,oneof=COMPLETED CANCELLED" example:"COMPLETED"`
+	EndDate time.Time              `json:"end_date" validate:"required" example:"2024-03-15T00:00:00Z"`
+	Outcome map[string]interface{} `json:"outcome,omitempty" example:"yield_kg:2500,quality:good,notes:good_harvest"`
 }
 
 // ListCyclesRequest represents a request to list crop cycles with filtering
@@ -67,7 +67,7 @@ func NewUpdateCycleRequest() UpdateCycleRequest {
 func NewEndCycleRequest() EndCycleRequest {
 	return EndCycleRequest{
 		BaseRequest: NewBaseRequest(),
-		Outcome:     make(map[string]string),
+		Outcome:     make(map[string]interface{}),
 	}
 }
 

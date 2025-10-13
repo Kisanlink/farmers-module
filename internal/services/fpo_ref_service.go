@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/fpo"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
@@ -138,7 +139,7 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 
 	// Step 5: Create user groups for FPO
 	userGroups := []responses.UserGroupData{}
-	setupErrors := make(map[string]string)
+	setupErrors := make(entities.JSONB)
 	groupNames := []string{"directors", "shareholders", "store_staff", "store_managers"}
 
 	for _, groupName := range groupNames {
@@ -374,7 +375,7 @@ func (s *FPOServiceImpl) CompleteFPOSetup(ctx context.Context, orgID string) (in
 	}
 
 	// Retry creating missing user groups
-	setupErrors := make(map[string]string)
+	setupErrors := make(entities.JSONB)
 	groupNames := []string{"directors", "shareholders", "store_staff", "store_managers"}
 
 	for _, groupName := range groupNames {

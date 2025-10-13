@@ -20,17 +20,17 @@ type FarmActivityListResponse struct {
 
 // FarmActivityData represents farm activity data in responses
 type FarmActivityData struct {
-	ID           string            `json:"id"`
-	CropCycleID  string            `json:"crop_cycle_id"`
-	ActivityType string            `json:"activity_type"`
-	PlannedAt    *time.Time        `json:"planned_at"`
-	CompletedAt  *time.Time        `json:"completed_at"`
-	CreatedBy    string            `json:"created_by"`
-	Status       string            `json:"status"`
-	Output       map[string]string `json:"output"`
-	Metadata     map[string]string `json:"metadata"`
-	CreatedAt    time.Time         `json:"created_at"`
-	UpdatedAt    time.Time         `json:"updated_at"`
+	ID           string                 `json:"id"`
+	CropCycleID  string                 `json:"crop_cycle_id"`
+	ActivityType string                 `json:"activity_type"`
+	PlannedAt    *time.Time             `json:"planned_at"`
+	CompletedAt  *time.Time             `json:"completed_at"`
+	CreatedBy    string                 `json:"created_by"`
+	Status       string                 `json:"status"`
+	Output       map[string]interface{} `json:"output"`
+	Metadata     map[string]interface{} `json:"metadata"`
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
 }
 
 // NewFarmActivityResponse creates a new farm activity response

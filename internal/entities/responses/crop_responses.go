@@ -4,18 +4,18 @@ import "time"
 
 // CropData represents crop data in responses
 type CropData struct {
-	ID             string            `json:"id"`
-	Name           string            `json:"name"`
-	ScientificName *string           `json:"scientific_name,omitempty"`
-	Category       string            `json:"category"`
-	DurationDays   *int              `json:"duration_days,omitempty"`
-	Seasons        []string          `json:"seasons"`
-	Unit           string            `json:"unit"`
-	Properties     map[string]string `json:"properties,omitempty"`
-	IsActive       bool              `json:"is_active"`
-	CreatedAt      time.Time         `json:"created_at"`
-	UpdatedAt      time.Time         `json:"updated_at"`
-	VarietyCount   int               `json:"variety_count,omitempty"` // Count of active varieties
+	ID             string                 `json:"id"`
+	Name           string                 `json:"name"`
+	ScientificName *string                `json:"scientific_name,omitempty"`
+	Category       string                 `json:"category"`
+	DurationDays   *int                   `json:"duration_days,omitempty"`
+	Seasons        []string               `json:"seasons"`
+	Unit           string                 `json:"unit"`
+	Properties     map[string]interface{} `json:"properties,omitempty"`
+	IsActive       bool                   `json:"is_active"`
+	CreatedAt      time.Time              `json:"created_at"`
+	UpdatedAt      time.Time              `json:"updated_at"`
+	VarietyCount   int                    `json:"variety_count,omitempty"` // Count of active varieties
 }
 
 // YieldByAgeData represents yield information for a specific tree age range in responses
@@ -27,19 +27,19 @@ type YieldByAgeData struct {
 
 // CropVarietyData represents crop variety data in responses
 type CropVarietyData struct {
-	ID           string            `json:"id"`
-	CropID       string            `json:"crop_id"`
-	CropName     string            `json:"crop_name,omitempty"`
-	Name         string            `json:"name"`
-	Description  *string           `json:"description,omitempty"`
-	DurationDays *int              `json:"duration_days,omitempty"`
-	YieldPerAcre *float64          `json:"yield_per_acre,omitempty"`
-	YieldPerTree *float64          `json:"yield_per_tree,omitempty"`
-	YieldByAge   []YieldByAgeData  `json:"yield_by_age,omitempty"`
-	Properties   map[string]string `json:"properties,omitempty"`
-	IsActive     bool              `json:"is_active"`
-	CreatedAt    time.Time         `json:"created_at"`
-	UpdatedAt    time.Time         `json:"updated_at"`
+	ID           string                 `json:"id"`
+	CropID       string                 `json:"crop_id"`
+	CropName     string                 `json:"crop_name,omitempty"`
+	Name         string                 `json:"name"`
+	Description  *string                `json:"description,omitempty"`
+	DurationDays *int                   `json:"duration_days,omitempty"`
+	YieldPerAcre *float64               `json:"yield_per_acre,omitempty"`
+	YieldPerTree *float64               `json:"yield_per_tree,omitempty"`
+	YieldByAge   []YieldByAgeData       `json:"yield_by_age,omitempty"`
+	Properties   map[string]interface{} `json:"properties,omitempty"`
+	IsActive     bool                   `json:"is_active"`
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
 }
 
 // CropResponse represents a single crop response
@@ -130,20 +130,20 @@ type CropSeasonsResponse struct {
 
 // Enhanced crop cycle data including crop master data
 type EnhancedCropCycleData struct {
-	ID        string            `json:"id"`
-	FarmID    string            `json:"farm_id"`
-	FarmerID  string            `json:"farmer_id"`
-	Season    string            `json:"season"`
-	Status    string            `json:"status"`
-	StartDate *time.Time        `json:"start_date,omitempty"`
-	EndDate   *time.Time        `json:"end_date,omitempty"`
-	CropID    string            `json:"crop_id"`
-	VarietyID *string           `json:"variety_id,omitempty"`
-	Crop      *CropLookupData   `json:"crop,omitempty"`
+	ID        string                 `json:"id"`
+	FarmID    string                 `json:"farm_id"`
+	FarmerID  string                 `json:"farmer_id"`
+	Season    string                 `json:"season"`
+	Status    string                 `json:"status"`
+	StartDate *time.Time             `json:"start_date,omitempty"`
+	EndDate   *time.Time             `json:"end_date,omitempty"`
+	CropID    string                 `json:"crop_id"`
+	VarietyID *string                `json:"variety_id,omitempty"`
+	Crop      *CropLookupData        `json:"crop,omitempty"`
 	Variety   *CropVarietyLookupData `json:"variety,omitempty"`
-	Outcome   map[string]string `json:"outcome,omitempty"`
-	CreatedAt time.Time         `json:"created_at"`
-	UpdatedAt time.Time         `json:"updated_at"`
+	Outcome   map[string]interface{} `json:"outcome,omitempty"`
+	CreatedAt time.Time              `json:"created_at"`
+	UpdatedAt time.Time              `json:"updated_at"`
 }
 
 // Swagger response types for documentation
