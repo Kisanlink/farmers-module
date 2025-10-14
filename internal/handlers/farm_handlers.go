@@ -161,7 +161,8 @@ func DeleteFarm(service services.FarmService) gin.HandlerFunc {
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(10)
-// @Param farmer_id query string false "Filter by farmer ID"
+// @Param farmer_id query string false "Filter by internal farmer ID (e.g., FMRR0000000001)"
+// @Param aaa_user_id query string false "Filter by AAA user ID (e.g., usr_123e4567-e89b-12d3-a456-426614174000)"
 // @Param org_id query string false "Filter by organization ID"
 // @Param min_area query number false "Minimum area in hectares"
 // @Param max_area query number false "Maximum area in hectares"
@@ -186,7 +187,10 @@ func ListFarms(service services.FarmService) gin.HandlerFunc {
 			}
 		}
 		if farmerID := c.Query("farmer_id"); farmerID != "" {
-			req.AAAUserID = farmerID
+			req.FarmerID = farmerID
+		}
+		if aaaUserID := c.Query("aaa_user_id"); aaaUserID != "" {
+			req.AAAUserID = aaaUserID
 		}
 		if orgID := c.Query("org_id"); orgID != "" {
 			req.AAAOrgID = orgID
