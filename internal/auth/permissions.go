@@ -19,17 +19,20 @@ func (p Permission) String() string {
 // RoutePermissionMap maps HTTP routes to required permissions
 var RoutePermissionMap = map[string]Permission{
 	// Identity - Farmer management routes
-	"POST /api/v1/identity/farmers":            {Resource: "farmer", Action: "create"},
-	"GET /api/v1/identity/farmers":             {Resource: "farmer", Action: "list"},
-	"GET /api/v1/identity/farmers/id/:id":      {Resource: "farmer", Action: "read"},
-	"GET /api/v1/identity/farmers/user/:id":    {Resource: "farmer", Action: "read"},
-	"GET /api/v1/identity/farmers/:id":         {Resource: "farmer", Action: "read"},
-	"PUT /api/v1/identity/farmers/id/:id":      {Resource: "farmer", Action: "update"},
-	"PUT /api/v1/identity/farmers/user/:id":    {Resource: "farmer", Action: "update"},
-	"PUT /api/v1/identity/farmers/:id":         {Resource: "farmer", Action: "update"},
-	"DELETE /api/v1/identity/farmers/id/:id":   {Resource: "farmer", Action: "delete"},
-	"DELETE /api/v1/identity/farmers/user/:id": {Resource: "farmer", Action: "delete"},
-	"DELETE /api/v1/identity/farmers/:id":      {Resource: "farmer", Action: "delete"},
+	"POST /api/v1/identity/farmers":               {Resource: "farmer", Action: "create"},
+	"GET /api/v1/identity/farmers":                {Resource: "farmer", Action: "list"},
+	"GET /api/v1/identity/farmers/id/:id":         {Resource: "farmer", Action: "read"},
+	"GET /api/v1/identity/farmers/user/:id":       {Resource: "farmer", Action: "read"},
+	"GET /api/v1/identity/farmers/:id":            {Resource: "farmer", Action: "read"},
+	"GET /api/v1/identity/farmers/:id/:org_id":    {Resource: "farmer", Action: "read"},
+	"PUT /api/v1/identity/farmers/id/:id":         {Resource: "farmer", Action: "update"},
+	"PUT /api/v1/identity/farmers/user/:id":       {Resource: "farmer", Action: "update"},
+	"PUT /api/v1/identity/farmers/:id":            {Resource: "farmer", Action: "update"},
+	"PUT /api/v1/identity/farmers/:id/:org_id":    {Resource: "farmer", Action: "update"},
+	"DELETE /api/v1/identity/farmers/id/:id":      {Resource: "farmer", Action: "delete"},
+	"DELETE /api/v1/identity/farmers/user/:id":    {Resource: "farmer", Action: "delete"},
+	"DELETE /api/v1/identity/farmers/:id":         {Resource: "farmer", Action: "delete"},
+	"DELETE /api/v1/identity/farmers/:id/:org_id": {Resource: "farmer", Action: "delete"},
 
 	// Legacy farmer management routes (if any)
 	"POST /api/v1/farmers":       {Resource: "farmer", Action: "create"},
@@ -39,15 +42,18 @@ var RoutePermissionMap = map[string]Permission{
 	"GET /api/v1/farmers":        {Resource: "farmer", Action: "list"},
 
 	// Identity - Farmer linkage routes
-	"POST /api/v1/identity/farmer/link":       {Resource: "farmer", Action: "link"},
-	"DELETE /api/v1/identity/farmer/unlink":   {Resource: "farmer", Action: "unlink"},
-	"GET /api/v1/identity/farmer/linkage/:id": {Resource: "farmer", Action: "read"},
+	"POST /api/v1/identity/farmer/link":               {Resource: "farmer", Action: "link"},
+	"DELETE /api/v1/identity/farmer/unlink":           {Resource: "farmer", Action: "unlink"},
+	"GET /api/v1/identity/farmer/linkage/:id":         {Resource: "farmer", Action: "read"},
+	"GET /api/v1/identity/farmer/linkage/:id/:org_id": {Resource: "farmer", Action: "read"},
 
 	// Identity - KisanSathi routes
-	"POST /api/v1/identity/kisansathi/assign":        {Resource: "farmer", Action: "assign_kisan_sathi"},
-	"PUT /api/v1/identity/kisansathi/reassign":       {Resource: "farmer", Action: "assign_kisan_sathi"},
-	"POST /api/v1/identity/kisansathi/create-user":   {Resource: "kisansathi", Action: "create"},
-	"GET /api/v1/identity/kisansathi/assignment/:id": {Resource: "farmer", Action: "read"},
+	"POST /api/v1/identity/kisansathi/assign":                {Resource: "farmer", Action: "assign_kisan_sathi"},
+	"PUT /api/v1/identity/kisansathi/reassign":               {Resource: "farmer", Action: "assign_kisan_sathi"},
+	"POST /api/v1/identity/kisansathi/create-user":           {Resource: "kisansathi", Action: "create"},
+	"GET /api/v1/identity/kisansathi/assignment/:id":         {Resource: "farmer", Action: "read"},
+	"GET /api/v1/identity/kisansathi/assignment/:id/:org_id": {Resource: "farmer", Action: "read"},
+	"GET /api/v1/kisansathi":                                 {Resource: "kisansathi", Action: "list"},
 
 	// Identity - FPO routes
 	"POST /api/v1/identity/fpo/create":       {Resource: "fpo", Action: "create"},
@@ -67,11 +73,12 @@ var RoutePermissionMap = map[string]Permission{
 	"PUT /api/v1/farmer-links/kisan-sathi": {Resource: "farmer", Action: "assign_kisan_sathi"},
 
 	// Farm management routes
-	"POST /api/v1/farms":       {Resource: "farm", Action: "create"},
-	"GET /api/v1/farms/:id":    {Resource: "farm", Action: "read"},
-	"PUT /api/v1/farms/:id":    {Resource: "farm", Action: "update"},
-	"DELETE /api/v1/farms/:id": {Resource: "farm", Action: "delete"},
-	"GET /api/v1/farms":        {Resource: "farm", Action: "list"},
+	"POST /api/v1/farms":                    {Resource: "farm", Action: "create"},
+	"GET /api/v1/farms/:id":                 {Resource: "farm", Action: "read"},
+	"PUT /api/v1/farms/:id":                 {Resource: "farm", Action: "update"},
+	"DELETE /api/v1/farms/:id":              {Resource: "farm", Action: "delete"},
+	"GET /api/v1/farms":                     {Resource: "farm", Action: "list"},
+	"GET /api/v1/farms/:id/area-allocation": {Resource: "farm", Action: "read"},
 
 	// Crop master data routes
 	"POST /api/v1/crops":       {Resource: "crop", Action: "create"},
@@ -104,10 +111,12 @@ var RoutePermissionMap = map[string]Permission{
 	"GET /api/v1/crops/activities":              {Resource: "activity", Action: "list"},
 
 	// Lookup/Dropdown data routes
-	"GET /api/v1/lookups/crops":           {Resource: "crop", Action: "list"},
-	"GET /api/v1/lookups/varieties/:id":   {Resource: "crop", Action: "list"},
-	"GET /api/v1/lookups/crop-categories": {Resource: "crop", Action: "list"},
-	"GET /api/v1/lookups/crop-seasons":    {Resource: "crop", Action: "list"},
+	"GET /api/v1/lookups/crops":              {Resource: "crop", Action: "list"},
+	"GET /api/v1/lookups/varieties/:id":      {Resource: "crop", Action: "list"},
+	"GET /api/v1/lookups/crop-categories":    {Resource: "crop", Action: "list"},
+	"GET /api/v1/lookups/crop-seasons":       {Resource: "crop", Action: "list"},
+	"GET /api/v1/lookups/soil-types":         {Resource: "farm", Action: "list"},
+	"GET /api/v1/lookups/irrigation-sources": {Resource: "farm", Action: "list"},
 
 	// Stage master data routes
 	"POST /api/v1/stages":       {Resource: "stage", Action: "create"},
@@ -135,8 +144,21 @@ var RoutePermissionMap = map[string]Permission{
 	"GET /api/v1/reports/org-dashboard":    {Resource: "report", Action: "read"},
 
 	// Administrative routes
-	"POST /api/v1/admin/seed-roles": {Resource: "admin", Action: "maintain"},
-	"GET /api/v1/health":            {Resource: "system", Action: "health"},
+	"POST /api/v1/admin/seed":             {Resource: "admin", Action: "maintain"},
+	"POST /api/v1/admin/seed-roles":       {Resource: "admin", Action: "maintain"},
+	"POST /api/v1/admin/check-permission": {Resource: "admin", Action: "test"},
+	"GET /api/v1/admin/health":            {Resource: "admin", Action: "monitor"},
+	"GET /api/v1/admin/audit":             {Resource: "admin", Action: "audit"},
+	"GET /api/v1/health":                  {Resource: "system", Action: "health"},
+
+	// Bulk operation routes
+	"POST /api/v1/bulk/farmers/add":          {Resource: "farmer", Action: "bulk_create"},
+	"GET /api/v1/bulk/status/:operation_id":  {Resource: "bulk_operation", Action: "read"},
+	"POST /api/v1/bulk/cancel/:operation_id": {Resource: "bulk_operation", Action: "cancel"},
+	"POST /api/v1/bulk/retry/:operation_id":  {Resource: "bulk_operation", Action: "retry"},
+	"GET /api/v1/bulk/results/:operation_id": {Resource: "bulk_operation", Action: "read"},
+	"GET /api/v1/bulk/template":              {Resource: "farmer", Action: "read"},
+	"POST /api/v1/bulk/validate":             {Resource: "farmer", Action: "validate"},
 }
 
 // GetPermissionForRoute returns the required permission for a given HTTP method and path
@@ -178,16 +200,24 @@ func normalizePath(path string) string {
 			return fmt.Sprintf("/api/v1/identity/%s/:id", resource)
 		}
 		if len(segments) == 7 {
-			subPath := segments[5] // id, user, etc.
+			subPath := segments[5] // id, user, linkage, assignment, etc.
 			if subPath == "id" || subPath == "user" || subPath == "reference" {
 				// Pattern: /api/v1/identity/farmers/id/123 -> /api/v1/identity/farmers/id/:id
 				return fmt.Sprintf("/api/v1/identity/%s/%s/:id", resource, subPath)
 			}
-			// Pattern: /api/v1/identity/farmers/123/action -> /api/v1/identity/farmers/:id/action
-			return fmt.Sprintf("/api/v1/identity/%s/:id/%s", resource, segments[6])
+			if subPath == "linkage" || subPath == "assignment" {
+				// Pattern: /api/v1/identity/farmer/linkage/USER123 -> /api/v1/identity/farmer/linkage/:id
+				return fmt.Sprintf("/api/v1/identity/%s/%s/:id", resource, subPath)
+			}
+			// Pattern: /api/v1/identity/farmers/USER123/ORG456 -> /api/v1/identity/farmers/:id/:org_id
+			return fmt.Sprintf("/api/v1/identity/%s/:id/:org_id", resource)
 		}
 		if len(segments) == 8 {
-			subPath := segments[5] // id, user, etc.
+			subPath := segments[5] // id, user, linkage, assignment, etc.
+			if subPath == "linkage" || subPath == "assignment" {
+				// Pattern: /api/v1/identity/farmer/linkage/USER123/ORG456 -> /api/v1/identity/farmer/linkage/:id/:org_id
+				return fmt.Sprintf("/api/v1/identity/%s/%s/:id/:org_id", resource, subPath)
+			}
 			// Pattern: /api/v1/identity/farmers/id/123/action -> /api/v1/identity/farmers/id/:id/action
 			return fmt.Sprintf("/api/v1/identity/%s/%s/:id/%s", resource, subPath, segments[7])
 		}
@@ -227,15 +257,34 @@ func normalizePath(path string) string {
 		}
 	}
 
+	// Handle bulk operation routes: /api/v1/bulk/...
+	if len(segments) >= 4 && segments[1] == "api" && segments[2] == "v1" && segments[3] == "bulk" {
+		if len(segments) == 5 {
+			// Pattern: /api/v1/bulk/template -> /api/v1/bulk/template (no normalization needed)
+			return path
+		}
+		if len(segments) == 6 {
+			// Pattern: /api/v1/bulk/status/OPER123 -> /api/v1/bulk/status/:operation_id
+			// Pattern: /api/v1/bulk/cancel/OPER123 -> /api/v1/bulk/cancel/:operation_id
+			// Pattern: /api/v1/bulk/retry/OPER123 -> /api/v1/bulk/retry/:operation_id
+			// Pattern: /api/v1/bulk/results/OPER123 -> /api/v1/bulk/results/:operation_id
+			return fmt.Sprintf("/api/v1/bulk/%s/:operation_id", segments[4])
+		}
+	}
+
 	// Handle other routes
 	if len(segments) >= 4 {
 		// Check for common API patterns
+		if len(segments) == 4 && segments[1] == "api" && segments[2] == "v1" {
+			// Pattern: /api/v1/kisansathi -> /api/v1/kisansathi (no normalization needed)
+			return path
+		}
 		if len(segments) == 5 && segments[1] == "api" && segments[2] == "v1" {
 			// Pattern: /api/v1/resource/id
 			return fmt.Sprintf("/api/v1/%s/:id", segments[3])
 		}
 		if len(segments) == 6 && segments[1] == "api" && segments[2] == "v1" {
-			// Pattern: /api/v1/resource/id/action
+			// Pattern: /api/v1/resource/id/action (e.g., /api/v1/farms/123/area-allocation)
 			return fmt.Sprintf("/api/v1/%s/:id/%s", segments[3], segments[5])
 		}
 	}
