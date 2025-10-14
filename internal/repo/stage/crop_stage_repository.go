@@ -23,16 +23,15 @@ func NewCropStageRepository(dbManager interface{}) *CropStageRepository {
 	}
 }
 
-// GetCropStages gets all stages for a crop in order
-// Note: Stage preloading handled by service layer if needed
+// GetCropStages gets all stages for a crop in order with Stage relationship preloaded
 func (r *CropStageRepository) GetCropStages(ctx context.Context, cropID string) ([]*stage.CropStage, error) {
 	filter := base.NewFilterBuilder().
 		Where("crop_id", base.OpEqual, cropID).
 		Where("is_active", base.OpEqual, true).
 		Where("deleted_at", base.OpIsNull, nil).
+		Preload("Stage").
+		Sort("stage_order", "asc").
 		Build()
-
-	filter.Sort = []base.SortField{{Field: "stage_order", Direction: "asc"}}
 
 	cropStages, err := r.BaseFilterableRepository.Find(ctx, filter)
 	if err != nil {
@@ -42,12 +41,12 @@ func (r *CropStageRepository) GetCropStages(ctx context.Context, cropID string) 
 	return cropStages, nil
 }
 
-// GetCropStageByID gets a specific crop stage
-// Note: Stage and Crop preloading handled by service layer if needed
+// GetCropStageByID gets a specific crop stage with Stage relationship preloaded
 func (r *CropStageRepository) GetCropStageByID(ctx context.Context, id string) (*stage.CropStage, error) {
 	filter := base.NewFilterBuilder().
 		Where("id", base.OpEqual, id).
 		Where("deleted_at", base.OpIsNull, nil).
+		Preload("Stage").
 		Build()
 
 	cropStage, err := r.BaseFilterableRepository.FindOne(ctx, filter)
@@ -58,12 +57,13 @@ func (r *CropStageRepository) GetCropStageByID(ctx context.Context, id string) (
 	return cropStage, nil
 }
 
-// GetCropStageByCropAndStage gets a crop stage by crop and stage IDs
+// GetCropStageByCropAndStage gets a crop stage by crop and stage IDs with Stage relationship preloaded
 func (r *CropStageRepository) GetCropStageByCropAndStage(ctx context.Context, cropID, stageID string) (*stage.CropStage, error) {
 	filter := base.NewFilterBuilder().
 		Where("crop_id", base.OpEqual, cropID).
 		Where("stage_id", base.OpEqual, stageID).
 		Where("deleted_at", base.OpIsNull, nil).
+		Preload("Stage").
 		Build()
 
 	cropStage, err := r.BaseFilterableRepository.FindOne(ctx, filter)

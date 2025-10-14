@@ -27,6 +27,7 @@ type FarmOverlapResponse struct {
 // FarmData represents farm data in responses
 type FarmData struct {
 	ID        string                 `json:"id" example:"farm_123e4567-e89b-12d3-a456-426614174000"`
+	FarmerID  string                 `json:"farmer_id" example:"FMRR0000000001"`
 	AAAUserID string                 `json:"aaa_user_id" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
 	AAAOrgID  string                 `json:"aaa_org_id" example:"org_123e4567-e89b-12d3-a456-426614174000"`
 	Name      string                 `json:"name" example:"North Field Farm"`

@@ -24,16 +24,15 @@ func NewCropVarietyRepository(dbManager interface{}) *CropVarietyRepository {
 	}
 }
 
-// FindByCropID finds all varieties for a specific crop
+// FindByCropID finds all varieties for a specific crop with Crop relationship preloaded
 func (r *CropVarietyRepository) FindByCropID(ctx context.Context, cropID string, page, pageSize int) ([]*crop_variety.CropVariety, int, error) {
 	filter := base.NewFilterBuilder().
 		Where("crop_id", base.OpEqual, cropID).
 		Where("is_active", base.OpEqual, true).
+		Preload("Crop").
+		Sort("name", "asc").
+		Page(page, pageSize).
 		Build()
-
-	filter.Page = page
-	filter.PageSize = pageSize
-	filter.Sort = []base.SortField{{Field: "name", Direction: "asc"}}
 
 	varieties, err := r.BaseFilterableRepository.Find(ctx, filter)
 	if err != nil {
@@ -48,12 +47,13 @@ func (r *CropVarietyRepository) FindByCropID(ctx context.Context, cropID string,
 	return varieties, int(count), nil
 }
 
-// FindByCropIDAndName finds a variety by crop ID and name
+// FindByCropIDAndName finds a variety by crop ID and name with Crop relationship preloaded
 func (r *CropVarietyRepository) FindByCropIDAndName(ctx context.Context, cropID, name string) (*crop_variety.CropVariety, error) {
 	filter := base.NewFilterBuilder().
 		Where("crop_id", base.OpEqual, cropID).
 		Where("name", base.OpEqual, name).
 		Where("is_active", base.OpEqual, true).
+		Preload("Crop").
 		Build()
 
 	variety, err := r.BaseFilterableRepository.FindOne(ctx, filter)
@@ -64,14 +64,14 @@ func (r *CropVarietyRepository) FindByCropIDAndName(ctx context.Context, cropID,
 	return variety, nil
 }
 
-// Search finds varieties by name or description
+// Search finds varieties by name or description with Crop relationship preloaded
 // Uses in-memory filtering for LIKE pattern matching
 func (r *CropVarietyRepository) Search(ctx context.Context, searchTerm string, page, pageSize int) ([]*crop_variety.CropVariety, int, error) {
 	filter := base.NewFilterBuilder().
 		Where("is_active", base.OpEqual, true).
+		Preload("Crop").
+		Sort("name", "asc").
 		Build()
-
-	filter.Sort = []base.SortField{{Field: "name", Direction: "asc"}}
 
 	// Get all active varieties (no pagination yet)
 	varieties, err := r.BaseFilterableRepository.Find(ctx, filter)
@@ -98,7 +98,7 @@ func (r *CropVarietyRepository) Search(ctx context.Context, searchTerm string, p
 	return filtered[start:end], total, nil
 }
 
-// FindWithFilters finds varieties with multiple filters
+// FindWithFilters finds varieties with multiple filters and Crop relationship preloaded
 func (r *CropVarietyRepository) FindWithFilters(ctx context.Context, filters CropVarietyFilters) ([]*crop_variety.CropVariety, int, error) {
 	filterBuilder := base.NewFilterBuilder()
 
@@ -114,10 +114,11 @@ func (r *CropVarietyRepository) FindWithFilters(ctx context.Context, filters Cro
 		filterBuilder = filterBuilder.Where("is_active", base.OpEqual, true)
 	}
 
-	filter := filterBuilder.Build()
-	filter.Page = filters.Page
-	filter.PageSize = filters.PageSize
-	filter.Sort = []base.SortField{{Field: "name", Direction: "asc"}}
+	filter := filterBuilder.
+		Preload("Crop").
+		Sort("name", "asc").
+		Page(filters.Page, filters.PageSize).
+		Build()
 
 	varieties, err := r.BaseFilterableRepository.Find(ctx, filter)
 	if err != nil {
@@ -133,17 +134,18 @@ func (r *CropVarietyRepository) FindWithFilters(ctx context.Context, filters Cro
 	return varieties, total, nil
 }
 
-// GetActiveVarietiesForLookup gets simplified variety data for dropdown/lookup
+// GetActiveVarietiesForLookup gets simplified variety data for dropdown/lookup with Crop preloaded
 func (r *CropVarietyRepository) GetActiveVarietiesForLookup(ctx context.Context, cropID string) ([]*crop_variety.CropVariety, error) {
 	filterBuilder := base.NewFilterBuilder().
-		Where("is_active", base.OpEqual, true)
+		Where("is_active", base.OpEqual, true).
+		Preload("Crop").
+		Sort("name", "asc")
 
 	if cropID != "" {
 		filterBuilder = filterBuilder.Where("crop_id", base.OpEqual, cropID)
 	}
 
 	filter := filterBuilder.Build()
-	filter.Sort = []base.SortField{{Field: "name", Direction: "asc"}}
 
 	varieties, err := r.BaseFilterableRepository.Find(ctx, filter)
 	if err != nil {
