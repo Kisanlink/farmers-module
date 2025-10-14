@@ -42,6 +42,7 @@
 ## Immediate Actions Required
 
 ### Database Schema Changes
+
 ```sql
 -- Add missing fields
 ALTER TABLE crop_cycles ADD COLUMN area_ha NUMERIC(10,2);

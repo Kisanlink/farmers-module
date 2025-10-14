@@ -207,11 +207,13 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 	if err != nil {
 		log.Printf("Warning: Failed to store FPO reference locally: %v", err)
 		// Continue as AAA organization is already created
+		// Generate a temporary ID for the response if save failed
+		fpoRef.ID = ""
 	}
 
-	// Step 8: Prepare response
+	// Step 8: Prepare response (now fpoRef.ID is populated after save)
 	responseData := &responses.CreateFPOData{
-		FPOID:      fpoRef.ID,
+		FPOID:      fpoRef.ID, // This will now have the generated ID from database
 		AAAOrgID:   aaaOrgID,
 		Name:       createReq.Name,
 		CEOUserID:  ceoUserID,

@@ -154,6 +154,12 @@ func AuthenticationMiddleware(aaaService services.AAAService, logger interfaces.
 		c.Set("org_context", orgContext)
 		c.Set("token", token)
 
+		// Set backward-compatible string values for handlers that expect them
+		c.Set("aaa_subject", userContext.AAAUserID)
+		if orgContext != nil {
+			c.Set("aaa_org", orgContext.AAAOrgID)
+		}
+
 		// Store user context and token in Request context for downstream services (e.g., gRPC calls)
 		ctx = auth.SetUserInContext(ctx, userContext)
 		if orgContext != nil {
