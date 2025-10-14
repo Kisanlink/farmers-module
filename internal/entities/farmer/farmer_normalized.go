@@ -75,7 +75,7 @@ type Farmer struct {
 	Status            string `json:"status" gorm:"type:farmer_status;not null;default:'ACTIVE'"`
 
 	// Relationships - FPO Linkage (optional, preloaded when needed)
-	FPOLinkages []*FarmerLink `json:"fpo_linkages,omitempty" gorm:"foreignKey:AAAUserID;references:AAAUserID"`
+	FPOLinkages []*FarmerLink `json:"fpo_linkages,omitempty" gorm:"foreignKey:AAAUserID,AAAOrgID;references:AAAUserID,AAAOrgID"`
 	Farms       []FarmRef     `json:"farms,omitempty" gorm:"foreignKey:FarmerID;references:ID"`
 
 	// Flexible Data (JSONB for extensibility)

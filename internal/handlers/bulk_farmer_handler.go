@@ -564,24 +564,3 @@ func (h *BulkFarmerHandler) parseMultipartRequest(c *gin.Context) (*requests.Bul
 
 	return &req, nil
 }
-
-// RegisterRoutes registers all bulk operation routes
-func (h *BulkFarmerHandler) RegisterRoutes(router *gin.RouterGroup) {
-	bulk := router.Group("/bulk")
-	{
-		// Farmer operations
-		bulk.POST("/farmers/add", h.BulkAddFarmers)
-
-		// Operation management
-		bulk.GET("/status/:operation_id", h.GetBulkOperationStatus)
-		bulk.POST("/cancel/:operation_id", h.CancelBulkOperation)
-		bulk.POST("/retry/:operation_id", h.RetryFailedRecords)
-
-		// Results and templates
-		bulk.GET("/results/:operation_id", h.DownloadBulkResults)
-		bulk.GET("/template", h.GetBulkUploadTemplate)
-
-		// Validation
-		bulk.POST("/validate", h.ValidateBulkData)
-	}
-}

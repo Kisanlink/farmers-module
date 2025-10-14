@@ -23,7 +23,16 @@ import (
 func setupBulkTestRouter(handler *handlers.BulkFarmerHandler) *gin.Engine {
 	router := testutils.SetupTestRouter()
 	api := router.Group("/api/v1")
-	handler.RegisterRoutes(api)
+	bulk := api.Group("/bulk")
+	{
+		bulk.POST("/farmers/add", handler.BulkAddFarmers)
+		bulk.GET("/status/:operation_id", handler.GetBulkOperationStatus)
+		bulk.POST("/cancel/:operation_id", handler.CancelBulkOperation)
+		bulk.POST("/retry/:operation_id", handler.RetryFailedRecords)
+		bulk.GET("/results/:operation_id", handler.DownloadBulkResults)
+		bulk.GET("/template", handler.GetBulkUploadTemplate)
+		bulk.POST("/validate", handler.ValidateBulkData)
+	}
 	return router
 }
 
