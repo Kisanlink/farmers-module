@@ -17,6 +17,7 @@ type CropCycle struct {
 	base.BaseModel
 	FarmID    string         `json:"farm_id" gorm:"type:varchar(255);not null;index"`
 	FarmerID  string         `json:"farmer_id" gorm:"type:varchar(255);not null;index"`
+	AreaHa    *float64       `json:"area_ha" gorm:"type:decimal(12,4);check:area_ha > 0;index:idx_crop_cycles_farm_area"`
 	Season    string         `json:"season" gorm:"type:season;not null"`
 	Status    string         `json:"status" gorm:"type:cycle_status;not null;default:'PLANNED'"`
 	StartDate *time.Time     `json:"start_date" gorm:"type:date"`
@@ -60,7 +61,25 @@ func (cc *CropCycle) Validate() error {
 	if cc.CropID == "" {
 		return common.ErrInvalidCropCycleData
 	}
+	// Area validation
+	if cc.AreaHa != nil && *cc.AreaHa <= 0 {
+		return common.ErrInvalidCropCycleData
+	}
+	// Date validation
+	if cc.StartDate != nil && cc.EndDate != nil && cc.EndDate.Before(*cc.StartDate) {
+		return common.ErrInvalidCropCycleData
+	}
 	return nil
+}
+
+// CanModifyArea checks if the crop cycle status allows area modification
+func (cc *CropCycle) CanModifyArea() bool {
+	return cc.Status == "PLANNED" || cc.Status == "ACTIVE"
+}
+
+// IsAllocatingArea checks if this cycle's area should count toward farm allocation
+func (cc *CropCycle) IsAllocatingArea() bool {
+	return cc.AreaHa != nil && (cc.Status == "PLANNED" || cc.Status == "ACTIVE")
 }
 
 // GetCropName returns the crop name if crop relationship is loaded

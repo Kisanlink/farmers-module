@@ -23,6 +23,7 @@ type CropCycleData struct {
 	ID          string                 `json:"id"`
 	FarmID      string                 `json:"farm_id"`
 	FarmerID    string                 `json:"farmer_id"`
+	AreaHa      *float64               `json:"area_ha,omitempty"`
 	Season      string                 `json:"season"`
 	Status      string                 `json:"status"`
 	StartDate   *time.Time             `json:"start_date"`
