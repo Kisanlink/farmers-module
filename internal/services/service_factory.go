@@ -95,7 +95,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	// Initialize crop management services
 	cropService := NewCropService(repoFactory.CropRepo, repoFactory.CropVarietyRepo, aaaService)
 	cropCycleService := NewCropCycleService(repoFactory.CropCycleRepo, aaaService)
-	farmActivityService := NewFarmActivityService(repoFactory.FarmActivityRepo, repoFactory.CropCycleRepo, repoFactory.FarmerLinkageRepo, aaaService)
+	farmActivityService := NewFarmActivityService(repoFactory.FarmActivityRepo, repoFactory.CropCycleRepo, repoFactory.CropStageRepo, repoFactory.FarmerLinkageRepo, aaaService)
 
 	// Initialize notification service
 	notificationService := NewNotificationService(aaaService)

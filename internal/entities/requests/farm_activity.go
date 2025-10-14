@@ -8,6 +8,7 @@ import (
 type CreateActivityRequest struct {
 	BaseRequest
 	CropCycleID  string                 `json:"crop_cycle_id" validate:"required" example:"cycle_123e4567-e89b-12d3-a456-426614174000"`
+	CropStageID  *string                `json:"crop_stage_id,omitempty" example:"CSTG_GERMINATION"`
 	ActivityType string                 `json:"activity_type" validate:"required" example:"SOWING"`
 	PlannedAt    *time.Time             `json:"planned_at" example:"2024-11-10T09:00:00Z"`
 	Metadata     map[string]interface{} `json:"metadata" example:"seed_type:HD2967,seed_rate:100kg_per_acre"`
@@ -25,6 +26,7 @@ type CompleteActivityRequest struct {
 type UpdateActivityRequest struct {
 	BaseRequest
 	ID           string                 `json:"id" validate:"required" example:"activity_123e4567-e89b-12d3-a456-426614174000"`
+	CropStageID  *string                `json:"crop_stage_id,omitempty" example:"CSTG_FLOWERING"`
 	ActivityType *string                `json:"activity_type,omitempty" example:"IRRIGATION"`
 	PlannedAt    *time.Time             `json:"planned_at,omitempty" example:"2024-12-01T08:00:00Z"`
 	Metadata     map[string]interface{} `json:"metadata,omitempty" example:"water_source:borewell,duration:2hours"`
@@ -34,6 +36,7 @@ type UpdateActivityRequest struct {
 type ListActivitiesRequest struct {
 	BaseRequest
 	CropCycleID  string `json:"crop_cycle_id,omitempty" example:"cycle_123e4567-e89b-12d3-a456-426614174000"`
+	CropStageID  string `json:"crop_stage_id,omitempty" example:"CSTG_GERMINATION"`
 	ActivityType string `json:"activity_type,omitempty" example:"SOWING"`
 	Status       string `json:"status,omitempty" example:"COMPLETED"`
 	DateFrom     string `json:"date_from,omitempty" example:"2024-11-01"`

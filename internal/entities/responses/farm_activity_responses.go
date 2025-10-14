@@ -22,6 +22,8 @@ type FarmActivityListResponse struct {
 type FarmActivityData struct {
 	ID           string                 `json:"id"`
 	CropCycleID  string                 `json:"crop_cycle_id"`
+	CropStageID  *string                `json:"crop_stage_id,omitempty"`
+	CropStage    *CropStageData         `json:"crop_stage,omitempty"`
 	ActivityType string                 `json:"activity_type"`
 	PlannedAt    *time.Time             `json:"planned_at"`
 	CompletedAt  *time.Time             `json:"completed_at"`
@@ -64,4 +66,48 @@ func (r *FarmActivityResponse) SetRequestID(requestID string) {
 // SetRequestID sets the request ID for tracking
 func (r *FarmActivityListResponse) SetRequestID(requestID string) {
 	r.PaginatedResponse.RequestID = requestID
+}
+
+// StageProgressResponse represents stage-wise progress for a crop cycle
+type StageProgressResponse struct {
+	*base.BaseResponse `json:",inline"`
+	Data               *StageProgressData `json:"data"`
+}
+
+// StageProgressData contains stage completion statistics
+type StageProgressData struct {
+	CropCycleID    string                 `json:"crop_cycle_id"`
+	CropID         string                 `json:"crop_id"`
+	CropName       string                 `json:"crop_name"`
+	CurrentStage   *StageCompletionStat   `json:"current_stage,omitempty"`
+	Stages         []*StageCompletionStat `json:"stages"`
+	OverallPercent float64                `json:"overall_completion_percent"`
+	TotalStages    int                    `json:"total_stages"`
+}
+
+// StageCompletionStat represents completion statistics for a single stage
+type StageCompletionStat struct {
+	CropStageID          string  `json:"crop_stage_id"`
+	StageID              string  `json:"stage_id"`
+	StageName            string  `json:"stage_name"`
+	StageOrder           int     `json:"stage_order"`
+	DurationDays         *int    `json:"duration_days,omitempty"`
+	TotalActivities      int     `json:"total_activities"`
+	CompletedActivities  int     `json:"completed_activities"`
+	InProgressActivities int     `json:"in_progress_activities"`
+	PlannedActivities    int     `json:"planned_activities"`
+	CompletionPercent    float64 `json:"completion_percent"`
+}
+
+// NewStageProgressResponse creates a new stage progress response
+func NewStageProgressResponse(data *StageProgressData, message string) StageProgressResponse {
+	return StageProgressResponse{
+		BaseResponse: base.NewSuccessResponse(message, data),
+		Data:         data,
+	}
+}
+
+// SetRequestID sets the request ID for tracking
+func (r *StageProgressResponse) SetRequestID(requestID string) {
+	r.BaseResponse.RequestID = requestID
 }

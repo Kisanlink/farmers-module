@@ -13,6 +13,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/repo/crop_cycle"
 	"github.com/Kisanlink/farmers-module/internal/repo/farm_activity"
+	"github.com/Kisanlink/farmers-module/internal/repo/stage"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 )
@@ -21,6 +22,7 @@ import (
 type FarmActivityServiceImpl struct {
 	farmActivityRepo *farm_activity.FarmActivityRepository
 	cropCycleRepo    *crop_cycle.CropCycleRepository
+	cropStageRepo    *stage.CropStageRepository
 	farmerLinkRepo   FarmerLinkRepository
 	aaaService       AAAService
 }
@@ -29,12 +31,14 @@ type FarmActivityServiceImpl struct {
 func NewFarmActivityService(
 	farmActivityRepo *farm_activity.FarmActivityRepository,
 	cropCycleRepo *crop_cycle.CropCycleRepository,
+	cropStageRepo *stage.CropStageRepository,
 	farmerLinkRepo FarmerLinkRepository,
 	aaaService AAAService,
 ) FarmActivityService {
 	return &FarmActivityServiceImpl{
 		farmActivityRepo: farmActivityRepo,
 		cropCycleRepo:    cropCycleRepo,
+		cropStageRepo:    cropStageRepo,
 		farmerLinkRepo:   farmerLinkRepo,
 		aaaService:       aaaService,
 	}
@@ -69,6 +73,23 @@ func (s *FarmActivityServiceImpl) CreateActivity(ctx context.Context, req interf
 		return nil, fmt.Errorf("failed to get crop cycle: %w", err)
 	}
 
+	// Validate crop_stage_id if provided
+	if createReq.CropStageID != nil {
+		// Build filter to check if stage belongs to the crop
+		cropStageFilter := base.NewFilterBuilder().
+			Where("id", base.OpEqual, *createReq.CropStageID).
+			Where("crop_id", base.OpEqual, cropCycle.CropID).
+			Build()
+
+		cropStages, err := s.cropStageRepo.Find(ctx, cropStageFilter)
+		if err != nil {
+			return nil, fmt.Errorf("failed to validate crop stage: %w", err)
+		}
+		if len(cropStages) == 0 {
+			return nil, fmt.Errorf("crop_stage_id does not belong to the crop in this cycle")
+		}
+	}
+
 	// Business Rule 9.2: KisanSathi permission scope check
 	// KisanSathi users can only create activities for farmers they are assigned to
 	isKisanSathi, err := s.aaaService.CheckUserRole(ctx, userCtx.AAAUserID, "kisansathi")
@@ -97,6 +118,7 @@ func (s *FarmActivityServiceImpl) CreateActivity(ctx context.Context, req interf
 	// Create farm activity entity
 	activity := &farmActivityEntity.FarmActivity{
 		CropCycleID:  createReq.CropCycleID,
+		CropStageID:  createReq.CropStageID,
 		ActivityType: createReq.ActivityType,
 		PlannedAt:    createReq.PlannedAt,
 		CreatedBy:    userCtx.AAAUserID,
@@ -126,6 +148,7 @@ func (s *FarmActivityServiceImpl) CreateActivity(ctx context.Context, req interf
 	activityData := &responses.FarmActivityData{
 		ID:           activity.ID,
 		CropCycleID:  activity.CropCycleID,
+		CropStageID:  activity.CropStageID,
 		ActivityType: activity.ActivityType,
 		PlannedAt:    activity.PlannedAt,
 		CompletedAt:  activity.CompletedAt,
@@ -191,6 +214,7 @@ func (s *FarmActivityServiceImpl) CompleteActivity(ctx context.Context, req inte
 	activityData := &responses.FarmActivityData{
 		ID:           activity.ID,
 		CropCycleID:  activity.CropCycleID,
+		CropStageID:  activity.CropStageID,
 		ActivityType: activity.ActivityType,
 		PlannedAt:    activity.PlannedAt,
 		CompletedAt:  activity.CompletedAt,
@@ -240,7 +264,34 @@ func (s *FarmActivityServiceImpl) UpdateActivity(ctx context.Context, req interf
 		return nil, fmt.Errorf("cannot update completed activity")
 	}
 
+	// Validate crop_stage_id if provided
+	if updateReq.CropStageID != nil {
+		// Get crop cycle to verify stage belongs to the crop
+		cropCycle := &cropCycleEntity.CropCycle{}
+		_, err = s.cropCycleRepo.GetByID(ctx, activity.CropCycleID, cropCycle)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get crop cycle: %w", err)
+		}
+
+		// Build filter to check if stage belongs to the crop
+		cropStageFilter := base.NewFilterBuilder().
+			Where("id", base.OpEqual, *updateReq.CropStageID).
+			Where("crop_id", base.OpEqual, cropCycle.CropID).
+			Build()
+
+		cropStages, err := s.cropStageRepo.Find(ctx, cropStageFilter)
+		if err != nil {
+			return nil, fmt.Errorf("failed to validate crop stage: %w", err)
+		}
+		if len(cropStages) == 0 {
+			return nil, fmt.Errorf("crop_stage_id does not belong to the crop in this cycle")
+		}
+	}
+
 	// Update fields if provided
+	if updateReq.CropStageID != nil {
+		activity.CropStageID = updateReq.CropStageID
+	}
 	if updateReq.ActivityType != nil {
 		activity.ActivityType = *updateReq.ActivityType
 	}
@@ -265,6 +316,7 @@ func (s *FarmActivityServiceImpl) UpdateActivity(ctx context.Context, req interf
 	activityData := &responses.FarmActivityData{
 		ID:           activity.ID,
 		CropCycleID:  activity.CropCycleID,
+		CropStageID:  activity.CropStageID,
 		ActivityType: activity.ActivityType,
 		PlannedAt:    activity.PlannedAt,
 		CompletedAt:  activity.CompletedAt,
@@ -306,6 +358,9 @@ func (s *FarmActivityServiceImpl) ListActivities(ctx context.Context, req interf
 	filters := make(map[string]interface{})
 	if listReq.CropCycleID != "" {
 		filters["crop_cycle_id"] = listReq.CropCycleID
+	}
+	if listReq.CropStageID != "" {
+		filters["crop_stage_id"] = listReq.CropStageID
 	}
 	if listReq.ActivityType != "" {
 		filters["activity_type"] = listReq.ActivityType
@@ -360,6 +415,7 @@ func (s *FarmActivityServiceImpl) ListActivities(ctx context.Context, req interf
 		activityData := &responses.FarmActivityData{
 			ID:           activity.ID,
 			CropCycleID:  activity.CropCycleID,
+			CropStageID:  activity.CropStageID,
 			ActivityType: activity.ActivityType,
 			PlannedAt:    activity.PlannedAt,
 			CompletedAt:  activity.CompletedAt,
@@ -390,6 +446,7 @@ func (s *FarmActivityServiceImpl) GetFarmActivity(ctx context.Context, activityI
 	activityData := &responses.FarmActivityData{
 		ID:           activity.ID,
 		CropCycleID:  activity.CropCycleID,
+		CropStageID:  activity.CropStageID,
 		ActivityType: activity.ActivityType,
 		PlannedAt:    activity.PlannedAt,
 		CompletedAt:  activity.CompletedAt,
@@ -402,5 +459,111 @@ func (s *FarmActivityServiceImpl) GetFarmActivity(ctx context.Context, activityI
 	}
 
 	response := responses.NewFarmActivityResponse(activityData, "Farm activity retrieved successfully")
+	return &response, nil
+}
+
+// GetStageProgress gets stage-wise activity completion statistics for a crop cycle
+func (s *FarmActivityServiceImpl) GetStageProgress(ctx context.Context, cropCycleID string) (interface{}, error) {
+	// Get crop cycle to verify it exists and get crop info
+	cropCycle := &cropCycleEntity.CropCycle{}
+	_, err := s.cropCycleRepo.GetByID(ctx, cropCycleID, cropCycle)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get crop cycle: %w", err)
+	}
+
+	// Get all crop stages for this crop using filter
+	cropStageFilter := base.NewFilterBuilder().
+		Where("crop_id", base.OpEqual, cropCycle.CropID).
+		Build()
+
+	cropStages, err := s.cropStageRepo.Find(ctx, cropStageFilter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get crop stages: %w", err)
+	}
+
+	// Prepare stage info for repository method
+	type CropStageInfo struct {
+		ID           string
+		StageID      string
+		StageName    string
+		StageOrder   int
+		DurationDays *int
+	}
+
+	var stageInfos []*CropStageInfo
+	for _, cropStage := range cropStages {
+		stageInfo := &CropStageInfo{
+			ID:           cropStage.ID,
+			StageID:      cropStage.StageID,
+			StageOrder:   cropStage.StageOrder,
+			DurationDays: cropStage.DurationDays,
+		}
+		// Get stage name from preloaded Stage relationship
+		if cropStage.Stage != nil {
+			stageInfo.StageName = cropStage.Stage.StageName
+		}
+		stageInfos = append(stageInfos, stageInfo)
+	}
+
+	// Get completion statistics from repository
+	stats, err := s.farmActivityRepo.GetStageCompletionStats(ctx, cropCycleID, stageInfos)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get stage completion stats: %w", err)
+	}
+
+	// Convert stats to response format
+	var stageStats []*responses.StageCompletionStat
+	totalCompletedActivities := 0
+	totalActivities := 0
+
+	for _, stat := range stats {
+		responseStat := &responses.StageCompletionStat{
+			CropStageID:          stat.CropStageID,
+			StageID:              stat.StageID,
+			StageName:            stat.StageName,
+			StageOrder:           stat.StageOrder,
+			DurationDays:         stat.DurationDays,
+			TotalActivities:      stat.TotalActivities,
+			CompletedActivities:  stat.CompletedActivities,
+			InProgressActivities: stat.InProgressActivities,
+			PlannedActivities:    stat.PlannedActivities,
+			CompletionPercent:    stat.CompletionPercent,
+		}
+		stageStats = append(stageStats, responseStat)
+		totalCompletedActivities += stat.CompletedActivities
+		totalActivities += stat.TotalActivities
+	}
+
+	// Calculate overall completion percentage
+	overallPercent := 0.0
+	if totalActivities > 0 {
+		overallPercent = float64(totalCompletedActivities) / float64(totalActivities) * 100
+	}
+
+	// Determine current stage (first incomplete stage in order, or last completed stage)
+	var currentStage *responses.StageCompletionStat
+	for _, stat := range stageStats {
+		if stat.CompletionPercent < 100 {
+			currentStage = stat
+			break
+		}
+	}
+	// If all stages completed, current stage is the last one
+	if currentStage == nil && len(stageStats) > 0 {
+		currentStage = stageStats[len(stageStats)-1]
+	}
+
+	// Build response data
+	progressData := &responses.StageProgressData{
+		CropCycleID:    cropCycleID,
+		CropID:         cropCycle.CropID,
+		CropName:       "", // TODO: Get crop name from crop service if needed
+		CurrentStage:   currentStage,
+		Stages:         stageStats,
+		OverallPercent: overallPercent,
+		TotalStages:    len(stageStats),
+	}
+
+	response := responses.NewStageProgressResponse(progressData, "Stage progress retrieved successfully")
 	return &response, nil
 }

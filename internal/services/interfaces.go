@@ -88,6 +88,8 @@ type FarmActivityService interface {
 	ListActivities(ctx context.Context, req interface{}) (interface{}, error)
 	// Get farm activity by ID
 	GetFarmActivity(ctx context.Context, activityID string) (interface{}, error)
+	// Get stage-wise progress for a crop cycle
+	GetStageProgress(ctx context.Context, cropCycleID string) (interface{}, error)
 }
 
 // CropService handles crop master data operations
