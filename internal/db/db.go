@@ -279,9 +279,24 @@ func setupPostMigration(gormDB *gorm.DB) {
 	}
 
 	if postgisAvailable {
-		// Add computed area column for farms with PostGIS
+		// Check if area_ha_computed column exists and drop it to recreate with correct formula
+		// This ensures we use geography (accurate area) instead of geometry (square degrees)
+		var columnExists bool
+		gormDB.Raw(`SELECT EXISTS (
+			SELECT 1 FROM information_schema.columns
+			WHERE table_name = 'farms' AND column_name = 'area_ha_computed'
+		)`).Scan(&columnExists)
+
+		if columnExists {
+			// Drop the existing generated column to recreate with correct formula
+			log.Println("Recreating area_ha_computed column with correct geography-based formula")
+			gormDB.Exec(`ALTER TABLE farms DROP COLUMN IF EXISTS area_ha_computed;`)
+		}
+
+		// Add computed area column for farms with PostGIS using geography for accurate area calculation
+		// ST_Area(geometry::geography) returns area in square meters, divide by 10000 for hectares
 		gormDB.Exec(`ALTER TABLE farms ADD COLUMN IF NOT EXISTS area_ha_computed NUMERIC(12,4)
-			GENERATED ALWAYS AS (ST_Area(geometry::geometry)/10000.0) STORED;`)
+			GENERATED ALWAYS AS (ST_Area(geometry::geography)/10000.0) STORED;`)
 
 		// Create spatial indexes
 		gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_geometry_gist ON farms USING GIST (geometry::geometry);`)
