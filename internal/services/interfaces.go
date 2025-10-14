@@ -72,6 +72,8 @@ type CropCycleService interface {
 	ListCycles(ctx context.Context, req interface{}) (interface{}, error)
 	// Get crop cycle by ID
 	GetCropCycle(ctx context.Context, cycleID string) (interface{}, error)
+	// Get area allocation summary for a farm
+	GetAreaAllocationSummary(ctx context.Context, farmID string) (interface{}, error)
 }
 
 // FarmActivityService handles farm activity workflows

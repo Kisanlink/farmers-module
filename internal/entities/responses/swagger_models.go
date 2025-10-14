@@ -349,3 +349,11 @@ type SwaggerStageLookupResponse struct {
 	RequestID string             `json:"request_id" example:"req_123456789"`
 	Data      []*StageLookupData `json:"data"`
 }
+
+// SwaggerAreaAllocationSummaryResponse represents an area allocation summary response for Swagger
+type SwaggerAreaAllocationSummaryResponse struct {
+	Success   bool                       `json:"success" example:"true"`
+	Message   string                     `json:"message" example:"Area allocation summary retrieved successfully"`
+	RequestID string                     `json:"request_id" example:"req_123456789"`
+	Data      *AreaAllocationSummaryData `json:"data"`
+}

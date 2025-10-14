@@ -32,5 +32,8 @@ func RegisterFarmRoutes(router *gin.RouterGroup, services *services.ServiceFacto
 
 		// Get farm by ID
 		farms.GET("/:farm_id", handlers.GetFarm(services.FarmService))
+
+		// Get farm area allocation summary
+		farms.GET("/:farm_id/area-allocation", handlers.GetFarmAreaAllocationSummary(services.CropCycleService))
 	}
 }

@@ -254,3 +254,46 @@ func GetCropCycle(service services.CropCycleService) gin.HandlerFunc {
 		c.JSON(http.StatusOK, result)
 	}
 }
+
+// GetFarmAreaAllocationSummary handles getting area allocation summary for a farm
+// @Summary Get farm area allocation summary
+// @Description Get area allocation summary showing total, allocated, and available area for a farm
+// @Tags Farm Area
+// @Accept json
+// @Produce json
+// @Param farm_id path string true "Farm ID"
+// @Success 200 {object} responses.SwaggerAreaAllocationSummaryResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /farms/{farm_id}/area-allocation [get]
+func GetFarmAreaAllocationSummary(service services.CropCycleService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		farmID := c.Param("farm_id")
+		if farmID == "" {
+			c.JSON(http.StatusBadRequest, responses.NewValidationError("Missing farm ID", "farm_id is required"))
+			return
+		}
+
+		// Call service
+		result, err := service.GetAreaAllocationSummary(c.Request.Context(), farmID)
+		if err != nil {
+			handleServiceError(c, err)
+			return
+		}
+
+		// Set request ID if response supports it
+		if respWithReqID, ok := result.(interface{ SetRequestID(string) }); ok {
+			requestID := c.GetString("request_id")
+			if requestID == "" {
+				requestID = generateRequestID()
+			}
+			respWithReqID.SetRequestID(requestID)
+		}
+
+		c.JSON(http.StatusOK, result)
+	}
+}
