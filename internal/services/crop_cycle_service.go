@@ -143,6 +143,12 @@ func (s *CropCycleServiceImpl) UpdateCycle(ctx context.Context, req interface{})
 		return nil, fmt.Errorf("cannot update cycle in terminal state: %s", cycle.Status)
 	}
 
+	// Business Rule: Prevent changing crop_id mid-cycle
+	// Changing the crop after cycle has started invalidates all stage associations and activities
+	if updateReq.CropID != nil && *updateReq.CropID != cycle.CropID {
+		return nil, fmt.Errorf("cannot change crop_id for an existing cycle - create a new cycle instead")
+	}
+
 	// Validate area allocation if area is being updated
 	if updateReq.AreaHa != nil {
 		if !cycle.CanModifyArea() {
@@ -163,9 +169,7 @@ func (s *CropCycleServiceImpl) UpdateCycle(ctx context.Context, req interface{})
 	if updateReq.StartDate != nil {
 		cycle.StartDate = updateReq.StartDate
 	}
-	if updateReq.CropID != nil {
-		cycle.CropID = *updateReq.CropID
-	}
+	// crop_id cannot be changed - validation above prevents this
 	if updateReq.VarietyID != nil {
 		cycle.VarietyID = updateReq.VarietyID
 	}
@@ -239,6 +243,11 @@ func (s *CropCycleServiceImpl) EndCycle(ctx context.Context, req interface{}) (i
 	// Check if cycle is already in terminal state
 	if cycle.Status == "COMPLETED" || cycle.Status == "CANCELLED" {
 		return nil, fmt.Errorf("cycle is already in terminal state: %s", cycle.Status)
+	}
+
+	// Business Rule: End date must be after start date
+	if cycle.StartDate != nil && endReq.EndDate.Before(*cycle.StartDate) {
+		return nil, fmt.Errorf("end_date cannot be before start_date")
 	}
 
 	// Update cycle with end details
