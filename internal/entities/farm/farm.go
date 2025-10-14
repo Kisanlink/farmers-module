@@ -69,7 +69,7 @@ type Farm struct {
 	PrimaryIrrigationSourceID *string       `json:"primary_irrigation_source_id" gorm:"type:varchar(255);index"`
 	BoreWellCount             int           `json:"bore_well_count" gorm:"default:0"`
 	OtherIrrigationDetails    *string       `json:"other_irrigation_details" gorm:"type:text"`
-	Metadata                  Metadata      `json:"metadata" gorm:"type:jsonb;default:'{}'"`
+	Metadata                  Metadata      `json:"metadata" gorm:"type:jsonb;default:'{}';serializer:json"`
 
 	// Relationships
 	SoilType                *soil_type.SoilType                           `json:"soil_type,omitempty" gorm:"foreignKey:SoilTypeID;references:ID"`

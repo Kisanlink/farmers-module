@@ -12,7 +12,7 @@ type IrrigationSource struct {
 	Name          string         `json:"name" gorm:"type:varchar(100);not null;uniqueIndex"`
 	Description   string         `json:"description" gorm:"type:text"`
 	RequiresCount bool           `json:"requires_count" gorm:"default:false"` // indicates if this source needs count (like bore wells)
-	Properties    entities.JSONB `json:"properties" gorm:"type:jsonb;default:'{}'"`
+	Properties    entities.JSONB `json:"properties" gorm:"type:jsonb;default:'{}';serializer:json"`
 }
 
 // TableName returns the table name for the IrrigationSource model

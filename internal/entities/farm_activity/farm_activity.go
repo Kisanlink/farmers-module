@@ -20,8 +20,8 @@ type FarmActivity struct {
 	CompletedAt  *time.Time     `json:"completed_at" gorm:"type:timestamptz"`
 	CreatedBy    string         `json:"created_by" gorm:"type:varchar(255);not null"`
 	Status       string         `json:"status" gorm:"type:activity_status;not null;default:'PLANNED'"`
-	Output       entities.JSONB `json:"output" gorm:"type:jsonb;default:'{}'"`
-	Metadata     entities.JSONB `json:"metadata" gorm:"type:jsonb;default:'{}'"`
+	Output       entities.JSONB `json:"output" gorm:"type:jsonb;default:'{}';serializer:json"`
+	Metadata     entities.JSONB `json:"metadata" gorm:"type:jsonb;default:'{}';serializer:json"`
 
 	// Relationships
 	Farmer *farmer.Farmer `json:"farmer,omitempty" gorm:"foreignKey:FarmerID;references:ID;constraint:OnDelete:CASCADE"`

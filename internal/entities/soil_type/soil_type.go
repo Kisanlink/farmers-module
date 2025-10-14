@@ -11,7 +11,7 @@ type SoilType struct {
 	base.BaseModel
 	Name        string         `json:"name" gorm:"type:varchar(100);not null;uniqueIndex"`
 	Description string         `json:"description" gorm:"type:text"`
-	Properties  entities.JSONB `json:"properties" gorm:"type:jsonb;default:'{}'"`
+	Properties  entities.JSONB `json:"properties" gorm:"type:jsonb;default:'{}';serializer:json"`
 }
 
 // TableName returns the table name for the SoilType model

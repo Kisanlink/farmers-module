@@ -26,13 +26,13 @@ type ProcessingDetail struct {
 	Status          RecordStatus           `json:"status" gorm:"type:varchar(50);not null;default:'PENDING'"`
 	FarmerID        *string                `json:"farmer_id" gorm:"type:varchar(255);index"`
 	AAAUserID       *string                `json:"aaa_user_id" gorm:"type:varchar(255);index"`
-	InputData       map[string]interface{} `json:"input_data" gorm:"type:jsonb"`
+	InputData       map[string]interface{} `json:"input_data" gorm:"type:jsonb;serializer:json"`
 	Error           *string                `json:"error" gorm:"type:text"`
 	ErrorCode       *string                `json:"error_code" gorm:"type:varchar(100)"`
 	ProcessedAt     *time.Time             `json:"processed_at"`
 	ProcessingTime  int64                  `json:"processing_time" gorm:"type:bigint"` // in milliseconds
 	RetryCount      int                    `json:"retry_count" gorm:"type:integer;not null;default:0"`
-	Metadata        map[string]interface{} `json:"metadata" gorm:"type:jsonb;default:'{}'"`
+	Metadata        map[string]interface{} `json:"metadata" gorm:"type:jsonb;default:'{}';serializer:json"`
 }
 
 // TableName returns the table name for ProcessingDetail

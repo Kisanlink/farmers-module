@@ -71,8 +71,8 @@ type Farmer struct {
 	Status            string `json:"status" gorm:"type:farmer_status;not null;default:'ACTIVE'"`
 
 	// Flexible Data (JSONB for extensibility)
-	Preferences entities.JSONB `json:"preferences" gorm:"type:jsonb;default:'{}'::jsonb"`
-	Metadata    entities.JSONB `json:"metadata" gorm:"type:jsonb;default:'{}'::jsonb"`
+	Preferences entities.JSONB `json:"preferences" gorm:"type:jsonb;default:'{}'::jsonb;serializer:json"`
+	Metadata    entities.JSONB `json:"metadata" gorm:"type:jsonb;default:'{}'::jsonb;serializer:json"`
 }
 
 // TableName returns the table name for the Farmer model

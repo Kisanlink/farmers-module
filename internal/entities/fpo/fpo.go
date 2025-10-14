@@ -48,8 +48,8 @@ type FPORef struct {
 	Name           string         `json:"name" gorm:"type:varchar(255);not null"`
 	RegistrationNo string         `json:"registration_no" gorm:"type:varchar(255)"`
 	Status         FPOStatus      `json:"status" gorm:"type:varchar(50);default:'ACTIVE'"`
-	BusinessConfig entities.JSONB `json:"business_config" gorm:"type:jsonb;default:'{}'"`
-	SetupErrors    entities.JSONB `json:"setup_errors,omitempty" gorm:"type:jsonb"` // Track partial setup failures
+	BusinessConfig entities.JSONB `json:"business_config" gorm:"type:jsonb;default:'{}';serializer:json"`
+	SetupErrors    entities.JSONB `json:"setup_errors,omitempty" gorm:"type:jsonb;serializer:json"` // Track partial setup failures
 }
 
 // TableName returns the table name for the FPORef model

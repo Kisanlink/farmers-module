@@ -23,7 +23,7 @@ type CropCycle struct {
 	EndDate   *time.Time     `json:"end_date" gorm:"type:date"`
 	CropID    string         `json:"crop_id" gorm:"type:uuid;not null;index"`
 	VarietyID *string        `json:"variety_id" gorm:"type:uuid;index"`
-	Outcome   entities.JSONB `json:"outcome" gorm:"type:jsonb;default:'{}'"`
+	Outcome   entities.JSONB `json:"outcome" gorm:"type:jsonb;default:'{}';serializer:json"`
 
 	// Relationships
 	Farmer  *farmer.Farmer            `json:"farmer,omitempty" gorm:"foreignKey:FarmerID;references:ID;constraint:OnDelete:CASCADE"`

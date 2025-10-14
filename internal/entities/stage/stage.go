@@ -12,7 +12,7 @@ type Stage struct {
 	base.BaseModel
 	StageName   string         `json:"stage_name" gorm:"type:varchar(100);not null;uniqueIndex"`
 	Description *string        `json:"description" gorm:"type:text"`
-	Properties  entities.JSONB `json:"properties" gorm:"type:jsonb;not null;default:'{}'"`
+	Properties  entities.JSONB `json:"properties" gorm:"type:jsonb;not null;default:'{}';serializer:json"`
 	IsActive    bool           `json:"is_active" gorm:"type:boolean;not null;default:true"`
 }
 

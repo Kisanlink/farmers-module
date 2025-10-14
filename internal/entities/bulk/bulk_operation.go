@@ -53,9 +53,9 @@ type BulkOperation struct {
 	EndTime           *time.Time             `json:"end_time"`
 	ProcessingTime    int64                  `json:"processing_time" gorm:"type:bigint"` // in milliseconds
 	ResultFileURL     string                 `json:"result_file_url" gorm:"type:text"`
-	ErrorSummary      map[string]int         `json:"error_summary" gorm:"type:jsonb;default:'{}'"`
-	Options           map[string]interface{} `json:"options" gorm:"type:jsonb;default:'{}'"`
-	Metadata          map[string]interface{} `json:"metadata" gorm:"type:jsonb;default:'{}'"`
+	ErrorSummary      map[string]int         `json:"error_summary" gorm:"type:jsonb;default:'{}';serializer:json"`
+	Options           map[string]interface{} `json:"options" gorm:"type:jsonb;default:'{}';serializer:json"`
+	Metadata          map[string]interface{} `json:"metadata" gorm:"type:jsonb;default:'{}';serializer:json"`
 }
 
 // TableName returns the table name for BulkOperation

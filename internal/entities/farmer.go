@@ -59,8 +59,8 @@ type FarmerProfile struct {
 	Gender           string   `json:"gender,omitempty"`
 	AddressID        *string  `gorm:"column:address_id" json:"-"`
 	Address          *Address `gorm:"foreignKey:AddressID" json:"address,omitempty"`
-	Preferences      JSONB    `gorm:"type:jsonb" json:"preferences,omitempty"`
-	Metadata         JSONB    `gorm:"type:jsonb" json:"metadata,omitempty"`
+	Preferences      JSONB    `gorm:"type:jsonb;serializer:json" json:"preferences,omitempty"`
+	Metadata         JSONB    `gorm:"type:jsonb;serializer:json" json:"metadata,omitempty"`
 	Status           string   `json:"status"`
 }
 

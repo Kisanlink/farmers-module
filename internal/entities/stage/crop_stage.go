@@ -25,7 +25,7 @@ type CropStage struct {
 	StageOrder   int            `json:"stage_order" gorm:"type:integer;not null;index"`
 	DurationDays *int           `json:"duration_days" gorm:"type:integer"`
 	DurationUnit DurationUnit   `json:"duration_unit" gorm:"type:varchar(20);not null;default:'DAYS'"`
-	Properties   entities.JSONB `json:"properties" gorm:"type:jsonb;not null;default:'{}'"`
+	Properties   entities.JSONB `json:"properties" gorm:"type:jsonb;not null;default:'{}';serializer:json"`
 	IsActive     bool           `json:"is_active" gorm:"type:boolean;not null;default:true"`
 
 	// Relationships

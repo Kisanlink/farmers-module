@@ -72,8 +72,8 @@ type FarmerLegacy struct {
 	Coordinates       string         `json:"coordinates" gorm:"type:text"`
 	LandOwnershipType string         `json:"land_ownership_type" gorm:"type:varchar(100)"`
 	Status            string         `json:"status" gorm:"type:farmer_status;not null;default:'ACTIVE'"`
-	Preferences       entities.JSONB `json:"preferences" gorm:"type:jsonb;default:'{}'"`
-	Metadata          entities.JSONB `json:"metadata" gorm:"type:jsonb;default:'{}'"`
+	Preferences       entities.JSONB `json:"preferences" gorm:"type:jsonb;default:'{}';serializer:json"`
+	Metadata          entities.JSONB `json:"metadata" gorm:"type:jsonb;default:'{}';serializer:json"`
 }
 
 // TableName returns the table name for the FarmerLegacy model
