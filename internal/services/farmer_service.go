@@ -161,6 +161,8 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 						Email:            existingFarmer.Email,
 						DateOfBirth:      safeDerefString(existingFarmer.DateOfBirth),
 						Gender:           existingFarmer.Gender,
+						SocialCategory:   existingFarmer.SocialCategory,
+						AreaType:         existingFarmer.AreaType,
 						Address:          addressData,
 						Preferences:      existingFarmer.Preferences,
 						Metadata:         existingFarmer.Metadata,
@@ -298,6 +300,8 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		Email:            farmer.Email,
 		DateOfBirth:      safeDerefString(farmer.DateOfBirth),
 		Gender:           farmer.Gender,
+		SocialCategory:   farmer.SocialCategory,
+		AreaType:         farmer.AreaType,
 		Address:          addressData,
 		Preferences:      farmer.Preferences,
 		Metadata:         farmer.Metadata,
@@ -318,27 +322,31 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 
 // GetFarmer retrieves a farmer by ID, user_id, or user_id+org_id
 func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*responses.FarmerProfileResponse, error) {
-	var filter *base.Filter
+	var filterBuilder *base.FilterBuilder
 
 	// Priority: farmer_id > aaa_user_id > aaa_user_id + aaa_org_id
 	if req.FarmerID != "" {
 		// Lookup by primary key (farmer_id)
-		filter = base.NewFilterBuilder().
-			Where("id", base.OpEqual, req.FarmerID).
-			Build()
+		filterBuilder = base.NewFilterBuilder().
+			Where("id", base.OpEqual, req.FarmerID)
 	} else if req.AAAUserID != "" {
 		// Lookup by user_id, optionally filtered by org_id
-		filterBuilder := base.NewFilterBuilder().
+		filterBuilder = base.NewFilterBuilder().
 			Where("aaa_user_id", base.OpEqual, req.AAAUserID)
 
 		if req.AAAOrgID != "" {
 			filterBuilder = filterBuilder.Where("aaa_org_id", base.OpEqual, req.AAAOrgID)
 		}
-
-		filter = filterBuilder.Build()
 	} else {
 		return nil, fmt.Errorf("either farmer_id or aaa_user_id must be provided")
 	}
+
+	// Preload relationships: Address, FPOLinkages, and Farms
+	filter := filterBuilder.
+		Preload("Address").
+		Preload("FPOLinkages").
+		Preload("Farms").
+		Build()
 
 	farmer, err := s.repository.FindOne(ctx, filter)
 	if err != nil {
@@ -359,6 +367,41 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 		}
 	}
 
+	// Convert FPO linkages
+	var fpoLinkages []*responses.FarmerLinkData
+	if len(farmer.FPOLinkages) > 0 {
+		for _, link := range farmer.FPOLinkages {
+			fpoLinkages = append(fpoLinkages, &responses.FarmerLinkData{
+				ID:               link.GetID(),
+				AAAUserID:        link.AAAUserID,
+				AAAOrgID:         link.AAAOrgID,
+				KisanSathiUserID: link.KisanSathiUserID,
+				Status:           link.Status,
+				CreatedAt:        link.CreatedAt.Format("2006-01-02T15:04:05Z"),
+				UpdatedAt:        link.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			})
+		}
+	}
+
+	// Convert farms
+	var farms []*responses.FarmData
+	if len(farmer.Farms) > 0 {
+		for _, farm := range farmer.Farms {
+			var farmName string
+			if farm.Name != nil {
+				farmName = *farm.Name
+			}
+			farms = append(farms, &responses.FarmData{
+				ID:        farm.ID,
+				FarmerID:  farm.FarmerID,
+				Name:      farmName,
+				AreaHa:    farm.AreaHa,
+				CreatedAt: farm.CreatedAt,
+				UpdatedAt: farm.UpdatedAt,
+			})
+		}
+	}
+
 	farmerProfileData := &responses.FarmerProfileData{
 		ID:               farmer.GetID(),
 		AAAUserID:        farmer.AAAUserID,
@@ -370,10 +413,13 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 		Email:            farmer.Email,
 		DateOfBirth:      safeDerefString(farmer.DateOfBirth),
 		Gender:           farmer.Gender,
+		SocialCategory:   farmer.SocialCategory,
+		AreaType:         farmer.AreaType,
 		Address:          addressData,
+		FPOLinkages:      fpoLinkages,
 		Preferences:      farmer.Preferences,
 		Metadata:         farmer.Metadata,
-		Farms:            []*responses.FarmData{}, // TODO: Load actual farms
+		Farms:            farms,
 		CreatedAt:        farmer.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:        farmer.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
@@ -460,6 +506,18 @@ func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.Upda
 	}
 
 	// Convert to response format
+	var addressData responses.AddressData
+	if existingFarmer.Address != nil {
+		addressData = responses.AddressData{
+			StreetAddress: existingFarmer.Address.StreetAddress,
+			City:          existingFarmer.Address.City,
+			State:         existingFarmer.Address.State,
+			PostalCode:    existingFarmer.Address.PostalCode,
+			Country:       existingFarmer.Address.Country,
+			Coordinates:   existingFarmer.Address.Coordinates,
+		}
+	}
+
 	farmerProfileData := &responses.FarmerProfileData{
 		ID:               existingFarmer.GetID(),
 		AAAUserID:        existingFarmer.AAAUserID,
@@ -471,19 +529,14 @@ func (s *FarmerServiceImpl) UpdateFarmer(ctx context.Context, req *requests.Upda
 		Email:            existingFarmer.Email,
 		DateOfBirth:      safeDerefString(existingFarmer.DateOfBirth),
 		Gender:           existingFarmer.Gender,
-		Address: responses.AddressData{
-			StreetAddress: existingFarmer.Address.StreetAddress,
-			City:          existingFarmer.Address.City,
-			State:         existingFarmer.Address.State,
-			PostalCode:    existingFarmer.Address.PostalCode,
-			Country:       existingFarmer.Address.Country,
-			Coordinates:   existingFarmer.Address.Coordinates,
-		},
-		Preferences: existingFarmer.Preferences,
-		Metadata:    existingFarmer.Metadata,
-		Farms:       []*responses.FarmData{}, // TODO: Load actual farms
-		CreatedAt:   existingFarmer.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   existingFarmer.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		SocialCategory:   existingFarmer.SocialCategory,
+		AreaType:         existingFarmer.AreaType,
+		Address:          addressData,
+		Preferences:      existingFarmer.Preferences,
+		Metadata:         existingFarmer.Metadata,
+		Farms:            []*responses.FarmData{}, // TODO: Load actual farms
+		CreatedAt:        existingFarmer.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:        existingFarmer.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
 	response := responses.NewFarmerResponse(farmerProfileData, "Farmer updated successfully")
@@ -592,6 +645,8 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 			Email:            farmer.Email,
 			DateOfBirth:      safeDerefString(farmer.DateOfBirth),
 			Gender:           farmer.Gender,
+			SocialCategory:   farmer.SocialCategory,
+			AreaType:         farmer.AreaType,
 			Address:          addressData,
 			Preferences:      farmer.Preferences,
 			Metadata:         farmer.Metadata,

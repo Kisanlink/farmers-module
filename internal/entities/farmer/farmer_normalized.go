@@ -1,6 +1,8 @@
 package farmer
 
 import (
+	"time"
+
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
@@ -68,11 +70,32 @@ type Farmer struct {
 
 	// Additional Fields
 	LandOwnershipType string `json:"land_ownership_type" gorm:"type:varchar(100)"`
+	SocialCategory    string `json:"social_category" gorm:"type:varchar(50)"` // e.g., General, OBC, SC, ST
+	AreaType          string `json:"area_type" gorm:"type:varchar(50)"`       // e.g., Rural, Urban, Semi-Urban
 	Status            string `json:"status" gorm:"type:farmer_status;not null;default:'ACTIVE'"`
+
+	// Relationships - FPO Linkage (optional, preloaded when needed)
+	FPOLinkages []*FarmerLink `json:"fpo_linkages,omitempty" gorm:"foreignKey:AAAUserID;references:AAAUserID"`
+	Farms       []FarmRef     `json:"farms,omitempty" gorm:"foreignKey:FarmerID;references:ID"`
 
 	// Flexible Data (JSONB for extensibility)
 	Preferences entities.JSONB `json:"preferences" gorm:"type:jsonb;default:'{}'::jsonb;serializer:json"`
 	Metadata    entities.JSONB `json:"metadata" gorm:"type:jsonb;default:'{}'::jsonb;serializer:json"`
+}
+
+// FarmRef represents a minimal farm reference (to avoid circular imports with farm package)
+type FarmRef struct {
+	ID        string    `json:"id" gorm:"column:id;primaryKey"`
+	FarmerID  string    `json:"farmer_id" gorm:"column:farmer_id"`
+	Name      *string   `json:"name,omitempty" gorm:"column:name"`
+	AreaHa    float64   `json:"area_ha" gorm:"column:area_ha_computed"`
+	CreatedAt time.Time `json:"created_at,omitempty" gorm:"column:created_at"`
+	UpdatedAt time.Time `json:"updated_at,omitempty" gorm:"column:updated_at"`
+}
+
+// TableName for FarmRef points to the farms table
+func (FarmRef) TableName() string {
+	return "farms"
 }
 
 // TableName returns the table name for the Farmer model

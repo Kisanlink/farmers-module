@@ -46,7 +46,10 @@ type FarmerProfileData struct {
 	Email            string                 `json:"email,omitempty" example:"ramesh.kumar@example.com"`
 	DateOfBirth      string                 `json:"date_of_birth,omitempty" example:"1980-05-15"`
 	Gender           string                 `json:"gender,omitempty" example:"male"`
+	SocialCategory   string                 `json:"social_category,omitempty" example:"OBC"`
+	AreaType         string                 `json:"area_type,omitempty" example:"Rural"`
 	Address          AddressData            `json:"address,omitempty"`
+	FPOLinkages      []*FarmerLinkData      `json:"fpo_linkages,omitempty"`
 	Preferences      map[string]interface{} `json:"preferences,omitempty"`
 	Metadata         map[string]interface{} `json:"metadata,omitempty"`
 	Farms            []*FarmData            `json:"farms,omitempty"`
