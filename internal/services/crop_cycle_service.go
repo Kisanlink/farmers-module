@@ -53,10 +53,18 @@ func (s *CropCycleServiceImpl) StartCycle(ctx context.Context, req interface{}) 
 	// This would typically involve checking the farm service
 	// For now, we'll assume the farm validation is done by the permission check
 
+	// Validate area allocation if provided
+	if startReq.AreaHa != nil {
+		if err := s.cropCycleRepo.ValidateAreaAllocation(ctx, startReq.FarmID, "", *startReq.AreaHa); err != nil {
+			return nil, err
+		}
+	}
+
 	// Create crop cycle entity
 	cycle := &cropCycleEntity.CropCycle{
 		FarmID:    startReq.FarmID,
 		FarmerID:  startReq.UserID,
+		AreaHa:    startReq.AreaHa,
 		Season:    startReq.Season,
 		Status:    "PLANNED",
 		StartDate: &startReq.StartDate,
@@ -79,6 +87,7 @@ func (s *CropCycleServiceImpl) StartCycle(ctx context.Context, req interface{}) 
 		ID:        cycle.ID,
 		FarmID:    cycle.FarmID,
 		FarmerID:  cycle.FarmerID,
+		AreaHa:    cycle.AreaHa,
 		Season:    cycle.Season,
 		Status:    cycle.Status,
 		StartDate: cycle.StartDate,
@@ -134,7 +143,20 @@ func (s *CropCycleServiceImpl) UpdateCycle(ctx context.Context, req interface{})
 		return nil, fmt.Errorf("cannot update cycle in terminal state: %s", cycle.Status)
 	}
 
+	// Validate area allocation if area is being updated
+	if updateReq.AreaHa != nil {
+		if !cycle.CanModifyArea() {
+			return nil, common.ErrStatusNotModifiable
+		}
+		if err := s.cropCycleRepo.ValidateAreaAllocation(ctx, cycle.FarmID, cycle.ID, *updateReq.AreaHa); err != nil {
+			return nil, err
+		}
+	}
+
 	// Update fields if provided
+	if updateReq.AreaHa != nil {
+		cycle.AreaHa = updateReq.AreaHa
+	}
 	if updateReq.Season != nil {
 		cycle.Season = *updateReq.Season
 	}
@@ -163,6 +185,7 @@ func (s *CropCycleServiceImpl) UpdateCycle(ctx context.Context, req interface{})
 		ID:        cycle.ID,
 		FarmID:    cycle.FarmID,
 		FarmerID:  cycle.FarmerID,
+		AreaHa:    cycle.AreaHa,
 		Season:    cycle.Season,
 		Status:    cycle.Status,
 		StartDate: cycle.StartDate,
@@ -235,6 +258,7 @@ func (s *CropCycleServiceImpl) EndCycle(ctx context.Context, req interface{}) (i
 		ID:        cycle.ID,
 		FarmID:    cycle.FarmID,
 		FarmerID:  cycle.FarmerID,
+		AreaHa:    cycle.AreaHa,
 		Season:    cycle.Season,
 		Status:    cycle.Status,
 		StartDate: cycle.StartDate,
@@ -324,6 +348,7 @@ func (s *CropCycleServiceImpl) ListCycles(ctx context.Context, req interface{}) 
 			ID:        cycle.ID,
 			FarmID:    cycle.FarmID,
 			FarmerID:  cycle.FarmerID,
+			AreaHa:    cycle.AreaHa,
 			Season:    cycle.Season,
 			Status:    cycle.Status,
 			StartDate: cycle.StartDate,
@@ -361,6 +386,7 @@ func (s *CropCycleServiceImpl) GetCropCycle(ctx context.Context, cycleID string)
 		ID:        cycle.ID,
 		FarmID:    cycle.FarmID,
 		FarmerID:  cycle.FarmerID,
+		AreaHa:    cycle.AreaHa,
 		Season:    cycle.Season,
 		Status:    cycle.Status,
 		StartDate: cycle.StartDate,
@@ -380,4 +406,32 @@ func (s *CropCycleServiceImpl) GetCropCycle(ctx context.Context, cycleID string)
 	}
 
 	return responses.NewCropCycleResponse(cycleData, "Crop cycle retrieved successfully"), nil
+}
+
+// GetAreaAllocationSummary retrieves area allocation summary for a farm
+func (s *CropCycleServiceImpl) GetAreaAllocationSummary(ctx context.Context, farmID string) (interface{}, error) {
+	// Get summary from repository
+	summary, err := s.cropCycleRepo.GetAreaAllocationSummary(ctx, farmID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get area allocation summary: %w", err)
+	}
+
+	// Calculate utilization percentage
+	utilizationPercent := 0.0
+	if summary.TotalAreaHa > 0 {
+		utilizationPercent = (summary.AllocatedAreaHa / summary.TotalAreaHa) * 100
+	}
+
+	// Build response
+	summaryData := &responses.AreaAllocationSummaryData{
+		FarmID:             summary.FarmID,
+		TotalAreaHa:        summary.TotalAreaHa,
+		AllocatedAreaHa:    summary.AllocatedAreaHa,
+		AvailableAreaHa:    summary.AvailableAreaHa,
+		UtilizationPercent: utilizationPercent,
+		ActiveCyclesCount:  summary.ActiveCyclesCount,
+		PlannedCyclesCount: summary.PlannedCyclesCount,
+	}
+
+	return responses.NewAreaAllocationSummaryResponse(summaryData, "Area allocation summary retrieved successfully"), nil
 }
