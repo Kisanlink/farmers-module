@@ -8,6 +8,7 @@ const (
 	SeasonRabi        Season = "RABI"
 	SeasonKharif      Season = "KHARIF"
 	SeasonZaid        Season = "ZAID"
+	SeasonPerennial   Season = "PERENNIAL"
 	SeasonOther       Season = "OTHER"
 )
 

@@ -238,7 +238,7 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 func createEnums(gormDB *gorm.DB) {
 	// Season enum
 	gormDB.Exec(`DO $$ BEGIN
-		CREATE TYPE season AS ENUM ('RABI','KHARIF','ZAID','OTHER');
+		CREATE TYPE season AS ENUM ('RABI','KHARIF','ZAID','PERENNIAL','OTHER');
 	EXCEPTION WHEN duplicate_object THEN NULL; END $$;`)
 
 	// Crop category enum
