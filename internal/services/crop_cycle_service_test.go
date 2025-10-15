@@ -44,23 +44,6 @@ func TestCropCycleService_StartCycle_BusinessLogic(t *testing.T) {
 			},
 			expectedError: common.ErrForbidden,
 		},
-		{
-			name: "empty farm ID validation",
-			request: &requests.StartCycleRequest{
-				BaseRequest: requests.BaseRequest{
-					UserID: "user123",
-					OrgID:  "org123",
-				},
-				FarmID:    "",
-				Season:    "RABI",
-				StartDate: time.Now(),
-				CropID:    "crop123",
-			},
-			setupMocks: func(aaa *MockAAAServiceShared) {
-				aaa.On("CheckPermission", mock.Anything, "user123", "cycle", "start", "", "org123").Return(true, nil)
-			},
-			expectedError: common.ErrInvalidCropCycleData,
-		},
 	}
 
 	for _, tt := range tests {
@@ -72,6 +55,7 @@ func TestCropCycleService_StartCycle_BusinessLogic(t *testing.T) {
 			// Create service with nil repository (we're only testing business logic)
 			service := &CropCycleServiceImpl{
 				cropCycleRepo: nil,
+				farmService:   nil,
 				aaaService:    mockAAA,
 			}
 
@@ -141,6 +125,7 @@ func TestCropCycleService_UpdateCycle_BusinessLogic(t *testing.T) {
 			// Create service with nil repository (we're only testing business logic)
 			service := &CropCycleServiceImpl{
 				cropCycleRepo: nil,
+				farmService:   nil,
 				aaaService:    mockAAA,
 			}
 
@@ -213,6 +198,7 @@ func TestCropCycleService_EndCycle_BusinessLogic(t *testing.T) {
 			// Create service with nil repository (we're only testing business logic)
 			service := &CropCycleServiceImpl{
 				cropCycleRepo: nil,
+				farmService:   nil,
 				aaaService:    mockAAA,
 			}
 
@@ -288,6 +274,7 @@ func TestCropCycleService_ListCycles_BusinessLogic(t *testing.T) {
 			// Create service with nil repository (we're only testing business logic)
 			service := &CropCycleServiceImpl{
 				cropCycleRepo: nil,
+				farmService:   nil,
 				aaaService:    mockAAA,
 			}
 

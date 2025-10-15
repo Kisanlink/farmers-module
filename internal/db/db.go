@@ -393,8 +393,8 @@ func initializeCounters(gormDB *gorm.DB) error {
 		{"crop_varieties", "CVAR", hash.Medium},
 		{"soil_types", "SOIL", hash.Tiny},
 		{"irrigation_sources", "IRRG", hash.Tiny},
-		{"bulk_operations", "BULK", hash.Medium},
-		{"processing_details", "PROC", hash.XLarge},
+		{"bulk_operations", "BLKO", hash.Medium},
+		{"bulk_processing_details", "BLKD", hash.Large},
 	}
 
 	for _, table := range tables {

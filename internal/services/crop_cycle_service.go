@@ -16,13 +16,15 @@ import (
 // CropCycleServiceImpl implements CropCycleService
 type CropCycleServiceImpl struct {
 	cropCycleRepo *crop_cycle.CropCycleRepository
+	farmService   FarmService
 	aaaService    AAAService
 }
 
 // NewCropCycleService creates a new crop cycle service
-func NewCropCycleService(cropCycleRepo *crop_cycle.CropCycleRepository, aaaService AAAService) CropCycleService {
+func NewCropCycleService(cropCycleRepo *crop_cycle.CropCycleRepository, farmService FarmService, aaaService AAAService) CropCycleService {
 	return &CropCycleServiceImpl{
 		cropCycleRepo: cropCycleRepo,
+		farmService:   farmService,
 		aaaService:    aaaService,
 	}
 }
@@ -49,9 +51,17 @@ func (s *CropCycleServiceImpl) StartCycle(ctx context.Context, req interface{}) 
 		return nil, common.ErrForbidden
 	}
 
-	// Validate farm exists and user has access
-	// This would typically involve checking the farm service
-	// For now, we'll assume the farm validation is done by the permission check
+	// Get farm details (needed for farmer_id and area validation)
+	farmResponse, err := s.farmService.GetFarm(ctx, startReq.FarmID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get farm: %w", err)
+	}
+
+	// Extract farm data from response
+	farmData, ok := farmResponse.(*responses.FarmResponse)
+	if !ok {
+		return nil, fmt.Errorf("unexpected response type from farm service")
+	}
 
 	// Validate area allocation if provided
 	if startReq.AreaHa != nil {
@@ -63,7 +73,7 @@ func (s *CropCycleServiceImpl) StartCycle(ctx context.Context, req interface{}) 
 	// Create crop cycle entity
 	cycle := &cropCycleEntity.CropCycle{
 		FarmID:    startReq.FarmID,
-		FarmerID:  startReq.UserID,
+		FarmerID:  farmData.Data.FarmerID,
 		AreaHa:    startReq.AreaHa,
 		Season:    startReq.Season,
 		Status:    "PLANNED",
