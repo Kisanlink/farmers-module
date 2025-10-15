@@ -39,9 +39,9 @@ const (
 // BulkOperation represents a bulk farmer addition operation
 type BulkOperation struct {
 	base.BaseModel
-	FPOOrgID          string                 `json:"fpo_org_id" gorm:"type:varchar(255);not null;index"`
-	InitiatedBy       string                 `json:"initiated_by" gorm:"type:varchar(255);not null"`
-	Status            OperationStatus        `json:"status" gorm:"type:varchar(50);not null;default:'PENDING';index"`
+	FPOOrgID          string                 `json:"fpo_org_id" gorm:"type:varchar(255);not null;index:idx_bulk_ops_fpo_status,priority:1;index:idx_bulk_ops_fpo"`
+	InitiatedBy       string                 `json:"initiated_by" gorm:"type:varchar(255);not null;index:idx_bulk_ops_initiated"`
+	Status            OperationStatus        `json:"status" gorm:"type:varchar(50);not null;default:'PENDING';index:idx_bulk_ops_fpo_status,priority:2;index:idx_bulk_ops_status"`
 	InputFormat       InputFormat            `json:"input_format" gorm:"type:varchar(20);not null"`
 	ProcessingMode    ProcessingMode         `json:"processing_mode" gorm:"type:varchar(20);not null"`
 	TotalRecords      int                    `json:"total_records" gorm:"type:integer;not null;default:0"`

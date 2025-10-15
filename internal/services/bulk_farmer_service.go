@@ -205,20 +205,19 @@ func (s *BulkFarmerServiceImpl) processSynchronously(ctx context.Context, bulkOp
 			}
 		}
 
-		// Update progress periodically
-		if processed%10 == 0 || processed == len(farmers) {
+		// Update progress periodically (but not on last iteration to avoid race)
+		if processed%10 == 0 && processed != len(farmers) {
 			_ = s.bulkOpRepo.UpdateProgress(ctx, bulkOp.ID, processed, successful, failed, skipped)
 		}
 	}
 
-	// Final progress update
-	_ = s.bulkOpRepo.UpdateProgress(ctx, bulkOp.ID, processed, successful, failed, skipped)
-
-	// Update final status
+	// Determine final status FIRST before any DB updates
 	finalStatus := bulk.StatusCompleted
 	if failed > 0 && successful == 0 {
 		finalStatus = bulk.StatusFailed
 	}
+
+	// Update status first (this will set end_time and processing_time correctly)
 	_ = s.bulkOpRepo.UpdateStatus(ctx, bulkOp.ID, finalStatus)
 
 	s.logger.Info("Synchronous processing completed",

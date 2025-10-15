@@ -20,18 +20,18 @@ const (
 // ProcessingDetail represents the processing detail of each record in a bulk operation
 type ProcessingDetail struct {
 	base.BaseModel
-	BulkOperationID string                 `json:"bulk_operation_id" gorm:"type:varchar(255);not null;index"`
-	RecordIndex     int                    `json:"record_index" gorm:"type:integer;not null"`
-	ExternalID      string                 `json:"external_id" gorm:"type:varchar(255);index"`
-	Status          RecordStatus           `json:"status" gorm:"type:varchar(50);not null;default:'PENDING'"`
-	FarmerID        *string                `json:"farmer_id" gorm:"type:varchar(255);index"`
-	AAAUserID       *string                `json:"aaa_user_id" gorm:"type:varchar(255);index"`
+	BulkOperationID string                 `json:"bulk_operation_id" gorm:"type:varchar(255);not null;index:idx_processing_details_op_idx,priority:1;index:idx_processing_details_op_status,priority:1;index:idx_processing_details_op_retry,priority:1"`
+	RecordIndex     int                    `json:"record_index" gorm:"type:integer;not null;index:idx_processing_details_op_idx,priority:2"`
+	ExternalID      string                 `json:"external_id" gorm:"type:varchar(255);index:idx_processing_details_external"`
+	Status          RecordStatus           `json:"status" gorm:"type:varchar(50);not null;default:'PENDING';index:idx_processing_details_op_status,priority:2;index:idx_processing_details_op_retry,priority:2,where:status = 'FAILED'"`
+	FarmerID        *string                `json:"farmer_id" gorm:"type:varchar(255);index:idx_processing_details_farmer"`
+	AAAUserID       *string                `json:"aaa_user_id" gorm:"type:varchar(255);index:idx_processing_details_aaa"`
 	InputData       map[string]interface{} `json:"input_data" gorm:"type:jsonb;serializer:json"`
 	Error           *string                `json:"error" gorm:"type:text"`
 	ErrorCode       *string                `json:"error_code" gorm:"type:varchar(100)"`
 	ProcessedAt     *time.Time             `json:"processed_at"`
 	ProcessingTime  int64                  `json:"processing_time" gorm:"type:bigint"` // in milliseconds
-	RetryCount      int                    `json:"retry_count" gorm:"type:integer;not null;default:0"`
+	RetryCount      int                    `json:"retry_count" gorm:"type:integer;not null;default:0;index:idx_processing_details_op_retry,priority:3,where:status = 'FAILED'"`
 	Metadata        map[string]interface{} `json:"metadata" gorm:"type:jsonb;default:'{}';serializer:json"`
 }
 

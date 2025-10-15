@@ -93,6 +93,8 @@ func (r *BulkOperationRepositoryImpl) UpdateStatus(ctx context.Context, id strin
 }
 
 // UpdateProgress updates the progress of a bulk operation
+// Note: This method does NOT automatically mark operation as complete to avoid race conditions
+// The caller should explicitly call UpdateStatus when processing is done
 func (r *BulkOperationRepositoryImpl) UpdateProgress(ctx context.Context, id string, processed, successful, failed, skipped int) error {
 	updates := map[string]interface{}{
 		"processed_records":  processed,
@@ -101,16 +103,8 @@ func (r *BulkOperationRepositoryImpl) UpdateProgress(ctx context.Context, id str
 		"skipped_records":    skipped,
 	}
 
-	// Check if operation is complete
-	var operation bulk.BulkOperation
-	if err := r.db.WithContext(ctx).Select("total_records").Where("id = ?", id).First(&operation).Error; err == nil {
-		if processed >= operation.TotalRecords {
-			updates["status"] = bulk.StatusCompleted
-			updates["end_time"] = gorm.Expr("NOW()")
-			updates["processing_time"] = gorm.Expr("EXTRACT(EPOCH FROM (NOW() - COALESCE(start_time, created_at))) * 1000")
-		}
-	}
-
+	// Update progress without changing status
+	// This eliminates the slow SELECT query and prevents race conditions
 	if err := r.db.WithContext(ctx).Model(&bulk.BulkOperation{}).
 		Where("id = ?", id).
 		Updates(updates).Error; err != nil {
