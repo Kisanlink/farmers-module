@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	cropCycleEntity "github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
 	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
@@ -505,4 +506,117 @@ func (m *MockFarmerRepository) SetDBManager(dbManager any) {
 func (m *MockFarmerRepository) Count(ctx context.Context, filter *base.Filter, model *farmerentity.Farmer) (int64, error) {
 	args := m.Called(ctx, filter, model)
 	return args.Get(0).(int64), args.Error(1)
+}
+
+// MockCropCycleRepository is a mock implementation of CropCycleRepository for testing
+type MockCropCycleRepository struct {
+	mock.Mock
+}
+
+func (m *MockCropCycleRepository) Create(ctx context.Context, entity *cropCycleEntity.CropCycle) error {
+	args := m.Called(ctx, entity)
+	return args.Error(0)
+}
+
+func (m *MockCropCycleRepository) Update(ctx context.Context, entity *cropCycleEntity.CropCycle) error {
+	args := m.Called(ctx, entity)
+	return args.Error(0)
+}
+
+func (m *MockCropCycleRepository) Find(ctx context.Context, filter *base.Filter) ([]*cropCycleEntity.CropCycle, error) {
+	args := m.Called(ctx, filter)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*cropCycleEntity.CropCycle), args.Error(1)
+}
+
+func (m *MockCropCycleRepository) FindOne(ctx context.Context, filter *base.Filter) (*cropCycleEntity.CropCycle, error) {
+	args := m.Called(ctx, filter)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*cropCycleEntity.CropCycle), args.Error(1)
+}
+
+func (m *MockCropCycleRepository) GetByID(ctx context.Context, id string, entity *cropCycleEntity.CropCycle) (*cropCycleEntity.CropCycle, error) {
+	args := m.Called(ctx, id, entity)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*cropCycleEntity.CropCycle), args.Error(1)
+}
+
+func (m *MockCropCycleRepository) Delete(ctx context.Context, id string) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *MockCropCycleRepository) SetDBManager(dbManager any) {
+	m.Called(dbManager)
+}
+
+func (m *MockCropCycleRepository) Count(ctx context.Context, filter *base.Filter, model *cropCycleEntity.CropCycle) (int64, error) {
+	args := m.Called(ctx, filter, model)
+	return args.Get(0).(int64), args.Error(1)
+}
+
+func (m *MockCropCycleRepository) ValidateAreaAllocation(ctx context.Context, farmID string, cycleID string, requestedArea float64) error {
+	args := m.Called(ctx, farmID, cycleID, requestedArea)
+	return args.Error(0)
+}
+
+func (m *MockCropCycleRepository) GetTotalAllocatedArea(ctx context.Context, farmID string, excludeCycleID string) (float64, error) {
+	args := m.Called(ctx, farmID, excludeCycleID)
+	return args.Get(0).(float64), args.Error(1)
+}
+
+func (m *MockCropCycleRepository) GetAreaAllocationSummary(ctx context.Context, farmID string) (interface{}, error) {
+	args := m.Called(ctx, farmID)
+	return args.Get(0), args.Error(1)
+}
+
+// MockFarmService is a mock implementation of FarmService for testing
+type MockFarmService struct {
+	mock.Mock
+}
+
+func (m *MockFarmService) CreateFarm(ctx context.Context, req interface{}) (interface{}, error) {
+	args := m.Called(ctx, req)
+	return args.Get(0), args.Error(1)
+}
+
+func (m *MockFarmService) GetFarm(ctx context.Context, farmID string) (interface{}, error) {
+	args := m.Called(ctx, farmID)
+	return args.Get(0), args.Error(1)
+}
+
+func (m *MockFarmService) UpdateFarm(ctx context.Context, req interface{}) (interface{}, error) {
+	args := m.Called(ctx, req)
+	return args.Get(0), args.Error(1)
+}
+
+func (m *MockFarmService) DeleteFarm(ctx context.Context, farmID string) error {
+	args := m.Called(ctx, farmID)
+	return args.Error(0)
+}
+
+func (m *MockFarmService) ListFarms(ctx context.Context, req interface{}) (interface{}, error) {
+	args := m.Called(ctx, req)
+	return args.Get(0), args.Error(1)
+}
+
+func (m *MockFarmService) GetFarmsByFarmer(ctx context.Context, farmerID string) (interface{}, error) {
+	args := m.Called(ctx, farmerID)
+	return args.Get(0), args.Error(1)
+}
+
+func (m *MockFarmService) AddSoilTypes(ctx context.Context, req interface{}) (interface{}, error) {
+	args := m.Called(ctx, req)
+	return args.Get(0), args.Error(1)
+}
+
+func (m *MockFarmService) AddIrrigationSources(ctx context.Context, req interface{}) (interface{}, error) {
+	args := m.Called(ctx, req)
+	return args.Get(0), args.Error(1)
 }

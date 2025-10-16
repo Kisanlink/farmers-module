@@ -348,6 +348,12 @@ func (s *CropCycleServiceImpl) ListCycles(ctx context.Context, req interface{}) 
 		Limit(listReq.PageSize, (listReq.Page-1)*listReq.PageSize).
 		Build()
 
+	// Debug logging
+	fmt.Printf("DEBUG: ListCycles filter conditions count: %d\n", len(filter.Group.Conditions))
+	for i, cond := range filter.Group.Conditions {
+		fmt.Printf("DEBUG: Condition %d: Field=%s, Operator=%s, Value=%v\n", i, cond.Field, cond.Operator, cond.Value)
+	}
+
 	// Get cycles from database
 	cycles, err := s.cropCycleRepo.Find(ctx, filter)
 	if err != nil {
