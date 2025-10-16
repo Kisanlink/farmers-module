@@ -342,6 +342,9 @@ func setupPostMigration(gormDB *gorm.DB) {
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmer_links_kisan_sathi_idx ON farmer_links (kisan_sathi_user_id);`)
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farmer_links_status_idx ON farmer_links (status);`)
 
+	// Create index for farmers total_acreage_ha (for fast filtering/sorting)
+	gormDB.Exec(`CREATE INDEX IF NOT EXISTS idx_farmers_total_acreage ON farmers (total_acreage_ha);`)
+
 	// Create indexes for fpo_refs table
 	gormDB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS fpo_refs_aaa_org_id_idx ON fpo_refs (aaa_org_id);`)
 
@@ -371,7 +374,104 @@ func setupPostMigration(gormDB *gorm.DB) {
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farm_activities_created_by_idx ON farm_activities (created_by);`)
 	gormDB.Exec(`CREATE INDEX IF NOT EXISTS farm_activities_planned_at_idx ON farm_activities (planned_at);`)
 
+	// Setup farmer total acreage rollup triggers (only if farms table exists)
+	if postgisAvailable {
+		setupFarmerAcreageRollupTriggers(gormDB)
+	}
+
 	log.Println("Post-migration setup completed")
+}
+
+// setupFarmerAcreageRollupTriggers creates triggers to maintain farmer total_acreage_ha rollup
+func setupFarmerAcreageRollupTriggers(gormDB *gorm.DB) {
+	log.Println("Setting up farmer acreage rollup triggers...")
+
+	// Create or replace the trigger function
+	gormDB.Exec(`
+		CREATE OR REPLACE FUNCTION update_farmer_total_acreage()
+		RETURNS TRIGGER AS $$
+		BEGIN
+			-- For INSERT and UPDATE, update the farmer's total acreage
+			IF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') THEN
+				UPDATE farmers
+				SET total_acreage_ha = (
+					SELECT COALESCE(SUM(area_ha_computed), 0)
+					FROM farms
+					WHERE farmer_id = NEW.farmer_id
+					AND deleted_at IS NULL
+				)
+				WHERE id = NEW.farmer_id;
+
+				-- If this is an UPDATE and farmer_id changed, update old farmer too
+				IF (TG_OP = 'UPDATE' AND OLD.farmer_id != NEW.farmer_id) THEN
+					UPDATE farmers
+					SET total_acreage_ha = (
+						SELECT COALESCE(SUM(area_ha_computed), 0)
+						FROM farms
+						WHERE farmer_id = OLD.farmer_id
+						AND deleted_at IS NULL
+					)
+					WHERE id = OLD.farmer_id;
+				END IF;
+			END IF;
+
+			-- For DELETE, update the old farmer's total acreage
+			IF (TG_OP = 'DELETE') THEN
+				UPDATE farmers
+				SET total_acreage_ha = (
+					SELECT COALESCE(SUM(area_ha_computed), 0)
+					FROM farms
+					WHERE farmer_id = OLD.farmer_id
+					AND deleted_at IS NULL
+				)
+				WHERE id = OLD.farmer_id;
+				RETURN OLD;
+			END IF;
+
+			RETURN NEW;
+		END;
+		$$ LANGUAGE plpgsql;
+	`)
+
+	// Create trigger for INSERT and UPDATE operations
+	gormDB.Exec(`
+		DROP TRIGGER IF EXISTS trigger_farm_insert_update_farmer_acreage ON farms;
+		CREATE TRIGGER trigger_farm_insert_update_farmer_acreage
+		AFTER INSERT OR UPDATE OF farmer_id, geometry, deleted_at
+		ON farms
+		FOR EACH ROW
+		EXECUTE FUNCTION update_farmer_total_acreage();
+	`)
+
+	// Create trigger for DELETE operations
+	gormDB.Exec(`
+		DROP TRIGGER IF EXISTS trigger_farm_delete_update_farmer_acreage ON farms;
+		CREATE TRIGGER trigger_farm_delete_update_farmer_acreage
+		AFTER DELETE
+		ON farms
+		FOR EACH ROW
+		EXECUTE FUNCTION update_farmer_total_acreage();
+	`)
+
+	// Backfill existing data - update all farmers' total acreage
+	log.Println("Backfilling farmer total acreage from existing farms...")
+	result := gormDB.Exec(`
+		UPDATE farmers
+		SET total_acreage_ha = COALESCE(
+			(SELECT SUM(area_ha_computed)
+			 FROM farms
+			 WHERE farms.farmer_id = farmers.id
+			 AND farms.deleted_at IS NULL),
+			0
+		);
+	`)
+	if result.Error != nil {
+		log.Printf("Warning: Failed to backfill farmer total acreage: %v", result.Error)
+	} else {
+		log.Printf("✅ Backfilled total_acreage_ha for %d farmers", result.RowsAffected)
+	}
+
+	log.Println("✅ Farmer acreage rollup triggers configured successfully")
 }
 
 // initializeCounters initializes ID counters for all tables from existing database records

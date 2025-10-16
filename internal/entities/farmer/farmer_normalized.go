@@ -74,6 +74,9 @@ type Farmer struct {
 	AreaType          string `json:"area_type" gorm:"type:varchar(50)"`       // e.g., Rural, Urban, Semi-Urban
 	Status            string `json:"status" gorm:"type:farmer_status;not null;default:'ACTIVE'"`
 
+	// Rollup Fields - Maintained by database triggers
+	TotalAcreageHa float64 `json:"total_acreage_ha" gorm:"type:numeric(12,4);default:0.0;not null"`
+
 	// Relationships - FPO Linkage (optional, preloaded when needed)
 	FPOLinkages []*FarmerLink `json:"fpo_linkages,omitempty" gorm:"foreignKey:AAAUserID,AAAOrgID;references:AAAUserID,AAAOrgID"`
 	Farms       []FarmRef     `json:"farms,omitempty" gorm:"foreignKey:FarmerID;references:ID"`
