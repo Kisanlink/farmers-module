@@ -498,9 +498,10 @@ func initializeCounters(gormDB *gorm.DB) error {
 	}
 
 	for _, table := range tables {
-		// Query all IDs from the table
+		// Query all IDs from the table using Raw SQL for explicit control
 		var ids []string
-		if err := gormDB.Table(table.TableName).Pluck("id", &ids).Error; err != nil {
+		query := fmt.Sprintf("SELECT id FROM %s ORDER BY id", table.TableName)
+		if err := gormDB.Raw(query).Scan(&ids).Error; err != nil {
 			// If table doesn't exist or error occurs, skip it
 			log.Printf("Skipping counter initialization for %s: %v", table.TableName, err)
 			continue
@@ -510,6 +511,25 @@ func initializeCounters(gormDB *gorm.DB) error {
 		log.Printf("Initializing counter for %s (%s) with %d existing IDs",
 			table.TableName, table.Identifier, len(ids))
 
+		// Debug: Log first few and last few IDs if any exist
+		if len(ids) > 0 {
+			sampleSize := 3
+			if len(ids) < sampleSize {
+				sampleSize = len(ids)
+			}
+			log.Printf("  First IDs from %s: %v", table.TableName, ids[:sampleSize])
+			if len(ids) > sampleSize {
+				lastIdx := len(ids)
+				log.Printf("  Last IDs from %s: %v", table.TableName, ids[lastIdx-sampleSize:])
+			}
+		} else {
+			// Double-check if there are actually records but query failed to get IDs
+			var count int64
+			if countErr := gormDB.Table(table.TableName).Count(&count).Error; countErr == nil && count > 0 {
+				log.Printf("⚠️  WARNING: Found %d records in %s but query returned 0 IDs! Counter may not initialize correctly.", count, table.TableName)
+			}
+		}
+
 		// Call the initialization function from kisanlink-db
 		hash.InitializeGlobalCountersFromDatabase(table.Identifier, ids, table.Size)
 
@@ -518,6 +538,34 @@ func initializeCounters(gormDB *gorm.DB) error {
 	}
 
 	log.Println("✅ All ID counters initialized successfully")
+	return nil
+}
+
+// ResetCounter manually resets a single counter based on existing database records
+// This is useful for debugging counter issues
+func ResetCounter(gormDB *gorm.DB, tableName, identifier string, size hash.TableSize) error {
+	var ids []string
+	query := fmt.Sprintf("SELECT id FROM %s ORDER BY id", tableName)
+	if err := gormDB.Raw(query).Scan(&ids).Error; err != nil {
+		return fmt.Errorf("failed to query IDs from %s: %w", tableName, err)
+	}
+
+	log.Printf("Resetting counter for %s (%s) with %d existing IDs", tableName, identifier, len(ids))
+	if len(ids) > 0 {
+		sampleSize := 5
+		if len(ids) < sampleSize {
+			sampleSize = len(ids)
+		}
+		log.Printf("  First IDs: %v", ids[:sampleSize])
+		if len(ids) > sampleSize {
+			lastIdx := len(ids)
+			log.Printf("  Last IDs: %v", ids[lastIdx-sampleSize:])
+		}
+	}
+
+	hash.InitializeGlobalCountersFromDatabase(identifier, ids, size)
+	log.Printf("✓ Counter reset for %s: %d existing records", tableName, len(ids))
+
 	return nil
 }
 
