@@ -15,6 +15,9 @@ func RegisterAdminRoutes(router *gin.RouterGroup, services *services.ServiceFact
 		// W18: Seed roles and permissions
 		admin.POST("/seed", handlers.SeedRolesAndPermissions(services.AdministrativeService))
 
+		// Seed lookup data (soil types, irrigation sources)
+		admin.POST("/seed/lookups", handlers.SeedLookupData(services.AdministrativeService))
+
 		// W19: Check permission (for testing)
 		admin.POST("/check-permission", handlers.CheckPermission(services.AAAService))
 

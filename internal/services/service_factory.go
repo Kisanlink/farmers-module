@@ -110,7 +110,13 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	reportingService := NewReportingService(repoFactory, gormDB, aaaService)
 
 	// Initialize administrative service
-	concreteAdminService := NewAdministrativeService(postgresManager, gormDB, aaaService)
+	concreteAdminService := NewAdministrativeService(
+		postgresManager,
+		gormDB,
+		aaaService,
+		repoFactory.SoilTypeRepo,
+		repoFactory.IrrigationSourceRepo,
+	)
 	administrativeService := NewAdministrativeServiceWrapper(concreteAdminService)
 
 	// Initialize bulk farmer service

@@ -36,7 +36,7 @@ func (suite *AdministrativeServiceIntegrationTestSuite) SetupSuite() {
 	mockAAA.On("HealthCheck", context.Background()).Return(nil)
 
 	// Create service
-	concreteService := NewAdministrativeService(nil, db, mockAAA)
+	concreteService := NewAdministrativeService(nil, db, mockAAA, nil, nil)
 	suite.service = NewAdministrativeServiceWrapper(concreteService)
 }
 
@@ -216,7 +216,7 @@ func (suite *AdministrativeServiceIntegrationTestSuite) TestSeedRolesAndPermissi
 		mockAAA := &MockAAAService{}
 		mockAAA.On("SeedRolesAndPermissions", context.Background()).Return(assert.AnError)
 
-		concreteFailingService := NewAdministrativeService(nil, suite.db, mockAAA)
+		concreteFailingService := NewAdministrativeService(nil, suite.db, mockAAA, nil, nil)
 		failingService := NewAdministrativeServiceWrapper(concreteFailingService)
 
 		req := &requests.SeedRolesAndPermissionsRequest{}
@@ -242,7 +242,7 @@ func (suite *AdministrativeServiceIntegrationTestSuite) TestHealthCheck_ErrorSce
 		mockAAA := &MockAAAService{}
 		mockAAA.On("HealthCheck", context.Background()).Return(assert.AnError)
 
-		concreteFailingService := NewAdministrativeService(nil, suite.db, mockAAA)
+		concreteFailingService := NewAdministrativeService(nil, suite.db, mockAAA, nil, nil)
 		failingService := NewAdministrativeServiceWrapper(concreteFailingService)
 
 		req := &requests.HealthCheckRequest{}
@@ -265,7 +265,7 @@ func (suite *AdministrativeServiceIntegrationTestSuite) TestHealthCheck_ErrorSce
 
 	suite.Run("nil AAA service", func() {
 		// Create a service with nil AAA service
-		nilAAAService := NewAdministrativeService(nil, suite.db, nil)
+		nilAAAService := NewAdministrativeService(nil, suite.db, nil, nil, nil)
 
 		req := &requests.HealthCheckRequest{}
 

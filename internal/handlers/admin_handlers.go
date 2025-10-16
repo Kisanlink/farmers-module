@@ -40,6 +40,80 @@ type ComponentHealth struct {
 	Timestamp string                 `json:"timestamp"`
 }
 
+// SeedLookupData handles seeding of master lookup data
+// @Summary Seed lookup data
+// @Description Initialize the system with master lookup data (soil types, irrigation sources)
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param request body requests.SeedLookupsRequest false "Seed lookups request parameters"
+// @Success 200 {object} responses.SwaggerSeedLookupsResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /admin/seed/lookups [post]
+func SeedLookupData(service services.AdministrativeService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req requests.SeedLookupsRequest
+
+		// Bind JSON request if provided, otherwise use defaults to seed all
+		if err := c.ShouldBindJSON(&req); err != nil && c.Request.ContentLength > 0 {
+			c.JSON(http.StatusBadRequest, responses.ErrorResponse{
+				Error:         "Invalid request format",
+				Message:       err.Error(),
+				Code:          "INVALID_REQUEST",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		// Default to seeding all lookups if no specific flags set
+		if !req.SeedSoilTypes && !req.SeedIrrigationSources {
+			req.SeedSoilTypes = true
+			req.SeedIrrigationSources = true
+		}
+
+		// Set base request fields
+		req.RequestID = c.GetString("correlation_id")
+		req.Timestamp = time.Now()
+		if userID := c.GetString("user_id"); userID != "" {
+			req.UserID = userID
+		}
+		if orgID := c.GetString("org_id"); orgID != "" {
+			req.OrgID = orgID
+		}
+
+		result, err := service.SeedLookupData(c.Request.Context(), &req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.ErrorResponse{
+				Error:         "Failed to seed lookup data",
+				Message:       err.Error(),
+				Code:          "SEED_FAILED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		if response, ok := result.(*responses.SeedLookupsResponse); ok {
+			if response.Success {
+				c.JSON(http.StatusOK, response)
+			} else {
+				c.JSON(http.StatusInternalServerError, response)
+			}
+		} else {
+			c.JSON(http.StatusInternalServerError, responses.ErrorResponse{
+				Error:         "Invalid response format",
+				Message:       "Service returned unexpected response type",
+				Code:          "INTERNAL_ERROR",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+		}
+	}
+}
+
 // SeedRolesAndPermissions handles W18: Seed roles and permissions
 // @Summary Seed roles and permissions
 // @Description Initialize the system with default roles and permissions

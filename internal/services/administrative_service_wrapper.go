@@ -74,3 +74,42 @@ func (w *AdministrativeServiceWrapper) HealthCheck(ctx context.Context, req inte
 
 	return w.service.HealthCheck(ctx, healthReq)
 }
+
+// SeedLookupData implements the interface method
+func (w *AdministrativeServiceWrapper) SeedLookupData(ctx context.Context, req interface{}) (interface{}, error) {
+	// Convert interface{} to proper request type
+	var seedReq *requests.SeedLookupsRequest
+
+	if req == nil {
+		seedReq = &requests.SeedLookupsRequest{
+			SeedSoilTypes:         true,
+			SeedIrrigationSources: true,
+		}
+	} else if typedReq, ok := req.(*requests.SeedLookupsRequest); ok {
+		seedReq = typedReq
+	} else if mapReq, ok := req.(map[string]interface{}); ok {
+		seedReq = &requests.SeedLookupsRequest{
+			SeedSoilTypes:         true,
+			SeedIrrigationSources: true,
+		}
+		if seedSoilTypes, exists := mapReq["seed_soil_types"]; exists {
+			if soilBool, ok := seedSoilTypes.(bool); ok {
+				seedReq.SeedSoilTypes = soilBool
+			}
+		}
+		if seedIrrigationSources, exists := mapReq["seed_irrigation_sources"]; exists {
+			if irrigBool, ok := seedIrrigationSources.(bool); ok {
+				seedReq.SeedIrrigationSources = irrigBool
+			}
+		}
+		if force, exists := mapReq["force"]; exists {
+			if forceBool, ok := force.(bool); ok {
+				seedReq.Force = forceBool
+			}
+		}
+	} else {
+		return nil, fmt.Errorf("invalid request type for SeedLookupData")
+	}
+
+	return w.service.SeedLookupData(ctx, seedReq)
+}

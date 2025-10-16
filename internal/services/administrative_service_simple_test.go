@@ -19,7 +19,7 @@ func TestAdministrativeService_Basic(t *testing.T) {
 	mockAAA := &MockAAAServiceShared{}
 
 	// Create service
-	service := NewAdministrativeService(nil, db, mockAAA)
+	service := NewAdministrativeService(nil, db, mockAAA, nil, nil)
 	assert.NotNil(t, service)
 
 	// Test SeedRolesAndPermissions
@@ -80,7 +80,7 @@ func TestAdministrativeServiceWrapper_Basic(t *testing.T) {
 	mockAAA := &MockAAAServiceShared{}
 
 	// Create concrete service and wrapper
-	concreteService := NewAdministrativeService(nil, db, mockAAA)
+	concreteService := NewAdministrativeService(nil, db, mockAAA, nil, nil)
 	wrapper := NewAdministrativeServiceWrapper(concreteService)
 	assert.NotNil(t, wrapper)
 

@@ -212,6 +212,56 @@
                 }
             }
         },
+        "/admin/seed/lookups": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Initialize the system with master lookup data (soil types, irrigation sources)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Seed lookup data",
+                "parameters": [
+                    {
+                        "description": "Seed lookups request parameters",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.SeedLookupsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerSeedLookupsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/crops/{id}/stages": {
             "get": {
                 "security": [
@@ -6166,6 +6216,50 @@
                 }
             }
         },
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.SeedLookupsRequest": {
+            "type": "object",
+            "properties": {
+                "force": {
+                    "description": "Force reseed even if data exists",
+                    "type": "boolean",
+                    "example": false
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "org_id": {
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
+                },
+                "request_type": {
+                    "type": "string",
+                    "example": "create_farmer"
+                },
+                "seed_irrigation_sources": {
+                    "description": "Seed irrigation sources",
+                    "type": "boolean",
+                    "example": true
+                },
+                "seed_soil_types": {
+                    "description": "Seed soil types",
+                    "type": "boolean",
+                    "example": true
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.SeedRolesAndPermissionsRequest": {
             "type": "object",
             "properties": {
@@ -8651,6 +8745,34 @@
                 "success": {
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerSeedLookupsResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "duration": {
+                    "type": "string",
+                    "example": "500ms"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Successfully seeded lookup data: 6 soil types, 6 irrigation sources"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
                 }
             }
         },

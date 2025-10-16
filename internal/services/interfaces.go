@@ -179,6 +179,9 @@ type AdministrativeService interface {
 	// SeedRolesAndPermissions triggers a complete reseed of AAA resources, actions, and role bindings
 	SeedRolesAndPermissions(ctx context.Context, req interface{}) (interface{}, error)
 
+	// SeedLookupData seeds master lookup data (soil types, irrigation sources, etc.)
+	SeedLookupData(ctx context.Context, req interface{}) (interface{}, error)
+
 	// HealthCheck verifies database connectivity and AAA service availability
 	HealthCheck(ctx context.Context, req interface{}) (interface{}, error)
 }

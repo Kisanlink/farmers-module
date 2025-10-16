@@ -715,6 +715,39 @@ definitions:
     required:
     - operation_id
     type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.SeedLookupsRequest:
+    properties:
+      force:
+        description: Force reseed even if data exists
+        example: false
+        type: boolean
+      metadata:
+        additionalProperties: true
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      seed_irrigation_sources:
+        description: Seed irrigation sources
+        example: true
+        type: boolean
+      seed_soil_types:
+        description: Seed soil types
+        example: true
+        type: boolean
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.SeedRolesAndPermissionsRequest:
     properties:
       dry_run:
@@ -2446,6 +2479,26 @@ definitions:
         example: true
         type: boolean
     type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerSeedLookupsResponse:
+    properties:
+      details:
+        additionalProperties: true
+        type: object
+      duration:
+        example: 500ms
+        type: string
+      error:
+        type: string
+      message:
+        example: 'Successfully seeded lookup data: 6 soil types, 6 irrigation sources'
+        type: string
+      success:
+        example: true
+        type: boolean
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+    type: object
   github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerSoilTypesResponse:
     properties:
       data: {}
@@ -2759,6 +2812,38 @@ paths:
       security:
       - BearerAuth: []
       summary: Seed roles and permissions
+      tags:
+      - admin
+  /admin/seed/lookups:
+    post:
+      consumes:
+      - application/json
+      description: Initialize the system with master lookup data (soil types, irrigation
+        sources)
+      parameters:
+      - description: Seed lookups request parameters
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.SeedLookupsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerSeedLookupsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Seed lookup data
       tags:
       - admin
   /api/v1/crops/{id}/stages:

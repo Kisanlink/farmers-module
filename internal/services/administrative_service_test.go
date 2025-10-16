@@ -401,3 +401,8 @@ func (m *MockAdministrativeService) HealthCheck(ctx context.Context, req *reques
 	args := m.Called(ctx, req)
 	return args.Get(0).(*responses.HealthCheckResponse), args.Error(1)
 }
+
+func (m *MockAdministrativeService) SeedLookupData(ctx context.Context, req *requests.SeedLookupsRequest) (*responses.SeedLookupsResponse, error) {
+	args := m.Called(ctx, req)
+	return args.Get(0).(*responses.SeedLookupsResponse), args.Error(1)
+}
