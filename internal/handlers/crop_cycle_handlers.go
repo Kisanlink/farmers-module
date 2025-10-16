@@ -112,14 +112,14 @@ func UpdateCycle(service services.CropCycleService) gin.HandlerFunc {
 
 // EndCycle handles ending a crop cycle
 // @Summary End a crop cycle
-// @Description End a crop cycle and mark it as completed
+// @Description End a crop cycle and mark it as completed or cancelled. For PERENNIAL crops, provide outcome with age_range_min, age_range_max, yield_per_tree, and yield_unit. For annual crops (RABI/KHARIF/ZAID), provide outcome with yield_per_hectare and yield_unit.
 // @Tags Crop Cycles
 // @Accept json
 // @Produce json
 // @Param cycle_id path string true "Cycle ID"
-// @Param request body requests.EndCycleRequest true "End cycle request"
+// @Param request body requests.EndCycleRequest true "End cycle request (outcome structure varies by season type)"
 // @Success 200 {object} responses.SwaggerCropCycleResponse
-// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse "Invalid outcome data for season type"
 // @Failure 401 {object} responses.SwaggerErrorResponse
 // @Failure 403 {object} responses.SwaggerErrorResponse
 // @Failure 404 {object} responses.SwaggerErrorResponse

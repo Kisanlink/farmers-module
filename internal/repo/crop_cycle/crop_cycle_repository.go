@@ -128,14 +128,20 @@ func (r *CropCycleRepository) ValidateAreaAllocation(ctx context.Context, farmID
 			return err
 		}
 
+		// Use computed area if available (from geometry), otherwise use manual area_ha
+		totalFarmArea := farm.AreaHaComputed
+		if totalFarmArea == 0 {
+			totalFarmArea = farm.AreaHa
+		}
+
 		// Calculate available area
-		availableArea := farm.AreaHa - totalAllocated
+		availableArea := totalFarmArea - totalAllocated
 
 		// Validate
 		if requestedArea > availableArea {
 			return &common.AreaExceededError{
 				FarmID:        farmID,
-				FarmArea:      farm.AreaHa,
+				FarmArea:      totalFarmArea,
 				RequestedArea: requestedArea,
 				AvailableArea: availableArea,
 				AllocatedArea: totalAllocated,
@@ -193,11 +199,17 @@ func (r *CropCycleRepository) GetAreaAllocationSummary(ctx context.Context, farm
 		return nil, err
 	}
 
+	// Use computed area if available (from geometry), otherwise use manual area_ha
+	totalFarmArea := farm.AreaHaComputed
+	if totalFarmArea == 0 {
+		totalFarmArea = farm.AreaHa
+	}
+
 	return &AreaAllocationSummary{
 		FarmID:             farmID,
-		TotalAreaHa:        farm.AreaHa,
+		TotalAreaHa:        totalFarmArea,
 		AllocatedAreaHa:    allocatedArea,
-		AvailableAreaHa:    farm.AreaHa - allocatedArea,
+		AvailableAreaHa:    totalFarmArea - allocatedArea,
 		ActiveCyclesCount:  activeCycles,
 		PlannedCyclesCount: plannedCycles,
 	}, nil

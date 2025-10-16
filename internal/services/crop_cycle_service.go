@@ -267,6 +267,11 @@ func (s *CropCycleServiceImpl) EndCycle(ctx context.Context, req interface{}) (i
 		cycle.Outcome = endReq.Outcome
 	}
 
+	// Validate outcome data based on season type
+	if err := cycle.ValidateOutcome(); err != nil {
+		return nil, fmt.Errorf("invalid outcome data: %w", err)
+	}
+
 	// Update the cycle in database
 	if err := s.cropCycleRepo.Update(ctx, cycle); err != nil {
 		return nil, fmt.Errorf("failed to end crop cycle: %w", err)

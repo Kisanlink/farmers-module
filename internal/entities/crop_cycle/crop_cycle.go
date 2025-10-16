@@ -97,3 +97,23 @@ func (cc *CropCycle) GetVarietyName() string {
 	}
 	return ""
 }
+
+// ValidateOutcome validates the outcome data based on the crop cycle season type
+func (cc *CropCycle) ValidateOutcome() error {
+	if len(cc.Outcome) == 0 {
+		return nil // Outcome is optional
+	}
+
+	// Season-specific validation
+	if cc.Season == "PERENNIAL" {
+		return ValidatePerennialOutcome(cc.Outcome)
+	}
+
+	// For RABI, KHARIF, ZAID, and OTHER seasons
+	return ValidateAnnualOutcome(cc.Outcome)
+}
+
+// IsPerennial checks if this is a perennial crop cycle
+func (cc *CropCycle) IsPerennial() bool {
+	return cc.Season == "PERENNIAL"
+}
