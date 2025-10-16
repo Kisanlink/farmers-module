@@ -448,3 +448,61 @@ func (m *MockDatabase) Migrate() error {
 	args := m.Called()
 	return args.Error(0)
 }
+
+// MockFarmerRepository is a mock implementation of FarmerRepository for testing
+type MockFarmerRepository struct {
+	mock.Mock
+}
+
+func (m *MockFarmerRepository) Create(ctx context.Context, entity *farmerentity.Farmer) error {
+	args := m.Called(ctx, entity)
+	return args.Error(0)
+}
+
+func (m *MockFarmerRepository) Update(ctx context.Context, entity *farmerentity.Farmer) error {
+	args := m.Called(ctx, entity)
+	return args.Error(0)
+}
+
+func (m *MockFarmerRepository) Find(ctx context.Context, filter *base.Filter) ([]*farmerentity.Farmer, error) {
+	args := m.Called(ctx, filter)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*farmerentity.Farmer), args.Error(1)
+}
+
+func (m *MockFarmerRepository) FindOne(ctx context.Context, filter *base.Filter) (*farmerentity.Farmer, error) {
+	args := m.Called(ctx, filter)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*farmerentity.Farmer), args.Error(1)
+}
+
+func (m *MockFarmerRepository) GetByID(ctx context.Context, id string) (*farmerentity.Farmer, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*farmerentity.Farmer), args.Error(1)
+}
+
+func (m *MockFarmerRepository) Delete(ctx context.Context, id string) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *MockFarmerRepository) SoftDelete(ctx context.Context, id string, userID string) error {
+	args := m.Called(ctx, id, userID)
+	return args.Error(0)
+}
+
+func (m *MockFarmerRepository) SetDBManager(dbManager any) {
+	m.Called(dbManager)
+}
+
+func (m *MockFarmerRepository) Count(ctx context.Context, filter *base.Filter, model *farmerentity.Farmer) (int64, error) {
+	args := m.Called(ctx, filter, model)
+	return args.Get(0).(int64), args.Error(1)
+}

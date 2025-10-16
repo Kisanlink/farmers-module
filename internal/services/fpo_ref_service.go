@@ -130,16 +130,20 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 	aaaOrgID := orgRespMap["org_id"].(string)
 	log.Printf("Created organization with ID: %s", aaaOrgID)
 
+	// Initialize setup tracking for partial failures
+	setupErrors := make(entities.JSONB)
+
 	// Step 4: Assign CEO role to user in organization
+	// Following ADR-001: CEO role is critical for FPO operations
 	err = s.aaaService.AssignRole(ctx, ceoUserID, aaaOrgID, "CEO")
 	if err != nil {
-		log.Printf("Warning: Failed to assign CEO role: %v", err)
-		// Continue as this might not be critical
+		log.Printf("Error: Failed to assign CEO role to user %s: %v", ceoUserID, err)
+		setupErrors["ceo_role_assignment"] = err.Error()
+		// Don't return error immediately - continue with setup to allow retry via CompleteFPOSetup
 	}
 
 	// Step 5: Create user groups for FPO
 	userGroups := []responses.UserGroupData{}
-	setupErrors := make(entities.JSONB)
 	groupNames := []string{"directors", "shareholders", "store_staff", "store_managers"}
 
 	for _, groupName := range groupNames {

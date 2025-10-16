@@ -627,6 +627,8 @@ func (c *Client) AssignRole(ctx context.Context, userID, orgID, roleName string)
 		"farmer":      true,
 		"kisansathi":  true,
 		"fpo_manager": true,
+		"fpo_ceo":     true, // FPO CEO role
+		"ceo":         true, // Alternative name for FPO CEO
 		"readonly":    true,
 	}
 	if !validRoles[strings.ToLower(roleName)] {

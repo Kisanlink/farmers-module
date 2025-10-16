@@ -1,0 +1,1 @@
+- dont use db directly, always use kisanlink-db BaseFilterableRepository with FilterBuilder

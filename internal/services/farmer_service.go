@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/constants"
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
@@ -274,6 +276,25 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 	// Save to repository
 	if err := s.repository.Create(ctx, farmer); err != nil {
 		return nil, fmt.Errorf("failed to create farmer: %w", err)
+	}
+
+	// Ensure farmer role is assigned (best-effort with retry)
+	// Following ADR-001: Role Assignment Strategy for Entity Creation
+	roleErr := s.ensureFarmerRoleWithRetry(ctx, aaaUserID, aaaOrgID)
+	if roleErr != nil {
+		log.Printf("Warning: Failed to assign farmer role to user %s: %v", aaaUserID, roleErr)
+		// Store failure metadata for reconciliation
+		if farmer.Metadata == nil {
+			farmer.Metadata = make(entities.JSONB)
+		}
+		farmer.Metadata["role_assignment_error"] = roleErr.Error()
+		farmer.Metadata["role_assignment_pending"] = "true"
+		farmer.Metadata["role_assignment_attempted_at"] = time.Now().Format(time.RFC3339)
+
+		// Best-effort metadata update (non-fatal if fails)
+		if updateErr := s.repository.Update(ctx, farmer); updateErr != nil {
+			log.Printf("Error: Failed to store role assignment failure metadata: %v", updateErr)
+		}
 	}
 
 	// Convert to response format
@@ -664,4 +685,57 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 
 	response := responses.NewFarmerListResponse(farmerProfilesData, req.Page, req.PageSize, totalCount)
 	return &response, nil
+}
+
+// ensureFarmerRoleWithRetry attempts to assign the farmer role with a single retry
+// Implements ADR-001: Role Assignment Strategy with synchronous retry
+func (s *FarmerServiceImpl) ensureFarmerRoleWithRetry(ctx context.Context, userID, orgID string) error {
+	// Attempt role assignment with one retry
+	for attempt := 1; attempt <= 2; attempt++ {
+		err := s.ensureFarmerRole(ctx, userID, orgID)
+		if err == nil {
+			return nil // Success
+		}
+
+		if attempt == 1 {
+			log.Printf("Warning: Role assignment attempt %d failed for user %s, retrying: %v", attempt, userID, err)
+			time.Sleep(500 * time.Millisecond) // Brief delay before retry
+			continue
+		}
+
+		return fmt.Errorf("role assignment failed after %d attempts: %w", attempt, err)
+	}
+	return nil
+}
+
+// ensureFarmerRole ensures the user has the farmer role with idempotency and verification
+// Implements the "Check-Assign-Verify" pattern from ADR-001
+func (s *FarmerServiceImpl) ensureFarmerRole(ctx context.Context, userID, orgID string) error {
+	// 1. Check if role already exists (idempotency)
+	hasRole, err := s.aaaService.CheckUserRole(ctx, userID, constants.RoleFarmer)
+	if err != nil {
+		// If check fails, try assignment anyway (AAA may be degraded but functional)
+		log.Printf("Warning: Failed to check farmer role for user %s: %v", userID, err)
+	} else if hasRole {
+		log.Printf("User %s already has farmer role, skipping assignment", userID)
+		return nil
+	}
+
+	// 2. Assign farmer role
+	err = s.aaaService.AssignRole(ctx, userID, orgID, constants.RoleFarmer)
+	if err != nil {
+		return fmt.Errorf("failed to assign farmer role: %w", err)
+	}
+
+	// 3. Verify assignment succeeded
+	hasRole, err = s.aaaService.CheckUserRole(ctx, userID, constants.RoleFarmer)
+	if err != nil {
+		return fmt.Errorf("failed to verify farmer role assignment: %w", err)
+	}
+	if !hasRole {
+		return fmt.Errorf("farmer role assignment verification failed (role not present)")
+	}
+
+	log.Printf("Successfully assigned and verified farmer role for user %s", userID)
+	return nil
 }
