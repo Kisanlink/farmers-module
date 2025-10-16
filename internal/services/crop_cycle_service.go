@@ -94,7 +94,7 @@ func (s *CropCycleServiceImpl) StartCycle(ctx context.Context, req interface{}) 
 
 	// Convert to response data
 	cycleData := &responses.CropCycleData{
-		ID:        cycle.ID,
+		ID:        cycle.GetID(),
 		FarmID:    cycle.FarmID,
 		FarmerID:  cycle.FarmerID,
 		AreaHa:    cycle.AreaHa,
@@ -196,7 +196,7 @@ func (s *CropCycleServiceImpl) UpdateCycle(ctx context.Context, req interface{})
 
 	// Convert to response data
 	cycleData := &responses.CropCycleData{
-		ID:        cycle.ID,
+		ID:        cycle.GetID(),
 		FarmID:    cycle.FarmID,
 		FarmerID:  cycle.FarmerID,
 		AreaHa:    cycle.AreaHa,
@@ -274,7 +274,7 @@ func (s *CropCycleServiceImpl) EndCycle(ctx context.Context, req interface{}) (i
 
 	// Convert to response data
 	cycleData := &responses.CropCycleData{
-		ID:        cycle.ID,
+		ID:        cycle.GetID(),
 		FarmID:    cycle.FarmID,
 		FarmerID:  cycle.FarmerID,
 		AreaHa:    cycle.AreaHa,
@@ -364,7 +364,7 @@ func (s *CropCycleServiceImpl) ListCycles(ctx context.Context, req interface{}) 
 	var cycleDataList []*responses.CropCycleData
 	for _, cycle := range cycles {
 		cycleData := &responses.CropCycleData{
-			ID:        cycle.ID,
+			ID:        cycle.GetID(),
 			FarmID:    cycle.FarmID,
 			FarmerID:  cycle.FarmerID,
 			AreaHa:    cycle.AreaHa,
@@ -402,7 +402,7 @@ func (s *CropCycleServiceImpl) GetCropCycle(ctx context.Context, cycleID string)
 
 	// Convert to response data
 	cycleData := &responses.CropCycleData{
-		ID:        cycle.ID,
+		ID:        cycle.GetID(),
 		FarmID:    cycle.FarmID,
 		FarmerID:  cycle.FarmerID,
 		AreaHa:    cycle.AreaHa,

@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	_ "github.com/Kisanlink/farmers-module/docs" // Import Swagger docs
 	"github.com/Kisanlink/farmers-module/internal/config"
@@ -90,21 +88,23 @@ func main() {
 	// Setup all routes with handlers and middleware
 	routes.SetupRoutes(router, serviceFactory, cfg, logger)
 
-	// Seed AAA roles and permissions on startup (non-fatal)
+	// TODO: Re-enable role seeding when AAA service implements CatalogService
+	// Currently disabled because CatalogService.SeedRolesAndPermissions is not implemented in AAA service
+	// Ensure roles (farmer, kisansathi, CEO, fpo_manager, admin, readonly) exist in AAA service manually
 	// Following ADR-001: Role seeding should happen at startup but not block application start
-	log.Println("Seeding AAA roles and permissions...")
-	seedCtx, seedCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer seedCancel()
-
-	if err := serviceFactory.AAAService.SeedRolesAndPermissions(seedCtx); err != nil {
-		// Non-fatal: Log warning and continue
-		// Roles may already exist, or AAA service may be temporarily unavailable
-		log.Printf("Warning: Failed to seed AAA roles and permissions: %v", err)
-		log.Println("Application will continue, but role assignments may fail if roles don't exist")
-		log.Println("Use the /admin/seed-roles endpoint to manually trigger role seeding")
-	} else {
-		log.Println("Successfully seeded AAA roles and permissions")
-	}
+	//
+	// log.Println("Seeding AAA roles and permissions...")
+	// seedCtx, seedCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// defer seedCancel()
+	//
+	// if err := serviceFactory.AAAService.SeedRolesAndPermissions(seedCtx); err != nil {
+	// 	log.Printf("Warning: Failed to seed AAA roles and permissions: %v", err)
+	// 	log.Println("Application will continue, but role assignments may fail if roles don't exist")
+	// 	log.Println("Use the /admin/seed-roles endpoint to manually trigger role seeding")
+	// } else {
+	// 	log.Println("Successfully seeded AAA roles and permissions")
+	// }
+	log.Println("Note: AAA role seeding disabled - ensure roles exist in AAA service (farmer, kisansathi, CEO, fpo_manager, admin, readonly)")
 
 	// Get port from configuration
 	port := cfg.Server.Port
