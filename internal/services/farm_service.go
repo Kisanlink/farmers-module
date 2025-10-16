@@ -348,11 +348,10 @@ func (s *FarmServiceImpl) ListFarms(ctx context.Context, req interface{}) (inter
 	return &response, nil
 }
 
-// GetFarm gets farm by ID
+// GetFarm gets farm by ID with all relationships preloaded
 func (s *FarmServiceImpl) GetFarm(ctx context.Context, farmID string) (interface{}, error) {
-	// Get farm
-	filter := base.NewFilterBuilder().Where("id", base.OpEqual, farmID).Build()
-	farm, err := s.farmRepo.FindOne(ctx, filter)
+	// Get farm with all relationships preloaded
+	farm, err := s.farmRepo.FindOneWithPreloads(ctx, farmID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, common.ErrNotFound
@@ -375,8 +374,8 @@ func (s *FarmServiceImpl) GetFarm(ctx context.Context, farmID string) (interface
 		return nil, common.ErrForbidden
 	}
 
-	// Convert to response
-	farmData := s.convertFarmToData(farm)
+	// Convert to response with relationships
+	farmData := s.convertFarmToDataWithRelations(farm)
 	response := responses.NewFarmResponse(farmData, "Farm retrieved successfully")
 
 	return &response, nil
@@ -571,16 +570,120 @@ func (s *FarmServiceImpl) convertFarmToData(farm *farmEntity.Farm) *responses.Fa
 		farmName = *farm.Name
 	}
 	return &responses.FarmData{
-		ID:             farm.ID,
-		FarmerID:       farm.FarmerID,
-		AAAUserID:      farm.AAAUserID,
-		AAAOrgID:       farm.AAAOrgID,
-		Name:           farmName,
-		Geometry:       farm.Geometry,
-		AreaHa:         farm.AreaHa,
-		AreaHaComputed: farm.AreaHaComputed,
-		Metadata:       farm.Metadata,
-		CreatedAt:      farm.CreatedAt,
-		UpdatedAt:      farm.UpdatedAt,
+		ID:                        farm.ID,
+		FarmerID:                  farm.FarmerID,
+		AAAUserID:                 farm.AAAUserID,
+		AAAOrgID:                  farm.AAAOrgID,
+		Name:                      farmName,
+		OwnershipType:             string(farm.OwnershipType),
+		Geometry:                  farm.Geometry,
+		AreaHa:                    farm.AreaHa,
+		AreaHaComputed:            farm.AreaHaComputed,
+		SoilTypeID:                farm.SoilTypeID,
+		PrimaryIrrigationSourceID: farm.PrimaryIrrigationSourceID,
+		BoreWellCount:             farm.BoreWellCount,
+		OtherIrrigationDetails:    farm.OtherIrrigationDetails,
+		Metadata:                  farm.Metadata,
+		CreatedAt:                 farm.CreatedAt,
+		UpdatedAt:                 farm.UpdatedAt,
 	}
+}
+
+func (s *FarmServiceImpl) convertFarmToDataWithRelations(farm *farmEntity.Farm) *responses.FarmData {
+	farmName := ""
+	if farm.Name != nil {
+		farmName = *farm.Name
+	}
+
+	farmData := &responses.FarmData{
+		ID:                        farm.ID,
+		FarmerID:                  farm.FarmerID,
+		AAAUserID:                 farm.AAAUserID,
+		AAAOrgID:                  farm.AAAOrgID,
+		Name:                      farmName,
+		OwnershipType:             string(farm.OwnershipType),
+		Geometry:                  farm.Geometry,
+		AreaHa:                    farm.AreaHa,
+		AreaHaComputed:            farm.AreaHaComputed,
+		SoilTypeID:                farm.SoilTypeID,
+		PrimaryIrrigationSourceID: farm.PrimaryIrrigationSourceID,
+		BoreWellCount:             farm.BoreWellCount,
+		OtherIrrigationDetails:    farm.OtherIrrigationDetails,
+		Metadata:                  farm.Metadata,
+		CreatedAt:                 farm.CreatedAt,
+		UpdatedAt:                 farm.UpdatedAt,
+	}
+
+	// Include Farmer relationship if loaded
+	if farm.Farmer != nil {
+		farmData.Farmer = &responses.FarmerBasicData{
+			ID:             farm.Farmer.ID,
+			AAAUserID:      farm.Farmer.AAAUserID,
+			AAAOrgID:       farm.Farmer.AAAOrgID,
+			FirstName:      farm.Farmer.FirstName,
+			LastName:       farm.Farmer.LastName,
+			PhoneNumber:    farm.Farmer.PhoneNumber,
+			Email:          farm.Farmer.Email,
+			TotalAcreageHa: farm.Farmer.TotalAcreageHa,
+			Status:         farm.Farmer.Status,
+			CreatedAt:      farm.Farmer.CreatedAt,
+			UpdatedAt:      farm.Farmer.UpdatedAt,
+		}
+	}
+
+	// Include primary SoilType relationship if loaded
+	if farm.SoilType != nil {
+		farmData.SoilType = &responses.SoilTypeData{
+			ID:          farm.SoilType.ID,
+			Name:        farm.SoilType.Name,
+			Description: farm.SoilType.Description,
+			CreatedAt:   farm.SoilType.CreatedAt,
+			UpdatedAt:   farm.SoilType.UpdatedAt,
+		}
+	}
+
+	// Include primary IrrigationSource relationship if loaded
+	if farm.PrimaryIrrigationSource != nil {
+		farmData.PrimaryIrrigationSource = &responses.IrrigationSourceData{
+			ID:          farm.PrimaryIrrigationSource.ID,
+			Name:        farm.PrimaryIrrigationSource.Name,
+			Description: farm.PrimaryIrrigationSource.Description,
+			CreatedAt:   farm.PrimaryIrrigationSource.CreatedAt,
+			UpdatedAt:   farm.PrimaryIrrigationSource.UpdatedAt,
+		}
+	}
+
+	// Include IrrigationSources many-to-many relationship if loaded
+	if len(farm.IrrigationSources) > 0 {
+		farmData.IrrigationSources = make([]responses.IrrigationSourceData, 0, len(farm.IrrigationSources))
+		for _, farmIrrigationSource := range farm.IrrigationSources {
+			if farmIrrigationSource.IrrigationSource.ID != "" {
+				farmData.IrrigationSources = append(farmData.IrrigationSources, responses.IrrigationSourceData{
+					ID:          farmIrrigationSource.IrrigationSource.ID,
+					Name:        farmIrrigationSource.IrrigationSource.Name,
+					Description: farmIrrigationSource.IrrigationSource.Description,
+					CreatedAt:   farmIrrigationSource.IrrigationSource.CreatedAt,
+					UpdatedAt:   farmIrrigationSource.IrrigationSource.UpdatedAt,
+				})
+			}
+		}
+	}
+
+	// Include SoilTypes many-to-many relationship if loaded
+	if len(farm.SoilTypes) > 0 {
+		farmData.SoilTypes = make([]responses.SoilTypeData, 0, len(farm.SoilTypes))
+		for _, farmSoilType := range farm.SoilTypes {
+			if farmSoilType.SoilType.ID != "" {
+				farmData.SoilTypes = append(farmData.SoilTypes, responses.SoilTypeData{
+					ID:          farmSoilType.SoilType.ID,
+					Name:        farmSoilType.SoilType.Name,
+					Description: farmSoilType.SoilType.Description,
+					CreatedAt:   farmSoilType.SoilType.CreatedAt,
+					UpdatedAt:   farmSoilType.SoilType.UpdatedAt,
+				})
+			}
+		}
+	}
+
+	return farmData
 }

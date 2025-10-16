@@ -120,6 +120,31 @@ func (r *FarmRepository) ValidateGeometry(ctx context.Context, wkt string) error
 // which properly delegates to PostgresManager.Count()
 // No need to override it here
 
+// FindOneWithPreloads finds a farm by ID with all relationships preloaded
+func (r *FarmRepository) FindOneWithPreloads(ctx context.Context, farmID string) (*farm.Farm, error) {
+	if r.db == nil {
+		return nil, fmt.Errorf("database connection not available")
+	}
+
+	var farmEntity farm.Farm
+	err := r.db.WithContext(ctx).
+		Preload("Farmer").
+		Preload("SoilType").
+		Preload("PrimaryIrrigationSource").
+		Preload("IrrigationSources").
+		Preload("IrrigationSources.IrrigationSource").
+		Preload("SoilTypes").
+		Preload("SoilTypes.SoilType").
+		Where("id = ? AND deleted_at IS NULL", farmID).
+		First(&farmEntity).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &farmEntity, nil
+}
+
 // CheckOverlap checks if a geometry overlaps with existing farms
 func (r *FarmRepository) CheckOverlap(ctx context.Context, wkt string, excludeFarmID string, orgID string) (bool, []string, float64, error) {
 	if r.db == nil {
