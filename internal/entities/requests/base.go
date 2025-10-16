@@ -10,7 +10,7 @@ type BaseRequest struct {
 	Timestamp   time.Time              `json:"timestamp" example:"2024-01-15T10:30:00Z"`
 	UserID      string                 `json:"user_id,omitempty" example:"usr_123e4567-e89b-12d3-a456-426614174000"`
 	OrgID       string                 `json:"org_id,omitempty" example:"org_123e4567-e89b-12d3-a456-426614174000"`
-	Metadata    map[string]interface{} `json:"metadata,omitempty" example:"source:mobile_app,version:1.0.0"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
 	RequestType string                 `json:"request_type,omitempty" example:"create_farmer"`
 }
 
@@ -24,7 +24,7 @@ type PaginationRequest struct {
 // FilterRequest provides filtering parameters for search requests
 type FilterRequest struct {
 	PaginationRequest
-	Filters map[string]interface{} `json:"filters,omitempty" example:"status:active,category:CEREALS"`
+	Filters map[string]interface{} `json:"filters,omitempty"`
 	SortBy  string                 `json:"sort_by,omitempty" example:"created_at"`
 	SortDir string                 `json:"sort_dir,omitempty" validate:"oneof=asc desc" example:"desc"`
 }

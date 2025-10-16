@@ -34,11 +34,7 @@ definitions:
         example: ks_123e4567-e89b-12d3-a456-426614174001
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -74,11 +70,7 @@ definitions:
         example: DAYS
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -139,12 +131,8 @@ definitions:
         example: 10
         type: integer
       metadata:
-        additionalProperties:
-          type: string
+        additionalProperties: true
         description: Additional metadata
-        example:
-          batch_name: january_2024
-          region: central
         type: object
       notification_webhook:
         description: Webhook for completion notification
@@ -192,22 +180,13 @@ definitions:
         example: activity_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
       output:
-        additionalProperties:
-          type: string
-        example:
-          area_covered: 2.5ha
-          notes: completed_successfully
-          workers: "4"
+        additionalProperties: true
         type: object
       request_id:
         example: req_123e4567e89b12d3
@@ -233,12 +212,11 @@ definitions:
       crop_cycle_id:
         example: cycle_123e4567-e89b-12d3-a456-426614174000
         type: string
+      crop_stage_id:
+        example: CSTG_GERMINATION
+        type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          seed_rate: 100kg_per_acre
-          seed_type: HD2967
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -263,192 +241,10 @@ definitions:
     - crop_cycle_id
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropRequest:
-    properties:
-      category:
-        enum:
-        - CEREALS
-        - PULSES
-        - VEGETABLES
-        - FRUITS
-        - OIL_SEEDS
-        - SPICES
-        - CASH_CROPS
-        - FODDER
-        - MEDICINAL
-        - OTHER
-        example: CEREALS
-        type: string
-      duration_days:
-        example: 120
-        maximum: 365
-        minimum: 1
-        type: integer
-      metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
-        type: object
-      name:
-        example: Wheat
-        maxLength: 255
-        minLength: 2
-        type: string
-      org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      properties:
-        additionalProperties:
-          type: string
-        example:
-          climate: temperate
-          water_requirement: medium
-        type: object
-      request_id:
-        example: req_123e4567e89b12d3
-        type: string
-      request_type:
-        example: create_farmer
-        type: string
-      scientific_name:
-        example: Triticum aestivum
-        maxLength: 255
-        type: string
-      seasons:
-        example:
-        - RABI
-        items:
-          type: string
-        minItems: 1
-        type: array
-      timestamp:
-        example: "2024-01-15T10:30:00Z"
-        type: string
-      unit:
-        example: kg
-        maxLength: 50
-        minLength: 1
-        type: string
-      user_id:
-        example: usr_123e4567-e89b-12d3-a456-426614174000
-        type: string
-    required:
-    - category
-    - name
-    - seasons
-    - unit
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropVarietyRequest:
-    properties:
-      crop_id:
-        example: crop_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      description:
-        example: High yielding wheat variety suitable for irrigated conditions
-        type: string
-      duration_days:
-        example: 120
-        maximum: 365
-        minimum: 1
-        type: integer
-      metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
-        type: object
-      name:
-        example: HD-2967
-        maxLength: 255
-        minLength: 2
-        type: string
-      org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      properties:
-        additionalProperties:
-          type: string
-        example:
-          disease_resistance: high
-          recommended_for: punjab_haryana
-        type: object
-      request_id:
-        example: req_123e4567e89b12d3
-        type: string
-      request_type:
-        example: create_farmer
-        type: string
-      timestamp:
-        example: "2024-01-15T10:30:00Z"
-        type: string
-      user_id:
-        example: usr_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      yield_by_age:
-        items:
-          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.YieldByAgeRequest'
-        type: array
-      yield_per_acre:
-        example: 25.5
-        minimum: 0
-        type: number
-      yield_per_tree:
-        example: 0
-        minimum: 0
-        type: number
-    required:
-    - crop_id
-    - name
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPORequest:
-    properties:
-      business_config:
-        additionalProperties:
-          type: string
-        example:
-          max_farmers: "1000"
-          procurement_enabled: "true"
-        type: object
-      ceo_user:
-        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CEOUserData'
-      description:
-        example: A farmer producer organization serving 500+ farmers in Rampur region
-        type: string
-      metadata:
-        additionalProperties:
-          type: string
-        example:
-          district: Indore
-          established: "2024"
-          state: MP
-        type: object
-      name:
-        example: Rampur Farmers Producer Company
-        type: string
-      org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      registration_no:
-        example: FPO/MP/2024/001234
-        type: string
-      request_id:
-        example: req_123e4567e89b12d3
-        type: string
-      request_type:
-        example: create_farmer
-        type: string
-      timestamp:
-        example: "2024-01-15T10:30:00Z"
-        type: string
-      user_id:
-        example: usr_123e4567-e89b-12d3-a456-426614174000
-        type: string
-    required:
-    - ceo_user
-    - name
-    - registration_no
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmRequest:
     properties:
@@ -476,11 +272,7 @@ definitions:
           $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.IrrigationSourceRequest'
         type: array
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          elevation: 450m
-          soil_test_date: "2024-01-10"
+        additionalProperties: true
         type: object
       name:
         example: North Field Farm
@@ -521,48 +313,6 @@ definitions:
     - area_ha
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmerRequest:
-    properties:
-      aaa_org_id:
-        description: 'Required: AAA Org ID'
-        example: ORGN00000001
-        type: string
-      aaa_user_id:
-        description: 'Optional: AAA User ID (if known)'
-        example: USER00000001
-        type: string
-      kisan_sathi_user_id:
-        example: USER00000002
-        type: string
-      metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
-        type: object
-      org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      profile:
-        allOf:
-        - $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerProfileData'
-        description: 'Required: Farmer profile (must include country_code + phone_number
-          if aaa_user_id not provided)'
-      request_id:
-        example: req_123e4567e89b12d3
-        type: string
-      request_type:
-        example: create_farmer
-        type: string
-      timestamp:
-        example: "2024-01-15T10:30:00Z"
-        type: string
-      user_id:
-        example: usr_123e4567-e89b-12d3-a456-426614174000
-        type: string
-    required:
-    - aaa_org_id
-    - profile
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.CreateKisanSathiUserRequest:
     properties:
@@ -576,11 +326,7 @@ definitions:
         example: Pradeep Kumar
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          experience_years: "5"
-          villages_covered: "10"
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -619,11 +365,7 @@ definitions:
         example: Seeds sprouting and initial growth
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -657,11 +399,7 @@ definitions:
         example: 100
         type: integer
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       min_overlap_area_ha:
         description: Minimum overlap area in hectares to report
@@ -684,53 +422,6 @@ definitions:
         type: string
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.EndCycleRequest:
-    properties:
-      end_date:
-        example: "2024-03-15T00:00:00Z"
-        type: string
-      id:
-        example: cycle_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
-        type: object
-      org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      outcome:
-        additionalProperties:
-          type: string
-        example:
-          notes: good_harvest
-          quality: good
-          yield_kg: "2500"
-        type: object
-      request_id:
-        example: req_123e4567e89b12d3
-        type: string
-      request_type:
-        example: create_farmer
-        type: string
-      status:
-        enum:
-        - COMPLETED
-        - CANCELLED
-        example: COMPLETED
-        type: string
-      timestamp:
-        example: "2024-01-15T10:30:00Z"
-        type: string
-      user_id:
-        example: usr_123e4567-e89b-12d3-a456-426614174000
-        type: string
-    required:
-    - end_date
-    - id
-    - status
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.ExportFarmerPortfolioRequest:
     properties:
@@ -747,11 +438,7 @@ definitions:
         example: json
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -781,114 +468,7 @@ definitions:
     required:
     - farmer_id
     type: object
-  github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerBulkData:
-    properties:
-      city:
-        example: Ratlam
-        type: string
-      country:
-        example: India
-        type: string
-      custom_fields:
-        additionalProperties:
-          type: string
-        example:
-          education: high_school
-          family_size: "5"
-        type: object
-      date_of_birth:
-        example: "1975-08-20"
-        type: string
-      email:
-        example: suresh.patel@example.com
-        type: string
-      external_id:
-        description: For tracking and idempotency
-        example: EXT_FARMER_001
-        type: string
-      first_name:
-        example: Suresh
-        maxLength: 50
-        minLength: 2
-        type: string
-      gender:
-        enum:
-        - male
-        - female
-        - other
-        example: male
-        type: string
-      land_ownership_type:
-        example: OWN
-        type: string
-      last_name:
-        example: Patel
-        maxLength: 50
-        minLength: 2
-        type: string
-      password:
-        description: Optional password, will be generated if not provided
-        example: Farmer@123
-        type: string
-      phone_number:
-        example: +91-9876543220
-        type: string
-      postal_code:
-        example: "457001"
-        type: string
-      state:
-        example: Madhya Pradesh
-        type: string
-      street_address:
-        example: Village Khandwa, Post Ratlam
-        type: string
-    required:
-    - first_name
-    - last_name
-    - phone_number
-    type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerProfileData:
-    properties:
-      address:
-        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.AddressData'
-      country_code:
-        example: "+91"
-        type: string
-      date_of_birth:
-        example: "1980-05-15"
-        type: string
-      email:
-        example: ramesh.kumar@example.com
-        type: string
-      first_name:
-        example: Ramesh
-        type: string
-      gender:
-        example: male
-        type: string
-      last_name:
-        example: Kumar
-        type: string
-      metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: field_survey
-          verified: "true"
-        type: object
-      phone_number:
-        example: "9876543210"
-        type: string
-      preferences:
-        additionalProperties:
-          type: string
-        example:
-          language: hindi
-          notification: sms
-        type: object
-      username:
-        example: ramesh_kumar
-        type: string
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.GeometryData:
     properties:
@@ -930,11 +510,7 @@ definitions:
         example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -961,11 +537,7 @@ definitions:
         example: "2024-12-31T23:59:59Z"
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1002,11 +574,7 @@ definitions:
         example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       new_kisan_sathi_user_id:
         description: nil means remove
@@ -1034,11 +602,7 @@ definitions:
   github_com_Kisanlink_farmers-module_internal_entities_requests.RebuildSpatialIndexesRequest:
     properties:
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1063,11 +627,7 @@ definitions:
         example: false
         type: boolean
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1086,57 +646,11 @@ definitions:
         type: string
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.RegisterFPORefRequest:
-    properties:
-      aaa_org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      business_config:
-        additionalProperties:
-          type: string
-        example:
-          credit_limit: "500000"
-          payment_terms: net30
-        type: object
-      metadata:
-        additionalProperties:
-          type: string
-        example:
-          crop_focus: wheat_soybean
-          region: central_india
-        type: object
-      name:
-        example: Rampur Farmers Producer Company
-        type: string
-      org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      registration_no:
-        example: FPO/MP/2024/001234
-        type: string
-      request_id:
-        example: req_123e4567e89b12d3
-        type: string
-      request_type:
-        example: create_farmer
-        type: string
-      timestamp:
-        example: "2024-01-15T10:30:00Z"
-        type: string
-      user_id:
-        example: usr_123e4567-e89b-12d3-a456-426614174000
-        type: string
-    required:
-    - aaa_org_id
-    - name
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.ReorderCropStagesRequest:
     properties:
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1164,11 +678,7 @@ definitions:
   github_com_Kisanlink_farmers-module_internal_entities_requests.RetryBulkOperationRequest:
     properties:
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       operation_id:
         example: op_123e4567-e89b-12d3-a456-426614174000
@@ -1217,11 +727,7 @@ definitions:
         example: false
         type: boolean
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1241,6 +747,9 @@ definitions:
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.StartCycleRequest:
     properties:
+      area_ha:
+        example: 5.5
+        type: number
       crop_id:
         example: crop_123e4567-e89b-12d3-a456-426614174000
         type: string
@@ -1248,11 +757,7 @@ definitions:
         example: farm_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1297,11 +802,7 @@ definitions:
         example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1327,15 +828,14 @@ definitions:
       activity_type:
         example: IRRIGATION
         type: string
+      crop_stage_id:
+        example: CSTG_FLOWERING
+        type: string
       id:
         example: activity_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          duration: 2hours
-          water_source: borewell
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1359,84 +859,6 @@ definitions:
     - id
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropRequest:
-    properties:
-      category:
-        enum:
-        - CEREALS
-        - PULSES
-        - VEGETABLES
-        - FRUITS
-        - OIL_SEEDS
-        - SPICES
-        - CASH_CROPS
-        - FODDER
-        - MEDICINAL
-        - OTHER
-        example: CEREALS
-        type: string
-      duration_days:
-        example: 125
-        maximum: 365
-        minimum: 1
-        type: integer
-      id:
-        example: crop_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      is_active:
-        example: true
-        type: boolean
-      metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
-        type: object
-      name:
-        example: Wheat - HD2967
-        maxLength: 255
-        minLength: 2
-        type: string
-      org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      properties:
-        additionalProperties:
-          type: string
-        example:
-          fertilizer: high
-          irrigation: required
-        type: object
-      request_id:
-        example: req_123e4567e89b12d3
-        type: string
-      request_type:
-        example: create_farmer
-        type: string
-      scientific_name:
-        example: Triticum aestivum L.
-        maxLength: 255
-        type: string
-      seasons:
-        example:
-        - RABI
-        items:
-          type: string
-        minItems: 1
-        type: array
-      timestamp:
-        example: "2024-01-15T10:30:00Z"
-        type: string
-      unit:
-        example: quintal
-        maxLength: 50
-        minLength: 1
-        type: string
-      user_id:
-        example: usr_123e4567-e89b-12d3-a456-426614174000
-        type: string
-    required:
-    - id
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropStageRequest:
     properties:
@@ -1455,11 +877,7 @@ definitions:
         example: true
         type: boolean
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1484,72 +902,12 @@ definitions:
         type: string
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropVarietyRequest:
-    properties:
-      description:
-        example: Updated description with latest cultivation practices
-        type: string
-      duration_days:
-        example: 118
-        maximum: 365
-        minimum: 1
-        type: integer
-      id:
-        example: variety_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      is_active:
-        example: true
-        type: boolean
-      metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
-        type: object
-      name:
-        example: HD-2967 (Improved)
-        maxLength: 255
-        minLength: 2
-        type: string
-      org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      properties:
-        additionalProperties:
-          type: string
-        example:
-          drought_tolerance: medium
-          market_demand: high
-        type: object
-      request_id:
-        example: req_123e4567e89b12d3
-        type: string
-      request_type:
-        example: create_farmer
-        type: string
-      timestamp:
-        example: "2024-01-15T10:30:00Z"
-        type: string
-      user_id:
-        example: usr_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      yield_by_age:
-        items:
-          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.YieldByAgeRequest'
-        type: array
-      yield_per_acre:
-        example: 27
-        minimum: 0
-        type: number
-      yield_per_tree:
-        example: 0
-        minimum: 0
-        type: number
-    required:
-    - id
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCycleRequest:
     properties:
+      area_ha:
+        example: 6
+        type: number
       crop_id:
         example: crop_123e4567-e89b-12d3-a456-426614174000
         type: string
@@ -1557,11 +915,7 @@ definitions:
         example: cycle_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1622,11 +976,7 @@ definitions:
           $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.IrrigationSourceRequest'
         type: array
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          certification: organic
-          last_survey: "2024-02-15"
+        additionalProperties: true
         type: object
       name:
         example: North Field Farm - Updated
@@ -1683,11 +1033,7 @@ definitions:
         example: USER00000002
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1716,11 +1062,7 @@ definitions:
         example: true
         type: boolean
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1746,50 +1088,6 @@ definitions:
         type: string
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.ValidateBulkDataRequest:
-    properties:
-      data:
-        items:
-          type: integer
-        type: array
-      farmers:
-        items:
-          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerBulkData'
-        type: array
-      fpo_org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      input_format:
-        enum:
-        - csv
-        - excel
-        - json
-        example: json
-        type: string
-      metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
-        type: object
-      org_id:
-        example: org_123e4567-e89b-12d3-a456-426614174000
-        type: string
-      request_id:
-        example: req_123e4567e89b12d3
-        type: string
-      request_type:
-        example: create_farmer
-        type: string
-      timestamp:
-        example: "2024-01-15T10:30:00Z"
-        type: string
-      user_id:
-        example: usr_123e4567-e89b-12d3-a456-426614174000
-        type: string
-    required:
-    - fpo_org_id
-    - input_format
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.ValidateGeometryRequest:
     properties:
@@ -1798,11 +1096,7 @@ definitions:
         example: true
         type: boolean
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          source: mobile_app
-          version: 1.0.0
+        additionalProperties: true
         type: object
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
@@ -1860,6 +1154,29 @@ definitions:
       street_address:
         example: Village Rampur, Post Khandwa
         type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.AreaAllocationSummaryData:
+    properties:
+      active_cycles_count:
+        type: integer
+      allocated_area_ha:
+        type: number
+      allocations:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CycleAllocation'
+        type: array
+      available_area_ha:
+        type: number
+      farm_id:
+        type: string
+      farm_name:
+        type: string
+      planned_cycles_count:
+        type: integer
+      total_area_ha:
+        type: number
+      utilization_percentage:
+        type: number
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationData:
     properties:
@@ -2029,6 +1346,8 @@ definitions:
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_responses.CropCycleData:
     properties:
+      area_ha:
+        type: number
       created_at:
         type: string
       crop_id:
@@ -2044,8 +1363,7 @@ definitions:
       id:
         type: string
       outcome:
-        additionalProperties:
-          type: string
+        additionalProperties: true
         type: object
       season:
         type: string
@@ -2075,8 +1393,7 @@ definitions:
       name:
         type: string
       properties:
-        additionalProperties:
-          type: string
+        additionalProperties: true
         type: object
       scientific_name:
         type: string
@@ -2177,8 +1494,7 @@ definitions:
       name:
         type: string
       properties:
-        additionalProperties:
-          type: string
+        additionalProperties: true
         type: object
       updated_at:
         type: string
@@ -2232,6 +1548,23 @@ definitions:
       success:
         type: boolean
     type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.CycleAllocation:
+    properties:
+      area_ha:
+        type: number
+      crop_cycle_id:
+        type: string
+      crop_name:
+        type: string
+      season:
+        type: string
+      start_date:
+        type: string
+      status:
+        type: string
+      variety_name:
+        type: string
+    type: object
   github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse:
     properties:
       code:
@@ -2239,8 +1572,7 @@ definitions:
       correlation_id:
         type: string
       details:
-        additionalProperties:
-          type: string
+        additionalProperties: true
         type: object
       error:
         type: string
@@ -2254,8 +1586,7 @@ definitions:
       aaa_org_id:
         type: string
       business_config:
-        additionalProperties:
-          type: string
+        additionalProperties: true
         type: object
       created_at:
         type: string
@@ -2264,8 +1595,7 @@ definitions:
       id:
         type: string
       metadata:
-        additionalProperties:
-          type: string
+        additionalProperties: true
         type: object
       name:
         type: string
@@ -2288,15 +1618,17 @@ definitions:
         type: string
       crop_cycle_id:
         type: string
+      crop_stage:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropStageData'
+      crop_stage_id:
+        type: string
       id:
         type: string
       metadata:
-        additionalProperties:
-          type: string
+        additionalProperties: true
         type: object
       output:
-        additionalProperties:
-          type: string
+        additionalProperties: true
         type: object
       planned_at:
         type: string
@@ -2314,10 +1646,18 @@ definitions:
         example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
       area_ha:
+        description: User-provided or stored area
         example: 2.5
+        type: number
+      area_ha_computed:
+        description: Computed from geometry using PostGIS
+        example: 2.4876
         type: number
       created_at:
         example: "2024-01-15T10:30:00Z"
+        type: string
+      farmer_id:
+        example: FMRR0000000001
         type: string
       geometry:
         example: POLYGON((75.85 22.71, 75.85663 22.71, 75.85663 22.71663, 75.85 22.71663,
@@ -2327,11 +1667,7 @@ definitions:
         example: farm_123e4567-e89b-12d3-a456-426614174000
         type: string
       metadata:
-        additionalProperties:
-          type: string
-        example:
-          irrigation: drip
-          soil_type: loamy
+        additionalProperties: true
         type: object
       name:
         example: North Field Farm
@@ -2365,6 +1701,30 @@ definitions:
       overlap_percentage_farm2:
         type: number
     type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerLinkData:
+    properties:
+      aaa_org_id:
+        example: ORGN00000001
+        type: string
+      aaa_user_id:
+        example: USER00000001
+        type: string
+      created_at:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      id:
+        example: FMLK0000000001
+        type: string
+      kisan_sathi_user_id:
+        example: USER00000002
+        type: string
+      status:
+        example: ACTIVE
+        type: string
+      updated_at:
+        example: "2024-01-20T15:45:00Z"
+        type: string
+    type: object
   github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerLinkageData:
     properties:
       aaa_org_id:
@@ -2396,6 +1756,9 @@ definitions:
         type: string
       address:
         $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.AddressData'
+      area_type:
+        example: Rural
+        type: string
       created_at:
         example: "2024-01-15T10:30:00Z"
         type: string
@@ -2412,6 +1775,10 @@ definitions:
       first_name:
         example: Ramesh
         type: string
+      fpo_linkages:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerLinkData'
+        type: array
       gender:
         example: male
         type: string
@@ -2426,16 +1793,20 @@ definitions:
         example: Kumar
         type: string
       metadata:
-        additionalProperties:
-          type: string
+        additionalProperties: true
         type: object
       phone_number:
         example: "9876543210"
         type: string
       preferences:
-        additionalProperties:
-          type: string
+        additionalProperties: true
         type: object
+      social_category:
+        example: OBC
+        type: string
+      total_acreage_ha:
+        example: 15.75
+        type: number
       updated_at:
         example: "2024-01-20T15:45:00Z"
         type: string
@@ -2487,8 +1858,7 @@ definitions:
       id:
         type: string
       metadata:
-        additionalProperties:
-          type: string
+        additionalProperties: true
         type: object
       phone_number:
         type: string
@@ -2582,6 +1952,20 @@ definitions:
         type: boolean
       timestamp:
         type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAreaAllocationSummaryResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.AreaAllocationSummaryData'
+      message:
+        example: Area allocation summary retrieved successfully
+        type: string
+      request_id:
+        example: req_123456789
+        type: string
+      success:
+        example: true
+        type: boolean
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAuditTrailData:
     properties:
@@ -5203,9 +4587,13 @@ paths:
         in: query
         name: page_size
         type: integer
-      - description: Filter by farmer ID
+      - description: Filter by internal farmer ID (e.g., FMRR0000000001)
         in: query
         name: farmer_id
+        type: string
+      - description: Filter by AAA user ID (e.g., usr_123e4567-e89b-12d3-a456-426614174000)
+        in: query
+        name: aaa_user_id
         type: string
       - description: Filter by organization ID
         in: query
@@ -5375,6 +4763,50 @@ paths:
       summary: Update an existing farm
       tags:
       - farms
+  /farms/{farm_id}/area-allocation:
+    get:
+      consumes:
+      - application/json
+      description: Get area allocation summary showing total, allocated, and available
+        area for a farm
+      parameters:
+      - description: Farm ID
+        in: path
+        name: farm_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAreaAllocationSummaryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get farm area allocation summary
+      tags:
+      - Farm Area
   /identity/farmer/link:
     post:
       consumes:

@@ -571,15 +571,16 @@ func (s *FarmServiceImpl) convertFarmToData(farm *farmEntity.Farm) *responses.Fa
 		farmName = *farm.Name
 	}
 	return &responses.FarmData{
-		ID:        farm.ID,
-		FarmerID:  farm.FarmerID,
-		AAAUserID: farm.AAAUserID,
-		AAAOrgID:  farm.AAAOrgID,
-		Name:      farmName,
-		Geometry:  farm.Geometry,
-		AreaHa:    farm.AreaHa,
-		Metadata:  farm.Metadata,
-		CreatedAt: farm.CreatedAt,
-		UpdatedAt: farm.UpdatedAt,
+		ID:             farm.ID,
+		FarmerID:       farm.FarmerID,
+		AAAUserID:      farm.AAAUserID,
+		AAAOrgID:       farm.AAAOrgID,
+		Name:           farmName,
+		Geometry:       farm.Geometry,
+		AreaHa:         farm.AreaHa,
+		AreaHaComputed: farm.AreaHaComputed,
+		Metadata:       farm.Metadata,
+		CreatedAt:      farm.CreatedAt,
+		UpdatedAt:      farm.UpdatedAt,
 	}
 }

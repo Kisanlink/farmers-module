@@ -25,7 +25,7 @@ type CreateKisanSathiUserRequest struct {
 	Password    string                 `json:"password" validate:"required,min=8" example:"SecureKS@123"`
 	FullName    string                 `json:"full_name" validate:"required" example:"Pradeep Kumar"`
 	CountryCode string                 `json:"country_code" example:"+91"`
-	Metadata    map[string]interface{} `json:"metadata,omitempty" example:"experience_years:5,villages_covered:10"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // ListKisanSathisRequest represents a request to list all KisanSathis

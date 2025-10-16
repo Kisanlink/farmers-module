@@ -61,7 +61,7 @@ type FarmerProfileData struct {
 	Gender      string                 `json:"gender,omitempty" example:"male"`
 	Address     AddressData            `json:"address,omitempty"`
 	Preferences map[string]interface{} `json:"preferences,omitempty" example:"language:hindi,notification:sms"`
-	Metadata    map[string]interface{} `json:"metadata,omitempty" example:"source:field_survey,verified:true"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // AddressData represents address information

@@ -3040,8 +3040,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter by farmer ID",
+                        "description": "Filter by internal farmer ID (e.g., FMRR0000000001)",
                         "name": "farmer_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by AAA user ID (e.g., usr_123e4567-e89b-12d3-a456-426614174000)",
+                        "name": "aaa_user_id",
                         "in": "query"
                     },
                     {
@@ -3289,6 +3295,73 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/farms/{farm_id}/area-allocation": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get area allocation summary showing total, allocated, and available area for a farm",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Farm Area"
+                ],
+                "summary": "Get farm area allocation summary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Farm ID",
+                        "name": "farm_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAreaAllocationSummaryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
@@ -5183,13 +5256,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -5236,13 +5303,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -5319,13 +5380,7 @@ const docTemplate = `{
                 "metadata": {
                     "description": "Additional metadata",
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "batch_name": "january_2024",
-                        "region": "central"
-                    }
+                    "additionalProperties": true
                 },
                 "notification_webhook": {
                     "description": "Webhook for completion notification",
@@ -5393,13 +5448,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -5407,14 +5456,7 @@ const docTemplate = `{
                 },
                 "output": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "area_covered": "2.5ha",
-                        "notes": "completed_successfully",
-                        "workers": "4"
-                    }
+                    "additionalProperties": true
                 },
                 "request_id": {
                     "type": "string",
@@ -5449,15 +5491,13 @@ const docTemplate = `{
                     "type": "string",
                     "example": "cycle_123e4567-e89b-12d3-a456-426614174000"
                 },
+                "crop_stage_id": {
+                    "type": "string",
+                    "example": "CSTG_GERMINATION"
+                },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "seed_rate": "100kg_per_acre",
-                        "seed_type": "HD2967"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -5486,255 +5526,13 @@ const docTemplate = `{
             }
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropRequest": {
-            "type": "object",
-            "required": [
-                "category",
-                "name",
-                "seasons",
-                "unit"
-            ],
-            "properties": {
-                "category": {
-                    "type": "string",
-                    "enum": [
-                        "CEREALS",
-                        "PULSES",
-                        "VEGETABLES",
-                        "FRUITS",
-                        "OIL_SEEDS",
-                        "SPICES",
-                        "CASH_CROPS",
-                        "FODDER",
-                        "MEDICINAL",
-                        "OTHER"
-                    ],
-                    "example": "CEREALS"
-                },
-                "duration_days": {
-                    "type": "integer",
-                    "maximum": 365,
-                    "minimum": 1,
-                    "example": 120
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 2,
-                    "example": "Wheat"
-                },
-                "org_id": {
-                    "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "properties": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "climate": "temperate",
-                        "water_requirement": "medium"
-                    }
-                },
-                "request_id": {
-                    "type": "string",
-                    "example": "req_123e4567e89b12d3"
-                },
-                "request_type": {
-                    "type": "string",
-                    "example": "create_farmer"
-                },
-                "scientific_name": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "example": "Triticum aestivum"
-                },
-                "seasons": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "RABI"
-                    ]
-                },
-                "timestamp": {
-                    "type": "string",
-                    "example": "2024-01-15T10:30:00Z"
-                },
-                "unit": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 1,
-                    "example": "kg"
-                },
-                "user_id": {
-                    "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
-                }
-            }
+            "type": "object"
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropVarietyRequest": {
-            "type": "object",
-            "required": [
-                "crop_id",
-                "name"
-            ],
-            "properties": {
-                "crop_id": {
-                    "type": "string",
-                    "example": "crop_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "description": {
-                    "type": "string",
-                    "example": "High yielding wheat variety suitable for irrigated conditions"
-                },
-                "duration_days": {
-                    "type": "integer",
-                    "maximum": 365,
-                    "minimum": 1,
-                    "example": 120
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 2,
-                    "example": "HD-2967"
-                },
-                "org_id": {
-                    "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "properties": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "disease_resistance": "high",
-                        "recommended_for": "punjab_haryana"
-                    }
-                },
-                "request_id": {
-                    "type": "string",
-                    "example": "req_123e4567e89b12d3"
-                },
-                "request_type": {
-                    "type": "string",
-                    "example": "create_farmer"
-                },
-                "timestamp": {
-                    "type": "string",
-                    "example": "2024-01-15T10:30:00Z"
-                },
-                "user_id": {
-                    "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "yield_by_age": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.YieldByAgeRequest"
-                    }
-                },
-                "yield_per_acre": {
-                    "type": "number",
-                    "minimum": 0,
-                    "example": 25.5
-                },
-                "yield_per_tree": {
-                    "type": "number",
-                    "minimum": 0,
-                    "example": 0
-                }
-            }
+            "type": "object"
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPORequest": {
-            "type": "object",
-            "required": [
-                "ceo_user",
-                "name",
-                "registration_no"
-            ],
-            "properties": {
-                "business_config": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "max_farmers": "1000",
-                        "procurement_enabled": "true"
-                    }
-                },
-                "ceo_user": {
-                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CEOUserData"
-                },
-                "description": {
-                    "type": "string",
-                    "example": "A farmer producer organization serving 500+ farmers in Rampur region"
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "district": "Indore",
-                        "established": "2024",
-                        "state": "MP"
-                    }
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Rampur Farmers Producer Company"
-                },
-                "org_id": {
-                    "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "registration_no": {
-                    "type": "string",
-                    "example": "FPO/MP/2024/001234"
-                },
-                "request_id": {
-                    "type": "string",
-                    "example": "req_123e4567e89b12d3"
-                },
-                "request_type": {
-                    "type": "string",
-                    "example": "create_farmer"
-                },
-                "timestamp": {
-                    "type": "string",
-                    "example": "2024-01-15T10:30:00Z"
-                },
-                "user_id": {
-                    "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
-                }
-            }
+            "type": "object"
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmRequest": {
             "type": "object",
@@ -5776,13 +5574,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "elevation": "450m",
-                        "soil_test_date": "2024-01-10"
-                    }
+                    "additionalProperties": true
                 },
                 "name": {
                     "type": "string",
@@ -5832,65 +5624,7 @@ const docTemplate = `{
             }
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFarmerRequest": {
-            "type": "object",
-            "required": [
-                "aaa_org_id",
-                "profile"
-            ],
-            "properties": {
-                "aaa_org_id": {
-                    "description": "Required: AAA Org ID",
-                    "type": "string",
-                    "example": "ORGN00000001"
-                },
-                "aaa_user_id": {
-                    "description": "Optional: AAA User ID (if known)",
-                    "type": "string",
-                    "example": "USER00000001"
-                },
-                "kisan_sathi_user_id": {
-                    "type": "string",
-                    "example": "USER00000002"
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
-                },
-                "org_id": {
-                    "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "profile": {
-                    "description": "Required: Farmer profile (must include country_code + phone_number if aaa_user_id not provided)",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerProfileData"
-                        }
-                    ]
-                },
-                "request_id": {
-                    "type": "string",
-                    "example": "req_123e4567e89b12d3"
-                },
-                "request_type": {
-                    "type": "string",
-                    "example": "create_farmer"
-                },
-                "timestamp": {
-                    "type": "string",
-                    "example": "2024-01-15T10:30:00Z"
-                },
-                "user_id": {
-                    "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
-                }
-            }
+            "type": "object"
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateKisanSathiUserRequest": {
             "type": "object",
@@ -5915,13 +5649,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "experience_years": "5",
-                        "villages_covered": "10"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -5970,13 +5698,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -6019,13 +5741,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "min_overlap_area_ha": {
                     "description": "Minimum overlap area in hectares to report",
@@ -6055,71 +5771,7 @@ const docTemplate = `{
             }
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.EndCycleRequest": {
-            "type": "object",
-            "required": [
-                "end_date",
-                "id",
-                "status"
-            ],
-            "properties": {
-                "end_date": {
-                    "type": "string",
-                    "example": "2024-03-15T00:00:00Z"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "cycle_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
-                },
-                "org_id": {
-                    "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "outcome": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "notes": "good_harvest",
-                        "quality": "good",
-                        "yield_kg": "2500"
-                    }
-                },
-                "request_id": {
-                    "type": "string",
-                    "example": "req_123e4567e89b12d3"
-                },
-                "request_type": {
-                    "type": "string",
-                    "example": "create_farmer"
-                },
-                "status": {
-                    "type": "string",
-                    "enum": [
-                        "COMPLETED",
-                        "CANCELLED"
-                    ],
-                    "example": "COMPLETED"
-                },
-                "timestamp": {
-                    "type": "string",
-                    "example": "2024-01-15T10:30:00Z"
-                },
-                "user_id": {
-                    "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
-                }
-            }
+            "type": "object"
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.ExportFarmerPortfolioRequest": {
             "type": "object",
@@ -6145,13 +5797,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -6188,152 +5834,8 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerBulkData": {
-            "type": "object",
-            "required": [
-                "first_name",
-                "last_name",
-                "phone_number"
-            ],
-            "properties": {
-                "city": {
-                    "type": "string",
-                    "example": "Ratlam"
-                },
-                "country": {
-                    "type": "string",
-                    "example": "India"
-                },
-                "custom_fields": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "education": "high_school",
-                        "family_size": "5"
-                    }
-                },
-                "date_of_birth": {
-                    "type": "string",
-                    "example": "1975-08-20"
-                },
-                "email": {
-                    "type": "string",
-                    "example": "suresh.patel@example.com"
-                },
-                "external_id": {
-                    "description": "For tracking and idempotency",
-                    "type": "string",
-                    "example": "EXT_FARMER_001"
-                },
-                "first_name": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 2,
-                    "example": "Suresh"
-                },
-                "gender": {
-                    "type": "string",
-                    "enum": [
-                        "male",
-                        "female",
-                        "other"
-                    ],
-                    "example": "male"
-                },
-                "land_ownership_type": {
-                    "type": "string",
-                    "example": "OWN"
-                },
-                "last_name": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 2,
-                    "example": "Patel"
-                },
-                "password": {
-                    "description": "Optional password, will be generated if not provided",
-                    "type": "string",
-                    "example": "Farmer@123"
-                },
-                "phone_number": {
-                    "type": "string",
-                    "example": "+91-9876543220"
-                },
-                "postal_code": {
-                    "type": "string",
-                    "example": "457001"
-                },
-                "state": {
-                    "type": "string",
-                    "example": "Madhya Pradesh"
-                },
-                "street_address": {
-                    "type": "string",
-                    "example": "Village Khandwa, Post Ratlam"
-                }
-            }
-        },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerProfileData": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.AddressData"
-                },
-                "country_code": {
-                    "type": "string",
-                    "example": "+91"
-                },
-                "date_of_birth": {
-                    "type": "string",
-                    "example": "1980-05-15"
-                },
-                "email": {
-                    "type": "string",
-                    "example": "ramesh.kumar@example.com"
-                },
-                "first_name": {
-                    "type": "string",
-                    "example": "Ramesh"
-                },
-                "gender": {
-                    "type": "string",
-                    "example": "male"
-                },
-                "last_name": {
-                    "type": "string",
-                    "example": "Kumar"
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "field_survey",
-                        "verified": "true"
-                    }
-                },
-                "phone_number": {
-                    "type": "string",
-                    "example": "9876543210"
-                },
-                "preferences": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "language": "hindi",
-                        "notification": "sms"
-                    }
-                },
-                "username": {
-                    "type": "string",
-                    "example": "ramesh_kumar"
-                }
-            }
+            "type": "object"
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.GeometryData": {
             "type": "object",
@@ -6394,13 +5896,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -6433,13 +5929,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -6493,13 +5983,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "new_kisan_sathi_user_id": {
                     "description": "nil means remove",
@@ -6533,13 +6017,7 @@ const docTemplate = `{
             "properties": {
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -6573,13 +6051,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -6604,65 +6076,7 @@ const docTemplate = `{
             }
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.RegisterFPORefRequest": {
-            "type": "object",
-            "required": [
-                "aaa_org_id",
-                "name"
-            ],
-            "properties": {
-                "aaa_org_id": {
-                    "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "business_config": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "credit_limit": "500000",
-                        "payment_terms": "net30"
-                    }
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "crop_focus": "wheat_soybean",
-                        "region": "central_india"
-                    }
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Rampur Farmers Producer Company"
-                },
-                "org_id": {
-                    "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "registration_no": {
-                    "type": "string",
-                    "example": "FPO/MP/2024/001234"
-                },
-                "request_id": {
-                    "type": "string",
-                    "example": "req_123e4567e89b12d3"
-                },
-                "request_type": {
-                    "type": "string",
-                    "example": "create_farmer"
-                },
-                "timestamp": {
-                    "type": "string",
-                    "example": "2024-01-15T10:30:00Z"
-                },
-                "user_id": {
-                    "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
-                }
-            }
+            "type": "object"
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.ReorderCropStagesRequest": {
             "type": "object",
@@ -6672,13 +6086,7 @@ const docTemplate = `{
             "properties": {
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -6717,13 +6125,7 @@ const docTemplate = `{
             "properties": {
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "operation_id": {
                     "type": "string",
@@ -6785,13 +6187,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -6824,6 +6220,10 @@ const docTemplate = `{
                 "start_date"
             ],
             "properties": {
+                "area_ha": {
+                    "type": "number",
+                    "example": 5.5
+                },
                 "crop_id": {
                     "type": "string",
                     "example": "crop_123e4567-e89b-12d3-a456-426614174000"
@@ -6834,13 +6234,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -6898,13 +6292,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -6938,19 +6326,17 @@ const docTemplate = `{
                     "type": "string",
                     "example": "IRRIGATION"
                 },
+                "crop_stage_id": {
+                    "type": "string",
+                    "example": "CSTG_FLOWERING"
+                },
                 "id": {
                     "type": "string",
                     "example": "activity_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "duration": "2hours",
-                        "water_source": "borewell"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -6979,109 +6365,7 @@ const docTemplate = `{
             }
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropRequest": {
-            "type": "object",
-            "required": [
-                "id"
-            ],
-            "properties": {
-                "category": {
-                    "type": "string",
-                    "enum": [
-                        "CEREALS",
-                        "PULSES",
-                        "VEGETABLES",
-                        "FRUITS",
-                        "OIL_SEEDS",
-                        "SPICES",
-                        "CASH_CROPS",
-                        "FODDER",
-                        "MEDICINAL",
-                        "OTHER"
-                    ],
-                    "example": "CEREALS"
-                },
-                "duration_days": {
-                    "type": "integer",
-                    "maximum": 365,
-                    "minimum": 1,
-                    "example": 125
-                },
-                "id": {
-                    "type": "string",
-                    "example": "crop_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "is_active": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 2,
-                    "example": "Wheat - HD2967"
-                },
-                "org_id": {
-                    "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "properties": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "fertilizer": "high",
-                        "irrigation": "required"
-                    }
-                },
-                "request_id": {
-                    "type": "string",
-                    "example": "req_123e4567e89b12d3"
-                },
-                "request_type": {
-                    "type": "string",
-                    "example": "create_farmer"
-                },
-                "scientific_name": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "example": "Triticum aestivum L."
-                },
-                "seasons": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "RABI"
-                    ]
-                },
-                "timestamp": {
-                    "type": "string",
-                    "example": "2024-01-15T10:30:00Z"
-                },
-                "unit": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 1,
-                    "example": "quintal"
-                },
-                "user_id": {
-                    "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
-                }
-            }
+            "type": "object"
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropStageRequest": {
             "type": "object",
@@ -7106,13 +6390,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -7145,92 +6423,7 @@ const docTemplate = `{
             }
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropVarietyRequest": {
-            "type": "object",
-            "required": [
-                "id"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Updated description with latest cultivation practices"
-                },
-                "duration_days": {
-                    "type": "integer",
-                    "maximum": 365,
-                    "minimum": 1,
-                    "example": 118
-                },
-                "id": {
-                    "type": "string",
-                    "example": "variety_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "is_active": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 2,
-                    "example": "HD-2967 (Improved)"
-                },
-                "org_id": {
-                    "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "properties": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "drought_tolerance": "medium",
-                        "market_demand": "high"
-                    }
-                },
-                "request_id": {
-                    "type": "string",
-                    "example": "req_123e4567e89b12d3"
-                },
-                "request_type": {
-                    "type": "string",
-                    "example": "create_farmer"
-                },
-                "timestamp": {
-                    "type": "string",
-                    "example": "2024-01-15T10:30:00Z"
-                },
-                "user_id": {
-                    "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "yield_by_age": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.YieldByAgeRequest"
-                    }
-                },
-                "yield_per_acre": {
-                    "type": "number",
-                    "minimum": 0,
-                    "example": 27
-                },
-                "yield_per_tree": {
-                    "type": "number",
-                    "minimum": 0,
-                    "example": 0
-                }
-            }
+            "type": "object"
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCycleRequest": {
             "type": "object",
@@ -7238,6 +6431,10 @@ const docTemplate = `{
                 "id"
             ],
             "properties": {
+                "area_ha": {
+                    "type": "number",
+                    "example": 6
+                },
                 "crop_id": {
                     "type": "string",
                     "example": "crop_123e4567-e89b-12d3-a456-426614174000"
@@ -7248,13 +6445,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -7337,13 +6528,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "certification": "organic",
-                        "last_survey": "2024-02-15"
-                    }
+                    "additionalProperties": true
                 },
                 "name": {
                     "type": "string",
@@ -7416,13 +6601,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -7462,13 +6641,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -7502,68 +6675,7 @@ const docTemplate = `{
             }
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.ValidateBulkDataRequest": {
-            "type": "object",
-            "required": [
-                "fpo_org_id",
-                "input_format"
-            ],
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "farmers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.FarmerBulkData"
-                    }
-                },
-                "fpo_org_id": {
-                    "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "input_format": {
-                    "type": "string",
-                    "enum": [
-                        "csv",
-                        "excel",
-                        "json"
-                    ],
-                    "example": "json"
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
-                },
-                "org_id": {
-                    "type": "string",
-                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
-                },
-                "request_id": {
-                    "type": "string",
-                    "example": "req_123e4567e89b12d3"
-                },
-                "request_type": {
-                    "type": "string",
-                    "example": "create_farmer"
-                },
-                "timestamp": {
-                    "type": "string",
-                    "example": "2024-01-15T10:30:00Z"
-                },
-                "user_id": {
-                    "type": "string",
-                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
-                }
-            }
+            "type": "object"
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.ValidateGeometryRequest": {
             "type": "object",
@@ -7578,13 +6690,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "source": "mobile_app",
-                        "version": "1.0.0"
-                    }
+                    "additionalProperties": true
                 },
                 "org_id": {
                     "type": "string",
@@ -7657,6 +6763,41 @@ const docTemplate = `{
                 "street_address": {
                     "type": "string",
                     "example": "Village Rampur, Post Khandwa"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.AreaAllocationSummaryData": {
+            "type": "object",
+            "properties": {
+                "active_cycles_count": {
+                    "type": "integer"
+                },
+                "allocated_area_ha": {
+                    "type": "number"
+                },
+                "allocations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CycleAllocation"
+                    }
+                },
+                "available_area_ha": {
+                    "type": "number"
+                },
+                "farm_id": {
+                    "type": "string"
+                },
+                "farm_name": {
+                    "type": "string"
+                },
+                "planned_cycles_count": {
+                    "type": "integer"
+                },
+                "total_area_ha": {
+                    "type": "number"
+                },
+                "utilization_percentage": {
+                    "type": "number"
                 }
             }
         },
@@ -7910,6 +7051,9 @@ const docTemplate = `{
         "github_com_Kisanlink_farmers-module_internal_entities_responses.CropCycleData": {
             "type": "object",
             "properties": {
+                "area_ha": {
+                    "type": "number"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -7933,9 +7077,7 @@ const docTemplate = `{
                 },
                 "outcome": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "additionalProperties": true
                 },
                 "season": {
                     "type": "string"
@@ -7980,9 +7122,7 @@ const docTemplate = `{
                 },
                 "properties": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "additionalProperties": true
                 },
                 "scientific_name": {
                     "type": "string"
@@ -8129,9 +7269,7 @@ const docTemplate = `{
                 },
                 "properties": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "additionalProperties": true
                 },
                 "updated_at": {
                     "type": "string"
@@ -8213,6 +7351,32 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.CycleAllocation": {
+            "type": "object",
+            "properties": {
+                "area_ha": {
+                    "type": "number"
+                },
+                "crop_cycle_id": {
+                    "type": "string"
+                },
+                "crop_name": {
+                    "type": "string"
+                },
+                "season": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "variety_name": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_Kisanlink_farmers-module_internal_entities_responses.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -8224,9 +7388,7 @@ const docTemplate = `{
                 },
                 "details": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "additionalProperties": true
                 },
                 "error": {
                     "type": "string"
@@ -8247,9 +7409,7 @@ const docTemplate = `{
                 },
                 "business_config": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "additionalProperties": true
                 },
                 "created_at": {
                     "type": "string"
@@ -8262,9 +7422,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "additionalProperties": true
                 },
                 "name": {
                     "type": "string"
@@ -8298,20 +7456,22 @@ const docTemplate = `{
                 "crop_cycle_id": {
                     "type": "string"
                 },
+                "crop_stage": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.CropStageData"
+                },
+                "crop_stage_id": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "additionalProperties": true
                 },
                 "output": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "additionalProperties": true
                 },
                 "planned_at": {
                     "type": "string"
@@ -8336,12 +7496,22 @@ const docTemplate = `{
                     "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 },
                 "area_ha": {
+                    "description": "User-provided or stored area",
                     "type": "number",
                     "example": 2.5
+                },
+                "area_ha_computed": {
+                    "description": "Computed from geometry using PostGIS",
+                    "type": "number",
+                    "example": 2.4876
                 },
                 "created_at": {
                     "type": "string",
                     "example": "2024-01-15T10:30:00Z"
+                },
+                "farmer_id": {
+                    "type": "string",
+                    "example": "FMRR0000000001"
                 },
                 "geometry": {
                     "type": "string",
@@ -8353,13 +7523,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "irrigation": "drip",
-                        "soil_type": "loamy"
-                    }
+                    "additionalProperties": true
                 },
                 "name": {
                     "type": "string",
@@ -8409,6 +7573,39 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerLinkData": {
+            "type": "object",
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string",
+                    "example": "ORGN00000001"
+                },
+                "aaa_user_id": {
+                    "type": "string",
+                    "example": "USER00000001"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "FMLK0000000001"
+                },
+                "kisan_sathi_user_id": {
+                    "type": "string",
+                    "example": "USER00000002"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "ACTIVE"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2024-01-20T15:45:00Z"
+                }
+            }
+        },
         "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerLinkageData": {
             "type": "object",
             "properties": {
@@ -8455,6 +7652,10 @@ const docTemplate = `{
                 "address": {
                     "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.AddressData"
                 },
+                "area_type": {
+                    "type": "string",
+                    "example": "Rural"
+                },
                 "created_at": {
                     "type": "string",
                     "example": "2024-01-15T10:30:00Z"
@@ -8477,6 +7678,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Ramesh"
                 },
+                "fpo_linkages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerLinkData"
+                    }
+                },
                 "gender": {
                     "type": "string",
                     "example": "male"
@@ -8496,9 +7703,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "additionalProperties": true
                 },
                 "phone_number": {
                     "type": "string",
@@ -8506,9 +7711,15 @@ const docTemplate = `{
                 },
                 "preferences": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "additionalProperties": true
+                },
+                "social_category": {
+                    "type": "string",
+                    "example": "OBC"
+                },
+                "total_acreage_ha": {
+                    "type": "number",
+                    "example": 15.75
                 },
                 "updated_at": {
                     "type": "string",
@@ -8588,9 +7799,7 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "additionalProperties": true
                 },
                 "phone_number": {
                     "type": "string"
@@ -8724,6 +7933,26 @@ const docTemplate = `{
                 },
                 "timestamp": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAreaAllocationSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.AreaAllocationSummaryData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Area allocation summary retrieved successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

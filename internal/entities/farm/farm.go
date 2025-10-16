@@ -65,7 +65,8 @@ type Farm struct {
 	Name                      *string       `json:"name" gorm:"type:varchar(255)"`
 	OwnershipType             OwnershipType `json:"ownership_type" gorm:"type:varchar(20);default:'OWN'"`
 	Geometry                  string        `json:"geometry" gorm:"type:geometry(POLYGON,4326)"`
-	AreaHa                    float64       `json:"area_ha" gorm:"column:area_ha_computed;type:numeric(12,4)"`
+	AreaHa                    float64       `json:"area_ha" gorm:"column:area_ha;type:numeric(12,4)"`
+	AreaHaComputed            float64       `json:"area_ha_computed" gorm:"column:area_ha_computed;type:numeric(12,4);->"`
 	SoilTypeID                *string       `json:"soil_type_id" gorm:"type:varchar(255);index"`
 	PrimaryIrrigationSourceID *string       `json:"primary_irrigation_source_id" gorm:"type:varchar(255);index"`
 	BoreWellCount             int           `json:"bore_well_count" gorm:"default:0"`

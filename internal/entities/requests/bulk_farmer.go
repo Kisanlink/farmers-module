@@ -27,7 +27,7 @@ type BulkProcessingOptions struct {
 	KisanSathiUserID    *string                `json:"kisan_sathi_user_id" example:"ks_123e4567-e89b-12d3-a456-426614174001"`      // Specific KisanSathi to assign
 	SendCredentials     bool                   `json:"send_credentials" example:"true"`                                            // Send login credentials to farmers
 	CredentialMethod    string                 `json:"credential_method" example:"sms"`                                            // sms, email, both
-	Metadata            map[string]interface{} `json:"metadata" example:"batch_name:january_2024,region:central"`                  // Additional metadata
+	Metadata            map[string]interface{} `json:"metadata"`                                                                   // Additional metadata
 }
 
 // FarmerBulkData represents individual farmer data for bulk processing

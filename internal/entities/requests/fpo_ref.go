@@ -17,7 +17,7 @@ type CreateFPORequest struct {
 	Description    string                 `json:"description" example:"A farmer producer organization serving 500+ farmers in Rampur region"`
 	CEOUser        CEOUserData            `json:"ceo_user" validate:"required"`
 	BusinessConfig map[string]interface{} `json:"business_config" example:"max_farmers:1000,procurement_enabled:true"`
-	Metadata       map[string]interface{} `json:"metadata,omitempty" example:"district:Indore,state:MP,established:2024"`
+	Metadata       map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // NewCreateFPORequest creates a new create FPO request
@@ -36,7 +36,7 @@ type RegisterFPORefRequest struct {
 	Name           string                 `json:"name" validate:"required" example:"Rampur Farmers Producer Company"`
 	RegistrationNo string                 `json:"registration_no" example:"FPO/MP/2024/001234"`
 	BusinessConfig map[string]interface{} `json:"business_config" example:"credit_limit:500000,payment_terms:net30"`
-	Metadata       map[string]interface{} `json:"metadata,omitempty" example:"region:central_india,crop_focus:wheat_soybean"`
+	Metadata       map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // NewRegisterFPORefRequest creates a new register FPO reference request
