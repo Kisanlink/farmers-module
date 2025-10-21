@@ -27,9 +27,11 @@ const (
 type Season string
 
 const (
-	SeasonRabi   Season = "RABI"
-	SeasonKharif Season = "KHARIF"
-	SeasonZaid   Season = "ZAID"
+	SeasonRabi      Season = "RABI"
+	SeasonKharif    Season = "KHARIF"
+	SeasonZaid      Season = "ZAID"
+	SeasonPerennial Season = "PERENNIAL"
+	SeasonOther     Season = "OTHER"
 )
 
 // Crop represents a crop master data entity
@@ -106,9 +108,11 @@ func (c *Crop) Validate() error {
 
 	// Validate seasons
 	validSeasons := map[string]bool{
-		string(SeasonRabi):   true,
-		string(SeasonKharif): true,
-		string(SeasonZaid):   true,
+		string(SeasonRabi):      true,
+		string(SeasonKharif):    true,
+		string(SeasonZaid):      true,
+		string(SeasonPerennial): true,
+		string(SeasonOther):     true,
 	}
 	for _, season := range c.Seasons {
 		if !validSeasons[season] {
@@ -146,6 +150,8 @@ func GetValidSeasons() []Season {
 		SeasonRabi,
 		SeasonKharif,
 		SeasonZaid,
+		SeasonPerennial,
+		SeasonOther,
 	}
 }
 
@@ -169,9 +175,11 @@ func IsValidCategory(category string) bool {
 // IsValidSeason checks if a season is valid
 func IsValidSeason(season string) bool {
 	validSeasons := map[string]bool{
-		string(SeasonRabi):   true,
-		string(SeasonKharif): true,
-		string(SeasonZaid):   true,
+		string(SeasonRabi):      true,
+		string(SeasonKharif):    true,
+		string(SeasonZaid):      true,
+		string(SeasonPerennial): true,
+		string(SeasonOther):     true,
 	}
 	return validSeasons[season]
 }

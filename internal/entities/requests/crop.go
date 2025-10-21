@@ -7,7 +7,7 @@ type CreateCropRequest struct {
 	ScientificName *string                `json:"scientific_name,omitempty" validate:"omitempty,max=255" example:"Triticum aestivum"`
 	Category       string                 `json:"category" validate:"required,oneof=CEREALS PULSES VEGETABLES FRUITS OIL_SEEDS SPICES CASH_CROPS FODDER MEDICINAL OTHER" example:"CEREALS"`
 	DurationDays   *int                   `json:"duration_days,omitempty" validate:"omitempty,min=1,max=365" example:"120"`
-	Seasons        []string               `json:"seasons" validate:"required,min=1,dive,oneof=RABI KHARIF ZAID" example:"RABI"`
+	Seasons        []string               `json:"seasons" validate:"required,min=1,dive,oneof=RABI KHARIF ZAID PERENNIAL OTHER" example:"RABI"`
 	Unit           string                 `json:"unit" validate:"required,min=1,max=50" example:"kg"`
 	Properties     map[string]interface{} `json:"properties,omitempty" example:"water_requirement:medium,climate:temperate"`
 }
@@ -20,7 +20,7 @@ type UpdateCropRequest struct {
 	ScientificName *string                `json:"scientific_name,omitempty" validate:"omitempty,max=255" example:"Triticum aestivum L."`
 	Category       *string                `json:"category,omitempty" validate:"omitempty,oneof=CEREALS PULSES VEGETABLES FRUITS OIL_SEEDS SPICES CASH_CROPS FODDER MEDICINAL OTHER" example:"CEREALS"`
 	DurationDays   *int                   `json:"duration_days,omitempty" validate:"omitempty,min=1,max=365" example:"125"`
-	Seasons        []string               `json:"seasons,omitempty" validate:"omitempty,min=1,dive,oneof=RABI KHARIF ZAID" example:"RABI"`
+	Seasons        []string               `json:"seasons,omitempty" validate:"omitempty,min=1,dive,oneof=RABI KHARIF ZAID PERENNIAL OTHER" example:"RABI"`
 	Unit           *string                `json:"unit,omitempty" validate:"omitempty,min=1,max=50" example:"quintal"`
 	Properties     map[string]interface{} `json:"properties,omitempty" example:"irrigation:required,fertilizer:high"`
 	IsActive       *bool                  `json:"is_active,omitempty" example:"true"`
@@ -42,10 +42,10 @@ type GetCropRequest struct {
 type ListCropsRequest struct {
 	FilterRequest
 	Category string   `json:"category,omitempty" validate:"omitempty,oneof=CEREALS PULSES VEGETABLES FRUITS OIL_SEEDS SPICES CASH_CROPS FODDER MEDICINAL OTHER" example:"CEREALS"`
-	Season   string   `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID" example:"RABI"`
+	Season   string   `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID PERENNIAL OTHER" example:"RABI"`
 	IsActive *bool    `json:"is_active,omitempty" example:"true"`
 	Search   string   `json:"search,omitempty" example:"wheat"` // Search in name and scientific_name
-	Seasons  []string `json:"seasons,omitempty" validate:"omitempty,dive,oneof=RABI KHARIF ZAID" example:"RABI,KHARIF"`
+	Seasons  []string `json:"seasons,omitempty" validate:"omitempty,dive,oneof=RABI KHARIF ZAID PERENNIAL OTHER" example:"RABI,KHARIF"`
 }
 
 // YieldByAgeRequest represents yield information for a specific tree age range
@@ -106,7 +106,7 @@ type ListCropVarietiesRequest struct {
 type GetCropLookupRequest struct {
 	BaseRequest
 	Category string `json:"category,omitempty" validate:"omitempty,oneof=CEREALS PULSES VEGETABLES FRUITS OIL_SEEDS SPICES CASH_CROPS FODDER MEDICINAL OTHER" example:"CEREALS"`
-	Season   string `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID" example:"RABI"`
+	Season   string `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID PERENNIAL OTHER" example:"RABI"`
 }
 
 // GetVarietyLookupRequest represents a request to get variety lookup data for a specific crop

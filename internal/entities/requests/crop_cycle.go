@@ -10,7 +10,7 @@ type StartCycleRequest struct {
 	BaseRequest
 	FarmID    string    `json:"farm_id" validate:"required" example:"farm_123e4567-e89b-12d3-a456-426614174000"`
 	AreaHa    *float64  `json:"area_ha" validate:"omitempty,gt=0" example:"5.5"`
-	Season    string    `json:"season" validate:"required,oneof=RABI KHARIF ZAID" example:"RABI"`
+	Season    string    `json:"season" validate:"required,oneof=RABI KHARIF ZAID PERENNIAL OTHER" example:"RABI"`
 	StartDate time.Time `json:"start_date" validate:"required" example:"2024-11-01T00:00:00Z"`
 	CropID    string    `json:"crop_id" validate:"required" example:"crop_123e4567-e89b-12d3-a456-426614174000"`
 	VarietyID *string   `json:"variety_id,omitempty" example:"variety_123e4567-e89b-12d3-a456-426614174000"`
@@ -21,7 +21,7 @@ type UpdateCycleRequest struct {
 	BaseRequest
 	ID        string     `json:"id" validate:"required" example:"cycle_123e4567-e89b-12d3-a456-426614174000"`
 	AreaHa    *float64   `json:"area_ha,omitempty" validate:"omitempty,gt=0" example:"6.0"`
-	Season    *string    `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID" example:"RABI"`
+	Season    *string    `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID PERENNIAL OTHER" example:"RABI"`
 	StartDate *time.Time `json:"start_date,omitempty" example:"2024-11-05T00:00:00Z"`
 	CropID    *string    `json:"crop_id,omitempty" example:"crop_123e4567-e89b-12d3-a456-426614174000"`
 	VarietyID *string    `json:"variety_id,omitempty" example:"variety_123e4567-e89b-12d3-a456-426614174000"`
@@ -41,7 +41,7 @@ type ListCyclesRequest struct {
 	FilterRequest
 	FarmID   string   `json:"farm_id,omitempty" example:"farm_123e4567-e89b-12d3-a456-426614174000"`
 	FarmerID string   `json:"farmer_id,omitempty" example:"farmer_123e4567-e89b-12d3-a456-426614174000"`
-	Season   string   `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID" example:"RABI"`
+	Season   string   `json:"season,omitempty" validate:"omitempty,oneof=RABI KHARIF ZAID PERENNIAL OTHER" example:"RABI"`
 	Status   string   `json:"status,omitempty" validate:"omitempty,oneof=PLANNED ACTIVE COMPLETED CANCELLED" example:"ACTIVE"`
 	MinArea  *float64 `json:"min_area,omitempty" validate:"omitempty,gt=0" example:"1.0"`
 	MaxArea  *float64 `json:"max_area,omitempty" validate:"omitempty,gt=0" example:"10.0"`
