@@ -133,7 +133,7 @@ func (h *ReportingHandlers) OrgDashboardCounters(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param farmer_id path string true "Farmer ID"
-// @Param season query string false "Season filter" Enums(RABI, KHARIF, ZAID)
+// @Param season query string false "Season filter" Enums(RABI, KHARIF, ZAID, PERENNIAL, OTHER)
 // @Param start_date query string false "Start date filter (RFC3339 format)"
 // @Param end_date query string false "End date filter (RFC3339 format)"
 // @Param format query string false "Export format" Enums(json, csv) default(json)
@@ -212,7 +212,7 @@ func (h *ReportingHandlers) ExportFarmerPortfolioByID(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param org_id path string true "Organization ID"
-// @Param season query string false "Season filter" Enums(RABI, KHARIF, ZAID)
+// @Param season query string false "Season filter" Enums(RABI, KHARIF, ZAID, PERENNIAL, OTHER)
 // @Param start_date query string false "Start date filter (RFC3339 format)"
 // @Param end_date query string false "End date filter (RFC3339 format)"
 // @Success 200 {object} responses.SwaggerOrgDashboardCountersResponse
