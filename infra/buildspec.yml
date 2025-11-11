@@ -1,0 +1,103 @@
+version: 0.2
+
+# AWS CodeBuild specification for Farmers Module
+# Builds Docker image, pushes to ECR, and generates ECS task definition
+
+env:
+  variables:
+    GO_VERSION: "1.24.4"
+    SERVICE_NAME: "farmers-module"
+  parameter-store:
+    # Optional: Store sensitive build-time variables in Parameter Store
+    # DOCKER_HUB_USERNAME: /codebuild/dockerhub/username
+    # DOCKER_HUB_PASSWORD: /codebuild/dockerhub/password
+
+phases:
+  pre_build:
+    commands:
+      - echo "Pre-build phase started on `date`"
+      - echo "Logging in to Amazon ECR..."
+      - aws --version
+      - REPOSITORY_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+      - echo "Repository URI = ${REPOSITORY_URI}"
+      - echo "Image tag = ${IMAGE_TAG}"
+      - echo "Commit hash = ${COMMIT_HASH}"
+
+  build:
+    commands:
+      - echo "Build phase started on `date`"
+      - echo "Building Docker image..."
+
+      # Build multi-stage Docker image with build args
+      - |
+        docker build \
+          --build-arg GO_VERSION=${GO_VERSION} \
+          --build-arg VERSION=${IMAGE_TAG} \
+          --build-arg GIT_COMMIT=${COMMIT_HASH} \
+          --build-arg BUILD_DATE=${BUILD_DATE} \
+          -t ${REPOSITORY_URI}:latest \
+          -t ${REPOSITORY_URI}:${IMAGE_TAG} \
+          -f deployment/docker/Dockerfile \
+          .
+
+      - echo "Docker image built successfully"
+      - docker images
+
+      # Run security scan (optional, can be disabled for faster builds)
+      - echo "Running basic image inspection..."
+      - docker inspect ${REPOSITORY_URI}:${IMAGE_TAG}
+
+      # Optional: Run Trivy security scan
+      # - echo "Running Trivy security scan..."
+      # - docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL ${REPOSITORY_URI}:${IMAGE_TAG}
+
+  post_build:
+    commands:
+      - echo "Post-build phase started on `date`"
+      - echo "Pushing Docker image to ECR..."
+
+      # Push both tags (latest and commit hash)
+      - docker push ${REPOSITORY_URI}:latest
+      - docker push ${REPOSITORY_URI}:${IMAGE_TAG}
+
+      - echo "Docker images pushed successfully"
+
+      # Generate imagedefinitions.json for ECS deployment (non-production)
+      - |
+        printf '[{"name":"%s","imageUri":"%s"}]' \
+          ${SERVICE_NAME} \
+          ${REPOSITORY_URI}:${IMAGE_TAG} \
+          > imagedefinitions.json
+
+      - echo "Generated imagedefinitions.json:"
+      - cat imagedefinitions.json
+
+      # Update taskdef.json with new image URI for CodeDeploy (production)
+      - |
+        if [ -f infra/taskdef.json ]; then
+          sed -i "s|<AWS_ACCOUNT_ID>|${AWS_ACCOUNT_ID}|g" infra/taskdef.json
+          sed -i "s|<AWS_REGION>|${AWS_DEFAULT_REGION}|g" infra/taskdef.json
+          sed -i "s|farmers-module-production:latest|${IMAGE_REPO_NAME}:${IMAGE_TAG}|g" infra/taskdef.json
+          echo "Updated infra/taskdef.json with image URI: ${REPOSITORY_URI}:${IMAGE_TAG}"
+        fi
+
+      # Optional: Update ECS task definition (if using direct ECS deployment instead of CodeDeploy)
+      # This is handled by CodePipeline Deploy stage in our setup
+
+      - echo "Build completed successfully on `date`"
+
+artifacts:
+  files:
+    - imagedefinitions.json
+    - infra/appspec.yaml
+    - infra/taskdef.json
+  discard-paths: no
+
+cache:
+  paths:
+    - '/root/.cache/go-build/**/*'
+    - '/go/pkg/mod/**/*'

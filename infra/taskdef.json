@@ -1,0 +1,136 @@
+{
+  "family": "farmers-module-production",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/farmers-module-production-ecs-task-execution-role",
+  "taskRoleArn": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/farmers-module-production-ecs-task-role",
+  "containerDefinitions": [
+    {
+      "name": "farmers-module",
+      "image": "<AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/farmers-module-production:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "hostPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "SERVICE_PORT",
+          "value": "8000"
+        },
+        {
+          "name": "SERVICE_NAME",
+          "value": "farmers-module"
+        },
+        {
+          "name": "ENVIRONMENT",
+          "value": "production"
+        },
+        {
+          "name": "DB_POSTGRES_HOST",
+          "value": "<RDS_ENDPOINT>"
+        },
+        {
+          "name": "DB_POSTGRES_PORT",
+          "value": "5432"
+        },
+        {
+          "name": "DB_POSTGRES_USER",
+          "value": "farmers_service"
+        },
+        {
+          "name": "DB_POSTGRES_DBNAME",
+          "value": "farmers_production"
+        },
+        {
+          "name": "DB_POSTGRES_SSLMODE",
+          "value": "require"
+        },
+        {
+          "name": "DB_POSTGRES_MAX_CONNS",
+          "value": "50"
+        },
+        {
+          "name": "AAA_GRPC_ADDR",
+          "value": "<AAA_SERVICE_ENDPOINT>"
+        },
+        {
+          "name": "AAA_ENABLED",
+          "value": "true"
+        },
+        {
+          "name": "AAA_RETRY_ATTEMPTS",
+          "value": "3"
+        },
+        {
+          "name": "AAA_RETRY_BACKOFF",
+          "value": "100ms"
+        },
+        {
+          "name": "AAA_REQUEST_TIMEOUT",
+          "value": "5s"
+        },
+        {
+          "name": "LOG_LEVEL",
+          "value": "warn"
+        },
+        {
+          "name": "ENABLE_TRACING",
+          "value": "true"
+        },
+        {
+          "name": "ENABLE_METRICS",
+          "value": "true"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DB_POSTGRES_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:farmers-module/production/db-password"
+        },
+        {
+          "name": "AAA_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:farmers-module/production/aaa-api-key"
+        },
+        {
+          "name": "JWT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:farmers-module/production/jwt-secret"
+        },
+        {
+          "name": "SECRET_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:farmers-module/production/secret-key"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/farmers-module-production",
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": null,
+      "stopTimeout": 30,
+      "startTimeout": 120
+    }
+  ],
+  "tags": [
+    {
+      "key": "Environment",
+      "value": "production"
+    },
+    {
+      "key": "Service",
+      "value": "farmers-module"
+    },
+    {
+      "key": "ManagedBy",
+      "value": "CloudFormation"
+    }
+  ]
+}

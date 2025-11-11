@@ -39,6 +39,7 @@ repos:
         name: Check for merge conflicts
       - id: check-yaml
         name: Check YAML
+        exclude: ^infra/cloudformation\.yaml$  # CloudFormation uses AWS intrinsic functions
       - id: end-of-file-fixer
         name: Fix end of files
       - id: trailing-whitespace
@@ -53,6 +54,7 @@ repos:
       - id: hadolint-docker
         name: Dockerfile Lint
         description: Run hadolint on Dockerfiles
+        args: [--ignore, DL3018]  # Allow unpinned apk packages for flexibility
 
   # Commit message format
   - repo: https://github.com/compilerla/conventional-pre-commit

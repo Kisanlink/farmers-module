@@ -1,0 +1,122 @@
+[
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "dev"
+  },
+  {
+    "ParameterKey": "ServiceName",
+    "ParameterValue": "farmers-module"
+  },
+  {
+    "ParameterKey": "VpcCIDR",
+    "ParameterValue": "10.0.0.0/16"
+  },
+  {
+    "ParameterKey": "PublicSubnet1CIDR",
+    "ParameterValue": "10.0.1.0/24"
+  },
+  {
+    "ParameterKey": "PublicSubnet2CIDR",
+    "ParameterValue": "10.0.2.0/24"
+  },
+  {
+    "ParameterKey": "PrivateSubnet1CIDR",
+    "ParameterValue": "10.0.11.0/24"
+  },
+  {
+    "ParameterKey": "PrivateSubnet2CIDR",
+    "ParameterValue": "10.0.12.0/24"
+  },
+  {
+    "ParameterKey": "DatabaseSubnet1CIDR",
+    "ParameterValue": "10.0.21.0/24"
+  },
+  {
+    "ParameterKey": "DatabaseSubnet2CIDR",
+    "ParameterValue": "10.0.22.0/24"
+  },
+  {
+    "ParameterKey": "ContainerPort",
+    "ParameterValue": "8000"
+  },
+  {
+    "ParameterKey": "ContainerCpu",
+    "ParameterValue": "256"
+  },
+  {
+    "ParameterKey": "ContainerMemory",
+    "ParameterValue": "512"
+  },
+  {
+    "ParameterKey": "DesiredCount",
+    "ParameterValue": "1"
+  },
+  {
+    "ParameterKey": "MinTasks",
+    "ParameterValue": "1"
+  },
+  {
+    "ParameterKey": "MaxTasks",
+    "ParameterValue": "2"
+  },
+  {
+    "ParameterKey": "DBInstanceClass",
+    "ParameterValue": "db.t4g.small"
+  },
+  {
+    "ParameterKey": "DBAllocatedStorage",
+    "ParameterValue": "20"
+  },
+  {
+    "ParameterKey": "DBMaxAllocatedStorage",
+    "ParameterValue": "50"
+  },
+  {
+    "ParameterKey": "DBName",
+    "ParameterValue": "farmers_dev"
+  },
+  {
+    "ParameterKey": "DBUsername",
+    "ParameterValue": "farmers_service"
+  },
+  {
+    "ParameterKey": "DBPassword",
+    "ParameterValue": "REPLACE_WITH_SECRET"
+  },
+  {
+    "ParameterKey": "AAAServiceEndpoint",
+    "ParameterValue": "aaa-service-dev.internal:50052"
+  },
+  {
+    "ParameterKey": "AAAApiKey",
+    "ParameterValue": "REPLACE_WITH_SECRET"
+  },
+  {
+    "ParameterKey": "JWTSecret",
+    "ParameterValue": "REPLACE_WITH_SECRET"
+  },
+  {
+    "ParameterKey": "SecretKey",
+    "ParameterValue": "REPLACE_WITH_SECRET"
+  },
+  {
+    "ParameterKey": "CertificateArn",
+    "ParameterValue": "arn:aws:acm:us-east-1:ACCOUNT_ID:certificate/CERTIFICATE_ID"
+  },
+  {
+    "ParameterKey": "GitHubOwner",
+    "ParameterValue": "Kisanlink"
+  },
+  {
+    "ParameterKey": "GitHubRepo",
+    "ParameterValue": "farmers-module"
+  },
+  {
+    "ParameterKey": "GitHubBranch",
+    "ParameterValue": "develop"
+  },
+  {
+    "ParameterKey": "GitHubToken",
+    "ParameterValue": "REPLACE_WITH_SECRET"
+  }
+]

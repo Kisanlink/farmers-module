@@ -1,0 +1,36 @@
+version: 0.0
+
+# AWS CodeDeploy AppSpec for ECS Blue/Green Deployment
+# Used for production deployments only (dev/beta/staging use ECS rolling)
+
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: <TASK_DEFINITION>
+        LoadBalancerInfo:
+          ContainerName: "farmers-module"
+          ContainerPort: 8000
+        PlatformVersion: "LATEST"
+
+Hooks:
+  # Pre-traffic hook: Optional validation before traffic shift
+  # Uncomment and create Lambda function if you need custom validation
+  # - BeforeAllowTraffic: "FarmersModulePreTrafficValidation"
+
+  # Post-traffic hook: Optional validation after traffic shift
+  # Uncomment and create Lambda function if you need custom validation
+  # - AfterAllowTraffic: "FarmersModulePostTrafficValidation"
+
+# Note: This appspec.yaml is used with CodeDeploy for Blue/Green deployments.
+# - Production: Uses CodeDeploy with this appspec.yaml
+# - Dev/Beta/Staging: Uses ECS Rolling deployment with imagedefinitions.json
+#
+# The TaskDefinition placeholder will be replaced by CodePipeline with the actual
+# task definition ARN from taskdef.json during deployment.
+#
+# Hook functions can be added for:
+# - Health check validation
+# - Database migration verification
+# - Integration testing
+# - Automated rollback on failure

@@ -29,11 +29,17 @@ RUN go mod download && go mod verify
 # Copy source code
 COPY . .
 
-# Generate Swagger documentation
-RUN if [ -f /usr/local/go/bin/swag ] || command -v swag > /dev/null 2>&1; then \
-        swag init -g cmd/farmers-service/main.go || echo "Swagger generation skipped"; \
+# Generate Swagger documentation (or create stub if swag not available)
+# Install swag if needed
+RUN go install github.com/swaggo/swag/cmd/swag@v1.16.4 || true
+
+# Generate swagger docs or create stub to satisfy import
+RUN if command -v swag > /dev/null 2>&1; then \
+        swag init -g cmd/farmers-service/main.go -o ./docs || \
+        (mkdir -p ./docs && printf "package docs\n" > ./docs/docs.go); \
     else \
-        echo "Swagger not installed, skipping documentation generation"; \
+        echo "Creating stub docs package"; \
+        mkdir -p ./docs && printf "package docs\n" > ./docs/docs.go; \
     fi
 
 # Build the application
@@ -60,6 +66,11 @@ RUN ls -lh /build/farmers-server && \
 # ============================================================================
 FROM alpine:3.20 AS runtime
 
+# Re-declare ARGs for label expansion in runtime stage
+ARG VERSION=dev
+ARG GIT_COMMIT=unknown
+ARG BUILD_DATE=unknown
+
 # Install runtime dependencies
 # - ca-certificates: For HTTPS connections (database, external APIs)
 # - tzdata: Timezone data for accurate timestamps
@@ -67,10 +78,9 @@ FROM alpine:3.20 AS runtime
 RUN apk add --no-cache ca-certificates tzdata curl
 
 # Create non-root user for security
-# - nobody: Use the standard nobody user (UID 65534)
-# - nogroup: Use the standard nogroup group (GID 65534)
-RUN addgroup -g 65534 -S appgroup && \
-    adduser -u 65534 -S appuser -G appgroup
+# Use UID/GID 10001 to avoid conflicts with Alpine's existing users
+RUN addgroup -g 10001 -S appgroup && \
+    adduser -u 10001 -S appuser -G appgroup
 
 # Set working directory
 WORKDIR /app
