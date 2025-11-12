@@ -2,6 +2,7 @@ package aaa
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -118,6 +120,40 @@ type CreateUserGroupResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// shouldUseTLS determines if TLS should be used based on the endpoint
+func shouldUseTLS(endpoint string) bool {
+	// Check for explicit TLS indicators
+	if strings.HasPrefix(endpoint, "https://") {
+		return true
+	}
+
+	// Check for port 443 (standard HTTPS port)
+	if strings.HasSuffix(endpoint, ":443") {
+		return true
+	}
+
+	// Check for localhost or 127.0.0.1 (typically insecure)
+	if strings.HasPrefix(endpoint, "localhost") || strings.HasPrefix(endpoint, "127.0.0.1") {
+		return false
+	}
+
+	// Check for common non-TLS ports
+	nonTLSPorts := []string{":50051", ":8080", ":9090"}
+	for _, port := range nonTLSPorts {
+		if strings.HasSuffix(endpoint, port) {
+			return false
+		}
+	}
+
+	// For production domains without explicit port, assume TLS
+	if !strings.Contains(endpoint, ":") {
+		return true
+	}
+
+	// Default to TLS for safety (for domains with non-standard ports)
+	return true
+}
+
 // apiKeyInterceptor creates a unary interceptor that adds x-api-key to all requests
 func apiKeyInterceptor(apiKey string) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
@@ -149,9 +185,26 @@ func apiKeyInterceptor(apiKey string) grpc.UnaryClientInterceptor {
 func NewClient(cfg *config.Config) (*Client, error) {
 	log.Printf("AAA Client: Connecting to gRPC endpoint: %s", cfg.AAA.GRPCEndpoint)
 
-	// Create dial options with interceptor for x-api-key
+	// Determine transport credentials based on endpoint
+	var transportCreds credentials.TransportCredentials
+	useTLS := shouldUseTLS(cfg.AAA.GRPCEndpoint)
+
+	if useTLS {
+		// Use TLS credentials for secure endpoints
+		tlsConfig := &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		}
+		transportCreds = credentials.NewTLS(tlsConfig)
+		log.Printf("AAA Client: Using TLS transport credentials for endpoint: %s", cfg.AAA.GRPCEndpoint)
+	} else {
+		// Use insecure credentials for local/development endpoints
+		transportCreds = insecure.NewCredentials()
+		log.Printf("AAA Client: Using insecure transport credentials for endpoint: %s", cfg.AAA.GRPCEndpoint)
+	}
+
+	// Create dial options with transport credentials
 	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(transportCreds),
 	}
 
 	// Add unary interceptor for x-api-key if configured

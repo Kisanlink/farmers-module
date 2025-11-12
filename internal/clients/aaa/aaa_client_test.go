@@ -971,3 +971,70 @@ func TestGetUserByMobile_Success(t *testing.T) {
 
 	mockUserClient.AssertExpectations(t)
 }
+
+// Test TLS detection logic
+func TestShouldUseTLS_Port443(t *testing.T) {
+	tests := []struct {
+		name     string
+		endpoint string
+		expected bool
+	}{
+		{
+			name:     "Port 443 should use TLS",
+			endpoint: "beta.aaa.kisanlink.in:443",
+			expected: true,
+		},
+		{
+			name:     "HTTPS scheme should use TLS",
+			endpoint: "https://aaa.example.com",
+			expected: true,
+		},
+		{
+			name:     "Localhost with port 50051 should not use TLS",
+			endpoint: "localhost:50051",
+			expected: false,
+		},
+		{
+			name:     "127.0.0.1 with port 8080 should not use TLS",
+			endpoint: "127.0.0.1:8080",
+			expected: false,
+		},
+		{
+			name:     "Port 50051 should not use TLS",
+			endpoint: "internal-service:50051",
+			expected: false,
+		},
+		{
+			name:     "Port 8080 should not use TLS",
+			endpoint: "api-gateway:8080",
+			expected: false,
+		},
+		{
+			name:     "Port 9090 should not use TLS",
+			endpoint: "metrics-server:9090",
+			expected: false,
+		},
+		{
+			name:     "Production domain without port should use TLS",
+			endpoint: "api.production.com",
+			expected: true,
+		},
+		{
+			name:     "localhost without port should not use TLS",
+			endpoint: "localhost",
+			expected: false,
+		},
+		{
+			name:     "Domain with non-standard port should default to TLS",
+			endpoint: "api.example.com:5000",
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := shouldUseTLS(tt.endpoint)
+			assert.Equal(t, tt.expected, result, "shouldUseTLS(%s) = %v, want %v", tt.endpoint, result, tt.expected)
+		})
+	}
+}
