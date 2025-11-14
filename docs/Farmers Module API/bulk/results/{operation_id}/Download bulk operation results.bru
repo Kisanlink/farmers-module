@@ -1,0 +1,20 @@
+meta {
+  name: Download bulk operation results
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/bulk/results/:operation_id
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~format:
+  ~include_all:
+}
+
+params:path {
+  operation_id:
+}

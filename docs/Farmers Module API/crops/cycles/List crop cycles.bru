@@ -1,0 +1,19 @@
+meta {
+  name: List crop cycles
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/crops/cycles
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~page:
+  ~page_size:
+  ~farm_id:
+  ~status:
+  ~season:
+}

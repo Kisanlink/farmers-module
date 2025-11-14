@@ -1,0 +1,15 @@
+meta {
+  name: Get farm by ID
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/farms/:farm_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  farm_id:
+}

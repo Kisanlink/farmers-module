@@ -1,0 +1,15 @@
+meta {
+  name: Delete farmer by farmer ID
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/identity/farmers/id/:farmer_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  farmer_id:
+}

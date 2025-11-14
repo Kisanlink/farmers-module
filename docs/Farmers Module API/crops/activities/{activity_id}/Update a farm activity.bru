@@ -1,0 +1,15 @@
+meta {
+  name: Update a farm activity
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/crops/activities/:activity_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  activity_id:
+}

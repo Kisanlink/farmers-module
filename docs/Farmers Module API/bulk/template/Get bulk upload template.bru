@@ -1,0 +1,16 @@
+meta {
+  name: Get bulk upload template
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/bulk/template
+  body: none
+  auth: inherit
+}
+
+params:query {
+  format:
+  ~include_sample:
+}

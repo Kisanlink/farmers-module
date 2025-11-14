@@ -1,0 +1,15 @@
+meta {
+  name: Get farmer by user ID only
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/identity/farmers/user/:aaa_user_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  aaa_user_id:
+}

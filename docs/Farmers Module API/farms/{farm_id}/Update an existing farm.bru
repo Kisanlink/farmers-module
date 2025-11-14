@@ -1,0 +1,15 @@
+meta {
+  name: Update an existing farm
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/farms/:farm_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  farm_id:
+}

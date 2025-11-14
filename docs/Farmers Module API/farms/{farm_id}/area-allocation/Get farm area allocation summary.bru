@@ -1,0 +1,15 @@
+meta {
+  name: Get farm area allocation summary
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/farms/:farm_id/area-allocation
+  body: none
+  auth: inherit
+}
+
+params:path {
+  farm_id:
+}

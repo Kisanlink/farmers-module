@@ -1,0 +1,15 @@
+meta {
+  name: Get all stages for a crop
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/crops/:id/stages
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id:
+}

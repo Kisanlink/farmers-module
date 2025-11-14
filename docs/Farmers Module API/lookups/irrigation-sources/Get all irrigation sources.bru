@@ -1,0 +1,11 @@
+meta {
+  name: Get all irrigation sources
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/lookups/irrigation-sources
+  body: none
+  auth: inherit
+}

@@ -4,12 +4,14 @@ import (
 	"context"
 
 	fpoEntity "github.com/Kisanlink/farmers-module/internal/entities/fpo"
+	fpoConfigEntity "github.com/Kisanlink/farmers-module/internal/entities/fpo_config"
 	"github.com/Kisanlink/farmers-module/internal/repo/bulk"
 	"github.com/Kisanlink/farmers-module/internal/repo/crop"
 	"github.com/Kisanlink/farmers-module/internal/repo/crop_cycle"
 	"github.com/Kisanlink/farmers-module/internal/repo/farm"
 	"github.com/Kisanlink/farmers-module/internal/repo/farm_activity"
 	"github.com/Kisanlink/farmers-module/internal/repo/farmer"
+	"github.com/Kisanlink/farmers-module/internal/repo/fpo_config"
 	"github.com/Kisanlink/farmers-module/internal/repo/fpo_ref"
 	"github.com/Kisanlink/farmers-module/internal/repo/irrigation_source"
 	"github.com/Kisanlink/farmers-module/internal/repo/soil_type"
@@ -23,6 +25,7 @@ type RepositoryFactory struct {
 	FarmerRepo           *farmer.FarmerRepository
 	FarmerLinkageRepo    *farmer.FarmerLinkRepository
 	FPORefRepo           *base.BaseFilterableRepository[*fpoEntity.FPORef]
+	FPOConfigRepo        *base.BaseFilterableRepository[*fpoConfigEntity.FPOConfig]
 	FarmRepo             *farm.FarmRepository
 	CropRepo             *crop.CropRepository
 	CropVarietyRepo      *crop.CropVarietyRepository
@@ -48,6 +51,7 @@ func NewRepositoryFactory(dbManager *db.PostgresManager) *RepositoryFactory {
 		FarmerRepo:           farmer.NewFarmerRepository(dbManager),
 		FarmerLinkageRepo:    farmer.NewFarmerLinkRepository(dbManager),
 		FPORefRepo:           fpo_ref.NewFPORefRepository(dbManager),
+		FPOConfigRepo:        fpo_config.NewFPOConfigRepository(dbManager),
 		FarmRepo:             farm.NewFarmRepository(dbManager),
 		CropRepo:             crop.NewCropRepository(dbManager),
 		CropVarietyRepo:      crop.NewCropVarietyRepository(dbManager),

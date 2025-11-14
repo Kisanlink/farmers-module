@@ -1,0 +1,18 @@
+meta {
+  name: List crop varieties
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/varieties
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~crop_id:
+  ~search:
+  ~page:
+  ~page_size:
+}

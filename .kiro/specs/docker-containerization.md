@@ -91,6 +91,47 @@ deployment/
 - `VERSION`: Application version from VERSION file
 - `GIT_COMMIT`: Git commit hash
 
+#### Platform Requirements
+
+**CRITICAL: AWS ECS Fargate Platform Requirement**
+
+AWS ECS Fargate in `ap-south-1` (and most regions) runs on **linux/amd64** architecture. When building Docker images on Apple Silicon (M1/M2/M3) or other ARM64 machines, you **MUST** explicitly target the `linux/amd64` platform.
+
+**Correct build commands:**
+
+```bash
+# Using docker buildx (recommended)
+docker buildx build --platform linux/amd64 \
+  --build-arg GO_VERSION=1.24.4 \
+  --build-arg VERSION=${VERSION} \
+  --build-arg GIT_COMMIT=${GIT_COMMIT} \
+  --build-arg BUILD_DATE=${BUILD_DATE} \
+  -t ${REPOSITORY_URI}:${TAG} \
+  -f deployment/docker/Dockerfile \
+  --load \
+  .
+
+# Using docker build with --platform flag
+docker build --platform linux/amd64 \
+  -t ${REPOSITORY_URI}:${TAG} \
+  -f deployment/docker/Dockerfile \
+  .
+```
+
+**Common Error:**
+```
+CannotPullContainerError: pull image manifest has been retried 7 time(s):
+image Manifest does not contain descriptor matching platform 'linux/amd64'
+```
+
+This error occurs when an ARM64 image is pushed to ECR and ECS Fargate (running on AMD64) cannot pull it.
+
+**Prevention:**
+1. Always use `--platform linux/amd64` when building for ECS deployment
+2. Update Makefile targets to include platform flag
+3. Update CI/CD pipelines (buildspec.yml) to specify platform
+4. For local development on ARM64, use `docker-compose` which auto-detects the platform
+
 #### Image Tagging Strategy
 - Development: `farmers-module:dev`
 - Staging: `farmers-module:staging-${GIT_SHA}`

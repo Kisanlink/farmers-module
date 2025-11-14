@@ -1,0 +1,16 @@
+meta {
+  name: Get crop lookup data
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/lookups/crops
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~category:
+  ~season:
+}

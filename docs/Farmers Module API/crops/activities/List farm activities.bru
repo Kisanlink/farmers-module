@@ -1,0 +1,21 @@
+meta {
+  name: List farm activities
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/crops/activities
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~crop_cycle_id:
+  ~activity_type:
+  ~status:
+  ~date_from:
+  ~date_to:
+  ~page:
+  ~page_size:
+}

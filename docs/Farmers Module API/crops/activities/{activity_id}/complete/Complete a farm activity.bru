@@ -1,0 +1,15 @@
+meta {
+  name: Complete a farm activity
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/crops/activities/:activity_id/complete
+  body: none
+  auth: inherit
+}
+
+params:path {
+  activity_id:
+}

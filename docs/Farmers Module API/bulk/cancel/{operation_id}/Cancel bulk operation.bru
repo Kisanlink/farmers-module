@@ -1,0 +1,15 @@
+meta {
+  name: Cancel bulk operation
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/bulk/cancel/:operation_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  operation_id:
+}

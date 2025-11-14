@@ -107,7 +107,7 @@ BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 VERSION := $(shell cat VERSION 2>/dev/null || echo "dev")
 
 # Docker build
-docker-build: ## Build Docker image
+docker-build: ## Build Docker image (local platform)
 	@echo "Building Docker image..."
 	@echo "Version: $(VERSION)"
 	@echo "Git Commit: $(GIT_COMMIT)"
@@ -118,6 +118,141 @@ docker-build: ## Build Docker image
 		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
 		--build-arg BUILD_DATE=$(BUILD_DATE)
 	@echo "✅ Docker image built successfully"
+
+# ==============================================================================
+# AWS ECS Deployment Commands
+# ==============================================================================
+
+# AWS/ECR variables
+AWS_REGION ?= ap-south-1
+AWS_ACCOUNT_ID ?= $(shell aws sts get-caller-identity --query Account --output text 2>/dev/null)
+ECR_REPO_STAGING := farmers-module-staging
+ECR_REPO_PRODUCTION := farmers-module-production
+REPOSITORY_URI_STAGING := $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPO_STAGING)
+REPOSITORY_URI_PRODUCTION := $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPO_PRODUCTION)
+IMAGE_TAG := $(GIT_COMMIT)
+
+docker-build-ecs: ## Build Docker image for AWS ECS Fargate (linux/amd64)
+	@echo "Building Docker image for AWS ECS Fargate (linux/amd64)..."
+	@echo "Version: $(VERSION)"
+	@echo "Git Commit: $(GIT_COMMIT)"
+	@echo "Build Date: $(BUILD_DATE)"
+	@echo ""
+	docker buildx build \
+		--platform linux/amd64 \
+		--build-arg GO_VERSION=1.24.4 \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		-t farmers-module:$(IMAGE_TAG) \
+		-t farmers-module:latest \
+		-f deployment/docker/Dockerfile \
+		--load \
+		.
+	@echo "✅ Docker image built successfully for ECS"
+
+docker-build-staging: ## Build and tag for ECR staging repository
+	@echo "Building Docker image for ECR staging..."
+	@if [ -z "$(AWS_ACCOUNT_ID)" ]; then \
+		echo "❌ Error: AWS_ACCOUNT_ID not set. Please configure AWS CLI."; \
+		exit 1; \
+	fi
+	@echo "Repository URI: $(REPOSITORY_URI_STAGING)"
+	@echo "Image Tag: $(IMAGE_TAG)"
+	@echo ""
+	docker buildx build \
+		--platform linux/amd64 \
+		--build-arg GO_VERSION=1.24.4 \
+		--build-arg VERSION=$(IMAGE_TAG) \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		-t $(REPOSITORY_URI_STAGING):latest \
+		-t $(REPOSITORY_URI_STAGING):$(IMAGE_TAG) \
+		-f deployment/docker/Dockerfile \
+		--load \
+		.
+	@echo "✅ Docker image built and tagged for staging"
+
+docker-build-production: ## Build and tag for ECR production repository
+	@echo "Building Docker image for ECR production..."
+	@if [ -z "$(AWS_ACCOUNT_ID)" ]; then \
+		echo "❌ Error: AWS_ACCOUNT_ID not set. Please configure AWS CLI."; \
+		exit 1; \
+	fi
+	@echo "Repository URI: $(REPOSITORY_URI_PRODUCTION)"
+	@echo "Image Tag: $(VERSION)"
+	@echo ""
+	docker buildx build \
+		--platform linux/amd64 \
+		--build-arg GO_VERSION=1.24.4 \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		-t $(REPOSITORY_URI_PRODUCTION):latest \
+		-t $(REPOSITORY_URI_PRODUCTION):$(VERSION) \
+		-f deployment/docker/Dockerfile \
+		--load \
+		.
+	@echo "✅ Docker image built and tagged for production"
+
+docker-ecr-login: ## Login to AWS ECR
+	@echo "Logging in to ECR..."
+	@if [ -z "$(AWS_ACCOUNT_ID)" ]; then \
+		echo "❌ Error: AWS_ACCOUNT_ID not set. Please configure AWS CLI."; \
+		exit 1; \
+	fi
+	@aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
+	@echo "✅ Logged in to ECR"
+
+docker-push-staging: docker-ecr-login ## Push Docker image to ECR staging
+	@echo "Pushing image to ECR staging..."
+	docker push $(REPOSITORY_URI_STAGING):latest
+	docker push $(REPOSITORY_URI_STAGING):$(IMAGE_TAG)
+	@echo "✅ Image pushed to staging"
+	@echo ""
+	@echo "Image URIs:"
+	@echo "  - $(REPOSITORY_URI_STAGING):latest"
+	@echo "  - $(REPOSITORY_URI_STAGING):$(IMAGE_TAG)"
+
+docker-push-production: docker-ecr-login ## Push Docker image to ECR production
+	@echo "Pushing image to ECR production..."
+	docker push $(REPOSITORY_URI_PRODUCTION):latest
+	docker push $(REPOSITORY_URI_PRODUCTION):$(VERSION)
+	@echo "✅ Image pushed to production"
+	@echo ""
+	@echo "Image URIs:"
+	@echo "  - $(REPOSITORY_URI_PRODUCTION):latest"
+	@echo "  - $(REPOSITORY_URI_PRODUCTION):$(VERSION)"
+
+docker-deploy-staging: docker-build-staging docker-push-staging ## Build, push, and deploy to ECS staging
+	@echo "Triggering ECS service update..."
+	@aws ecs update-service \
+		--cluster farmers-module-staging-cluster \
+		--service farmers-module-staging-service \
+		--force-new-deployment \
+		--region $(AWS_REGION) \
+		--output json > /dev/null
+	@echo "✅ ECS staging deployment triggered"
+	@echo ""
+	@echo "Monitor deployment:"
+	@echo "  aws ecs describe-services --cluster farmers-module-staging-cluster --services farmers-module-staging-service --region $(AWS_REGION)"
+
+docker-deploy-production: docker-build-production docker-push-production ## Build, push, and deploy to ECS production
+	@echo "⚠️  WARNING: Deploying to PRODUCTION"
+	@read -p "Are you sure you want to deploy to production? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		echo "Triggering ECS service update..."; \
+		aws ecs update-service \
+			--cluster farmers-module-production-cluster \
+			--service farmers-module-production-service \
+			--force-new-deployment \
+			--region $(AWS_REGION) \
+			--output json > /dev/null; \
+		echo "✅ ECS production deployment triggered"; \
+	else \
+		echo "Deployment cancelled"; \
+	fi
 
 # Development environment
 docker-dev: ## Start development environment with hot-reload

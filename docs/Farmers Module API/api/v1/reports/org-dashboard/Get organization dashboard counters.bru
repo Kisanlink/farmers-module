@@ -1,0 +1,11 @@
+meta {
+  name: Get organization dashboard counters
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/reports/org-dashboard
+  body: none
+  auth: inherit
+}

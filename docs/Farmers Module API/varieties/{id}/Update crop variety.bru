@@ -1,0 +1,15 @@
+meta {
+  name: Update crop variety
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/varieties/:id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id:
+}

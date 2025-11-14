@@ -49,27 +49,27 @@
   },
   {
     "ParameterKey": "DesiredCount",
-    "ParameterValue": "2"
+    "ParameterValue": "1"
   },
   {
     "ParameterKey": "MinTasks",
-    "ParameterValue": "2"
+    "ParameterValue": "1"
   },
   {
     "ParameterKey": "MaxTasks",
-    "ParameterValue": "6"
+    "ParameterValue": "1"
   },
   {
     "ParameterKey": "DBInstanceClass",
-    "ParameterValue": "db.t4g.medium"
+    "ParameterValue": "db.t4g.small"
   },
   {
     "ParameterKey": "DBAllocatedStorage",
-    "ParameterValue": "100"
+    "ParameterValue": "30"
   },
   {
     "ParameterKey": "DBMaxAllocatedStorage",
-    "ParameterValue": "300"
+    "ParameterValue": "50"
   },
   {
     "ParameterKey": "DBName",
@@ -85,7 +85,7 @@
   },
   {
     "ParameterKey": "AAAServiceEndpoint",
-    "ParameterValue": "aaa-service-staging.internal:50052"
+    "ParameterValue": "beta.aaa.kisanlink.in:443"
   },
   {
     "ParameterKey": "AAAApiKey",

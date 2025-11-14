@@ -1,0 +1,15 @@
+meta {
+  name: Get a farm activity by ID
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/crops/activities/:activity_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  activity_id:
+}

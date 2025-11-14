@@ -1,0 +1,19 @@
+meta {
+  name: List crops
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/crops
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~category:
+  ~season:
+  ~search:
+  ~page:
+  ~page_size:
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Delete a farm
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/farms/:farm_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  farm_id:
+}

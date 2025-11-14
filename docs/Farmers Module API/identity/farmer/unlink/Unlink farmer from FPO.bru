@@ -1,0 +1,11 @@
+meta {
+  name: Unlink farmer from FPO
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{baseUrl}}/identity/farmer/unlink
+  body: none
+  auth: inherit
+}

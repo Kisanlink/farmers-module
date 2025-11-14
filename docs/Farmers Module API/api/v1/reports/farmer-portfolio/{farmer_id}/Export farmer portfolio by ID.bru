@@ -1,0 +1,22 @@
+meta {
+  name: Export farmer portfolio by ID
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/reports/farmer-portfolio/:farmer_id
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~season:
+  ~start_date:
+  ~end_date:
+  ~format:
+}
+
+params:path {
+  farmer_id:
+}

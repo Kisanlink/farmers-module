@@ -1,0 +1,21 @@
+meta {
+  name: Get organization dashboard counters by ID
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/reports/org-dashboard/:org_id
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~season:
+  ~start_date:
+  ~end_date:
+}
+
+params:path {
+  org_id:
+}

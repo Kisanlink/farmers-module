@@ -1,0 +1,16 @@
+meta {
+  name: Update a crop stage
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/api/v1/crops/:id/stages/:stage_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id:
+  stage_id:
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Update a crop cycle
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/crops/cycles/:cycle_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  cycle_id:
+}

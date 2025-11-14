@@ -33,8 +33,10 @@ phases:
       - echo "Building Docker image..."
 
       # Build multi-stage Docker image with build args
+      # CRITICAL: Always specify --platform linux/amd64 for AWS ECS Fargate compatibility
       - |
         docker build \
+          --platform linux/amd64 \
           --build-arg GO_VERSION=${GO_VERSION} \
           --build-arg VERSION=${IMAGE_TAG} \
           --build-arg GIT_COMMIT=${COMMIT_HASH} \

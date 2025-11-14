@@ -1,0 +1,15 @@
+meta {
+  name: Get FPO Reference
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/identity/fpo/reference/:aaa_org_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  aaa_org_id:
+}

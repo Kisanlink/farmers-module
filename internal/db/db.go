@@ -58,18 +58,30 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		return fmt.Errorf("GORM DB not available")
 	}
 
-	// Check if PostGIS is available before proceeding
-	var postgisAvailable bool
-	if err := gormDB.Raw(`SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'postgis')`).Scan(&postgisAvailable).Error; err != nil {
-		log.Printf("Warning: Could not check PostGIS availability: %v", err)
-		postgisAvailable = false
-	}
-
 	// Create custom ENUMs first (needed regardless of PostGIS availability)
 	createEnums(gormDB)
 
+	// Try to enable PostGIS extension (idempotent - safe to run even if already exists)
+	log.Println("Attempting to enable PostGIS extension...")
+	postgisAvailable := false
+	if err := gormDB.Exec(`CREATE EXTENSION IF NOT EXISTS postgis;`).Error; err != nil {
+		log.Printf("⚠️  Failed to create PostGIS extension: %v", err)
+		log.Println("PostGIS may not be available on this PostgreSQL server")
+		postgisAvailable = false
+	} else {
+		// Verify PostGIS was created successfully
+		if err := gormDB.Raw(`SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'postgis')`).Scan(&postgisAvailable).Error; err != nil {
+			log.Printf("Warning: Could not verify PostGIS availability: %v", err)
+			postgisAvailable = false
+		}
+	}
+
 	if !postgisAvailable {
-		log.Println("PostGIS not available - skipping spatial features")
+		log.Println("❌ PostGIS not available - skipping spatial features (farms table)")
+		log.Println("📝 To enable PostGIS on AWS RDS:")
+		log.Println("   1. Ensure your RDS instance supports PostGIS (PostgreSQL 12+)")
+		log.Println("   2. The database user must have rds_superuser role or CREATE privilege")
+		log.Println("   3. PostGIS is installed by default on RDS, just needs CREATE EXTENSION")
 		// Skip the farm entity that requires PostGIS geometry types
 		// Migration order: independent tables first, then tables with FK dependencies
 		models := []interface{}{
@@ -114,65 +126,10 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		if err := initializeCounters(gormDB); err != nil {
 			log.Printf("Warning: Failed to initialize ID counters: %v", err)
 		}
+
+		log.Println("✅ Database setup completed successfully (without PostGIS)")
+		return nil
 	} else {
-		// Enable PostGIS extension
-		if err := gormDB.Exec(`CREATE EXTENSION IF NOT EXISTS postgis;`).Error; err != nil {
-			log.Printf("❌ Failed to enable PostGIS extension: %v", err)
-			log.Println("⚠️  PostGIS is not installed on your PostgreSQL server")
-			log.Println("📝 To install PostGIS:")
-			log.Println("   macOS:         brew install postgis")
-			log.Println("   Ubuntu/Debian: sudo apt-get install postgresql-postgis")
-			log.Println("   Then reconnect to enable spatial features")
-			log.Println("⏭️  Continuing without PostGIS - spatial features (farms) will be unavailable")
-
-			// Fall back to non-PostGIS migration
-			// Migration order: independent tables first, then tables with FK dependencies
-			models := []interface{}{
-				// Independent master data tables
-				&fpo.FPORef{},
-				&soil_type.SoilType{},
-				&irrigation_source.IrrigationSource{},
-				&crop.Crop{},
-
-				// Address table (no dependencies)
-				&farmer.Address{},
-
-				// Farmer tables (Farmer depends on Address via FK)
-				&farmer.Farmer{},
-				&farmer.FarmerLink{},
-
-				// Crop variety (depends on Crop)
-				&crop_variety.CropVariety{},
-
-				// Stage tables (depends on Crop)
-				&stage.Stage{},
-				&stage.CropStage{},
-
-				// Farm entity skipped (PostGIS extension failed)
-
-				// Crop cycle (depends on Farm - skipped without PostGIS)
-				// Farm activity (depends on CropCycle - skipped without PostGIS)
-
-				// Bulk operations (last)
-				&bulk.BulkOperation{},
-				&bulk.ProcessingDetail{},
-			}
-
-			if err := postgresManager.AutoMigrateModels(ctx, models...); err != nil {
-				return fmt.Errorf("failed to run AutoMigrate: %w", err)
-			}
-
-			setupPostMigration(gormDB)
-
-			// Initialize ID counters from existing database records
-			if err := initializeCounters(gormDB); err != nil {
-				log.Printf("Warning: Failed to initialize ID counters: %v", err)
-			}
-
-			log.Println("Database setup completed successfully (without PostGIS)")
-			return nil
-		}
-
 		log.Println("✅ PostGIS extension enabled successfully")
 
 		// AutoMigrate all models including farm (PostGIS enabled)
@@ -230,7 +187,7 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		// Don't fail the setup, but log the warning
 	}
 
-	log.Println("Database setup completed successfully")
+	log.Println("✅ Database setup completed successfully (with PostGIS)")
 	return nil
 }
 

@@ -1,0 +1,11 @@
+meta {
+  name: Check user permission
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/admin/check-permission
+  body: none
+  auth: inherit
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Get crop cycle by ID
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/crops/cycles/:cycle_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  cycle_id:
+}

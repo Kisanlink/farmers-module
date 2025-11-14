@@ -2564,7 +2564,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "End a crop cycle and mark it as completed",
+                "description": "End a crop cycle and mark it as completed or cancelled. For PERENNIAL crops, provide outcome with age_range_min, age_range_max, yield_per_tree, and yield_unit. For annual crops (RABI/KHARIF/ZAID), provide outcome with yield_per_hectare and yield_unit.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2584,7 +2584,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "End cycle request",
+                        "description": "End cycle request (outcome structure varies by season type)",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2601,7 +2601,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid outcome data for season type",
                         "schema": {
                             "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
@@ -3384,6 +3384,426 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAreaAllocationSummaryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/fpo-config": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists all FPO configurations with pagination (Admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Config"
+                ],
+                "summary": "List FPO Configurations",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by FPO ID or name",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by health status",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPOConfigListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new FPO configuration for e-commerce integration (Admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Config"
+                ],
+                "summary": "Create FPO Configuration",
+                "parameters": [
+                    {
+                        "description": "Create FPO Config Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPOConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPOConfigResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/fpo-config/{fpo_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves FPO configuration for e-commerce integration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Config"
+                ],
+                "summary": "Get FPO Configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FPO ID",
+                        "name": "fpo_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPOConfigResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an existing FPO configuration (Admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Config"
+                ],
+                "summary": "Update FPO Configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FPO ID",
+                        "name": "fpo_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update FPO Config Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFPOConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPOConfigResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes an FPO configuration (soft delete, Admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Config"
+                ],
+                "summary": "Delete FPO Configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FPO ID",
+                        "name": "fpo_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerBaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/fpo-config/{fpo_id}/health": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Checks if the FPO's ERP service is reachable",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Config"
+                ],
+                "summary": "Check ERP Health",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FPO ID",
+                        "name": "fpo_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPOHealthCheckResponse"
                         }
                     },
                     "400": {
@@ -5254,6 +5674,10 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_Kisanlink_farmers-module_internal_entities.JSONB": {
+            "type": "object",
+            "additionalProperties": true
+        },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.AddressData": {
             "type": "object",
             "properties": {
@@ -5580,6 +6004,64 @@ const docTemplate = `{
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateCropVarietyRequest": {
             "type": "object"
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPOConfigRequest": {
+            "type": "object",
+            "required": [
+                "erp_base_url",
+                "fpo_id",
+                "fpo_name"
+            ],
+            "properties": {
+                "business_hours": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
+                },
+                "contact": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
+                },
+                "erp_api_version": {
+                    "type": "string"
+                },
+                "erp_base_url": {
+                    "type": "string"
+                },
+                "features": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
+                },
+                "fpo_id": {
+                    "type": "string"
+                },
+                "fpo_name": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "org_id": {
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
+                },
+                "request_type": {
+                    "type": "string",
+                    "example": "create_farmer"
+                },
+                "sync_interval_minutes": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
         },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPORequest": {
             "type": "object"
@@ -6580,6 +7062,56 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFPOConfigRequest": {
+            "type": "object",
+            "properties": {
+                "business_hours": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
+                },
+                "contact": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
+                },
+                "erp_api_version": {
+                    "type": "string"
+                },
+                "erp_base_url": {
+                    "type": "string"
+                },
+                "features": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
+                },
+                "fpo_name": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "org_id": {
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
+                },
+                "request_type": {
+                    "type": "string",
+                    "example": "create_farmer"
+                },
+                "sync_interval_minutes": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateFarmRequest": {
             "type": "object",
             "required": [
@@ -7495,6 +8027,76 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FPOConfigData": {
+            "type": "object",
+            "properties": {
+                "api_health_status": {
+                    "type": "string"
+                },
+                "business_hours": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
+                },
+                "contact": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "erp_api_version": {
+                    "type": "string"
+                },
+                "erp_base_url": {
+                    "type": "string"
+                },
+                "features": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
+                },
+                "fpo_id": {
+                    "type": "string"
+                },
+                "fpo_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_synced_at": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
+                },
+                "sync_interval_minutes": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FPOHealthCheckData": {
+            "type": "object",
+            "properties": {
+                "erp_base_url": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "fpo_id": {
+                    "type": "string"
+                },
+                "last_checked": {
+                    "type": "string"
+                },
+                "response_time_ms": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_Kisanlink_farmers-module_internal_entities_responses.FPORefData": {
             "type": "object",
             "properties": {
@@ -7599,9 +8201,16 @@ const docTemplate = `{
                     "type": "number",
                     "example": 2.4876
                 },
+                "bore_well_count": {
+                    "type": "integer",
+                    "example": 2
+                },
                 "created_at": {
                     "type": "string",
                     "example": "2024-01-15T10:30:00Z"
+                },
+                "farmer": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerBasicData"
                 },
                 "farmer_id": {
                     "type": "string",
@@ -7613,7 +8222,13 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string",
-                    "example": "farm_123e4567-e89b-12d3-a456-426614174000"
+                    "example": "FARM00000001"
+                },
+                "irrigation_sources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.IrrigationSourceData"
+                    }
                 },
                 "metadata": {
                     "type": "object",
@@ -7622,6 +8237,31 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "North Field Farm"
+                },
+                "other_irrigation_details": {
+                    "type": "string"
+                },
+                "ownership_type": {
+                    "type": "string",
+                    "example": "OWN"
+                },
+                "primary_irrigation_source": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.IrrigationSourceData"
+                },
+                "primary_irrigation_source_id": {
+                    "type": "string"
+                },
+                "soil_type": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SoilTypeData"
+                },
+                "soil_type_id": {
+                    "type": "string"
+                },
+                "soil_types": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SoilTypeData"
+                    }
                 },
                 "updated_at": {
                     "type": "string",
@@ -7664,6 +8304,53 @@ const docTemplate = `{
                 },
                 "overlap_percentage_farm2": {
                     "type": "number"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.FarmerBasicData": {
+            "type": "object",
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string",
+                    "example": "ORGN00000001"
+                },
+                "aaa_user_id": {
+                    "type": "string",
+                    "example": "USER00000001"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "ramesh.kumar@example.com"
+                },
+                "first_name": {
+                    "type": "string",
+                    "example": "Ramesh"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "FMRR0000000001"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Kumar"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "9876543210"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "ACTIVE"
+                },
+                "total_acreage_ha": {
+                    "type": "number",
+                    "example": 15.75
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
@@ -7821,6 +8508,28 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.IrrigationSourceData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "IRRG00000001"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Bore Well"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_Kisanlink_farmers-module_internal_entities_responses.KisanSathiAssignmentData": {
             "type": "object",
             "properties": {
@@ -7909,6 +8618,29 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.PaginationInfo": {
+            "type": "object",
+            "properties": {
+                "has_next": {
+                    "type": "boolean"
+                },
+                "has_prev": {
+                    "type": "boolean"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "per_page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_Kisanlink_farmers-module_internal_entities_responses.ProgressInfo": {
             "type": "object",
             "properties": {
@@ -7935,6 +8667,28 @@ const docTemplate = `{
                 "total": {
                     "type": "integer",
                     "example": 150
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SoilTypeData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "SOIL00000001"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Loamy Soil"
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
@@ -8429,6 +9183,68 @@ const docTemplate = `{
                 },
                 "success": {
                     "type": "boolean"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPOConfigListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FPOConfigData"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "FPO configurations retrieved successfully"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.PaginationInfo"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req-123"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPOConfigResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FPOConfigData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "FPO configuration retrieved successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req-123"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPOHealthCheckResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.FPOHealthCheckData"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req-123"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

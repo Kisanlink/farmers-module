@@ -1,0 +1,15 @@
+meta {
+  name: End a crop cycle
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/crops/cycles/:cycle_id/end
+  body: none
+  auth: inherit
+}
+
+params:path {
+  cycle_id:
+}

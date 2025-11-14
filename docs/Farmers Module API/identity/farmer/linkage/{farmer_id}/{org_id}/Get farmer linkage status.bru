@@ -1,0 +1,16 @@
+meta {
+  name: Get farmer linkage status
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/identity/farmer/linkage/:farmer_id/:org_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  farmer_id:
+  org_id:
+}

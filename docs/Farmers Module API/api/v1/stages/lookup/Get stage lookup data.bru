@@ -1,0 +1,11 @@
+meta {
+  name: Get stage lookup data
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/stages/lookup
+  body: none
+  auth: inherit
+}

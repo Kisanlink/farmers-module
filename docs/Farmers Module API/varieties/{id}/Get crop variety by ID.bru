@@ -1,0 +1,15 @@
+meta {
+  name: Get crop variety by ID
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/varieties/:id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id:
+}

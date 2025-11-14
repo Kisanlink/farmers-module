@@ -1,0 +1,15 @@
+meta {
+  name: Update farmer by farmer ID
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/identity/farmers/id/:farmer_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  farmer_id:
+}

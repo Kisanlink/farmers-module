@@ -19,6 +19,7 @@ type ServiceFactory struct {
 	FarmerService        FarmerService
 	FarmerLinkageService FarmerLinkageService
 	FPOService           FPOService
+	FPOConfigService     FPOConfigService
 	KisanSathiService    KisanSathiService
 
 	// Farm Management Services
@@ -82,6 +83,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	farmerService := NewFarmerService(repoFactory.FarmerRepo, aaaService, cfg.AAA.DefaultPassword)
 	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo, aaaService)
 	fpoService := NewFPOService(repoFactory.FPORefRepo, aaaService)
+	fpoConfigService := NewFPOConfigService(repoFactory.FPOConfigRepo)
 	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo, aaaService)
 
 	// Initialize farm management services
@@ -143,6 +145,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		FarmerService:         farmerService,
 		FarmerLinkageService:  farmerLinkageService,
 		FPOService:            fpoService,
+		FPOConfigService:      fpoConfigService,
 		KisanSathiService:     kisanSathiService,
 		FarmService:           farmService,
 		CropService:           cropService,

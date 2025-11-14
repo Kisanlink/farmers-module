@@ -1,0 +1,18 @@
+meta {
+  name: List all stages
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/stages
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~page:
+  ~page_size:
+  ~search:
+  ~is_active:
+}

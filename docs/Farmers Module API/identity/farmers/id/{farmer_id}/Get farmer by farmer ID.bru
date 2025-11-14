@@ -1,0 +1,15 @@
+meta {
+  name: Get farmer by farmer ID
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/identity/farmers/id/:farmer_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  farmer_id:
+}

@@ -1,0 +1,16 @@
+meta {
+  name: Remove a stage from a crop
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/crops/:id/stages/:stage_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id:
+  stage_id:
+}

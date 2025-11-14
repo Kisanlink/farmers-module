@@ -1,0 +1,15 @@
+meta {
+  name: Assign a stage to a crop
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/crops/:id/stages
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id:
+}

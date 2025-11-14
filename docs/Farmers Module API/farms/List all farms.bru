@@ -1,0 +1,25 @@
+meta {
+  name: List all farms
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/farms
+  body: none
+  auth: bearer
+}
+
+params:query {
+  ~page:
+  ~page_size:
+  ~farmer_id:
+  ~aaa_user_id:
+  ~org_id:
+  ~min_area:
+  ~max_area:
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIiLCJleHAiOjE3NjMwMzE0NjQsImlhdCI6MTc2Mjk0NTAwNCwiaXNzIjoiYWFhLXNlcnZpY2UiLCJpc3ZhbGlkYXRlIjpmYWxzZSwianRpIjoiYjkxZTZkZjYxYjk1YjhlNzg3OGM2ODg5YTNlOGZlMDAiLCJuYmYiOjE3NjI5NDUwMDQsInBlcm1pc3Npb25zIjpudWxsLCJyb2xlSWRzIjpbIlJPTEUwMDAwMDAwMSJdLCJzY29wZXMiOlsicm9sZTpzdXBlcl9hZG1pbiIsInNjb3BlOiJdLCJzZXNzaW9uX2lkIjoiMjYwYTZhODA2NWNlNWEyODA3OWU4ZmJjYjc3ODg3OTUiLCJzdWIiOiJVU0VSMDAwMDAwMDMiLCJ0ZW5hbnRfY29udGV4dCI6e30sInRva2VuX3R5cGUiOiJhY2Nlc3MiLCJ0b2tlbl92ZXJzaW9uIjoiMi4wIiwidXNlcl9jb250ZXh0Ijp7ImlkIjoiVVNFUjAwMDAwMDAzIiwidXNlcm5hbWUiOiJrYXVzaGlrIiwicGhvbmVfbnVtYmVyIjoiOTU0MjY4NzE4NiIsImNvdW50cnlfY29kZSI6Iis5MSIsImlzX3ZhbGlkYXRlZCI6ZmFsc2UsInJvbGVzIjpbeyJpZCI6IlJPTEUwMDAwMDAwMSIsIm5hbWUiOiJzdXBlcl9hZG1pbiIsInNjb3BlIjoiIiwiaXNfYWN0aXZlIjp0cnVlfV0sIm9yZ2FuaXphdGlvbnMiOltdLCJncm91cHMiOltdfSwidXNlcl9pZCI6IlVTRVIwMDAwMDAwMyIsInVzZXJuYW1lIjoia2F1c2hpayJ9.wRq1fFrLJIw8pG-E3TH4zlDelXBeqKGU1-40MiOcwco
+}

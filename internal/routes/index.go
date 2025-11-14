@@ -22,6 +22,9 @@ func RegisterAllRoutes(router *gin.Engine, services *services.ServiceFactory, cf
 		// KisanSathi Assignment (W4-W5)
 		RegisterKisanSathiRoutes(api, services, cfg, logger)
 
+		// FPO Configuration (E-Commerce)
+		RegisterFPOConfigRoutes(api, services, cfg, logger)
+
 		// Farm Management (W6-W9)
 		RegisterFarmRoutes(api, services, cfg, logger)
 

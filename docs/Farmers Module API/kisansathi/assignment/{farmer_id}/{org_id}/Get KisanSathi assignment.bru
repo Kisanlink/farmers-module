@@ -1,0 +1,16 @@
+meta {
+  name: Get KisanSathi assignment
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/kisansathi/assignment/:farmer_id/:org_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  farmer_id:
+  org_id:
+}
