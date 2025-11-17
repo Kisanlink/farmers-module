@@ -65,6 +65,14 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 	if err != nil {
 		log.Printf("CEO user not found, creating new user: %v", err)
 
+		// Validate password is provided for new user creation
+		if createReq.CEOUser.Password == "" {
+			return nil, fmt.Errorf("password is required when creating a new CEO user")
+		}
+		if len(createReq.CEOUser.Password) < 8 {
+			return nil, fmt.Errorf("password must be at least 8 characters long")
+		}
+
 		// Create CEO user in AAA
 		createUserReq := map[string]interface{}{
 			"username":     fmt.Sprintf("%s_%s", createReq.CEOUser.FirstName, createReq.CEOUser.LastName),

@@ -6,7 +6,7 @@ type CEOUserData struct {
 	LastName    string `json:"last_name" validate:"required" example:"Sharma"`
 	PhoneNumber string `json:"phone_number" validate:"required,phone" example:"+91-9876543210"`
 	Email       string `json:"email" validate:"email" example:"rajesh.sharma@fpo.com"`
-	Password    string `json:"password" validate:"required,min=8" example:"SecurePass@123"`
+	Password    string `json:"password,omitempty" validate:"omitempty,min=8" example:"SecurePass@123"`
 }
 
 // CreateFPORequest represents a request to create an FPO organization

@@ -5888,7 +5888,6 @@ const docTemplate = `{
             "required": [
                 "first_name",
                 "last_name",
-                "password",
                 "phone_number"
             ],
             "properties": {

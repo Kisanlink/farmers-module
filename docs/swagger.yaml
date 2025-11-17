@@ -171,7 +171,6 @@ definitions:
     required:
     - first_name
     - last_name
-    - password
     - phone_number
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.CompleteActivityRequest:
