@@ -63,7 +63,7 @@ func (h *FPOHandler) CreateFPO(c *gin.Context) {
 	h.logger.Info("Processing CreateFPO request",
 		zap.String("request_id", req.RequestID),
 		zap.String("fpo_name", req.Name),
-		zap.String("registration_no", req.RegistrationNo),
+		zap.String("registration_number", req.RegistrationNo),
 		zap.String("ceo_phone", req.CEOUser.PhoneNumber),
 	)
 

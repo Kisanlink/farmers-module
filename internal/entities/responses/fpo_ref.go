@@ -49,7 +49,7 @@ type FPORefData struct {
 	ID             string                 `json:"id"`
 	AAAOrgID       string                 `json:"aaa_org_id"`
 	Name           string                 `json:"name"`
-	RegistrationNo string                 `json:"registration_no"`
+	RegistrationNo string                 `json:"registration_number"`
 	BusinessConfig map[string]interface{} `json:"business_config"`
 	Status         string                 `json:"status"`
 	Metadata       map[string]interface{} `json:"metadata,omitempty"`

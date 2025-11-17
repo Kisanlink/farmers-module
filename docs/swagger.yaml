@@ -498,6 +498,8 @@ definitions:
         - RABI
         - KHARIF
         - ZAID
+        - PERENNIAL
+        - OTHER
         example: RABI
         type: string
       start_date:
@@ -597,6 +599,8 @@ definitions:
         - RABI
         - KHARIF
         - ZAID
+        - PERENNIAL
+        - OTHER
         example: RABI
         type: string
       start_date:
@@ -850,6 +854,8 @@ definitions:
         - RABI
         - KHARIF
         - ZAID
+        - PERENNIAL
+        - OTHER
         example: RABI
         type: string
       start_date:
@@ -1008,6 +1014,8 @@ definitions:
         - RABI
         - KHARIF
         - ZAID
+        - PERENNIAL
+        - OTHER
         example: RABI
         type: string
       start_date:
@@ -1757,7 +1765,7 @@ definitions:
         type: object
       name:
         type: string
-      registration_no:
+      registration_number:
         type: string
       status:
         type: string
@@ -3420,6 +3428,8 @@ paths:
         - RABI
         - KHARIF
         - ZAID
+        - PERENNIAL
+        - OTHER
         in: query
         name: season
         type: string
@@ -3525,6 +3535,8 @@ paths:
         - RABI
         - KHARIF
         - ZAID
+        - PERENNIAL
+        - OTHER
         in: query
         name: season
         type: string

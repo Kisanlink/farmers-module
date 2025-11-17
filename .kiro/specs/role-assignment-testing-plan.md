@@ -693,8 +693,8 @@ func BenchmarkEnsureFarmerRole(b *testing.B) {
 - **Admin User**: phone=9876543213, country_code=+91 (for manual operations)
 
 ### Test Organizations
-- **Test FPO**: name="Test FPO", registration_no="TEST001"
-- **Test Org 2**: name="Test FPO 2", registration_no="TEST002" (for cross-org tests)
+- **Test FPO**: name="Test FPO", registration_number="TEST001"
+- **Test Org 2**: name="Test FPO 2", registration_number="TEST002" (for cross-org tests)
 
 ### Cleanup
 - All test data must be cleaned up after tests

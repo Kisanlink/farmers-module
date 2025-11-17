@@ -100,7 +100,7 @@ curl -X POST "http://localhost:8000/api/v1/fpo/create" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Green Valley FPO",
-    "registration_no": "FPO2024001",
+    "registration_number": "FPO2024001",
     "ceo_user_data": {
       "first_name": "John",
       "last_name": "Doe",

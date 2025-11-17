@@ -147,7 +147,7 @@ type FPORef struct {
     BaseModel
     AAAOrgID       string            `json:"aaa_org_id" gorm:"type:varchar(255);unique;not null"`
     Name           string            `json:"name" gorm:"type:varchar(255);not null"`
-    RegistrationNo string            `json:"registration_no" gorm:"type:varchar(255)"`
+    RegistrationNo string            `json:"registration_number" gorm:"type:varchar(255)"`
     BusinessConfig map[string]string `json:"business_config" gorm:"type:jsonb;default:'{}'"`
     Status         string            `json:"status" gorm:"type:varchar(50);default:'ACTIVE'"`
 }
@@ -401,7 +401,7 @@ type RegisterFarmerResponse struct {
 ```go
 type CreateFPORequest struct {
     Name           string            `json:"name" validate:"required"`
-    RegistrationNo string            `json:"registration_no" validate:"required"`
+    RegistrationNo string            `json:"registration_number" validate:"required"`
     Description    string            `json:"description"`
     CEOUser        CEOUserData       `json:"ceo_user" validate:"required"`
     BusinessConfig map[string]string `json:"business_config"`

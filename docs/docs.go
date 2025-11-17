@@ -729,7 +729,9 @@ const docTemplate = `{
                         "enum": [
                             "RABI",
                             "KHARIF",
-                            "ZAID"
+                            "ZAID",
+                            "PERENNIAL",
+                            "OTHER"
                         ],
                         "type": "string",
                         "description": "Season filter",
@@ -883,7 +885,9 @@ const docTemplate = `{
                         "enum": [
                             "RABI",
                             "KHARIF",
-                            "ZAID"
+                            "ZAID",
+                            "PERENNIAL",
+                            "OTHER"
                         ],
                         "type": "string",
                         "description": "Season filter",
@@ -6348,7 +6352,9 @@ const docTemplate = `{
                     "enum": [
                         "RABI",
                         "KHARIF",
-                        "ZAID"
+                        "ZAID",
+                        "PERENNIAL",
+                        "OTHER"
                     ],
                     "example": "RABI"
                 },
@@ -6480,7 +6486,9 @@ const docTemplate = `{
                     "enum": [
                         "RABI",
                         "KHARIF",
-                        "ZAID"
+                        "ZAID",
+                        "PERENNIAL",
+                        "OTHER"
                     ],
                     "example": "RABI"
                 },
@@ -6829,7 +6837,9 @@ const docTemplate = `{
                     "enum": [
                         "RABI",
                         "KHARIF",
-                        "ZAID"
+                        "ZAID",
+                        "PERENNIAL",
+                        "OTHER"
                     ],
                     "example": "RABI"
                 },
@@ -7040,7 +7050,9 @@ const docTemplate = `{
                     "enum": [
                         "RABI",
                         "KHARIF",
-                        "ZAID"
+                        "ZAID",
+                        "PERENNIAL",
+                        "OTHER"
                     ],
                     "example": "RABI"
                 },
@@ -8123,7 +8135,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "registration_no": {
+                "registration_number": {
                     "type": "string"
                 },
                 "status": {

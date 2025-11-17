@@ -723,7 +723,9 @@
                         "enum": [
                             "RABI",
                             "KHARIF",
-                            "ZAID"
+                            "ZAID",
+                            "PERENNIAL",
+                            "OTHER"
                         ],
                         "type": "string",
                         "description": "Season filter",
@@ -877,7 +879,9 @@
                         "enum": [
                             "RABI",
                             "KHARIF",
-                            "ZAID"
+                            "ZAID",
+                            "PERENNIAL",
+                            "OTHER"
                         ],
                         "type": "string",
                         "description": "Season filter",
@@ -6342,7 +6346,9 @@
                     "enum": [
                         "RABI",
                         "KHARIF",
-                        "ZAID"
+                        "ZAID",
+                        "PERENNIAL",
+                        "OTHER"
                     ],
                     "example": "RABI"
                 },
@@ -6474,7 +6480,9 @@
                     "enum": [
                         "RABI",
                         "KHARIF",
-                        "ZAID"
+                        "ZAID",
+                        "PERENNIAL",
+                        "OTHER"
                     ],
                     "example": "RABI"
                 },
@@ -6823,7 +6831,9 @@
                     "enum": [
                         "RABI",
                         "KHARIF",
-                        "ZAID"
+                        "ZAID",
+                        "PERENNIAL",
+                        "OTHER"
                     ],
                     "example": "RABI"
                 },
@@ -7034,7 +7044,9 @@
                     "enum": [
                         "RABI",
                         "KHARIF",
-                        "ZAID"
+                        "ZAID",
+                        "PERENNIAL",
+                        "OTHER"
                     ],
                     "example": "RABI"
                 },
@@ -8117,7 +8129,7 @@
                 "name": {
                     "type": "string"
                 },
-                "registration_no": {
+                "registration_number": {
                     "type": "string"
                 },
                 "status": {

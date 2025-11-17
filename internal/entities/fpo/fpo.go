@@ -46,7 +46,7 @@ type FPORef struct {
 	base.BaseModel
 	AAAOrgID       string         `json:"aaa_org_id" gorm:"type:varchar(255);unique;not null"`
 	Name           string         `json:"name" gorm:"type:varchar(255);not null"`
-	RegistrationNo string         `json:"registration_no" gorm:"type:varchar(255)"`
+	RegistrationNo string         `json:"registration_number" gorm:"type:varchar(255)"`
 	Status         FPOStatus      `json:"status" gorm:"type:varchar(50);default:'ACTIVE'"`
 	BusinessConfig entities.JSONB `json:"business_config" gorm:"type:jsonb;default:'{}';serializer:json"`
 	SetupErrors    entities.JSONB `json:"setup_errors,omitempty" gorm:"type:jsonb;serializer:json"` // Track partial setup failures

@@ -13,7 +13,7 @@ type CEOUserData struct {
 type CreateFPORequest struct {
 	BaseRequest
 	Name           string                 `json:"name" validate:"required" example:"Rampur Farmers Producer Company"`
-	RegistrationNo string                 `json:"registration_no" validate:"required" example:"FPO/MP/2024/001234"`
+	RegistrationNo string                 `json:"registration_number" validate:"required" example:"FPO/MP/2024/001234"`
 	Description    string                 `json:"description" example:"A farmer producer organization serving 500+ farmers in Rampur region"`
 	CEOUser        CEOUserData            `json:"ceo_user" validate:"required"`
 	BusinessConfig map[string]interface{} `json:"business_config" example:"max_farmers:1000,procurement_enabled:true"`
@@ -34,7 +34,7 @@ type RegisterFPORefRequest struct {
 	BaseRequest
 	AAAOrgID       string                 `json:"aaa_org_id" validate:"required" example:"org_123e4567-e89b-12d3-a456-426614174000"`
 	Name           string                 `json:"name" validate:"required" example:"Rampur Farmers Producer Company"`
-	RegistrationNo string                 `json:"registration_no" example:"FPO/MP/2024/001234"`
+	RegistrationNo string                 `json:"registration_number" example:"FPO/MP/2024/001234"`
 	BusinessConfig map[string]interface{} `json:"business_config" example:"credit_limit:500000,payment_terms:net30"`
 	Metadata       map[string]interface{} `json:"metadata,omitempty"`
 }
