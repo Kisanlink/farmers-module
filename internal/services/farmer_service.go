@@ -621,6 +621,11 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 		filter = filter.Where("kisan_sathi_user_id", base.OpEqual, req.KisanSathiUserID)
 	}
 
+	// Add phone number filter if specified
+	if req.PhoneNumber != "" {
+		filter = filter.Where("phone_number", base.OpEqual, req.PhoneNumber)
+	}
+
 	// Query farmers from repository
 	farmers, err := s.repository.Find(ctx, filter.Build())
 	if err != nil {
@@ -634,6 +639,9 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 	}
 	if req.KisanSathiUserID != "" {
 		countFilter = countFilter.Where("kisan_sathi_user_id", base.OpEqual, req.KisanSathiUserID)
+	}
+	if req.PhoneNumber != "" {
+		countFilter = countFilter.Where("phone_number", base.OpEqual, req.PhoneNumber)
 	}
 
 	// Count without pagination

@@ -5612,6 +5612,10 @@ paths:
         in: query
         name: kisan_sathi_user_id
         type: string
+      - description: Phone number filter
+        in: query
+        name: phone_number
+        type: string
       produces:
       - application/json
       responses:

@@ -278,6 +278,7 @@ func (h *FarmerHandler) GetFarmerByID(c *gin.Context) {
 // @Param page_size query int false "Page size" default(10)
 // @Param aaa_org_id query string false "AAA Org ID filter"
 // @Param kisan_sathi_user_id query string false "KisanSathi User ID filter"
+// @Param phone_number query string false "Phone number filter"
 // @Success 200 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFarmerListResponse
 // @Failure 400 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
 // @Failure 500 {object} github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse
@@ -287,7 +288,8 @@ func (h *FarmerHandler) ListFarmers(c *gin.Context) {
 		zap.String("page", c.Query("page")),
 		zap.String("page_size", c.Query("page_size")),
 		zap.String("aaa_org_id", c.Query("aaa_org_id")),
-		zap.String("kisan_sathi_user_id", c.Query("kisan_sathi_user_id")))
+		zap.String("kisan_sathi_user_id", c.Query("kisan_sathi_user_id")),
+		zap.String("phone_number", c.Query("phone_number")))
 
 	req := farmerReq.NewListFarmersRequest()
 
@@ -319,6 +321,9 @@ func (h *FarmerHandler) ListFarmers(c *gin.Context) {
 	}
 	if kisanSathiID := c.Query("kisan_sathi_user_id"); kisanSathiID != "" {
 		req.KisanSathiUserID = kisanSathiID
+	}
+	if phoneNumber := c.Query("phone_number"); phoneNumber != "" {
+		req.PhoneNumber = phoneNumber
 	}
 
 	response, err := h.farmerService.ListFarmers(c.Request.Context(), &req)

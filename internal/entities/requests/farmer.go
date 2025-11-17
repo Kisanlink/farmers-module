@@ -45,6 +45,7 @@ type ListFarmersRequest struct {
 	FilterRequest
 	AAAOrgID         string `json:"aaa_org_id,omitempty" example:"ORGN00000001"`
 	KisanSathiUserID string `json:"kisan_sathi_user_id,omitempty" example:"USER00000002"`
+	PhoneNumber      string `json:"phone_number,omitempty" example:"9876543210"`
 	Page             int    `json:"page,omitempty" example:"1"`
 	PageSize         int    `json:"page_size,omitempty" example:"20"`
 }

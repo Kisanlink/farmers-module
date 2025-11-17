@@ -4094,6 +4094,12 @@ const docTemplate = `{
                         "description": "KisanSathi User ID filter",
                         "name": "kisan_sathi_user_id",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Phone number filter",
+                        "name": "phone_number",
+                        "in": "query"
                     }
                 ],
                 "responses": {
