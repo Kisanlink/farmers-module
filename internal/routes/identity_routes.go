@@ -98,6 +98,28 @@ func RegisterIdentityRoutes(router *gin.RouterGroup, services *services.ServiceF
 
 			// Get FPO reference with organization access validation
 			fpo.GET("/reference/:aaa_org_id", fpoHandler.GetFPORef)
+
+			// FPO Lifecycle endpoints
+			lifecycleHandler := handlers.NewFPOLifecycleHandler(services.FPOLifecycleService, logger)
+
+			// Sync FPO from AAA (key endpoint to solve "no matching records found" error)
+			fpo.POST("/sync/:aaa_org_id", lifecycleHandler.SyncFromAAA)
+
+			// Get FPO by AAA org ID with auto-sync fallback
+			fpo.GET("/by-org/:aaa_org_id", lifecycleHandler.GetFPOByAAAOrgID)
+
+			// Retry failed setup
+			fpo.POST("/:id/retry-setup", lifecycleHandler.RetrySetup)
+
+			// Suspend/Reactivate FPO
+			fpo.PUT("/:id/suspend", lifecycleHandler.SuspendFPO)
+			fpo.PUT("/:id/reactivate", lifecycleHandler.ReactivateFPO)
+
+			// Deactivate FPO
+			fpo.DELETE("/:id/deactivate", lifecycleHandler.DeactivateFPO)
+
+			// Get FPO audit history
+			fpo.GET("/:id/history", lifecycleHandler.GetHistory)
 		}
 	}
 }

@@ -9,7 +9,7 @@ import (
 // CreateFPOConfigRequest represents a request to create FPO configuration
 type CreateFPOConfigRequest struct {
 	BaseRequest
-	FPOID         string         `json:"fpo_id" binding:"required"`
+	AAAOrgID      string         `json:"aaa_org_id" binding:"required"`
 	FPOName       string         `json:"fpo_name" binding:"required"`
 	ERPBaseURL    string         `json:"erp_base_url" binding:"required"`
 	ERPAPIVersion string         `json:"erp_api_version"`
@@ -43,7 +43,7 @@ type ListFPOConfigsRequest struct {
 // GetFPOConfigRequest represents a request to get FPO configuration
 type GetFPOConfigRequest struct {
 	BaseRequest
-	FPOID string `uri:"fpo_id" binding:"required"`
+	AAAOrgID string `uri:"aaa_org_id" binding:"required"`
 }
 
 // SetDefaults sets default values for CreateFPOConfigRequest
@@ -90,8 +90,8 @@ func (r *GetFPOConfigRequest) SetDefaults() {
 
 // Validate validates CreateFPOConfigRequest
 func (r *CreateFPOConfigRequest) Validate() error {
-	if r.FPOID == "" {
-		return fmt.Errorf("fpo_id is required")
+	if r.AAAOrgID == "" {
+		return fmt.Errorf("aaa_org_id is required")
 	}
 	if r.FPOName == "" {
 		return fmt.Errorf("fpo_name is required")
@@ -122,8 +122,8 @@ func (r *UpdateFPOConfigRequest) Validate() error {
 
 // Validate validates GetFPOConfigRequest
 func (r *GetFPOConfigRequest) Validate() error {
-	if r.FPOID == "" {
-		return fmt.Errorf("fpo_id is required")
+	if r.AAAOrgID == "" {
+		return fmt.Errorf("aaa_org_id is required")
 	}
 	return nil
 }

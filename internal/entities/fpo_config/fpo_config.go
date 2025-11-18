@@ -13,7 +13,7 @@ import (
 // FPOConfig represents FPO configuration for e-commerce integration
 type FPOConfig struct {
 	base.BaseModel
-	FPOID           string         `json:"fpo_id" gorm:"type:varchar(255);uniqueIndex;not null"`
+	AAAOrgID        string         `json:"aaa_org_id" gorm:"type:varchar(255);uniqueIndex;not null"`
 	FPOName         string         `json:"fpo_name" gorm:"type:varchar(255);not null"`
 	ERPBaseURL      string         `json:"erp_base_url" gorm:"type:varchar(500);not null"`
 	ERPAPIVersion   string         `json:"erp_api_version" gorm:"type:varchar(10);default:'v1'"`
@@ -43,8 +43,8 @@ func (f *FPOConfig) GetTableSize() hash.TableSize {
 
 // Validate validates the FPOConfig model
 func (f *FPOConfig) Validate() error {
-	if f.FPOID == "" {
-		return fmt.Errorf("%w: fpo_id is required", common.ErrInvalidInput)
+	if f.AAAOrgID == "" {
+		return fmt.Errorf("%w: aaa_org_id is required", common.ErrInvalidInput)
 	}
 	if f.FPOName == "" {
 		return fmt.Errorf("%w: fpo_name is required", common.ErrInvalidInput)
@@ -55,6 +55,22 @@ func (f *FPOConfig) Validate() error {
 	// Basic URL validation
 	if len(f.ERPBaseURL) < 10 || (f.ERPBaseURL[:7] != "http://" && f.ERPBaseURL[:8] != "https://") {
 		return fmt.Errorf("%w: erp_base_url must be a valid URL", common.ErrInvalidInput)
+	}
+	return nil
+}
+
+// BeforeCreate is a GORM hook that syncs ID with AAAOrgID before creating
+func (f *FPOConfig) BeforeCreate() error {
+	if f.AAAOrgID != "" {
+		f.ID = f.AAAOrgID
+	}
+	return nil
+}
+
+// BeforeUpdate is a GORM hook that syncs ID with AAAOrgID before updating
+func (f *FPOConfig) BeforeUpdate() error {
+	if f.AAAOrgID != "" {
+		f.ID = f.AAAOrgID
 	}
 	return nil
 }

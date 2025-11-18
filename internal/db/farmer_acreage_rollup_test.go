@@ -15,7 +15,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// FarmerAcreageRollupTestSuite contains integration tests for farmer total acreage rollup trigger
+// FarmerAcreageRollupTestSuite contains integration tests for farmer total acreage and farm count rollup
+// Tests verify that GORM hooks in farm.go automatically maintain farmer.total_acreage_ha and farmer.farm_count
 type FarmerAcreageRollupTestSuite struct {
 	suite.Suite
 	pgContainer *testutils.PostgreSQLContainer
@@ -51,8 +52,7 @@ func (suite *FarmerAcreageRollupTestSuite) SetupSuite() {
 	// Setup post-migration features (computed columns, indexes)
 	suite.setupPostMigration()
 
-	// Setup the farmer acreage rollup triggers
-	setupFarmerAcreageRollupTriggers(suite.db)
+	// Note: No need to setup SQL triggers - GORM hooks in farm.go will handle updates automatically
 
 	// Validate PostGIS is installed
 	suite.pgContainer.ValidatePostGISInstallation(suite.T(), suite.db)

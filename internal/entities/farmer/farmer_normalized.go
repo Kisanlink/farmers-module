@@ -76,6 +76,7 @@ type Farmer struct {
 
 	// Rollup Fields - Maintained by database triggers
 	TotalAcreageHa float64 `json:"total_acreage_ha" gorm:"type:numeric(12,4);default:0.0;not null"`
+	FarmCount      int     `json:"farm_count" gorm:"type:integer;default:0;not null"`
 
 	// Relationships - FPO Linkage (optional, preloaded when needed)
 	FPOLinkages []*FarmerLink `json:"fpo_linkages,omitempty" gorm:"foreignKey:AAAUserID,AAAOrgID;references:AAAUserID,AAAOrgID"`

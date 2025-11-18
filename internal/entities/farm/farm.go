@@ -13,6 +13,7 @@ import (
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
+	"gorm.io/gorm"
 )
 
 // OwnershipType represents the type of farm ownership
@@ -133,4 +134,58 @@ func (f *Farm) Validate() error {
 	}
 
 	return nil
+}
+
+// AfterCreate is a GORM hook that runs after a farm is created
+func (f *Farm) AfterCreate(tx interface{}) error {
+	return updateFarmerStats(tx, f.FarmerID)
+}
+
+// AfterUpdate is a GORM hook that runs after a farm is updated
+func (f *Farm) AfterUpdate(tx interface{}) error {
+	// If farmer_id changed, update both old and new farmer
+	// Note: We can't easily detect the old farmer_id in AfterUpdate
+	// The trigger implementation handles this better, but for GORM we update current farmer
+	return updateFarmerStats(tx, f.FarmerID)
+}
+
+// AfterDelete is a GORM hook that runs after a farm is deleted
+func (f *Farm) AfterDelete(tx interface{}) error {
+	return updateFarmerStats(tx, f.FarmerID)
+}
+
+// updateFarmerStats updates the farmer's farm_count and total_acreage_ha
+func updateFarmerStats(tx interface{}, farmerID string) error {
+	if farmerID == "" {
+		return nil
+	}
+
+	// Type assert to *gorm.DB
+	db, ok := tx.(*gorm.DB)
+	if !ok {
+		return nil // Silently fail if not a gorm.DB (shouldn't happen)
+	}
+
+	// Calculate stats
+	var stats struct {
+		TotalAcreage float64
+		FarmCount    int64
+	}
+
+	err := db.Model(&Farm{}).
+		Select("COALESCE(SUM(area_ha_computed), 0) as total_acreage, COUNT(*) as farm_count").
+		Where("farmer_id = ? AND deleted_at IS NULL", farmerID).
+		Scan(&stats).Error
+
+	if err != nil {
+		return err
+	}
+
+	// Update farmer
+	return db.Model(&farmer.Farmer{}).
+		Where("id = ?", farmerID).
+		Updates(map[string]interface{}{
+			"total_acreage_ha": stats.TotalAcreage,
+			"farm_count":       stats.FarmCount,
+		}).Error
 }

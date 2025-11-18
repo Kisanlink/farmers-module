@@ -25,13 +25,13 @@ func NewFPOConfigHandler(service services.FPOConfigService, logger interfaces.Lo
 	}
 }
 
-// GetFPOConfig retrieves FPO configuration by FPO ID
+// GetFPOConfig retrieves FPO configuration by AAA Org ID
 // @Summary Get FPO Configuration
 // @Description Retrieves FPO configuration for e-commerce integration
 // @Tags FPO Config
 // @Accept json
 // @Produce json
-// @Param fpo_id path string true "FPO ID"
+// @Param aaa_org_id path string true "AAA Organization ID"
 // @Success 200 {object} responses.SwaggerFPOConfigResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
@@ -39,32 +39,32 @@ func NewFPOConfigHandler(service services.FPOConfigService, logger interfaces.Lo
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
 // @Security BearerAuth
-// @Router /fpo-config/{fpo_id} [get]
+// @Router /fpo/{aaa_org_id}/configuration [get]
 func (h *FPOConfigHandler) GetFPOConfig(c *gin.Context) {
-	fpoID := c.Param("fpo_id")
+	aaaOrgID := c.Param("aaa_org_id")
 	requestID := c.GetString("request_id")
 
 	h.logger.Info("Getting FPO configuration",
 		zap.String("request_id", requestID),
-		zap.String("fpo_id", fpoID),
+		zap.String("aaa_org_id", aaaOrgID),
 	)
 
-	if fpoID == "" {
-		h.logger.Error("Missing FPO ID parameter", zap.String("request_id", requestID))
+	if aaaOrgID == "" {
+		h.logger.Error("Missing AAA Org ID parameter", zap.String("request_id", requestID))
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": "FPO ID is required",
+			"message": "AAA Org ID is required",
 			"error":   "ERR_INVALID_INPUT",
 		})
 		return
 	}
 
 	// Call service
-	data, err := h.service.GetFPOConfig(c.Request.Context(), fpoID)
+	data, err := h.service.GetFPOConfig(c.Request.Context(), aaaOrgID)
 	if err != nil {
 		h.logger.Error("Failed to get FPO configuration",
 			zap.String("request_id", requestID),
-			zap.String("fpo_id", fpoID),
+			zap.String("aaa_org_id", aaaOrgID),
 			zap.Error(err),
 		)
 		handleServiceError(c, err)
@@ -77,7 +77,7 @@ func (h *FPOConfigHandler) GetFPOConfig(c *gin.Context) {
 
 	h.logger.Info("FPO configuration retrieved successfully",
 		zap.String("request_id", requestID),
-		zap.String("fpo_id", fpoID),
+		zap.String("aaa_org_id", aaaOrgID),
 	)
 
 	c.JSON(http.StatusOK, response)
@@ -120,7 +120,7 @@ func (h *FPOConfigHandler) CreateFPOConfig(c *gin.Context) {
 
 	h.logger.Info("Processing CreateFPOConfig request",
 		zap.String("request_id", requestID),
-		zap.String("fpo_id", req.FPOID),
+		zap.String("aaa_org_id", req.AAAOrgID),
 		zap.String("fpo_name", req.FPOName),
 	)
 
@@ -141,7 +141,90 @@ func (h *FPOConfigHandler) CreateFPOConfig(c *gin.Context) {
 
 	h.logger.Info("FPO configuration created successfully",
 		zap.String("request_id", requestID),
-		zap.String("fpo_id", data.FPOID),
+		zap.String("aaa_org_id", data.AAAOrgID),
+	)
+
+	c.JSON(http.StatusCreated, response)
+}
+
+// CreateFPOConfigWithID creates a new FPO configuration with aaa_org_id from URL path
+// @Summary Create FPO Configuration (with ID in path)
+// @Description Creates a new FPO configuration for e-commerce integration with aaa_org_id in URL
+// @Tags FPO Config
+// @Accept json
+// @Produce json
+// @Param aaa_org_id path string true "AAA Organization ID"
+// @Param request body requests.CreateFPOConfigRequest true "Create FPO Config Request"
+// @Success 201 {object} responses.SwaggerFPOConfigResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 409 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /fpo-config/{aaa_org_id} [post]
+func (h *FPOConfigHandler) CreateFPOConfigWithID(c *gin.Context) {
+	aaaOrgID := c.Param("aaa_org_id")
+	requestID := c.GetString("request_id")
+
+	h.logger.Info("Creating FPO configuration with ID from path",
+		zap.String("request_id", requestID),
+		zap.String("aaa_org_id", aaaOrgID),
+	)
+
+	if aaaOrgID == "" {
+		h.logger.Error("Missing AAA Org ID parameter", zap.String("request_id", requestID))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "AAA Org ID is required",
+			"error":   "ERR_INVALID_INPUT",
+		})
+		return
+	}
+
+	var req requests.CreateFPOConfigRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		h.logger.Error("Invalid request body", zap.String("request_id", requestID), zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid request body",
+			"error":   "ERR_INVALID_INPUT",
+		})
+		return
+	}
+
+	// Override aaa_org_id from URL path
+	req.AAAOrgID = aaaOrgID
+
+	// Set request metadata
+	req.RequestID = requestID
+	req.UserID = c.GetString("aaa_subject")
+	req.OrgID = c.GetString("aaa_org")
+
+	h.logger.Info("Processing CreateFPOConfig request",
+		zap.String("request_id", requestID),
+		zap.String("aaa_org_id", req.AAAOrgID),
+		zap.String("fpo_name", req.FPOName),
+	)
+
+	// Call service
+	data, err := h.service.CreateFPOConfig(c.Request.Context(), &req)
+	if err != nil {
+		h.logger.Error("Failed to create FPO configuration",
+			zap.String("request_id", requestID),
+			zap.Error(err),
+		)
+		handleServiceError(c, err)
+		return
+	}
+
+	// Create response
+	response := responses.NewFPOConfigResponse(data, "FPO configuration created successfully")
+	response.SetRequestID(requestID)
+
+	h.logger.Info("FPO configuration created successfully",
+		zap.String("request_id", requestID),
+		zap.String("aaa_org_id", data.AAAOrgID),
 	)
 
 	c.JSON(http.StatusCreated, response)
@@ -153,7 +236,7 @@ func (h *FPOConfigHandler) CreateFPOConfig(c *gin.Context) {
 // @Tags FPO Config
 // @Accept json
 // @Produce json
-// @Param fpo_id path string true "FPO ID"
+// @Param aaa_org_id path string true "AAA Organization ID"
 // @Param request body requests.UpdateFPOConfigRequest true "Update FPO Config Request"
 // @Success 200 {object} responses.SwaggerFPOConfigResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
@@ -162,21 +245,21 @@ func (h *FPOConfigHandler) CreateFPOConfig(c *gin.Context) {
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
 // @Security BearerAuth
-// @Router /fpo-config/{fpo_id} [put]
+// @Router /fpo/{aaa_org_id}/configuration [put]
 func (h *FPOConfigHandler) UpdateFPOConfig(c *gin.Context) {
-	fpoID := c.Param("fpo_id")
+	aaaOrgID := c.Param("aaa_org_id")
 	requestID := c.GetString("request_id")
 
 	h.logger.Info("Updating FPO configuration",
 		zap.String("request_id", requestID),
-		zap.String("fpo_id", fpoID),
+		zap.String("aaa_org_id", aaaOrgID),
 	)
 
-	if fpoID == "" {
-		h.logger.Error("Missing FPO ID parameter", zap.String("request_id", requestID))
+	if aaaOrgID == "" {
+		h.logger.Error("Missing AAA Org ID parameter", zap.String("request_id", requestID))
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": "FPO ID is required",
+			"message": "AAA Org ID is required",
 			"error":   "ERR_INVALID_INPUT",
 		})
 		return
@@ -199,11 +282,11 @@ func (h *FPOConfigHandler) UpdateFPOConfig(c *gin.Context) {
 	req.OrgID = c.GetString("aaa_org")
 
 	// Call service
-	data, err := h.service.UpdateFPOConfig(c.Request.Context(), fpoID, &req)
+	data, err := h.service.UpdateFPOConfig(c.Request.Context(), aaaOrgID, &req)
 	if err != nil {
 		h.logger.Error("Failed to update FPO configuration",
 			zap.String("request_id", requestID),
-			zap.String("fpo_id", fpoID),
+			zap.String("aaa_org_id", aaaOrgID),
 			zap.Error(err),
 		)
 		handleServiceError(c, err)
@@ -216,7 +299,7 @@ func (h *FPOConfigHandler) UpdateFPOConfig(c *gin.Context) {
 
 	h.logger.Info("FPO configuration updated successfully",
 		zap.String("request_id", requestID),
-		zap.String("fpo_id", fpoID),
+		zap.String("aaa_org_id", aaaOrgID),
 	)
 
 	c.JSON(http.StatusOK, response)
@@ -228,7 +311,7 @@ func (h *FPOConfigHandler) UpdateFPOConfig(c *gin.Context) {
 // @Tags FPO Config
 // @Accept json
 // @Produce json
-// @Param fpo_id path string true "FPO ID"
+// @Param aaa_org_id path string true "AAA Organization ID"
 // @Success 200 {object} responses.SwaggerBaseResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
@@ -236,32 +319,32 @@ func (h *FPOConfigHandler) UpdateFPOConfig(c *gin.Context) {
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
 // @Security BearerAuth
-// @Router /fpo-config/{fpo_id} [delete]
+// @Router /fpo/{aaa_org_id}/configuration [delete]
 func (h *FPOConfigHandler) DeleteFPOConfig(c *gin.Context) {
-	fpoID := c.Param("fpo_id")
+	aaaOrgID := c.Param("aaa_org_id")
 	requestID := c.GetString("request_id")
 
 	h.logger.Info("Deleting FPO configuration",
 		zap.String("request_id", requestID),
-		zap.String("fpo_id", fpoID),
+		zap.String("aaa_org_id", aaaOrgID),
 	)
 
-	if fpoID == "" {
-		h.logger.Error("Missing FPO ID parameter", zap.String("request_id", requestID))
+	if aaaOrgID == "" {
+		h.logger.Error("Missing AAA Org ID parameter", zap.String("request_id", requestID))
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": "FPO ID is required",
+			"message": "AAA Org ID is required",
 			"error":   "ERR_INVALID_INPUT",
 		})
 		return
 	}
 
 	// Call service
-	err := h.service.DeleteFPOConfig(c.Request.Context(), fpoID)
+	err := h.service.DeleteFPOConfig(c.Request.Context(), aaaOrgID)
 	if err != nil {
 		h.logger.Error("Failed to delete FPO configuration",
 			zap.String("request_id", requestID),
-			zap.String("fpo_id", fpoID),
+			zap.String("aaa_org_id", aaaOrgID),
 			zap.Error(err),
 		)
 		handleServiceError(c, err)
@@ -270,7 +353,7 @@ func (h *FPOConfigHandler) DeleteFPOConfig(c *gin.Context) {
 
 	h.logger.Info("FPO configuration deleted successfully",
 		zap.String("request_id", requestID),
-		zap.String("fpo_id", fpoID),
+		zap.String("aaa_org_id", aaaOrgID),
 	)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -346,7 +429,7 @@ func (h *FPOConfigHandler) ListFPOConfigs(c *gin.Context) {
 // @Tags FPO Config
 // @Accept json
 // @Produce json
-// @Param fpo_id path string true "FPO ID"
+// @Param aaa_org_id path string true "AAA Organization ID"
 // @Success 200 {object} responses.SwaggerFPOHealthCheckResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
@@ -354,32 +437,32 @@ func (h *FPOConfigHandler) ListFPOConfigs(c *gin.Context) {
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
 // @Security BearerAuth
-// @Router /fpo-config/{fpo_id}/health [get]
+// @Router /fpo/{aaa_org_id}/configuration/health [get]
 func (h *FPOConfigHandler) CheckERPHealth(c *gin.Context) {
-	fpoID := c.Param("fpo_id")
+	aaaOrgID := c.Param("aaa_org_id")
 	requestID := c.GetString("request_id")
 
 	h.logger.Info("Checking ERP health",
 		zap.String("request_id", requestID),
-		zap.String("fpo_id", fpoID),
+		zap.String("aaa_org_id", aaaOrgID),
 	)
 
-	if fpoID == "" {
-		h.logger.Error("Missing FPO ID parameter", zap.String("request_id", requestID))
+	if aaaOrgID == "" {
+		h.logger.Error("Missing AAA Org ID parameter", zap.String("request_id", requestID))
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": "FPO ID is required",
+			"message": "AAA Org ID is required",
 			"error":   "ERR_INVALID_INPUT",
 		})
 		return
 	}
 
 	// Call service
-	data, err := h.service.CheckERPHealth(c.Request.Context(), fpoID)
+	data, err := h.service.CheckERPHealth(c.Request.Context(), aaaOrgID)
 	if err != nil {
 		h.logger.Error("Failed to check ERP health",
 			zap.String("request_id", requestID),
-			zap.String("fpo_id", fpoID),
+			zap.String("aaa_org_id", aaaOrgID),
 			zap.Error(err),
 		)
 		handleServiceError(c, err)
@@ -392,7 +475,7 @@ func (h *FPOConfigHandler) CheckERPHealth(c *gin.Context) {
 
 	h.logger.Info("ERP health checked successfully",
 		zap.String("request_id", requestID),
-		zap.String("fpo_id", fpoID),
+		zap.String("aaa_org_id", aaaOrgID),
 		zap.String("status", data.Status),
 	)
 

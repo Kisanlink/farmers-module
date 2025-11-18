@@ -47,3 +47,27 @@ func NewRegisterFPORefRequest() RegisterFPORefRequest {
 		Metadata:       make(map[string]interface{}),
 	}
 }
+
+// SyncFPORequest represents a request to sync FPO from AAA
+type SyncFPORequest struct {
+	BaseRequest
+	AAAOrgID string `json:"aaa_org_id" validate:"required" example:"org_123e4567-e89b-12d3-a456-426614174000"`
+}
+
+// RetrySetupRequest represents a request to retry failed FPO setup
+type RetrySetupRequest struct {
+	BaseRequest
+	FPOID string `json:"fpo_id" validate:"required" example:"FPOR_1234567890"`
+}
+
+// SuspendFPORequest represents a request to suspend an FPO
+type SuspendFPORequest struct {
+	BaseRequest
+	Reason string `json:"reason" validate:"required" example:"Compliance violation"`
+}
+
+// DeactivateFPORequest represents a request to deactivate an FPO
+type DeactivateFPORequest struct {
+	BaseRequest
+	Reason string `json:"reason" validate:"required" example:"Business closure"`
+}

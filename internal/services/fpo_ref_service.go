@@ -120,7 +120,7 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 	createOrgReq := map[string]interface{}{
 		"name":        createReq.Name,
 		"description": createReq.Description,
-		"type":        "FPO",
+		"type":        "fpo",
 		"ceo_user_id": ceoUserID,
 		"metadata":    createReq.Metadata,
 	}
@@ -317,6 +317,7 @@ func (s *FPOServiceImpl) RegisterFPORef(ctx context.Context, req interface{}) (i
 }
 
 // GetFPORef gets FPO reference by organization ID
+// Note: Consider using the lifecycle service's GetOrSyncFPO method for automatic fallback to AAA sync
 func (s *FPOServiceImpl) GetFPORef(ctx context.Context, orgID string) (interface{}, error) {
 	log.Printf("FPOService: Getting FPO reference for org ID: %s", orgID)
 
@@ -342,7 +343,7 @@ func (s *FPOServiceImpl) GetFPORef(ctx context.Context, orgID string) (interface
 	}
 
 	if fpoRef == nil {
-		return nil, fmt.Errorf("FPO reference not found for organization ID: %s", orgID)
+		return nil, fmt.Errorf("FPO reference not found for organization ID: %s. Consider using the FPO lifecycle sync endpoint: POST /identity/fpo/sync/%s", orgID, orgID)
 	}
 
 	// Prepare response

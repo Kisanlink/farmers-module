@@ -8,6 +8,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/farmers-module/internal/repo"
+	repofpo "github.com/Kisanlink/farmers-module/internal/repo/fpo"
 	"github.com/Kisanlink/farmers-module/internal/services/audit"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
 	"gorm.io/gorm"
@@ -19,6 +20,7 @@ type ServiceFactory struct {
 	FarmerService        FarmerService
 	FarmerLinkageService FarmerLinkageService
 	FPOService           FPOService
+	FPOLifecycleService  *FPOLifecycleService
 	FPOConfigService     FPOConfigService
 	KisanSathiService    KisanSathiService
 
@@ -83,6 +85,11 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	farmerService := NewFarmerService(repoFactory.FarmerRepo, aaaService, cfg.AAA.DefaultPassword)
 	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo, aaaService)
 	fpoService := NewFPOService(repoFactory.FPORefRepo, aaaService)
+
+	// Initialize FPO lifecycle service with enhanced repository
+	fpoRepo := repofpo.NewFPORepository(postgresManager)
+	fpoLifecycleService := NewFPOLifecycleService(fpoRepo, aaaService)
+
 	fpoConfigService := NewFPOConfigService(repoFactory.FPOConfigRepo)
 	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo, aaaService)
 
@@ -145,6 +152,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		FarmerService:         farmerService,
 		FarmerLinkageService:  farmerLinkageService,
 		FPOService:            fpoService,
+		FPOLifecycleService:   fpoLifecycleService,
 		FPOConfigService:      fpoConfigService,
 		KisanSathiService:     kisanSathiService,
 		FarmService:           farmService,

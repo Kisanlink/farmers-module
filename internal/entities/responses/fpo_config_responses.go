@@ -9,7 +9,7 @@ import (
 // FPOConfigData represents FPO configuration data in responses
 type FPOConfigData struct {
 	ID              string         `json:"id"`
-	FPOID           string         `json:"fpo_id"`
+	AAAOrgID        string         `json:"aaa_org_id"`
 	FPOName         string         `json:"fpo_name"`
 	ERPBaseURL      string         `json:"erp_base_url"`
 	ERPAPIVersion   string         `json:"erp_api_version"`
@@ -43,7 +43,7 @@ type FPOConfigListResponse struct {
 
 // FPOHealthCheckData represents ERP health check data
 type FPOHealthCheckData struct {
-	FPOID          string    `json:"fpo_id"`
+	AAAOrgID       string    `json:"aaa_org_id"`
 	ERPBaseURL     string    `json:"erp_base_url"`
 	Status         string    `json:"status"`
 	ResponseTimeMs int64     `json:"response_time_ms,omitempty"`

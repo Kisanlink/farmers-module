@@ -15,23 +15,23 @@ import (
 
 // FPOConfigService defines the interface for FPO configuration operations
 type FPOConfigService interface {
-	// GetFPOConfig retrieves FPO configuration by FPO ID
-	GetFPOConfig(ctx context.Context, fpoID string) (*responses.FPOConfigData, error)
+	// GetFPOConfig retrieves FPO configuration by AAA Org ID
+	GetFPOConfig(ctx context.Context, aaaOrgID string) (*responses.FPOConfigData, error)
 
 	// CreateFPOConfig creates a new FPO configuration
 	CreateFPOConfig(ctx context.Context, req *requests.CreateFPOConfigRequest) (*responses.FPOConfigData, error)
 
 	// UpdateFPOConfig updates an existing FPO configuration
-	UpdateFPOConfig(ctx context.Context, fpoID string, req *requests.UpdateFPOConfigRequest) (*responses.FPOConfigData, error)
+	UpdateFPOConfig(ctx context.Context, aaaOrgID string, req *requests.UpdateFPOConfigRequest) (*responses.FPOConfigData, error)
 
 	// DeleteFPOConfig deletes an FPO configuration (soft delete)
-	DeleteFPOConfig(ctx context.Context, fpoID string) error
+	DeleteFPOConfig(ctx context.Context, aaaOrgID string) error
 
 	// ListFPOConfigs lists all FPO configurations with pagination
 	ListFPOConfigs(ctx context.Context, req *requests.ListFPOConfigsRequest) ([]*responses.FPOConfigData, *responses.PaginationInfo, error)
 
 	// CheckERPHealth checks the health of FPO's ERP service
-	CheckERPHealth(ctx context.Context, fpoID string) (*responses.FPOHealthCheckData, error)
+	CheckERPHealth(ctx context.Context, aaaOrgID string) (*responses.FPOHealthCheckData, error)
 }
 
 // fpoConfigService implements FPOConfigService
@@ -46,20 +46,15 @@ func NewFPOConfigService(repo *base.BaseFilterableRepository[*fpo_config.FPOConf
 	}
 }
 
-// GetFPOConfig retrieves FPO configuration by FPO ID
-func (s *fpoConfigService) GetFPOConfig(ctx context.Context, fpoID string) (*responses.FPOConfigData, error) {
-	if fpoID == "" {
+// GetFPOConfig retrieves FPO configuration by AAA Org ID
+func (s *fpoConfigService) GetFPOConfig(ctx context.Context, aaaOrgID string) (*responses.FPOConfigData, error) {
+	if aaaOrgID == "" {
 		return nil, common.ErrInvalidInput
 	}
 
-	// Build filter
-	filter := base.NewFilterBuilder().
-		Where("fpo_id", base.OpEqual, fpoID).
-		Where("deleted_at", base.OpIsNull, nil).
-		Build()
-
-	// Find FPO config
-	config, err := s.repo.FindOne(ctx, filter)
+	// Find by ID (which is same as aaa_org_id due to BeforeCreate hook)
+	config := &fpo_config.FPOConfig{}
+	config, err := s.repo.GetByID(ctx, aaaOrgID, config)
 	if err != nil {
 		if err == common.ErrNotFound {
 			return nil, common.ErrNotFound
@@ -81,19 +76,15 @@ func (s *fpoConfigService) CreateFPOConfig(ctx context.Context, req *requests.Cr
 	}
 
 	// Check if FPO config already exists
-	filter := base.NewFilterBuilder().
-		Where("fpo_id", base.OpEqual, req.FPOID).
-		Where("deleted_at", base.OpIsNull, nil).
-		Build()
-
-	existing, err := s.repo.FindOne(ctx, filter)
-	if err == nil && existing != nil {
-		return nil, fmt.Errorf("%w: FPO config already exists for fpo_id: %s", common.ErrAlreadyExists, req.FPOID)
+	existing := &fpo_config.FPOConfig{}
+	existing, err := s.repo.GetByID(ctx, req.AAAOrgID, existing)
+	if err == nil && existing != nil && existing.ID != "" {
+		return nil, fmt.Errorf("%w: FPO config already exists for aaa_org_id: %s", common.ErrAlreadyExists, req.AAAOrgID)
 	}
 
 	// Create FPO config entity
 	config := &fpo_config.FPOConfig{
-		FPOID:           req.FPOID,
+		AAAOrgID:        req.AAAOrgID,
 		FPOName:         req.FPOName,
 		ERPBaseURL:      req.ERPBaseURL,
 		ERPAPIVersion:   req.ERPAPIVersion,
@@ -119,8 +110,8 @@ func (s *fpoConfigService) CreateFPOConfig(ctx context.Context, req *requests.Cr
 }
 
 // UpdateFPOConfig updates an existing FPO configuration
-func (s *fpoConfigService) UpdateFPOConfig(ctx context.Context, fpoID string, req *requests.UpdateFPOConfigRequest) (*responses.FPOConfigData, error) {
-	if fpoID == "" {
+func (s *fpoConfigService) UpdateFPOConfig(ctx context.Context, aaaOrgID string, req *requests.UpdateFPOConfigRequest) (*responses.FPOConfigData, error) {
+	if aaaOrgID == "" {
 		return nil, common.ErrInvalidInput
 	}
 
@@ -133,12 +124,8 @@ func (s *fpoConfigService) UpdateFPOConfig(ctx context.Context, fpoID string, re
 	}
 
 	// Find existing config
-	filter := base.NewFilterBuilder().
-		Where("fpo_id", base.OpEqual, fpoID).
-		Where("deleted_at", base.OpIsNull, nil).
-		Build()
-
-	config, err := s.repo.FindOne(ctx, filter)
+	config := &fpo_config.FPOConfig{}
+	config, err := s.repo.GetByID(ctx, aaaOrgID, config)
 	if err != nil {
 		if err == common.ErrNotFound {
 			return nil, common.ErrNotFound
@@ -183,18 +170,14 @@ func (s *fpoConfigService) UpdateFPOConfig(ctx context.Context, fpoID string, re
 }
 
 // DeleteFPOConfig deletes an FPO configuration (soft delete)
-func (s *fpoConfigService) DeleteFPOConfig(ctx context.Context, fpoID string) error {
-	if fpoID == "" {
+func (s *fpoConfigService) DeleteFPOConfig(ctx context.Context, aaaOrgID string) error {
+	if aaaOrgID == "" {
 		return common.ErrInvalidInput
 	}
 
 	// Find existing config
-	filter := base.NewFilterBuilder().
-		Where("fpo_id", base.OpEqual, fpoID).
-		Where("deleted_at", base.OpIsNull, nil).
-		Build()
-
-	config, err := s.repo.FindOne(ctx, filter)
+	config := &fpo_config.FPOConfig{}
+	config, err := s.repo.GetByID(ctx, aaaOrgID, config)
 	if err != nil {
 		if err == common.ErrNotFound {
 			return common.ErrNotFound
@@ -224,12 +207,12 @@ func (s *fpoConfigService) ListFPOConfigs(ctx context.Context, req *requests.Lis
 	fb := base.NewFilterBuilder().
 		Where("deleted_at", base.OpIsNull, nil)
 
-	// Add search filter - search in fpo_id OR fpo_name
+	// Add search filter - search in aaa_org_id OR fpo_name
 	if req.Search != "" {
 		// Note: kisanlink-db doesn't support OR conditions directly yet
-		// For now, we'll search by fpo_id only
+		// For now, we'll search by aaa_org_id only
 		// TODO: Update when kisanlink-db supports OR conditions
-		fb.Where("fpo_id", base.OpLike, "%"+req.Search+"%")
+		fb.Where("aaa_org_id", base.OpLike, "%"+req.Search+"%")
 	}
 
 	// Add status filter
@@ -266,13 +249,13 @@ func (s *fpoConfigService) ListFPOConfigs(ctx context.Context, req *requests.Lis
 }
 
 // CheckERPHealth checks the health of FPO's ERP service
-func (s *fpoConfigService) CheckERPHealth(ctx context.Context, fpoID string) (*responses.FPOHealthCheckData, error) {
-	if fpoID == "" {
+func (s *fpoConfigService) CheckERPHealth(ctx context.Context, aaaOrgID string) (*responses.FPOHealthCheckData, error) {
+	if aaaOrgID == "" {
 		return nil, common.ErrInvalidInput
 	}
 
 	// Get FPO config
-	configData, err := s.GetFPOConfig(ctx, fpoID)
+	configData, err := s.GetFPOConfig(ctx, aaaOrgID)
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +271,7 @@ func (s *fpoConfigService) CheckERPHealth(ctx context.Context, fpoID string) (*r
 	responseTime := time.Since(startTime).Milliseconds()
 
 	healthData := &responses.FPOHealthCheckData{
-		FPOID:          fpoID,
+		AAAOrgID:       aaaOrgID,
 		ERPBaseURL:     configData.ERPBaseURL,
 		LastChecked:    time.Now(),
 		ResponseTimeMs: responseTime,
@@ -299,7 +282,7 @@ func (s *fpoConfigService) CheckERPHealth(ctx context.Context, fpoID string) (*r
 		healthData.Error = err.Error()
 
 		// Update config status
-		s.updateHealthStatus(ctx, fpoID, "unhealthy")
+		s.updateHealthStatus(ctx, aaaOrgID, "unhealthy")
 
 		return healthData, nil
 	}
@@ -311,26 +294,22 @@ func (s *fpoConfigService) CheckERPHealth(ctx context.Context, fpoID string) (*r
 		healthData.Status = "healthy"
 
 		// Update config status
-		s.updateHealthStatus(ctx, fpoID, "healthy")
+		s.updateHealthStatus(ctx, aaaOrgID, "healthy")
 	} else {
 		healthData.Status = "unhealthy"
 		healthData.Error = fmt.Sprintf("HTTP status: %d", resp.StatusCode)
 
 		// Update config status
-		s.updateHealthStatus(ctx, fpoID, "unhealthy")
+		s.updateHealthStatus(ctx, aaaOrgID, "unhealthy")
 	}
 
 	return healthData, nil
 }
 
 // updateHealthStatus updates the health status of FPO config
-func (s *fpoConfigService) updateHealthStatus(ctx context.Context, fpoID string, status string) {
-	filter := base.NewFilterBuilder().
-		Where("fpo_id", base.OpEqual, fpoID).
-		Where("deleted_at", base.OpIsNull, nil).
-		Build()
-
-	config, err := s.repo.FindOne(ctx, filter)
+func (s *fpoConfigService) updateHealthStatus(ctx context.Context, aaaOrgID string, status string) {
+	config := &fpo_config.FPOConfig{}
+	config, err := s.repo.GetByID(ctx, aaaOrgID, config)
 	if err != nil {
 		return
 	}
@@ -355,7 +334,7 @@ func (s *fpoConfigService) toResponseData(config *fpo_config.FPOConfig) *respons
 
 	return &responses.FPOConfigData{
 		ID:              config.ID,
-		FPOID:           config.FPOID,
+		AAAOrgID:        config.AAAOrgID,
 		FPOName:         config.FPOName,
 		ERPBaseURL:      config.ERPBaseURL,
 		ERPAPIVersion:   config.ERPAPIVersion,

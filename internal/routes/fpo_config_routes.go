@@ -18,26 +18,47 @@ func RegisterFPOConfigRoutes(api *gin.RouterGroup, services *services.ServiceFac
 	authenticationMW := middleware.AuthenticationMiddleware(services.AAAService, logger)
 	authorizationMW := middleware.AuthorizationMiddleware(services.AAAService, logger)
 
-	// FPO Config routes group
-	fpoConfigGroup := api.Group("/fpo-config")
-	fpoConfigGroup.Use(authenticationMW, authorizationMW) // Apply auth to all FPO config routes
+	// FPO Config routes - nested under /fpo/:aaa_org_id/configuration
+	fpoGroup := api.Group("/fpo")
+	fpoGroup.Use(authenticationMW, authorizationMW) // Apply auth to all FPO routes
 	{
-		// GET /api/v1/fpo-config/:fpo_id - Get FPO config
-		fpoConfigGroup.GET("/:fpo_id", handler.GetFPOConfig)
+		// GET /api/v1/fpo/:aaa_org_id/configuration - Get FPO config
+		fpoGroup.GET("/:aaa_org_id/configuration", handler.GetFPOConfig)
 
-		// GET /api/v1/fpo-config/:fpo_id/health - Check ERP health
-		fpoConfigGroup.GET("/:fpo_id/health", handler.CheckERPHealth)
+		// GET /api/v1/fpo/:aaa_org_id/configuration/health - Check ERP health
+		fpoGroup.GET("/:aaa_org_id/configuration/health", handler.CheckERPHealth)
 
+		// PUT /api/v1/fpo/:aaa_org_id/configuration - Update FPO config
+		fpoGroup.PUT("/:aaa_org_id/configuration", handler.UpdateFPOConfig)
+
+		// DELETE /api/v1/fpo/:aaa_org_id/configuration - Delete FPO config (admin only)
+		fpoGroup.DELETE("/:aaa_org_id/configuration", handler.DeleteFPOConfig)
+	}
+
+	// Admin routes for FPO config management
+	fpoConfigAdminGroup := api.Group("/fpo-config")
+	fpoConfigAdminGroup.Use(authenticationMW, authorizationMW)
+	{
 		// GET /api/v1/fpo-config - List all FPO configs (admin only)
-		fpoConfigGroup.GET("", handler.ListFPOConfigs)
+		fpoConfigAdminGroup.GET("", handler.ListFPOConfigs)
 
 		// POST /api/v1/fpo-config - Create FPO config (admin only)
-		fpoConfigGroup.POST("", handler.CreateFPOConfig)
+		fpoConfigAdminGroup.POST("", handler.CreateFPOConfig)
 
-		// PUT /api/v1/fpo-config/:fpo_id - Update FPO config (admin only)
-		fpoConfigGroup.PUT("/:fpo_id", handler.UpdateFPOConfig)
+		// Legacy routes for backward compatibility
+		// GET /api/v1/fpo-config/:aaa_org_id - Get FPO config (legacy)
+		fpoConfigAdminGroup.GET("/:aaa_org_id", handler.GetFPOConfig)
 
-		// DELETE /api/v1/fpo-config/:fpo_id - Delete FPO config (admin only)
-		fpoConfigGroup.DELETE("/:fpo_id", handler.DeleteFPOConfig)
+		// POST /api/v1/fpo-config/:aaa_org_id - Create FPO config with ID in path
+		fpoConfigAdminGroup.POST("/:aaa_org_id", handler.CreateFPOConfigWithID)
+
+		// GET /api/v1/fpo-config/:aaa_org_id/health - Check ERP health (legacy)
+		fpoConfigAdminGroup.GET("/:aaa_org_id/health", handler.CheckERPHealth)
+
+		// PUT /api/v1/fpo-config/:aaa_org_id - Update FPO config (legacy)
+		fpoConfigAdminGroup.PUT("/:aaa_org_id", handler.UpdateFPOConfig)
+
+		// DELETE /api/v1/fpo-config/:aaa_org_id - Delete FPO config (legacy)
+		fpoConfigAdminGroup.DELETE("/:aaa_org_id", handler.DeleteFPOConfig)
 	}
 }
