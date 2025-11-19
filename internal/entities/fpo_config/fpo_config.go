@@ -61,15 +61,18 @@ func (f *FPOConfig) Validate() error {
 
 // BeforeCreate is a GORM hook that syncs ID with AAAOrgID before creating
 func (f *FPOConfig) BeforeCreate() error {
-	if f.AAAOrgID != "" {
+	// Set ID to AAAOrgID if not already set
+	// This ensures the config can be looked up by the organization ID
+	if f.AAAOrgID != "" && f.ID == "" {
 		f.ID = f.AAAOrgID
 	}
 	return nil
 }
 
-// BeforeUpdate is a GORM hook that syncs ID with AAAOrgID before updating
+// BeforeUpdate is a GORM hook that ensures ID stays synced with AAAOrgID
 func (f *FPOConfig) BeforeUpdate() error {
-	if f.AAAOrgID != "" {
+	// Maintain ID-AAAOrgID sync on updates
+	if f.AAAOrgID != "" && f.ID != f.AAAOrgID {
 		f.ID = f.AAAOrgID
 	}
 	return nil

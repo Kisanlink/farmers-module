@@ -127,6 +127,10 @@ func (s *fpoConfigService) CreateFPOConfig(ctx context.Context, req *requests.Cr
 		SyncInterval:    req.SyncInterval,
 	}
 
+	// Explicitly set ID to AAAOrgID for lookups
+	// This ensures config can be found by organization ID
+	config.ID = req.AAAOrgID
+
 	// Validate entity
 	if err := config.Validate(); err != nil {
 		return nil, err
