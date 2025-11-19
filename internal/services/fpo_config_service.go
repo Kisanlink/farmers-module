@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/entities/fpo_config"
@@ -11,6 +13,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/pkg/common"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
+	"gorm.io/gorm"
 )
 
 // FPOConfigService defines the interface for FPO configuration operations
@@ -56,7 +59,16 @@ func (s *fpoConfigService) GetFPOConfig(ctx context.Context, aaaOrgID string) (*
 	config := &fpo_config.FPOConfig{}
 	config, err := s.repo.GetByID(ctx, aaaOrgID, config)
 	if err != nil {
-		if err == common.ErrNotFound {
+		// Check if this is a "not found" error using multiple methods
+		// 1. Check if it's GORM's ErrRecordNotFound
+		// 2. Check if it's wrapped common.ErrNotFound
+		// 3. Check if error message contains "not found" or "record not found"
+		isNotFound := errors.Is(err, gorm.ErrRecordNotFound) ||
+			errors.Is(err, common.ErrNotFound) ||
+			strings.Contains(err.Error(), "not found") ||
+			strings.Contains(err.Error(), "record not found")
+
+		if isNotFound {
 			// Return default config instead of error
 			// This allows the frontend to know the FPO exists but has no configuration yet
 			metadata := make(map[string]interface{})
