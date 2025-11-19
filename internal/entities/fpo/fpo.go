@@ -126,6 +126,23 @@ type FPORef struct {
 	ParentFPOID *string `json:"parent_fpo_id" gorm:"type:varchar(255)"`
 }
 
+// NewFPORef creates a new FPO reference with proper initialization
+// This ensures ID is set correctly from the start for consistency
+func NewFPORef(aaaOrgID string) *FPORef {
+	return &FPORef{
+		BaseModel: base.BaseModel{
+			Model: base.Model{
+				ID: aaaOrgID, // Set ID to aaa_org_id for lookups
+			},
+		},
+		AAAOrgID:       aaaOrgID,
+		Status:         FPOStatusDraft,               // Default status
+		BusinessConfig: make(map[string]interface{}), // Initialize empty map
+		Metadata:       make(map[string]interface{}), // Initialize empty map
+		SetupAttempts:  0,                            // Initialize to 0
+	}
+}
+
 // TableName returns the table name for the FPORef model
 func (f *FPORef) TableName() string {
 	return "fpo_refs"

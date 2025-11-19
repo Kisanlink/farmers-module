@@ -113,23 +113,18 @@ func (s *fpoConfigService) CreateFPOConfig(ctx context.Context, req *requests.Cr
 		return nil, fmt.Errorf("%w: FPO config already exists for aaa_org_id: %s", common.ErrAlreadyExists, req.AAAOrgID)
 	}
 
-	// Create FPO config entity
-	config := &fpo_config.FPOConfig{
-		AAAOrgID:        req.AAAOrgID,
-		FPOName:         req.FPOName,
-		ERPBaseURL:      req.ERPBaseURL,
-		ERPAPIVersion:   req.ERPAPIVersion,
-		Features:        req.Features,
-		Contact:         req.Contact,
-		BusinessHours:   req.BusinessHours,
-		Metadata:        make(map[string]interface{}),
-		APIHealthStatus: "unknown",
-		SyncInterval:    req.SyncInterval,
-	}
+	// Create FPO config entity using constructor
+	// Constructor ensures ID is set correctly from the start
+	config := fpo_config.NewFPOConfig(req.AAAOrgID)
 
-	// Explicitly set ID to AAAOrgID for lookups
-	// This ensures config can be found by organization ID
-	config.ID = req.AAAOrgID
+	// Set user-provided fields
+	config.FPOName = req.FPOName
+	config.ERPBaseURL = req.ERPBaseURL
+	config.ERPAPIVersion = req.ERPAPIVersion
+	config.Features = req.Features
+	config.Contact = req.Contact
+	config.BusinessHours = req.BusinessHours
+	config.SyncInterval = req.SyncInterval
 
 	// Validate entity
 	if err := config.Validate(); err != nil {

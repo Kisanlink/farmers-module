@@ -206,14 +206,13 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 	}
 
 	// Step 7: Store FPO reference in local database
-	fpoRef := &fpo.FPORef{
-		AAAOrgID:       aaaOrgID,
-		Name:           createReq.Name,
-		RegistrationNo: createReq.RegistrationNo,
-		Status:         fpoStatus,
-		BusinessConfig: createReq.BusinessConfig,
-		SetupErrors:    setupErrors,
-	}
+	// Use constructor to ensure ID is properly initialized
+	fpoRef := fpo.NewFPORef(aaaOrgID)
+	fpoRef.Name = createReq.Name
+	fpoRef.RegistrationNo = createReq.RegistrationNo
+	fpoRef.Status = fpoStatus
+	fpoRef.BusinessConfig = createReq.BusinessConfig
+	fpoRef.SetupErrors = setupErrors
 
 	err = s.fpoRefRepo.Create(ctx, fpoRef)
 	if err != nil {
@@ -285,14 +284,13 @@ func (s *FPOServiceImpl) RegisterFPORef(ctx context.Context, req interface{}) (i
 		return nil, fmt.Errorf("FPO reference already exists for organization ID: %s", registerReq.AAAOrgID)
 	}
 
-	// Create FPO reference
-	fpoRef := &fpo.FPORef{
-		AAAOrgID:       registerReq.AAAOrgID,
-		Name:           registerReq.Name,
-		RegistrationNo: registerReq.RegistrationNo,
-		Status:         "ACTIVE",
-		BusinessConfig: registerReq.BusinessConfig,
-	}
+	// Create FPO reference using constructor
+	// Constructor ensures ID is properly initialized
+	fpoRef := fpo.NewFPORef(registerReq.AAAOrgID)
+	fpoRef.Name = registerReq.Name
+	fpoRef.RegistrationNo = registerReq.RegistrationNo
+	fpoRef.Status = fpo.FPOStatusActive
+	fpoRef.BusinessConfig = registerReq.BusinessConfig
 
 	err = s.fpoRefRepo.Create(ctx, fpoRef)
 	if err != nil {

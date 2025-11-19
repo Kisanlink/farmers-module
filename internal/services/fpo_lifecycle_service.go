@@ -63,13 +63,12 @@ func (s *FPOLifecycleService) SyncFPOFromAAA(ctx context.Context, aaaOrgID strin
 		metadata = m
 	}
 
-	// Create local reference
-	fpoRef := &fpo.FPORef{
-		AAAOrgID: aaaOrgID,
-		Name:     name,
-		Status:   fpo.FPOStatusActive, // Assume active if exists in AAA
-		Metadata: metadata,
-	}
+	// Create local reference using constructor
+	// Constructor ensures ID is properly initialized
+	fpoRef := fpo.NewFPORef(aaaOrgID)
+	fpoRef.Name = name
+	fpoRef.Status = fpo.FPOStatusActive // Assume active if exists in AAA
+	fpoRef.Metadata = metadata
 
 	// Try to extract registration number if available
 	if regNo, ok := orgMap["registration_number"].(string); ok {

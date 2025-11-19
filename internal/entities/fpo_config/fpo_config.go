@@ -26,6 +26,26 @@ type FPOConfig struct {
 	SyncInterval    int            `json:"sync_interval_minutes" gorm:"type:integer;default:5"`
 }
 
+// NewFPOConfig creates a new FPO configuration with proper initialization
+// This ensures ID is set correctly from the start for consistency
+func NewFPOConfig(aaaOrgID string) *FPOConfig {
+	return &FPOConfig{
+		BaseModel: base.BaseModel{
+			Model: base.Model{
+				ID: aaaOrgID, // Set ID to aaa_org_id for lookups
+			},
+		},
+		AAAOrgID:        aaaOrgID,
+		ERPAPIVersion:   "v1",                         // Default version
+		Features:        make(map[string]interface{}), // Initialize empty map
+		Contact:         make(map[string]interface{}), // Initialize empty map
+		BusinessHours:   make(map[string]interface{}), // Initialize empty map
+		Metadata:        make(map[string]interface{}), // Initialize empty map
+		APIHealthStatus: "unknown",                    // Default status
+		SyncInterval:    30,                           // Default 30 minutes
+	}
+}
+
 // TableName returns the table name for the FPOConfig model
 func (f *FPOConfig) TableName() string {
 	return "fpo_configs"
