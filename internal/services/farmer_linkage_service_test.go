@@ -18,7 +18,7 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 	tests := []struct {
 		name          string
 		request       *requests.LinkFarmerRequest
-		setupMocks    func(*MockFarmerLinkageRepoShared, *MockAAAServiceShared)
+		setupMocks    func(*MockFarmerLinkageRepoShared, *MockFarmerRepository, *MockAAAServiceShared)
 		expectedError string
 		shouldSucceed bool
 	}{
@@ -32,12 +32,17 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 				AAAUserID: "user123",
 				AAAOrgID:  "org456",
 			},
-			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
+			setupMocks: func(repo *MockFarmerLinkageRepoShared, farmerRepo *MockFarmerRepository, aaa *MockAAAServiceShared) {
 				// Permission check passes
 				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				// User and org exist
 				aaa.On("GetUser", mock.Anything, "user123").Return(map[string]interface{}{"id": "user123"}, nil)
 				aaa.On("GetOrganization", mock.Anything, "org456").Return(map[string]interface{}{"id": "org456"}, nil)
+				// Farmer exists in local database
+				farmerRepo.On("FindOne", mock.Anything, mock.Anything).Return(&farmerentity.Farmer{
+					AAAUserID: "user123",
+					AAAOrgID:  "org456",
+				}, nil)
 				// No existing link
 				repo.On("Find", mock.Anything, mock.Anything).Return([]*farmerentity.FarmerLink{}, nil)
 				// Create succeeds
@@ -55,7 +60,7 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 				AAAUserID: "",
 				AAAOrgID:  "org456",
 			},
-			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
+			setupMocks: func(repo *MockFarmerLinkageRepoShared, farmerRepo *MockFarmerRepository, aaa *MockAAAServiceShared) {
 				// No mocks needed as validation should fail early
 			},
 			expectedError: "aaa_user_id and aaa_org_id are required",
@@ -70,7 +75,7 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 				AAAUserID: "user123",
 				AAAOrgID:  "org456",
 			},
-			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
+			setupMocks: func(repo *MockFarmerLinkageRepoShared, farmerRepo *MockFarmerRepository, aaa *MockAAAServiceShared) {
 				// Permission check fails
 				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false, nil)
 			},
@@ -86,13 +91,34 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 				AAAUserID: "user123",
 				AAAOrgID:  "org456",
 			},
-			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
+			setupMocks: func(repo *MockFarmerLinkageRepoShared, farmerRepo *MockFarmerRepository, aaa *MockAAAServiceShared) {
 				// Permission check passes
 				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				// User not found
 				aaa.On("GetUser", mock.Anything, "user123").Return(nil, errors.New("user not found"))
 			},
 			expectedError: "farmer not found in AAA service",
+		},
+		{
+			name: "farmer not found in local database",
+			request: &requests.LinkFarmerRequest{
+				BaseRequest: requests.BaseRequest{
+					UserID: "admin123",
+					OrgID:  "org456",
+				},
+				AAAUserID: "user123",
+				AAAOrgID:  "org456",
+			},
+			setupMocks: func(repo *MockFarmerLinkageRepoShared, farmerRepo *MockFarmerRepository, aaa *MockAAAServiceShared) {
+				// Permission check passes
+				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
+				// User and org exist in AAA
+				aaa.On("GetUser", mock.Anything, "user123").Return(map[string]interface{}{"id": "user123"}, nil)
+				aaa.On("GetOrganization", mock.Anything, "org456").Return(map[string]interface{}{"id": "org456"}, nil)
+				// Farmer not found in local database
+				farmerRepo.On("FindOne", mock.Anything, mock.Anything).Return(nil, errors.New("not found"))
+			},
+			expectedError: "farmer with aaa_user_id=user123 and aaa_org_id=org456 must be created before linking to FPO",
 		},
 		{
 			name: "reactivate existing inactive link",
@@ -104,12 +130,17 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 				AAAUserID: "user123",
 				AAAOrgID:  "org456",
 			},
-			setupMocks: func(repo *MockFarmerLinkageRepoShared, aaa *MockAAAServiceShared) {
+			setupMocks: func(repo *MockFarmerLinkageRepoShared, farmerRepo *MockFarmerRepository, aaa *MockAAAServiceShared) {
 				// Permission check passes
 				aaa.On("CheckPermission", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 				// User and org exist
 				aaa.On("GetUser", mock.Anything, "user123").Return(map[string]interface{}{"id": "user123"}, nil)
 				aaa.On("GetOrganization", mock.Anything, "org456").Return(map[string]interface{}{"id": "org456"}, nil)
+				// Farmer exists in local database
+				farmerRepo.On("FindOne", mock.Anything, mock.Anything).Return(&farmerentity.Farmer{
+					AAAUserID: "user123",
+					AAAOrgID:  "org456",
+				}, nil)
 				// Existing inactive link
 				existingLink := &farmerentity.FarmerLink{
 					AAAUserID: "user123",
@@ -127,12 +158,14 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := &MockFarmerLinkageRepoShared{}
+			mockFarmerRepo := &MockFarmerRepository{}
 			mockAAA := &MockAAAServiceShared{}
 
-			tt.setupMocks(mockRepo, mockAAA)
+			tt.setupMocks(mockRepo, mockFarmerRepo, mockAAA)
 
 			service := &FarmerLinkageServiceImpl{
 				farmerLinkageRepo: mockRepo,
+				farmerRepo:        mockFarmerRepo,
 				aaaService:        mockAAA,
 			}
 
@@ -157,6 +190,7 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 			}
 
 			mockRepo.AssertExpectations(t)
+			mockFarmerRepo.AssertExpectations(t)
 			mockAAA.AssertExpectations(t)
 		})
 	}

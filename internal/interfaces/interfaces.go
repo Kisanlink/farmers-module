@@ -64,7 +64,7 @@ type AAAService interface {
 	AssignPermissionToGroup(ctx context.Context, groupID, resource, action string) error
 
 	// System Management
-	SeedRolesAndPermissions(ctx context.Context) error
+	SeedRolesAndPermissions(ctx context.Context, force bool) error
 	HealthCheck(ctx context.Context) error
 }
 

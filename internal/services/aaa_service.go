@@ -29,7 +29,7 @@ type AAAClientInterface interface {
 	AssignPermissionToGroup(ctx context.Context, groupID, resource, action string) error
 	CheckPermission(ctx context.Context, subject, resource, action, object, orgID string) (bool, error)
 	ValidateToken(ctx context.Context, token string) (map[string]interface{}, error)
-	SeedRolesAndPermissions(ctx context.Context) error
+	SeedRolesAndPermissions(ctx context.Context, force bool) error
 	HealthCheck(ctx context.Context) error
 	Close() error
 }
@@ -65,13 +65,13 @@ func NewAAAService(cfg *config.Config) AAAService {
 }
 
 // SeedRolesAndPermissions implements W18: Seed roles and permissions
-func (s *AAAServiceImpl) SeedRolesAndPermissions(ctx context.Context) error {
+func (s *AAAServiceImpl) SeedRolesAndPermissions(ctx context.Context, force bool) error {
 	if s.client == nil {
 		log.Println("AAA client not available, skipping seeding")
 		return nil
 	}
 
-	return s.client.SeedRolesAndPermissions(ctx)
+	return s.client.SeedRolesAndPermissions(ctx, force)
 }
 
 // CheckPermission implements W19: Check permission

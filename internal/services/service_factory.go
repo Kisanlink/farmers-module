@@ -83,7 +83,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 
 	// Initialize identity services
 	farmerService := NewFarmerService(repoFactory.FarmerRepo, aaaService, cfg.AAA.DefaultPassword)
-	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo, aaaService)
+	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo, repoFactory.FarmerRepo, aaaService)
 	fpoService := NewFPOService(repoFactory.FPORefRepo, aaaService)
 
 	// Initialize FPO lifecycle service with enhanced repository

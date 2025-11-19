@@ -26,9 +26,13 @@ func NewFPORepository(dbManager interface{}) *FPORepository {
 	repo.SetDBManager(dbManager)
 	repo.auditRepo.SetDBManager(dbManager)
 
-	// Extract DB instance for transactions - adjust based on actual type
-	if dbMgr, ok := dbManager.(interface{ GetDB() *gorm.DB }); ok {
-		repo.db = dbMgr.GetDB()
+	// Get the GORM DB instance with proper interface signature
+	if postgresManager, ok := dbManager.(interface {
+		GetDB(context.Context, bool) (*gorm.DB, error)
+	}); ok {
+		if gormDB, err := postgresManager.GetDB(context.Background(), false); err == nil {
+			repo.db = gormDB
+		}
 	}
 
 	return repo
@@ -60,6 +64,10 @@ func (r *FPORepository) FindByRegistrationNo(ctx context.Context, registrationNo
 
 // FindByStatus finds all FPOs with a specific status
 func (r *FPORepository) FindByStatus(ctx context.Context, status fpo.FPOStatus) ([]*fpo.FPORef, error) {
+	if r.db == nil {
+		return nil, fmt.Errorf("database connection not available")
+	}
+
 	var results []*fpo.FPORef
 	err := r.db.WithContext(ctx).
 		Where("status = ? AND deleted_at IS NULL", string(status)).
@@ -69,6 +77,10 @@ func (r *FPORepository) FindByStatus(ctx context.Context, status fpo.FPOStatus) 
 
 // UpdateStatus updates the FPO status with audit logging
 func (r *FPORepository) UpdateStatus(ctx context.Context, fpoID string, newStatus fpo.FPOStatus, reason string, performedBy string) error {
+	if r.db == nil {
+		return fmt.Errorf("database connection not available")
+	}
+
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		var fpoRef fpo.FPORef
 		if err := tx.First(&fpoRef, "id = ?", fpoID).Error; err != nil {
@@ -116,6 +128,10 @@ func (r *FPORepository) UpdateStatus(ctx context.Context, fpoID string, newStatu
 
 // GetAuditHistory retrieves audit history for an FPO
 func (r *FPORepository) GetAuditHistory(ctx context.Context, fpoID string) ([]*fpo.FPOAuditLog, error) {
+	if r.db == nil {
+		return nil, fmt.Errorf("database connection not available")
+	}
+
 	var results []*fpo.FPOAuditLog
 	err := r.db.WithContext(ctx).
 		Where("fpo_id = ? AND deleted_at IS NULL", fpoID).
@@ -126,6 +142,10 @@ func (r *FPORepository) GetAuditHistory(ctx context.Context, fpoID string) ([]*f
 
 // IncrementSetupAttempt increments the setup attempt counter
 func (r *FPORepository) IncrementSetupAttempt(ctx context.Context, fpoID string) error {
+	if r.db == nil {
+		return fmt.Errorf("database connection not available")
+	}
+
 	return r.db.Model(&fpo.FPORef{}).
 		Where("id = ?", fpoID).
 		UpdateColumn("setup_attempts", gorm.Expr("setup_attempts + ?", 1)).

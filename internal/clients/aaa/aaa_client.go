@@ -952,12 +952,14 @@ func (c *Client) ValidateToken(ctx context.Context, token string) (map[string]in
 }
 
 // SeedRolesAndPermissions seeds roles and permissions in AAA
-func (c *Client) SeedRolesAndPermissions(ctx context.Context) error {
-	log.Println("AAA SeedRolesAndPermissions: Seeding roles and permissions")
+func (c *Client) SeedRolesAndPermissions(ctx context.Context, force bool) error {
+	log.Printf("AAA SeedRolesAndPermissions: Seeding roles and permissions (force=%v)", force)
 
 	// Create gRPC request
+	// ServiceId must match the service identifier in AAA's authorization config
 	grpcReq := &pb.SeedRolesAndPermissionsRequest{
-		Force: false, // Don't force reseed if data exists
+		Force:     force,
+		ServiceId: "farmers-module", // Explicitly set service identifier
 	}
 
 	// Call the AAA service

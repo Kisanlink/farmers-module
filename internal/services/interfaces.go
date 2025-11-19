@@ -121,7 +121,7 @@ type CropService interface {
 // AAAService handles AAA integration workflows
 type AAAService interface {
 	// W18: Seed roles and permissions
-	SeedRolesAndPermissions(ctx context.Context) error
+	SeedRolesAndPermissions(ctx context.Context, force bool) error
 	// W19: Check permission (for RPC interceptor)
 	CheckPermission(ctx context.Context, subject, resource, action, object, orgID string) (bool, error)
 

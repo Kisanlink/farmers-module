@@ -32,8 +32,8 @@ func (m *MockAAAService) CheckPermission(ctx context.Context, subject, resource,
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockAAAService) SeedRolesAndPermissions(ctx context.Context) error {
-	args := m.Called(ctx)
+func (m *MockAAAService) SeedRolesAndPermissions(ctx context.Context, force bool) error {
+	args := m.Called(ctx, force)
 	return args.Error(0)
 }
 

@@ -237,8 +237,8 @@ func (m *MockAAAServiceShared) ValidateToken(ctx context.Context, token string) 
 	return args.Get(0).(*interfaces.UserInfo), args.Error(1)
 }
 
-func (m *MockAAAServiceShared) SeedRolesAndPermissions(ctx context.Context) error {
-	args := m.Called(ctx)
+func (m *MockAAAServiceShared) SeedRolesAndPermissions(ctx context.Context, force bool) error {
+	args := m.Called(ctx, force)
 	return args.Error(0)
 }
 

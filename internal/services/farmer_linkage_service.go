@@ -19,16 +19,24 @@ type FarmerLinkRepository interface {
 	Find(ctx context.Context, filter *base.Filter) ([]*farmerentity.FarmerLink, error)
 }
 
+// FarmerRepository defines the interface for farmer repository operations
+type FarmerRepository interface {
+	Create(ctx context.Context, entity *farmerentity.Farmer) error
+	FindOne(ctx context.Context, filter *base.Filter) (*farmerentity.Farmer, error)
+}
+
 // FarmerLinkageServiceImpl implements FarmerLinkageService
 type FarmerLinkageServiceImpl struct {
 	farmerLinkageRepo FarmerLinkRepository
+	farmerRepo        FarmerRepository
 	aaaService        AAAService
 }
 
 // NewFarmerLinkageService creates a new farmer linkage service
-func NewFarmerLinkageService(farmerLinkageRepo FarmerLinkRepository, aaaService AAAService) FarmerLinkageService {
+func NewFarmerLinkageService(farmerLinkageRepo FarmerLinkRepository, farmerRepo FarmerRepository, aaaService AAAService) FarmerLinkageService {
 	return &FarmerLinkageServiceImpl{
 		farmerLinkageRepo: farmerLinkageRepo,
+		farmerRepo:        farmerRepo,
 		aaaService:        aaaService,
 	}
 }
@@ -71,6 +79,17 @@ func (s *FarmerLinkageServiceImpl) LinkFarmerToFPO(ctx context.Context, req inte
 		return fmt.Errorf("FPO not found in AAA service: %w", err)
 	}
 
+	// Verify farmer exists in local database (required for FK constraint)
+	farmerFilter := base.NewFilterBuilder().
+		Where("aaa_user_id", base.OpEqual, linkReq.AAAUserID).
+		Where("aaa_org_id", base.OpEqual, linkReq.AAAOrgID).
+		Build()
+
+	existingFarmer, err := s.farmerRepo.FindOne(ctx, farmerFilter)
+	if err != nil || existingFarmer == nil {
+		return fmt.Errorf("farmer with aaa_user_id=%s and aaa_org_id=%s must be created before linking to FPO", linkReq.AAAUserID, linkReq.AAAOrgID)
+	}
+
 	// Check if linkage already exists
 	existingLink, err := s.getFarmerLinkByUserAndOrg(ctx, linkReq.AAAUserID, linkReq.AAAOrgID)
 	if err == nil && existingLink != nil {
@@ -82,12 +101,11 @@ func (s *FarmerLinkageServiceImpl) LinkFarmerToFPO(ctx context.Context, req inte
 		return nil // Already linked and active
 	}
 
-	// Create new farmer link
-	farmerLink := &farmerentity.FarmerLink{
-		AAAUserID: linkReq.AAAUserID,
-		AAAOrgID:  linkReq.AAAOrgID,
-		Status:    "ACTIVE",
-	}
+	// Create new farmer link with proper ID generation
+	farmerLink := farmerentity.NewFarmerLink()
+	farmerLink.AAAUserID = linkReq.AAAUserID
+	farmerLink.AAAOrgID = linkReq.AAAOrgID
+	farmerLink.Status = "ACTIVE"
 
 	return s.farmerLinkageRepo.Create(ctx, farmerLink)
 }

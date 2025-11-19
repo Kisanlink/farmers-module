@@ -100,12 +100,12 @@ func main() {
 	seedCtx, seedCancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer seedCancel()
 
-	if err := serviceFactory.AAAService.SeedRolesAndPermissions(seedCtx); err != nil {
+	if err := serviceFactory.AAAService.SeedRolesAndPermissions(seedCtx, false); err != nil {
 		// Non-fatal: Log warning and continue
 		// Roles may already exist, or AAA service may be temporarily unavailable
 		log.Printf("Warning: Failed to seed AAA roles and permissions: %v", err)
 		log.Println("Application will continue, but role assignments may fail if roles don't exist")
-		log.Println("Use the /admin/seed-roles endpoint to manually trigger role seeding")
+		log.Println("Use the /admin/seed endpoint with force=true to manually trigger role reseeding")
 	} else {
 		log.Println("Successfully seeded AAA roles and permissions")
 	}

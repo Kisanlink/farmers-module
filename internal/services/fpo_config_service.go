@@ -57,7 +57,26 @@ func (s *fpoConfigService) GetFPOConfig(ctx context.Context, aaaOrgID string) (*
 	config, err := s.repo.GetByID(ctx, aaaOrgID, config)
 	if err != nil {
 		if err == common.ErrNotFound {
-			return nil, common.ErrNotFound
+			// Return default config instead of error
+			// This allows the frontend to know the FPO exists but has no configuration yet
+			metadata := make(map[string]interface{})
+			metadata["config_status"] = "not_configured"
+			metadata["message"] = "FPO configuration has not been set up yet"
+
+			return &responses.FPOConfigData{
+				ID:              aaaOrgID,
+				AAAOrgID:        aaaOrgID,
+				FPOName:         "",
+				ERPBaseURL:      "",
+				ERPAPIVersion:   "",
+				Features:        make(map[string]interface{}),
+				Contact:         make(map[string]interface{}),
+				BusinessHours:   make(map[string]interface{}),
+				Metadata:        metadata,
+				APIHealthStatus: "not_configured",
+				LastSyncedAt:    nil,
+				SyncInterval:    0,
+			}, nil
 		}
 		return nil, fmt.Errorf("failed to fetch FPO config: %w", err)
 	}

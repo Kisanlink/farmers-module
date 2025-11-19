@@ -897,7 +897,7 @@ func TestSeedRolesAndPermissions_NotImplemented(t *testing.T) {
 
 	mockCatalogClient.On("SeedRolesAndPermissions", ctx, mock.AnythingOfType("*pb.SeedRolesAndPermissionsRequest")).Return(expectedResponse, nil)
 
-	err := client.SeedRolesAndPermissions(ctx)
+	err := client.SeedRolesAndPermissions(ctx, false)
 
 	assert.NoError(t, err)
 	mockCatalogClient.AssertExpectations(t)

@@ -120,8 +120,8 @@ func (m *MockAAAClient) ValidateToken(ctx context.Context, token string) (map[st
 	return args.Get(0).(map[string]interface{}), args.Error(1)
 }
 
-func (m *MockAAAClient) SeedRolesAndPermissions(ctx context.Context) error {
-	args := m.Called(ctx)
+func (m *MockAAAClient) SeedRolesAndPermissions(ctx context.Context, force bool) error {
+	args := m.Called(ctx, force)
 	return args.Error(0)
 }
 
@@ -338,9 +338,9 @@ func TestAAAService_SeedRolesAndPermissions_Success(t *testing.T) {
 	service := createTestAAAService(mockClient)
 	ctx := context.Background()
 
-	mockClient.On("SeedRolesAndPermissions", ctx).Return(nil)
+	mockClient.On("SeedRolesAndPermissions", ctx, false).Return(nil)
 
-	err := service.SeedRolesAndPermissions(ctx)
+	err := service.SeedRolesAndPermissions(ctx, false)
 
 	assert.NoError(t, err)
 	mockClient.AssertExpectations(t)
@@ -353,7 +353,7 @@ func TestAAAService_SeedRolesAndPermissions_ClientUnavailable(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	err := service.SeedRolesAndPermissions(ctx)
+	err := service.SeedRolesAndPermissions(ctx, false)
 
 	assert.NoError(t, err) // Should not error when client unavailable
 }

@@ -56,9 +56,16 @@ var RoutePermissionMap = map[string]Permission{
 	"GET /api/v1/kisansathi":                                 {Resource: "kisansathi", Action: "list"},
 
 	// Identity - FPO routes
-	"POST /api/v1/identity/fpo/create":       {Resource: "fpo", Action: "create"},
-	"POST /api/v1/identity/fpo/register":     {Resource: "fpo", Action: "create"},
-	"GET /api/v1/identity/fpo/reference/:id": {Resource: "fpo", Action: "read"},
+	"POST /api/v1/identity/fpo/create":           {Resource: "fpo", Action: "create"},
+	"POST /api/v1/identity/fpo/register":         {Resource: "fpo", Action: "create"},
+	"GET /api/v1/identity/fpo/reference/:id":     {Resource: "fpo", Action: "read"},
+	"GET /api/v1/identity/fpo/:id/history":       {Resource: "fpo", Action: "read"},
+	"POST /api/v1/identity/fpo/sync/:id":         {Resource: "fpo", Action: "update"},
+	"GET /api/v1/identity/fpo/by-org/:id":        {Resource: "fpo", Action: "read"},
+	"POST /api/v1/identity/fpo/:id/retry-setup":  {Resource: "fpo", Action: "update"},
+	"PUT /api/v1/identity/fpo/:id/suspend":       {Resource: "fpo", Action: "update"},
+	"PUT /api/v1/identity/fpo/:id/reactivate":    {Resource: "fpo", Action: "update"},
+	"DELETE /api/v1/identity/fpo/:id/deactivate": {Resource: "fpo", Action: "delete"},
 
 	// Legacy FPO management routes
 	"POST /api/v1/fpos":       {Resource: "fpo", Action: "create"},
@@ -66,6 +73,19 @@ var RoutePermissionMap = map[string]Permission{
 	"PUT /api/v1/fpos/:id":    {Resource: "fpo", Action: "update"},
 	"DELETE /api/v1/fpos/:id": {Resource: "fpo", Action: "delete"},
 	"GET /api/v1/fpos":        {Resource: "fpo", Action: "list"},
+
+	// FPO Configuration routes
+	"GET /api/v1/fpo/:id/configuration":        {Resource: "fpo", Action: "read"},
+	"GET /api/v1/fpo/:id/configuration/health": {Resource: "fpo", Action: "read"},
+	"PUT /api/v1/fpo/:id/configuration":        {Resource: "fpo", Action: "update"},
+	"DELETE /api/v1/fpo/:id/configuration":     {Resource: "fpo", Action: "delete"},
+	"GET /api/v1/fpo-config":                   {Resource: "fpo", Action: "list"},
+	"POST /api/v1/fpo-config":                  {Resource: "fpo", Action: "create"},
+	"GET /api/v1/fpo-config/:id":               {Resource: "fpo", Action: "read"},
+	"POST /api/v1/fpo-config/:id":              {Resource: "fpo", Action: "create"},
+	"GET /api/v1/fpo-config/:id/health":        {Resource: "fpo", Action: "read"},
+	"PUT /api/v1/fpo-config/:id":               {Resource: "fpo", Action: "update"},
+	"DELETE /api/v1/fpo-config/:id":            {Resource: "fpo", Action: "delete"},
 
 	// Farmer linkage routes
 	"POST /api/v1/farmer-links":            {Resource: "farmer", Action: "link"},

@@ -173,7 +173,7 @@ func (m *MockFarmerService) CreateFarmer(ctx context.Context, farmer *farmer.Far
 // MockAAAService provides a mock AAA service implementation for testing
 type MockAAAService struct {
 	CheckPermissionFunc         func(ctx context.Context, subject, resource, action, object, orgID string) (bool, error)
-	SeedRolesAndPermissionsFunc func(ctx context.Context) error
+	SeedRolesAndPermissionsFunc func(ctx context.Context, force bool) error
 	CreateUserFunc              func(ctx context.Context, req interface{}) (interface{}, error)
 	GetUserFunc                 func(ctx context.Context, userID string) (interface{}, error)
 	GetUserByMobileFunc         func(ctx context.Context, mobileNumber string) (interface{}, error)
@@ -197,9 +197,9 @@ func (m *MockAAAService) CheckPermission(ctx context.Context, subject, resource,
 	return true, nil // Default: allow all permissions for tests
 }
 
-func (m *MockAAAService) SeedRolesAndPermissions(ctx context.Context) error {
+func (m *MockAAAService) SeedRolesAndPermissions(ctx context.Context, force bool) error {
 	if m.SeedRolesAndPermissionsFunc != nil {
-		return m.SeedRolesAndPermissionsFunc(ctx)
+		return m.SeedRolesAndPermissionsFunc(ctx, force)
 	}
 	return nil
 }

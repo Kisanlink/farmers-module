@@ -25,7 +25,7 @@ func TestAdministrativeService_Basic(t *testing.T) {
 	// Test SeedRolesAndPermissions
 	t.Run("SeedRolesAndPermissions", func(t *testing.T) {
 		// Set up mock expectation for SeedRolesAndPermissions
-		mockAAA.On("SeedRolesAndPermissions", context.Background()).Return(nil)
+		mockAAA.On("SeedRolesAndPermissions", context.Background(), false).Return(nil)
 
 		req := &requests.SeedRolesAndPermissionsRequest{
 			Force:  false,
@@ -87,7 +87,7 @@ func TestAdministrativeServiceWrapper_Basic(t *testing.T) {
 	// Test wrapper functionality
 	t.Run("SeedRolesAndPermissions via wrapper", func(t *testing.T) {
 		// Set up mock expectation for SeedRolesAndPermissions
-		mockAAA.On("SeedRolesAndPermissions", context.Background()).Return(nil)
+		mockAAA.On("SeedRolesAndPermissions", context.Background(), true).Return(nil)
 
 		req := map[string]interface{}{
 			"force":   true,

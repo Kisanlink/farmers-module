@@ -19,8 +19,8 @@ type MockAAAServiceForAdmin struct {
 	mock.Mock
 }
 
-func (m *MockAAAServiceForAdmin) SeedRolesAndPermissions(ctx context.Context) error {
-	args := m.Called(ctx)
+func (m *MockAAAServiceForAdmin) SeedRolesAndPermissions(ctx context.Context, force bool) error {
+	args := m.Called(ctx, force)
 	return args.Error(0)
 }
 
@@ -113,7 +113,7 @@ func TestAdministrativeService_SeedRolesAndPermissions(t *testing.T) {
 		{
 			name: "successful seeding",
 			setupMocks: func(mockAAA *MockAAAServiceForAdmin) {
-				mockAAA.On("SeedRolesAndPermissions", mock.Anything).Return(nil)
+				mockAAA.On("SeedRolesAndPermissions", mock.Anything, mock.Anything).Return(nil)
 			},
 			request: &requests.SeedRolesAndPermissionsRequest{
 				Force:  false,
@@ -125,7 +125,7 @@ func TestAdministrativeService_SeedRolesAndPermissions(t *testing.T) {
 		{
 			name: "seeding with force flag",
 			setupMocks: func(mockAAA *MockAAAServiceForAdmin) {
-				mockAAA.On("SeedRolesAndPermissions", mock.Anything).Return(nil)
+				mockAAA.On("SeedRolesAndPermissions", mock.Anything, mock.Anything).Return(nil)
 			},
 			request: &requests.SeedRolesAndPermissionsRequest{
 				Force:  true,
@@ -137,7 +137,7 @@ func TestAdministrativeService_SeedRolesAndPermissions(t *testing.T) {
 		{
 			name: "seeding failure",
 			setupMocks: func(mockAAA *MockAAAServiceForAdmin) {
-				mockAAA.On("SeedRolesAndPermissions", mock.Anything).Return(errors.New("AAA service error"))
+				mockAAA.On("SeedRolesAndPermissions", mock.Anything, mock.Anything).Return(errors.New("AAA service error"))
 			},
 			request: &requests.SeedRolesAndPermissionsRequest{
 				Force:  false,

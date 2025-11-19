@@ -58,8 +58,8 @@ func NewAdministrativeService(
 func (s *AdministrativeServiceImpl) SeedRolesAndPermissions(ctx context.Context, req *requests.SeedRolesAndPermissionsRequest) (*responses.SeedRolesAndPermissionsResponse, error) {
 	startTime := time.Now()
 
-	// Call AAA service to seed roles and permissions
-	err := s.aaaService.SeedRolesAndPermissions(ctx)
+	// Call AAA service to seed roles and permissions with force flag
+	err := s.aaaService.SeedRolesAndPermissions(ctx, req.Force)
 	if err != nil {
 		return &responses.SeedRolesAndPermissionsResponse{
 			Success:   false,
@@ -70,9 +70,14 @@ func (s *AdministrativeServiceImpl) SeedRolesAndPermissions(ctx context.Context,
 		}, fmt.Errorf("failed to seed roles and permissions: %w", err)
 	}
 
+	message := "Roles and permissions seeded successfully"
+	if req.Force {
+		message = "Roles and permissions re-seeded successfully (forced)"
+	}
+
 	return &responses.SeedRolesAndPermissionsResponse{
 		Success:   true,
-		Message:   "Roles and permissions seeded successfully",
+		Message:   message,
 		Duration:  time.Since(startTime),
 		Timestamp: time.Now(),
 	}, nil

@@ -29,10 +29,11 @@ func (suite *AdministrativeServiceIntegrationTestSuite) SetupSuite() {
 	suite.db = db
 
 	// Create mock AAA service
-	mockAAA := &MockAAAService{}
+	mockAAA := &MockAAAServiceShared{}
 
 	// Setup default mock behaviors
-	mockAAA.On("SeedRolesAndPermissions", context.Background()).Return(nil)
+	mockAAA.On("SeedRolesAndPermissions", context.Background(), false).Return(nil)
+	mockAAA.On("SeedRolesAndPermissions", context.Background(), true).Return(nil)
 	mockAAA.On("HealthCheck", context.Background()).Return(nil)
 
 	// Create service
@@ -213,8 +214,8 @@ func (suite *AdministrativeServiceIntegrationTestSuite) TestHealthCheck_Componen
 func (suite *AdministrativeServiceIntegrationTestSuite) TestSeedRolesAndPermissions_ErrorHandling() {
 	suite.Run("handle AAA service errors", func() {
 		// Create a service with a failing AAA service
-		mockAAA := &MockAAAService{}
-		mockAAA.On("SeedRolesAndPermissions", context.Background()).Return(assert.AnError)
+		mockAAA := &MockAAAServiceShared{}
+		mockAAA.On("SeedRolesAndPermissions", context.Background(), false).Return(assert.AnError)
 
 		concreteFailingService := NewAdministrativeService(nil, suite.db, mockAAA, nil, nil)
 		failingService := NewAdministrativeServiceWrapper(concreteFailingService)

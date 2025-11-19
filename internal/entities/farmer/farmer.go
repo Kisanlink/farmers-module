@@ -31,6 +31,15 @@ func (fl *FarmerLink) GetTableSize() hash.TableSize {
 	return hash.Medium
 }
 
+// NewFarmerLink creates a new farmer link with proper initialization
+func NewFarmerLink() *FarmerLink {
+	baseModel := base.NewBaseModel("FMLK", hash.Medium)
+	return &FarmerLink{
+		BaseModel: *baseModel,
+		Status:    "ACTIVE",
+	}
+}
+
 // FarmerProfile represents a farmer's profile with linked farms
 type FarmerProfile struct {
 	AAAUserID        string  `json:"aaa_user_id"`
