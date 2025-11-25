@@ -26,9 +26,10 @@ type FarmerService interface {
 
 // FarmerServiceImpl implements FarmerService
 type FarmerServiceImpl struct {
-	repository      *farmer.FarmerRepository
-	aaaService      AAAService
-	defaultPassword string
+	repository       *farmer.FarmerRepository
+	aaaService       AAAService
+	fpoConfigService FPOConfigService
+	defaultPassword  string
 }
 
 // NewFarmerService creates a new farmer service with repository, AAA service, and default password
@@ -37,6 +38,16 @@ func NewFarmerService(repository *farmer.FarmerRepository, aaaService AAAService
 		repository:      repository,
 		aaaService:      aaaService,
 		defaultPassword: defaultPassword,
+	}
+}
+
+// NewFarmerServiceWithFPOConfig creates a new farmer service with FPO config service
+func NewFarmerServiceWithFPOConfig(repository *farmer.FarmerRepository, aaaService AAAService, fpoConfigService FPOConfigService, defaultPassword string) FarmerService {
+	return &FarmerServiceImpl{
+		repository:       repository,
+		aaaService:       aaaService,
+		fpoConfigService: fpoConfigService,
+		defaultPassword:  defaultPassword,
 	}
 }
 
@@ -276,6 +287,25 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 	// Save to repository
 	if err := s.repository.Create(ctx, farmer); err != nil {
 		return nil, fmt.Errorf("failed to create farmer: %w", err)
+	}
+
+	// Link FPO configuration if requested
+	if req.LinkFPOConfig && s.fpoConfigService != nil {
+		if err := s.linkFPOConfigToFarmer(ctx, farmer, aaaOrgID); err != nil {
+			// Log warning but don't fail farmer creation
+			log.Printf("Warning: Failed to link FPO config to farmer %s: %v", aaaUserID, err)
+			if farmer.Metadata == nil {
+				farmer.Metadata = make(entities.JSONB)
+			}
+			farmer.Metadata["fpo_config_link_error"] = err.Error()
+			farmer.Metadata["fpo_config_link_pending"] = "true"
+			farmer.Metadata["fpo_config_link_attempted_at"] = time.Now().Format(time.RFC3339)
+
+			// Best-effort metadata update (non-fatal if fails)
+			if updateErr := s.repository.Update(ctx, farmer); updateErr != nil {
+				log.Printf("Error: Failed to store FPO config link failure metadata: %v", updateErr)
+			}
+		}
 	}
 
 	// Ensure farmer role is assigned (best-effort with retry)
@@ -745,5 +775,43 @@ func (s *FarmerServiceImpl) ensureFarmerRole(ctx context.Context, userID, orgID 
 	}
 
 	log.Printf("Successfully assigned and verified farmer role for user %s", userID)
+	return nil
+}
+
+// linkFPOConfigToFarmer links FPO configuration to farmer by adding metadata
+func (s *FarmerServiceImpl) linkFPOConfigToFarmer(ctx context.Context, farmer *farmerentity.Farmer, aaaOrgID string) error {
+	// Verify FPO config service is available
+	if s.fpoConfigService == nil {
+		return fmt.Errorf("FPO config service not available")
+	}
+
+	// Check if FPO config exists for this organization
+	fpoConfig, err := s.fpoConfigService.GetFPOConfig(ctx, aaaOrgID)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve FPO config for org %s: %w", aaaOrgID, err)
+	}
+
+	// If config exists but is not configured, skip linking
+	if fpoConfig.APIHealthStatus == "not_configured" {
+		log.Printf("FPO config not configured for org %s, skipping link", aaaOrgID)
+		return fmt.Errorf("FPO config not configured for org %s", aaaOrgID)
+	}
+
+	// Add FPO config metadata to farmer
+	if farmer.Metadata == nil {
+		farmer.Metadata = make(entities.JSONB)
+	}
+
+	farmer.Metadata["fpo_config_linked"] = true
+	farmer.Metadata["fpo_config_id"] = fpoConfig.ID
+	farmer.Metadata["fpo_name"] = fpoConfig.FPOName
+	farmer.Metadata["fpo_config_linked_at"] = time.Now().Format(time.RFC3339)
+
+	// Update farmer with metadata
+	if err := s.repository.Update(ctx, farmer); err != nil {
+		return fmt.Errorf("failed to update farmer with FPO config metadata: %w", err)
+	}
+
+	log.Printf("Successfully linked FPO config %s to farmer %s", fpoConfig.ID, farmer.GetID())
 	return nil
 }

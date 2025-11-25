@@ -11,7 +11,8 @@ type CreateFarmerRequest struct {
 	AAAUserID        string            `json:"aaa_user_id,omitempty" example:"USER00000001"`          // Optional: AAA User ID (if known)
 	AAAOrgID         string            `json:"aaa_org_id" validate:"required" example:"ORGN00000001"` // Required: AAA Org ID
 	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"USER00000002"`
-	Profile          FarmerProfileData `json:"profile" validate:"required"` // Required: Farmer profile (must include country_code + phone_number if aaa_user_id not provided)
+	LinkFPOConfig    bool              `json:"link_fpo_config,omitempty" example:"false"` // Optional: Link FPO configuration to farmer (default: false)
+	Profile          FarmerProfileData `json:"profile" validate:"required"`               // Required: Farmer profile (must include country_code + phone_number if aaa_user_id not provided)
 }
 
 // UpdateFarmerRequest represents a request to update an existing farmer

@@ -60,6 +60,8 @@ func NewFarmerHandler(farmerService services.FarmerService, logger interfaces.Lo
 // @Description Create a new farmer profile. Supports two workflows:
 // @Description 1. **Existing AAA User**: Provide aaa_user_id + aaa_org_id to link an existing AAA user
 // @Description 2. **New AAA User**: Provide country_code + phone_number + aaa_org_id to auto-create/find AAA user. If user exists (conflict), retrieves existing user ID and proceeds with farmer profile creation.
+// @Description
+// @Description **FPO Configuration Linking**: Set link_fpo_config=true to link the farmer to the FPO's configuration. This adds FPO metadata to the farmer profile for integration purposes.
 // @Tags identity
 // @Accept json
 // @Produce json

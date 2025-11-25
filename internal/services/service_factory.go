@@ -81,16 +81,18 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	// Initialize AAA service
 	aaaService := NewAAAService(cfg)
 
+	// Initialize FPO config service first (needed by farmer service)
+	fpoConfigService := NewFPOConfigService(repoFactory.FPOConfigRepo)
+
 	// Initialize identity services
-	farmerService := NewFarmerService(repoFactory.FarmerRepo, aaaService, cfg.AAA.DefaultPassword)
+	// Use NewFarmerServiceWithFPOConfig to enable FPO config linking
+	farmerService := NewFarmerServiceWithFPOConfig(repoFactory.FarmerRepo, aaaService, fpoConfigService, cfg.AAA.DefaultPassword)
 	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo, repoFactory.FarmerRepo, aaaService)
 	fpoService := NewFPOService(repoFactory.FPORefRepo, aaaService)
 
 	// Initialize FPO lifecycle service with enhanced repository
 	fpoRepo := repofpo.NewFPORepository(postgresManager)
 	fpoLifecycleService := NewFPOLifecycleService(fpoRepo, aaaService)
-
-	fpoConfigService := NewFPOConfigService(repoFactory.FPOConfigRepo)
 	kisanSathiService := NewKisanSathiService(repoFactory.FarmerLinkageRepo, aaaService)
 
 	// Initialize farm management services

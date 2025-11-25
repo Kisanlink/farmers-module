@@ -248,6 +248,8 @@ definitions:
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPOConfigRequest:
     properties:
+      aaa_org_id:
+        type: string
       business_hours:
         $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
       contact:
@@ -258,8 +260,6 @@ definitions:
         type: string
       features:
         $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
-      fpo_id:
-        type: string
       fpo_name:
         type: string
       metadata:
@@ -283,8 +283,8 @@ definitions:
         example: usr_123e4567-e89b-12d3-a456-426614174000
         type: string
     required:
+    - aaa_org_id
     - erp_base_url
-    - fpo_id
     - fpo_name
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPORequest:
@@ -434,6 +434,32 @@ definitions:
         type: string
     required:
     - stage_name
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.DeactivateFPORequest:
+    properties:
+      metadata:
+        additionalProperties: true
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      reason:
+        example: Business closure
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - reason
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.DetectFarmOverlapsRequest:
     properties:
@@ -874,6 +900,32 @@ definitions:
     - farm_id
     - season
     - start_date
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.SuspendFPORequest:
+    properties:
+      metadata:
+        additionalProperties: true
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      reason:
+        example: Compliance violation
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - reason
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.UnlinkFarmerRequest:
     properties:
@@ -1702,6 +1754,8 @@ definitions:
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_responses.FPOConfigData:
     properties:
+      aaa_org_id:
+        type: string
       api_health_status:
         type: string
       business_hours:
@@ -1716,8 +1770,6 @@ definitions:
         type: string
       features:
         $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
-      fpo_id:
-        type: string
       fpo_name:
         type: string
       id:
@@ -1733,11 +1785,11 @@ definitions:
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_responses.FPOHealthCheckData:
     properties:
+      aaa_org_id:
+        type: string
       erp_base_url:
         type: string
       error:
-        type: string
-      fpo_id:
         type: string
       last_checked:
         type: string
@@ -5275,15 +5327,65 @@ paths:
       summary: Create FPO Configuration
       tags:
       - FPO Config
-  /fpo-config/{fpo_id}:
+  /fpo-config/{aaa_org_id}:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new FPO configuration for e-commerce integration with
+        aaa_org_id in URL
+      parameters:
+      - description: AAA Organization ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      - description: Create FPO Config Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPOConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPOConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create FPO Configuration (with ID in path)
+      tags:
+      - FPO Config
+  /fpo/{aaa_org_id}/configuration:
     delete:
       consumes:
       - application/json
       description: Deletes an FPO configuration (soft delete, Admin only)
       parameters:
-      - description: FPO ID
+      - description: AAA Organization ID
         in: path
-        name: fpo_id
+        name: aaa_org_id
         required: true
         type: string
       produces:
@@ -5323,9 +5425,9 @@ paths:
       - application/json
       description: Retrieves FPO configuration for e-commerce integration
       parameters:
-      - description: FPO ID
+      - description: AAA Organization ID
         in: path
-        name: fpo_id
+        name: aaa_org_id
         required: true
         type: string
       produces:
@@ -5365,9 +5467,9 @@ paths:
       - application/json
       description: Updates an existing FPO configuration (Admin only)
       parameters:
-      - description: FPO ID
+      - description: AAA Organization ID
         in: path
-        name: fpo_id
+        name: aaa_org_id
         required: true
         type: string
       - description: Update FPO Config Request
@@ -5408,15 +5510,15 @@ paths:
       summary: Update FPO Configuration
       tags:
       - FPO Config
-  /fpo-config/{fpo_id}/health:
+  /fpo/{aaa_org_id}/configuration/health:
     get:
       consumes:
       - application/json
       description: Checks if the FPO's ERP service is reachable
       parameters:
-      - description: FPO ID
+      - description: AAA Organization ID
         in: path
-        name: fpo_id
+        name: aaa_org_id
         required: true
         type: string
       produces:
@@ -5640,6 +5742,8 @@ paths:
         Create a new farmer profile. Supports two workflows:
         1. **Existing AAA User**: Provide aaa_user_id + aaa_org_id to link an existing AAA user
         2. **New AAA User**: Provide country_code + phone_number + aaa_org_id to auto-create/find AAA user. If user exists (conflict), retrieves existing user ID and proceeds with farmer profile creation.
+
+        **FPO Configuration Linking**: Set link_fpo_config=true to link the farmer to the FPO's configuration. This adds FPO metadata to the farmer profile for integration purposes.
       parameters:
       - description: Farmer data
         in: body
@@ -6017,6 +6121,223 @@ paths:
       summary: Update farmer by user ID only
       tags:
       - identity
+  /identity/fpo/{id}/deactivate:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deactivate an FPO
+      parameters:
+      - description: FPO ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Deactivate Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.DeactivateFPORequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Deactivate FPO
+      tags:
+      - FPO Lifecycle
+  /identity/fpo/{id}/history:
+    get:
+      consumes:
+      - application/json
+      description: Get audit history for an FPO
+      parameters:
+      - description: FPO ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get FPO History
+      tags:
+      - FPO Lifecycle
+  /identity/fpo/{id}/reactivate:
+    put:
+      consumes:
+      - application/json
+      description: Reactivate a suspended FPO
+      parameters:
+      - description: FPO ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reactivate FPO
+      tags:
+      - FPO Lifecycle
+  /identity/fpo/{id}/retry-setup:
+    post:
+      consumes:
+      - application/json
+      description: Retry setup operations for a failed FPO
+      parameters:
+      - description: FPO ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Retry Failed Setup
+      tags:
+      - FPO Lifecycle
+  /identity/fpo/{id}/suspend:
+    put:
+      consumes:
+      - application/json
+      description: Suspend an active FPO
+      parameters:
+      - description: FPO ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Suspend Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.SuspendFPORequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Suspend FPO
+      tags:
+      - FPO Lifecycle
+  /identity/fpo/by-org/{aaa_org_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get FPO reference by AAA organization ID, syncs from AAA if not
+        found locally
+      parameters:
+      - description: AAA Organization ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get FPO by AAA Org ID
+      tags:
+      - FPO Lifecycle
   /identity/fpo/create:
     post:
       consumes:
@@ -6140,6 +6461,40 @@ paths:
       summary: Register FPO Reference
       tags:
       - FPO Management
+  /identity/fpo/sync/{aaa_org_id}:
+    post:
+      consumes:
+      - application/json
+      description: Synchronize FPO reference from AAA service to local database
+      parameters:
+      - description: AAA Organization ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Sync FPO from AAA
+      tags:
+      - FPO Lifecycle
   /kisansathi:
     get:
       consumes:

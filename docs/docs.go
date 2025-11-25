@@ -3570,7 +3570,83 @@ const docTemplate = `{
                 }
             }
         },
-        "/fpo-config/{fpo_id}": {
+        "/fpo-config/{aaa_org_id}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new FPO configuration for e-commerce integration with aaa_org_id in URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Config"
+                ],
+                "summary": "Create FPO Configuration (with ID in path)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "AAA Organization ID",
+                        "name": "aaa_org_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create FPO Config Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPOConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerFPOConfigResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/fpo/{aaa_org_id}/configuration": {
             "get": {
                 "security": [
                     {
@@ -3591,8 +3667,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "FPO ID",
-                        "name": "fpo_id",
+                        "description": "AAA Organization ID",
+                        "name": "aaa_org_id",
                         "in": "path",
                         "required": true
                     }
@@ -3656,8 +3732,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "FPO ID",
-                        "name": "fpo_id",
+                        "description": "AAA Organization ID",
+                        "name": "aaa_org_id",
                         "in": "path",
                         "required": true
                     },
@@ -3730,8 +3806,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "FPO ID",
-                        "name": "fpo_id",
+                        "description": "AAA Organization ID",
+                        "name": "aaa_org_id",
                         "in": "path",
                         "required": true
                     }
@@ -3776,7 +3852,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/fpo-config/{fpo_id}/health": {
+        "/fpo/{aaa_org_id}/configuration/health": {
             "get": {
                 "security": [
                     {
@@ -3797,8 +3873,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "FPO ID",
-                        "name": "fpo_id",
+                        "description": "AAA Organization ID",
+                        "name": "aaa_org_id",
                         "in": "path",
                         "required": true
                     }
@@ -4129,7 +4205,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a new farmer profile. Supports two workflows:\n1. **Existing AAA User**: Provide aaa_user_id + aaa_org_id to link an existing AAA user\n2. **New AAA User**: Provide country_code + phone_number + aaa_org_id to auto-create/find AAA user. If user exists (conflict), retrieves existing user ID and proceeds with farmer profile creation.",
+                "description": "Create a new farmer profile. Supports two workflows:\n1. **Existing AAA User**: Provide aaa_user_id + aaa_org_id to link an existing AAA user\n2. **New AAA User**: Provide country_code + phone_number + aaa_org_id to auto-create/find AAA user. If user exists (conflict), retrieves existing user ID and proceeds with farmer profile creation.\n\n**FPO Configuration Linking**: Set link_fpo_config=true to link the farmer to the FPO's configuration. This adds FPO metadata to the farmer profile for integration purposes.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4704,6 +4780,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/identity/fpo/by-org/{aaa_org_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get FPO reference by AAA organization ID, syncs from AAA if not found locally",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Lifecycle"
+                ],
+                "summary": "Get FPO by AAA Org ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "AAA Organization ID",
+                        "name": "aaa_org_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/identity/fpo/create": {
             "post": {
                 "security": [
@@ -4888,6 +5016,336 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/identity/fpo/sync/{aaa_org_id}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Synchronize FPO reference from AAA service to local database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Lifecycle"
+                ],
+                "summary": "Sync FPO from AAA",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "AAA Organization ID",
+                        "name": "aaa_org_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/identity/fpo/{id}/deactivate": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently deactivate an FPO",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Lifecycle"
+                ],
+                "summary": "Deactivate FPO",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FPO ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Deactivate Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.DeactivateFPORequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/identity/fpo/{id}/history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get audit history for an FPO",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Lifecycle"
+                ],
+                "summary": "Get FPO History",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FPO ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/identity/fpo/{id}/reactivate": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reactivate a suspended FPO",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Lifecycle"
+                ],
+                "summary": "Reactivate FPO",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FPO ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/identity/fpo/{id}/retry-setup": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retry setup operations for a failed FPO",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Lifecycle"
+                ],
+                "summary": "Retry Failed Setup",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FPO ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/identity/fpo/{id}/suspend": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Suspend an active FPO",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FPO Lifecycle"
+                ],
+                "summary": "Suspend FPO",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FPO ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Suspend Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.SuspendFPORequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -6017,11 +6475,14 @@ const docTemplate = `{
         "github_com_Kisanlink_farmers-module_internal_entities_requests.CreateFPOConfigRequest": {
             "type": "object",
             "required": [
+                "aaa_org_id",
                 "erp_base_url",
-                "fpo_id",
                 "fpo_name"
             ],
             "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
                 "business_hours": {
                     "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
                 },
@@ -6036,9 +6497,6 @@ const docTemplate = `{
                 },
                 "features": {
                     "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
-                },
-                "fpo_id": {
-                    "type": "string"
                 },
                 "fpo_name": {
                     "type": "string"
@@ -6261,6 +6719,42 @@ const docTemplate = `{
                     "maxLength": 100,
                     "minLength": 1,
                     "example": "Germination"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.DeactivateFPORequest": {
+            "type": "object",
+            "required": [
+                "reason"
+            ],
+            "properties": {
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "org_id": {
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Business closure"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
+                },
+                "request_type": {
+                    "type": "string",
+                    "example": "create_farmer"
                 },
                 "timestamp": {
                     "type": "string",
@@ -6863,6 +7357,42 @@ const docTemplate = `{
                 "variety_id": {
                     "type": "string",
                     "example": "variety_123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.SuspendFPORequest": {
+            "type": "object",
+            "required": [
+                "reason"
+            ],
+            "properties": {
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "org_id": {
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Compliance violation"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
+                },
+                "request_type": {
+                    "type": "string",
+                    "example": "create_farmer"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -8047,6 +8577,9 @@ const docTemplate = `{
         "github_com_Kisanlink_farmers-module_internal_entities_responses.FPOConfigData": {
             "type": "object",
             "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
                 "api_health_status": {
                     "type": "string"
                 },
@@ -8067,9 +8600,6 @@ const docTemplate = `{
                 },
                 "features": {
                     "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB"
-                },
-                "fpo_id": {
-                    "type": "string"
                 },
                 "fpo_name": {
                     "type": "string"
@@ -8094,13 +8624,13 @@ const docTemplate = `{
         "github_com_Kisanlink_farmers-module_internal_entities_responses.FPOHealthCheckData": {
             "type": "object",
             "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
                 "erp_base_url": {
                     "type": "string"
                 },
                 "error": {
-                    "type": "string"
-                },
-                "fpo_id": {
                     "type": "string"
                 },
                 "last_checked": {
