@@ -7,10 +7,10 @@ env:
   variables:
     GO_VERSION: "1.24.4"
     SERVICE_NAME: "farmers-module"
-  parameter-store:
-    # Optional: Store sensitive build-time variables in Parameter Store
-    # DOCKER_HUB_USERNAME: /codebuild/dockerhub/username
-    # DOCKER_HUB_PASSWORD: /codebuild/dockerhub/password
+  # parameter-store:
+  #   # Optional: Store sensitive build-time variables in Parameter Store
+  #   # DOCKER_HUB_USERNAME: /codebuild/dockerhub/username
+  #   # DOCKER_HUB_PASSWORD: /codebuild/dockerhub/password
 
 phases:
   pre_build:
