@@ -75,8 +75,10 @@ func HandleServiceError(c *gin.Context, err error) {
 			// Validation errors
 		} else if errMsg == "FPO name is required" ||
 			errMsg == "FPO registration number is required" ||
-			errMsg == "CEO user details are required" ||
 			errMsg == "CEO phone number is required" ||
+			errMsg == "CEO first_name and last_name are required when creating a new user" ||
+			errMsg == "password is required when creating a new CEO user" ||
+			errMsg == "password must be at least 8 characters long" ||
 			errMsg == "AAA organization ID is required" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": errMsg})
 			// Conflict errors

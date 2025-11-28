@@ -1,11 +1,13 @@
 package requests
 
 // CEOUserData represents CEO user information for FPO creation
+// Note: first_name, last_name, and password are only required when creating a new user.
+// If the user already exists in AAA (by phone_number), these fields are optional.
 type CEOUserData struct {
-	FirstName   string `json:"first_name" validate:"required" example:"Rajesh"`
-	LastName    string `json:"last_name" validate:"required" example:"Sharma"`
-	PhoneNumber string `json:"phone_number" validate:"required,phone" example:"+91-9876543210"`
-	Email       string `json:"email" validate:"email" example:"rajesh.sharma@fpo.com"`
+	FirstName   string `json:"first_name,omitempty" example:"Rajesh"`
+	LastName    string `json:"last_name,omitempty" example:"Sharma"`
+	PhoneNumber string `json:"phone_number" validate:"required" example:"+91-9876543210"`
+	Email       string `json:"email,omitempty" validate:"omitempty,email" example:"rajesh.sharma@fpo.com"`
 	Password    string `json:"password,omitempty" validate:"omitempty,min=8" example:"SecurePass@123"`
 }
 

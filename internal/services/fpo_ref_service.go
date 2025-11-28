@@ -50,22 +50,21 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 	if createReq.RegistrationNo == "" {
 		return nil, fmt.Errorf("FPO registration number is required")
 	}
-	if createReq.CEOUser.FirstName == "" || createReq.CEOUser.LastName == "" {
-		return nil, fmt.Errorf("CEO user details are required")
-	}
 	if createReq.CEOUser.PhoneNumber == "" {
 		return nil, fmt.Errorf("CEO phone number is required")
 	}
 
-	log.Printf("Creating FPO: %s with CEO: %s %s", createReq.Name, createReq.CEOUser.FirstName, createReq.CEOUser.LastName)
-
 	// Step 1: Check if CEO user exists in AAA, create if not
 	var ceoUserID string
+	var ceoFullName string
 	existingUser, err := s.aaaService.GetUserByMobile(ctx, createReq.CEOUser.PhoneNumber)
 	if err != nil {
 		log.Printf("CEO user not found, creating new user: %v", err)
 
-		// Validate password is provided for new user creation
+		// Validate required fields for new user creation
+		if createReq.CEOUser.FirstName == "" || createReq.CEOUser.LastName == "" {
+			return nil, fmt.Errorf("CEO first_name and last_name are required when creating a new user")
+		}
 		if createReq.CEOUser.Password == "" {
 			return nil, fmt.Errorf("password is required when creating a new CEO user")
 		}
@@ -73,13 +72,15 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 			return nil, fmt.Errorf("password must be at least 8 characters long")
 		}
 
+		ceoFullName = fmt.Sprintf("%s %s", createReq.CEOUser.FirstName, createReq.CEOUser.LastName)
+
 		// Create CEO user in AAA
 		createUserReq := map[string]interface{}{
 			"username":     fmt.Sprintf("%s_%s", createReq.CEOUser.FirstName, createReq.CEOUser.LastName),
 			"phone_number": createReq.CEOUser.PhoneNumber,
 			"email":        createReq.CEOUser.Email,
 			"password":     createReq.CEOUser.Password,
-			"full_name":    fmt.Sprintf("%s %s", createReq.CEOUser.FirstName, createReq.CEOUser.LastName),
+			"full_name":    ceoFullName,
 			"role":         "CEO",
 			"country_code": "+91",
 		}
@@ -103,8 +104,16 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 			return nil, fmt.Errorf("invalid existing user response")
 		}
 		ceoUserID = userMap["id"].(string)
+		if fullName, ok := userMap["full_name"].(string); ok {
+			ceoFullName = fullName
+		} else if firstName, ok := userMap["first_name"].(string); ok {
+			lastName, _ := userMap["last_name"].(string)
+			ceoFullName = fmt.Sprintf("%s %s", firstName, lastName)
+		}
 		log.Printf("Using existing CEO user with ID: %s", ceoUserID)
 	}
+
+	log.Printf("Creating FPO: %s with CEO: %s", createReq.Name, ceoFullName)
 
 	// Step 2: Validate CEO is not already CEO of another FPO
 	// Business Rule 1.2: A user CANNOT be CEO of multiple FPOs simultaneously

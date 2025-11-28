@@ -35,10 +35,12 @@ type FarmerProfileResponse struct {
 }
 
 // FarmerProfileData represents the profile data in responses
+// Note: A farmer is identified by aaa_user_id only. AAAOrgID is optional (primary FPO).
+// FPO linkages (for multiple FPOs) are in the fpo_linkages field.
 type FarmerProfileData struct {
-	ID               string                 `json:"id" example:"FMRR0000000001"` // Farmer ID (primary key)
-	AAAUserID        string                 `json:"aaa_user_id" example:"USER00000001"`
-	AAAOrgID         string                 `json:"aaa_org_id" example:"ORGN00000001"`
+	ID               string                 `json:"id" example:"FMRR0000000001"`                 // Farmer ID (primary key)
+	AAAUserID        string                 `json:"aaa_user_id" example:"USER00000001"`          // Required: User ID
+	AAAOrgID         string                 `json:"aaa_org_id,omitempty" example:"ORGN00000001"` // Optional: Primary FPO org
 	KisanSathiUserID *string                `json:"kisan_sathi_user_id,omitempty" example:"USER00000002"`
 	FirstName        string                 `json:"first_name,omitempty" example:"Ramesh"`
 	LastName         string                 `json:"last_name,omitempty" example:"Kumar"`

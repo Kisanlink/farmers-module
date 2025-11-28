@@ -48,12 +48,15 @@ func NewAddress() *Address {
 
 // Farmer represents a farmer's database model with normalized address relationship
 // This is the recommended entity to use for all farmer operations
+// A farmer is uniquely identified by aaa_user_id only, and can be linked to multiple FPOs via farmer_links
 type Farmer struct {
 	base.BaseModel
 
 	// AAA Integration (External System IDs)
-	AAAUserID        string  `json:"aaa_user_id" gorm:"type:varchar(255);not null;uniqueIndex:idx_farmer_unique"`
-	AAAOrgID         string  `json:"aaa_org_id" gorm:"type:varchar(255);not null;uniqueIndex:idx_farmer_unique"`
+	// A farmer is uniquely identified by their AAA user ID only
+	// AAAOrgID is optional - kept for backward compatibility but not part of unique constraint
+	AAAUserID        string  `json:"aaa_user_id" gorm:"type:varchar(255);not null;uniqueIndex:idx_farmer_aaa_user_id"`
+	AAAOrgID         string  `json:"aaa_org_id,omitempty" gorm:"type:varchar(255)"` // Optional: primary FPO org (backward compat)
 	KisanSathiUserID *string `json:"kisan_sathi_user_id" gorm:"type:varchar(255)"`
 
 	// Personal Information
@@ -78,8 +81,9 @@ type Farmer struct {
 	TotalAcreageHa float64 `json:"total_acreage_ha" gorm:"type:numeric(12,4);default:0.0;not null"`
 	FarmCount      int     `json:"farm_count" gorm:"type:integer;default:0;not null"`
 
-	// Relationships - FPO Linkage (optional, preloaded when needed)
-	FPOLinkages []*FarmerLink `json:"fpo_linkages,omitempty" gorm:"foreignKey:AAAUserID,AAAOrgID;references:AAAUserID,AAAOrgID"`
+	// Relationships - FPO Linkage via farmer_links table (one farmer can link to multiple FPOs)
+	// Note: Read-only relationship (->), no FK constraint created
+	FPOLinkages []*FarmerLink `json:"fpo_linkages,omitempty" gorm:"foreignKey:AAAUserID;references:AAAUserID;->"`
 	Farms       []FarmRef     `json:"farms,omitempty" gorm:"foreignKey:FarmerID;references:ID"`
 
 	// Flexible Data (JSONB for extensibility)
@@ -131,9 +135,6 @@ func NewFarmer() *Farmer {
 // Validate validates the farmer model
 func (f *Farmer) Validate() error {
 	if f.AAAUserID == "" {
-		return common.ErrInvalidInput
-	}
-	if f.AAAOrgID == "" {
 		return common.ErrInvalidInput
 	}
 	if f.FirstName == "" {

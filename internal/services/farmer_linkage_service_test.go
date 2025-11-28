@@ -118,7 +118,7 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 				// Farmer not found in local database
 				farmerRepo.On("FindOne", mock.Anything, mock.Anything).Return(nil, errors.New("not found"))
 			},
-			expectedError: "farmer with aaa_user_id=user123 and aaa_org_id=org456 must be created before linking to FPO",
+			expectedError: "farmer with aaa_user_id=user123 must be created before linking to FPO",
 		},
 		{
 			name: "reactivate existing inactive link",

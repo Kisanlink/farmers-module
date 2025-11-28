@@ -79,15 +79,15 @@ func (s *FarmerLinkageServiceImpl) LinkFarmerToFPO(ctx context.Context, req inte
 		return fmt.Errorf("FPO not found in AAA service: %w", err)
 	}
 
-	// Verify farmer exists in local database (required for FK constraint)
+	// Verify farmer exists in local database by aaa_user_id only
+	// A farmer is identified by their user ID and can be linked to multiple FPOs
 	farmerFilter := base.NewFilterBuilder().
 		Where("aaa_user_id", base.OpEqual, linkReq.AAAUserID).
-		Where("aaa_org_id", base.OpEqual, linkReq.AAAOrgID).
 		Build()
 
 	existingFarmer, err := s.farmerRepo.FindOne(ctx, farmerFilter)
 	if err != nil || existingFarmer == nil {
-		return fmt.Errorf("farmer with aaa_user_id=%s and aaa_org_id=%s must be created before linking to FPO", linkReq.AAAUserID, linkReq.AAAOrgID)
+		return fmt.Errorf("farmer with aaa_user_id=%s must be created before linking to FPO", linkReq.AAAUserID)
 	}
 
 	// Check if linkage already exists

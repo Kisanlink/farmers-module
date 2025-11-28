@@ -1,18 +1,19 @@
 package requests
 
 // CreateFarmerRequest represents a request to create a new farmer
+// A farmer is uniquely identified by aaa_user_id only and can be linked to multiple FPOs later
 // Supports two workflows:
-// 1. Provide aaa_user_id + aaa_org_id: Use existing AAA user
-// 2. Provide country_code + phone_number + aaa_org_id: Create/find AAA user automatically
+// 1. Provide aaa_user_id: Use existing AAA user
+// 2. Provide country_code + phone_number: Create/find AAA user automatically
 //   - If user doesn't exist, creates new user in AAA
 //   - If user exists (conflict), retrieves existing user ID from AAA
 type CreateFarmerRequest struct {
 	BaseRequest
-	AAAUserID        string            `json:"aaa_user_id,omitempty" example:"USER00000001"`          // Optional: AAA User ID (if known)
-	AAAOrgID         string            `json:"aaa_org_id" validate:"required" example:"ORGN00000001"` // Required: AAA Org ID
-	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"USER00000002"`
-	LinkFPOConfig    bool              `json:"link_fpo_config,omitempty" example:"false"` // Optional: Link FPO configuration to farmer (default: false)
-	Profile          FarmerProfileData `json:"profile" validate:"required"`               // Required: Farmer profile (must include country_code + phone_number if aaa_user_id not provided)
+	AAAUserID        string            `json:"aaa_user_id,omitempty" example:"USER00000001"`         // Optional: AAA User ID (if known)
+	AAAOrgID         string            `json:"aaa_org_id,omitempty" example:"ORGN00000001"`          // Optional: AAA Org ID (for auto-linking to FPO)
+	KisanSathiUserID *string           `json:"kisan_sathi_user_id,omitempty" example:"USER00000002"` // Optional: KisanSathi user ID
+	LinkFPOConfig    bool              `json:"link_fpo_config,omitempty" example:"false"`            // Optional: Link FPO configuration to farmer (default: false)
+	Profile          FarmerProfileData `json:"profile" validate:"required"`                          // Required: Farmer profile (must include country_code + phone_number if aaa_user_id not provided)
 }
 
 // UpdateFarmerRequest represents a request to update an existing farmer

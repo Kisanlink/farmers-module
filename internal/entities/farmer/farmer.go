@@ -8,10 +8,13 @@ import (
 )
 
 // FarmerLink represents the link between a farmer and an FPO
+// A farmer (identified by aaa_user_id) can be linked to multiple FPOs (aaa_org_id)
+// The combination of (aaa_user_id, aaa_org_id) must be unique
 type FarmerLink struct {
 	base.BaseModel
-	AAAUserID        string  `json:"aaa_user_id" gorm:"type:varchar(255);not null"`
-	AAAOrgID         string  `json:"aaa_org_id" gorm:"type:varchar(255);not null"`
+	FarmerID         *string `json:"farmer_id" gorm:"type:varchar(255);index:idx_farmer_link_farmer_id"`
+	AAAUserID        string  `json:"aaa_user_id" gorm:"type:varchar(255);not null;uniqueIndex:idx_farmer_link_user_org"`
+	AAAOrgID         string  `json:"aaa_org_id" gorm:"type:varchar(255);not null;uniqueIndex:idx_farmer_link_user_org"`
 	KisanSathiUserID *string `json:"kisan_sathi_user_id" gorm:"type:varchar(255)"`
 	Status           string  `json:"status" gorm:"type:link_status;not null;default:'ACTIVE'"`
 }

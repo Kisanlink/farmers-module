@@ -77,21 +77,15 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		return nil, fmt.Errorf("either aaa_user_id or (country_code + phone_number) must be provided")
 	}
 
-	// Validate org_id is always required
-	if req.AAAOrgID == "" {
-		return nil, fmt.Errorf("aaa_org_id is required")
-	}
-
-	// If aaa_user_id is provided, check if farmer already exists
+	// If aaa_user_id is provided, check if farmer already exists (by user ID only)
 	if req.AAAUserID != "" {
 		existingFilter := base.NewFilterBuilder().
 			Where("aaa_user_id", base.OpEqual, req.AAAUserID).
-			Where("aaa_org_id", base.OpEqual, req.AAAOrgID).
 			Build()
 
 		existing, err := s.repository.FindOne(ctx, existingFilter)
 		if err == nil && existing != nil {
-			return nil, fmt.Errorf("farmer already exists")
+			return nil, fmt.Errorf("farmer already exists with aaa_user_id=%s", req.AAAUserID)
 		}
 	}
 
@@ -254,9 +248,11 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 	}
 
 	// Create new farmer with normalized address
+	// Note: Farmer is uniquely identified by aaa_user_id only
+	// AAAOrgID is optional - stored for backward compatibility if provided
 	farmer := farmerentity.NewFarmer()
 	farmer.AAAUserID = aaaUserID
-	farmer.AAAOrgID = aaaOrgID
+	farmer.AAAOrgID = aaaOrgID // Optional: primary org for backward compatibility
 	farmer.KisanSathiUserID = validatedKisanSathiID
 	farmer.FirstName = req.Profile.FirstName
 	farmer.LastName = req.Profile.LastName

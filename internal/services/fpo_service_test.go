@@ -137,79 +137,144 @@ func TestFPOService_CreateFPO_Success(t *testing.T) {
 }
 
 func TestFPOService_CreateFPO_ValidationErrors(t *testing.T) {
-	// Setup mocks
-	mockRepo := &MockFPORefRepository{}
-	mockAAA := &MockAAAService{}
-
-	// Create service
-	service := NewFPOService(mockRepo, mockAAA)
-
 	ctx := context.Background()
 
-	// Test cases for validation errors
-	testCases := []struct {
-		name        string
-		request     *requests.CreateFPORequest
-		expectedErr string
-	}{
-		{
-			name: "Missing FPO name",
-			request: &requests.CreateFPORequest{
-				RegistrationNo: "FPO123456",
-				CEOUser: requests.CEOUserData{
-					FirstName:   "John",
-					LastName:    "Doe",
-					PhoneNumber: "+919876543210",
-				},
-			},
-			expectedErr: "FPO name is required",
-		},
-		{
-			name: "Missing registration number",
-			request: &requests.CreateFPORequest{
-				Name: "Test FPO",
-				CEOUser: requests.CEOUserData{
-					FirstName:   "John",
-					LastName:    "Doe",
-					PhoneNumber: "+919876543210",
-				},
-			},
-			expectedErr: "FPO registration number is required",
-		},
-		{
-			name: "Missing CEO first name",
-			request: &requests.CreateFPORequest{
-				Name:           "Test FPO",
-				RegistrationNo: "FPO123456",
-				CEOUser: requests.CEOUserData{
-					LastName:    "Doe",
-					PhoneNumber: "+919876543210",
-				},
-			},
-			expectedErr: "CEO user details are required",
-		},
-		{
-			name: "Missing CEO phone number",
-			request: &requests.CreateFPORequest{
-				Name:           "Test FPO",
-				RegistrationNo: "FPO123456",
-				CEOUser: requests.CEOUserData{
-					FirstName: "John",
-					LastName:  "Doe",
-				},
-			},
-			expectedErr: "CEO phone number is required",
-		},
-	}
+	// Test cases for early validation errors (before AAA call)
+	t.Run("Missing FPO name", func(t *testing.T) {
+		mockRepo := &MockFPORefRepository{}
+		mockAAA := &MockAAAService{}
+		service := NewFPOService(mockRepo, mockAAA)
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			result, err := service.CreateFPO(ctx, tc.request)
-			assert.Error(t, err)
-			assert.Nil(t, result)
-			assert.Contains(t, err.Error(), tc.expectedErr)
+		result, err := service.CreateFPO(ctx, &requests.CreateFPORequest{
+			RegistrationNo: "FPO123456",
+			CEOUser: requests.CEOUserData{
+				FirstName:   "John",
+				LastName:    "Doe",
+				PhoneNumber: "+919876543210",
+			},
 		})
-	}
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "FPO name is required")
+	})
+
+	t.Run("Missing registration number", func(t *testing.T) {
+		mockRepo := &MockFPORefRepository{}
+		mockAAA := &MockAAAService{}
+		service := NewFPOService(mockRepo, mockAAA)
+
+		result, err := service.CreateFPO(ctx, &requests.CreateFPORequest{
+			Name: "Test FPO",
+			CEOUser: requests.CEOUserData{
+				FirstName:   "John",
+				LastName:    "Doe",
+				PhoneNumber: "+919876543210",
+			},
+		})
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "FPO registration number is required")
+	})
+
+	t.Run("Missing CEO phone number", func(t *testing.T) {
+		mockRepo := &MockFPORefRepository{}
+		mockAAA := &MockAAAService{}
+		service := NewFPOService(mockRepo, mockAAA)
+
+		result, err := service.CreateFPO(ctx, &requests.CreateFPORequest{
+			Name:           "Test FPO",
+			RegistrationNo: "FPO123456",
+			CEOUser: requests.CEOUserData{
+				FirstName: "John",
+				LastName:  "Doe",
+			},
+		})
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "CEO phone number is required")
+	})
+
+	// Test case for validation after AAA lookup (user not found)
+	t.Run("Missing CEO name when creating new user", func(t *testing.T) {
+		mockRepo := &MockFPORefRepository{}
+		mockAAA := &MockAAAService{}
+		service := NewFPOService(mockRepo, mockAAA)
+
+		// Mock AAA returns user not found
+		mockAAA.On("GetUserByMobile", ctx, "+919876543210").Return(nil, errors.New("user not found"))
+
+		result, err := service.CreateFPO(ctx, &requests.CreateFPORequest{
+			Name:           "Test FPO",
+			RegistrationNo: "FPO123456",
+			CEOUser: requests.CEOUserData{
+				LastName:    "Doe",
+				PhoneNumber: "+919876543210",
+			},
+		})
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "CEO first_name and last_name are required when creating a new user")
+	})
+
+	// Test case: existing user found - no need for first_name/last_name
+	t.Run("Existing CEO user - no name required", func(t *testing.T) {
+		mockRepo := &MockFPORefRepository{}
+		mockAAA := &MockAAAService{}
+		service := NewFPOService(mockRepo, mockAAA)
+
+		// Mock AAA returns existing user
+		mockAAA.On("GetUserByMobile", ctx, "+919876543210").Return(
+			map[string]interface{}{
+				"id":        "user123",
+				"full_name": "Existing User",
+				"username":  "existing_user",
+				"status":    "active",
+			}, nil)
+
+		// Mock CEO role check
+		mockAAA.On("CheckUserRole", ctx, "user123", "CEO").Return(false, nil)
+
+		// Mock org creation
+		mockAAA.On("CreateOrganization", ctx, mock.AnythingOfType("map[string]interface {}")).Return(
+			map[string]interface{}{
+				"org_id": "org123",
+				"name":   "Test FPO",
+				"status": "active",
+			}, nil)
+
+		// Mock role assignment
+		mockAAA.On("AssignRole", ctx, "user123", "org123", "CEO").Return(nil)
+
+		// Mock user groups
+		groupNames := []string{"directors", "shareholders", "store_staff", "store_managers"}
+		for _, groupName := range groupNames {
+			mockAAA.On("CreateUserGroup", ctx, mock.MatchedBy(func(req map[string]interface{}) bool {
+				return req["name"].(string) == groupName
+			})).Return(
+				map[string]interface{}{
+					"group_id":   "group_" + groupName,
+					"name":       groupName,
+					"org_id":     "org123",
+					"created_at": "2025-01-01T00:00:00Z",
+				}, nil)
+
+			mockAAA.On("AssignPermissionToGroup", ctx, "group_"+groupName, "fpo", mock.AnythingOfType("string")).Return(nil)
+		}
+
+		// Mock repo create
+		mockRepo.On("Create", ctx, mock.AnythingOfType("*fpo.FPORef")).Return(nil)
+
+		result, err := service.CreateFPO(ctx, &requests.CreateFPORequest{
+			Name:           "Test FPO",
+			RegistrationNo: "FPO123456",
+			CEOUser: requests.CEOUserData{
+				PhoneNumber: "+919876543210",
+				// No first_name/last_name - should work since user exists
+			},
+		})
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+	})
 }
 
 func TestFPOService_RegisterFPORef_Success(t *testing.T) {

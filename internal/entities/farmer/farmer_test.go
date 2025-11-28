@@ -42,13 +42,13 @@ func TestFarmerValidate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "missing AAA org ID",
+			name: "missing AAA org ID - now optional",
 			farmer: &Farmer{
 				AAAUserID: "user123",
 				FirstName: "John",
 				LastName:  "Doe",
 			},
-			wantErr: true,
+			wantErr: false, // AAA org ID is now optional - farmer is identified by user ID only
 		},
 		{
 			name: "missing first name",

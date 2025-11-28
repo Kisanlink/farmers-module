@@ -6344,8 +6344,6 @@ const docTemplate = `{
         "github_com_Kisanlink_farmers-module_internal_entities_requests.CEOUserData": {
             "type": "object",
             "required": [
-                "first_name",
-                "last_name",
                 "phone_number"
             ],
             "properties": {
@@ -8970,10 +8968,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "aaa_org_id": {
+                    "description": "Optional: Primary FPO org",
                     "type": "string",
                     "example": "ORGN00000001"
                 },
                 "aaa_user_id": {
+                    "description": "Required: User ID",
                     "type": "string",
                     "example": "USER00000001"
                 },

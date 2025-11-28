@@ -83,6 +83,10 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		log.Println("   1. Ensure your RDS instance supports PostGIS (PostgreSQL 12+)")
 		log.Println("   2. The database user must have rds_superuser role or CREATE privilege")
 		log.Println("   3. PostGIS is installed by default on RDS, just needs CREATE EXTENSION")
+
+		// Fix farmer constraints before AutoMigrate (idempotent)
+		fixFarmerConstraints(gormDB)
+
 		// Skip the farm entity that requires PostGIS geometry types
 		// Migration order: independent tables first, then tables with FK dependencies
 		models := []interface{}{
@@ -134,6 +138,9 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		return nil
 	} else {
 		log.Println("✅ PostGIS extension enabled successfully")
+
+		// Fix farmer constraints before AutoMigrate (idempotent)
+		fixFarmerConstraints(gormDB)
 
 		// AutoMigrate all models including farm (PostGIS enabled)
 		// Migration order: independent tables first, then tables with FK dependencies
@@ -229,6 +236,26 @@ func createEnums(gormDB *gorm.DB) {
 	EXCEPTION WHEN duplicate_object THEN NULL; END $$;`)
 
 	log.Println("Custom ENUM types created successfully")
+}
+
+// fixFarmerConstraints fixes farmer-related constraints before AutoMigrate
+// This is needed because:
+// 1. Farmers are now uniquely identified by aaa_user_id only (not composite aaa_user_id + aaa_org_id)
+// 2. The old FK constraint fk_farmers_fpo_linkages referenced the composite key
+// 3. AutoMigrate won't drop existing constraints, so we do it here (idempotent)
+func fixFarmerConstraints(gormDB *gorm.DB) {
+	log.Println("Fixing farmer constraints...")
+
+	// Drop old FK constraint on farmer_links that references composite key
+	gormDB.Exec(`ALTER TABLE farmer_links DROP CONSTRAINT IF EXISTS fk_farmers_fpo_linkages`)
+
+	// Drop old unique constraint on farmers that used composite (aaa_user_id, aaa_org_id)
+	gormDB.Exec(`DROP INDEX IF EXISTS idx_farmer_unique`)
+
+	// Make aaa_org_id nullable on farmers table (it's now optional)
+	gormDB.Exec(`ALTER TABLE farmers ALTER COLUMN aaa_org_id DROP NOT NULL`)
+
+	log.Println("Farmer constraints fixed successfully")
 }
 
 // setupPostMigration sets up computed columns, indexes, and constraints
