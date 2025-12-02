@@ -632,15 +632,12 @@ func (s *FarmerServiceImpl) DeleteFarmer(ctx context.Context, req *requests.Dele
 }
 
 // ListFarmers lists farmers with filtering
+// When aaa_org_id is provided, it filters farmers based on their linkage to the FPO organization
+// through the farmer_links table instead of the direct aaa_org_id field in the farmers table
 func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListFarmersRequest) (*responses.FarmerListResponse, error) {
-	// Build filter for database query
+	// Build filter for additional query parameters
 	filter := base.NewFilterBuilder().
 		Page(req.Page, req.PageSize)
-
-	// Add organization filter if specified
-	if req.AAAOrgID != "" {
-		filter = filter.Where("aaa_org_id", base.OpEqual, req.AAAOrgID)
-	}
 
 	// Add KisanSathi filter if specified
 	if req.KisanSathiUserID != "" {
@@ -652,30 +649,54 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 		filter = filter.Where("phone_number", base.OpEqual, req.PhoneNumber)
 	}
 
-	// Query farmers from repository
-	farmers, err := s.repository.Find(ctx, filter.Build())
-	if err != nil {
-		return nil, fmt.Errorf("failed to list farmers: %w", err)
-	}
+	var farmers []*farmerentity.Farmer
+	var totalCount int64
+	var err error
 
-	// Get total count - use a temporary count query
-	countFilter := base.NewFilterBuilder()
+	// If organization filter is specified, use the FPO linkage-based filtering
 	if req.AAAOrgID != "" {
-		countFilter = countFilter.Where("aaa_org_id", base.OpEqual, req.AAAOrgID)
-	}
-	if req.KisanSathiUserID != "" {
-		countFilter = countFilter.Where("kisan_sathi_user_id", base.OpEqual, req.KisanSathiUserID)
-	}
-	if req.PhoneNumber != "" {
-		countFilter = countFilter.Where("phone_number", base.OpEqual, req.PhoneNumber)
-	}
+		// Use the custom FindByOrgID method that joins with farmer_links table
+		farmers, err = s.repository.FindByOrgID(ctx, req.AAAOrgID, filter.Build())
+		if err != nil {
+			return nil, fmt.Errorf("failed to list farmers by org_id: %w", err)
+		}
 
-	// Count without pagination
-	allResults, err := s.repository.Find(ctx, countFilter.Build())
-	if err != nil {
-		return nil, fmt.Errorf("failed to count farmers: %w", err)
+		// Get count using the same join-based approach
+		countFilter := base.NewFilterBuilder()
+		if req.KisanSathiUserID != "" {
+			countFilter = countFilter.Where("kisan_sathi_user_id", base.OpEqual, req.KisanSathiUserID)
+		}
+		if req.PhoneNumber != "" {
+			countFilter = countFilter.Where("phone_number", base.OpEqual, req.PhoneNumber)
+		}
+
+		totalCount, err = s.repository.CountByOrgID(ctx, req.AAAOrgID, countFilter.Build())
+		if err != nil {
+			return nil, fmt.Errorf("failed to count farmers by org_id: %w", err)
+		}
+	} else {
+		// If no organization filter, use standard repository Find method
+		farmers, err = s.repository.Find(ctx, filter.Build())
+		if err != nil {
+			return nil, fmt.Errorf("failed to list farmers: %w", err)
+		}
+
+		// Get total count for pagination
+		countFilter := base.NewFilterBuilder()
+		if req.KisanSathiUserID != "" {
+			countFilter = countFilter.Where("kisan_sathi_user_id", base.OpEqual, req.KisanSathiUserID)
+		}
+		if req.PhoneNumber != "" {
+			countFilter = countFilter.Where("phone_number", base.OpEqual, req.PhoneNumber)
+		}
+
+		// Count without pagination
+		allResults, err := s.repository.Find(ctx, countFilter.Build())
+		if err != nil {
+			return nil, fmt.Errorf("failed to count farmers: %w", err)
+		}
+		totalCount = int64(len(allResults))
 	}
-	totalCount := int64(len(allResults))
 
 	// Convert to response format
 	var farmerProfilesData []*responses.FarmerProfileData
