@@ -34,7 +34,8 @@ type BulkProcessingOptions struct {
 type FarmerBulkData struct {
 	FirstName         string                 `json:"first_name" validate:"required,min=2,max=50" example:"Suresh"`
 	LastName          string                 `json:"last_name" validate:"required,min=2,max=50" example:"Patel"`
-	PhoneNumber       string                 `json:"phone_number" validate:"required,phone" example:"+91-9876543220"`
+	CountryCode       string                 `json:"country_code" validate:"omitempty" example:"+91"`             // Country code (defaults to +91 if not provided)
+	PhoneNumber       string                 `json:"phone_number" validate:"required,phone" example:"9876543220"` // 10-digit phone number without country code
 	Email             string                 `json:"email" validate:"omitempty,email" example:"suresh.patel@example.com"`
 	DateOfBirth       string                 `json:"date_of_birth" validate:"omitempty,datetime=2006-01-02" example:"1975-08-20"`
 	Gender            string                 `json:"gender" validate:"omitempty,oneof=male female other" example:"male"`

@@ -106,7 +106,10 @@ func (p *FileParserImpl) ParseCSV(data []byte) ([]*requests.FarmerBulkData, erro
 
 		farmer, err := p.parseCSVRecord(headers, record, i+1)
 		if err != nil {
-			return nil, fmt.Errorf("error parsing row %d: %w", i+2, err) // +2 because we skip header
+			// Log warning but continue - validation will happen in the processing pipeline
+			// This allows bulk uploads to proceed with partial valid data
+			fmt.Printf("[WARN] Skipping row %d: %v\n", i+2, err)
+			continue
 		}
 
 		if farmer != nil {
@@ -115,7 +118,7 @@ func (p *FileParserImpl) ParseCSV(data []byte) ([]*requests.FarmerBulkData, erro
 	}
 
 	if len(farmers) == 0 {
-		return nil, fmt.Errorf("no valid farmer records found")
+		return nil, fmt.Errorf("no valid farmer records found - all rows failed validation")
 	}
 
 	return farmers, nil
@@ -178,7 +181,10 @@ func (p *FileParserImpl) ParseExcel(data []byte) ([]*requests.FarmerBulkData, er
 
 		farmer, err := p.parseCSVRecord(headers, row, i+1) // Reuse CSV parsing logic
 		if err != nil {
-			return nil, fmt.Errorf("error parsing row %d: %w", i+2, err)
+			// Log warning but continue - validation will happen in the processing pipeline
+			// This allows bulk uploads to proceed with partial valid data
+			fmt.Printf("[WARN] Skipping Excel row %d: %v\n", i+2, err)
+			continue
 		}
 
 		if farmer != nil {
@@ -187,7 +193,7 @@ func (p *FileParserImpl) ParseExcel(data []byte) ([]*requests.FarmerBulkData, er
 	}
 
 	if len(farmers) == 0 {
-		return nil, fmt.Errorf("no valid farmer records found")
+		return nil, fmt.Errorf("no valid farmer records found - all rows failed validation")
 	}
 
 	return farmers, nil
@@ -239,6 +245,7 @@ func (p *FileParserImpl) GenerateCSVTemplate(includeExample bool) ([]byte, error
 	headers := []string{
 		"first_name",
 		"last_name",
+		"country_code",
 		"phone_number",
 		"email",
 		"date_of_birth",
@@ -256,18 +263,19 @@ func (p *FileParserImpl) GenerateCSVTemplate(includeExample bool) ([]byte, error
 
 	if includeExample {
 		example := []string{
-			"John",
-			"Doe",
+			"Ramesh",
+			"Kumar",
+			"+91",
 			"9876543210",
-			"john.doe@example.com",
-			"1990-01-15",
+			"ramesh.kumar@example.com",
+			"1985-06-15",
 			"male",
-			"123 Farm Street",
-			"Mumbai",
+			"123 Gandhi Nagar",
+			"Nashik",
 			"Maharashtra",
-			"400001",
+			"422001",
 			"owned",
-			"FARMER001",
+			"FPO-F-001",
 		}
 		rows = append(rows, example)
 	}
@@ -305,6 +313,7 @@ func (p *FileParserImpl) GenerateExcelTemplate(includeExample bool) ([]byte, err
 	headers := []string{
 		"first_name",
 		"last_name",
+		"country_code",
 		"phone_number",
 		"email",
 		"date_of_birth",
@@ -326,18 +335,19 @@ func (p *FileParserImpl) GenerateExcelTemplate(includeExample bool) ([]byte, err
 	// Add example data if requested
 	if includeExample {
 		example := []interface{}{
-			"John",
-			"Doe",
+			"Ramesh",
+			"Kumar",
+			"+91",
 			"9876543210",
-			"john.doe@example.com",
-			"1990-01-15",
+			"ramesh.kumar@example.com",
+			"1985-06-15",
 			"male",
-			"123 Farm Street",
-			"Mumbai",
+			"123 Gandhi Nagar",
+			"Nashik",
 			"Maharashtra",
-			"400001",
+			"422001",
 			"owned",
-			"FARMER001",
+			"FPO-F-001",
 		}
 
 		for i, value := range example {
@@ -447,6 +457,8 @@ func (p *FileParserImpl) parseCSVRecord(headers []string, record []string, rowNu
 			farmer.FirstName = value
 		case "last_name":
 			farmer.LastName = value
+		case "country_code":
+			farmer.CountryCode = p.normalizeCountryCode(value)
 		case "phone_number":
 			farmer.PhoneNumber = p.normalizePhoneNumber(value)
 		case "email":
@@ -525,12 +537,30 @@ func (p *FileParserImpl) setFarmerDefaults(farmer *requests.FarmerBulkData) {
 		farmer.Country = p.config.DefaultCountry
 	}
 
+	if farmer.CountryCode == "" {
+		farmer.CountryCode = "+91" // Default to India
+	}
+
 	if farmer.ExternalID == "" {
 		// Generate external ID if not provided
 		farmer.ExternalID = fmt.Sprintf("FARMER_%s_%d",
 			strings.ReplaceAll(farmer.PhoneNumber, " ", ""),
 			len(farmer.FirstName)+len(farmer.LastName))
 	}
+}
+
+func (p *FileParserImpl) normalizeCountryCode(code string) string {
+	code = strings.TrimSpace(code)
+	if code == "" {
+		return "+91" // Default to India
+	}
+
+	// Ensure it starts with +
+	if !strings.HasPrefix(code, "+") {
+		code = "+" + code
+	}
+
+	return code
 }
 
 func (p *FileParserImpl) normalizePhoneNumber(phone string) string {
@@ -542,7 +572,7 @@ func (p *FileParserImpl) normalizePhoneNumber(phone string) string {
 		return -1
 	}, phone)
 
-	// Handle Indian phone numbers
+	// Handle Indian phone numbers - strip country code if present
 	if len(digits) == 10 {
 		return digits
 	} else if len(digits) == 12 && strings.HasPrefix(digits, "91") {

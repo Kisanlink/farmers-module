@@ -137,30 +137,41 @@ func (b *BasePipelineStage) GetTimeout() time.Duration {
 
 // ProcessingContext contains context data passed between pipeline stages
 type ProcessingContext struct {
-	OperationID      string                 `json:"operation_id"`
-	FPOOrgID         string                 `json:"fpo_org_id"`
-	UserID           string                 `json:"user_id"`
-	RecordIndex      int                    `json:"record_index"`
-	FarmerData       interface{}            `json:"farmer_data"`
-	ProcessingResult map[string]interface{} `json:"processing_result"`
-	Metadata         map[string]interface{} `json:"metadata"`
-	StartTime        time.Time              `json:"start_time"`
-	StageResults     map[string]interface{} `json:"stage_results"`
+	OperationID       string                 `json:"operation_id"`
+	FPOOrgID          string                 `json:"fpo_org_id"`
+	UserID            string                 `json:"user_id"`
+	RecordIndex       int                    `json:"record_index"`
+	FarmerData        interface{}            `json:"farmer_data"`
+	ProcessingResult  map[string]interface{} `json:"processing_result"`
+	Metadata          map[string]interface{} `json:"metadata"`
+	StartTime         time.Time              `json:"start_time"`
+	StageResults      map[string]interface{} `json:"stage_results"`
+	DeduplicationMode string                 `json:"deduplication_mode"` // skip, update, error
 }
 
 // NewProcessingContext creates a new processing context
 func NewProcessingContext(operationID, fpoOrgID, userID string, recordIndex int, farmerData interface{}) *ProcessingContext {
 	return &ProcessingContext{
-		OperationID:      operationID,
-		FPOOrgID:         fpoOrgID,
-		UserID:           userID,
-		RecordIndex:      recordIndex,
-		FarmerData:       farmerData,
-		ProcessingResult: make(map[string]interface{}),
-		Metadata:         make(map[string]interface{}),
-		StartTime:        time.Now(),
-		StageResults:     make(map[string]interface{}),
+		OperationID:       operationID,
+		FPOOrgID:          fpoOrgID,
+		UserID:            userID,
+		RecordIndex:       recordIndex,
+		FarmerData:        farmerData,
+		ProcessingResult:  make(map[string]interface{}),
+		Metadata:          make(map[string]interface{}),
+		StartTime:         time.Now(),
+		StageResults:      make(map[string]interface{}),
+		DeduplicationMode: "skip", // default
 	}
+}
+
+// NewProcessingContextWithOptions creates a new processing context with deduplication mode
+func NewProcessingContextWithOptions(operationID, fpoOrgID, userID string, recordIndex int, farmerData interface{}, deduplicationMode string) *ProcessingContext {
+	ctx := NewProcessingContext(operationID, fpoOrgID, userID, recordIndex, farmerData)
+	if deduplicationMode != "" {
+		ctx.DeduplicationMode = deduplicationMode
+	}
+	return ctx
 }
 
 // SetStageResult sets the result for a specific stage

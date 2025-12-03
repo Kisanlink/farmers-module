@@ -456,3 +456,109 @@ func GetAuditTrail(auditService *audit.AuditService) gin.HandlerFunc {
 		})
 	}
 }
+
+// ReconciliationResponse represents the response for reconciliation operations
+type ReconciliationResponse struct {
+	Message       string                         `json:"message"`
+	Data          *services.ReconciliationReport `json:"data"`
+	CorrelationID string                         `json:"correlation_id"`
+	Timestamp     time.Time                      `json:"timestamp"`
+}
+
+// ReconciliationStatusResponse represents the response for reconciliation status
+type ReconciliationStatusResponse struct {
+	Message         string    `json:"message"`
+	RolesPending    int64     `json:"roles_pending"`
+	FPOLinksPending int64     `json:"fpo_links_pending"`
+	CorrelationID   string    `json:"correlation_id"`
+	Timestamp       time.Time `json:"timestamp"`
+}
+
+// TriggerReconciliation triggers an immediate reconciliation run
+// @Summary Trigger reconciliation
+// @Description Manually trigger reconciliation of pending role assignments and FPO links
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Success 200 {object} ReconciliationResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /admin/reconcile [post]
+func TriggerReconciliation(job *services.ReconciliationJob) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if job == nil {
+			c.JSON(http.StatusServiceUnavailable, responses.ErrorResponse{
+				Error:         "Reconciliation service unavailable",
+				Message:       "Reconciliation job is not configured",
+				Code:          "SERVICE_UNAVAILABLE",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		report, err := job.RunNow(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.ErrorResponse{
+				Error:         "Reconciliation failed",
+				Message:       err.Error(),
+				Code:          "RECONCILIATION_FAILED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, ReconciliationResponse{
+			Message:       "Reconciliation completed",
+			Data:          report,
+			CorrelationID: c.GetString("correlation_id"),
+			Timestamp:     time.Now(),
+		})
+	}
+}
+
+// GetReconciliationStatus gets the current count of pending items
+// @Summary Get reconciliation status
+// @Description Get counts of pending role assignments and FPO links that need reconciliation
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Success 200 {object} ReconciliationStatusResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /admin/reconcile/status [get]
+func GetReconciliationStatus(job *services.ReconciliationJob) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if job == nil {
+			c.JSON(http.StatusServiceUnavailable, responses.ErrorResponse{
+				Error:         "Reconciliation service unavailable",
+				Message:       "Reconciliation job is not configured",
+				Code:          "SERVICE_UNAVAILABLE",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		rolesPending, fpoLinksPending, err := job.GetPendingCounts(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.ErrorResponse{
+				Error:         "Failed to get pending counts",
+				Message:       err.Error(),
+				Code:          "QUERY_FAILED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, ReconciliationStatusResponse{
+			Message:         "Reconciliation status retrieved",
+			RolesPending:    rolesPending,
+			FPOLinksPending: fpoLinksPending,
+			CorrelationID:   c.GetString("correlation_id"),
+			Timestamp:       time.Now(),
+		})
+	}
+}

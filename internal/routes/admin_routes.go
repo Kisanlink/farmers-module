@@ -26,5 +26,9 @@ func RegisterAdminRoutes(router *gin.RouterGroup, services *services.ServiceFact
 
 		// Audit trail
 		admin.GET("/audit", handlers.GetAuditTrail(services.AuditService))
+
+		// Reconciliation endpoints
+		admin.POST("/reconcile", handlers.TriggerReconciliation(services.ReconciliationJob))
+		admin.GET("/reconcile/status", handlers.GetReconciliationStatus(services.ReconciliationJob))
 	}
 }

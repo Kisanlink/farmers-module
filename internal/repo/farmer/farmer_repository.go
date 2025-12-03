@@ -3,6 +3,7 @@ package farmer
 import (
 	"context"
 	"fmt"
+	"log"
 
 	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
@@ -68,15 +69,21 @@ func (r *FarmerRepository) Count(ctx context.Context, filter *base.Filter, model
 // FindByOrgID retrieves farmers linked to a specific organization through the farmer_links table
 // This method performs a JOIN between farmers and farmer_links tables to filter by aaa_org_id
 func (r *FarmerRepository) FindByOrgID(ctx context.Context, aaaOrgID string, filter *base.Filter) ([]*farmerentity.Farmer, error) {
+	log.Printf("[FindByOrgID] Called with aaaOrgID=%s, db=%v", aaaOrgID, r.db != nil)
+
 	if r.db == nil {
+		log.Printf("[FindByOrgID] ERROR: database connection not available")
 		return nil, fmt.Errorf("database connection not available")
 	}
 
 	// Start with the farmers table and join with farmer_links
+	// Note: We must explicitly filter out soft-deleted records for BOTH tables since BaseModel uses
+	// *time.Time (not gorm.DeletedAt), which means GORM doesn't automatically apply soft delete filtering
 	query := r.db.WithContext(ctx).
 		Model(&farmerentity.Farmer{}).
-		Joins("INNER JOIN farmer_links ON farmers.aaa_user_id = farmer_links.aaa_user_id").
-		Where("farmer_links.aaa_org_id = ?", aaaOrgID)
+		Joins("INNER JOIN farmer_links ON farmers.aaa_user_id = farmer_links.aaa_user_id AND farmer_links.deleted_at IS NULL").
+		Where("farmer_links.aaa_org_id = ?", aaaOrgID).
+		Where("farmers.deleted_at IS NULL")
 
 	// Apply additional filters if provided
 	if filter != nil {
@@ -142,9 +149,11 @@ func (r *FarmerRepository) FindByOrgID(ctx context.Context, aaaOrgID string, fil
 	// Execute the query
 	var farmers []*farmerentity.Farmer
 	if err := query.Find(&farmers).Error; err != nil {
+		log.Printf("[FindByOrgID] ERROR: query failed: %v", err)
 		return nil, fmt.Errorf("failed to find farmers by org_id: %w", err)
 	}
 
+	log.Printf("[FindByOrgID] Found %d farmers for org_id=%s", len(farmers), aaaOrgID)
 	return farmers, nil
 }
 
@@ -155,10 +164,13 @@ func (r *FarmerRepository) CountByOrgID(ctx context.Context, aaaOrgID string, fi
 	}
 
 	// Start with the farmers table and join with farmer_links
+	// Note: We must explicitly filter out soft-deleted records for BOTH tables since BaseModel uses
+	// *time.Time (not gorm.DeletedAt), which means GORM doesn't automatically apply soft delete filtering
 	query := r.db.WithContext(ctx).
 		Model(&farmerentity.Farmer{}).
-		Joins("INNER JOIN farmer_links ON farmers.aaa_user_id = farmer_links.aaa_user_id").
-		Where("farmer_links.aaa_org_id = ?", aaaOrgID)
+		Joins("INNER JOIN farmer_links ON farmers.aaa_user_id = farmer_links.aaa_user_id AND farmer_links.deleted_at IS NULL").
+		Where("farmer_links.aaa_org_id = ?", aaaOrgID).
+		Where("farmers.deleted_at IS NULL")
 
 	// Apply additional filters if provided
 	if filter != nil && filter.Group.Conditions != nil {

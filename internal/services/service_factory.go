@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/clients/aaa"
 	"github.com/Kisanlink/farmers-module/internal/config"
@@ -58,6 +59,9 @@ type ServiceFactory struct {
 
 	// Stage Management Services
 	StageService StageService
+
+	// Background Jobs
+	ReconciliationJob *ReconciliationJob
 }
 
 // NewServiceFactory creates a new service factory
@@ -150,6 +154,9 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		aaaService,
 	)
 
+	// Initialize reconciliation job (runs every 5 minutes)
+	reconciliationJob := NewReconciliationJob(gormDB, aaaService, logger, 5*time.Minute)
+
 	return &ServiceFactory{
 		FarmerService:         farmerService,
 		FarmerLinkageService:  farmerLinkageService,
@@ -170,5 +177,6 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		AuditService:          auditService,
 		AAAClient:             aaaClient,
 		StageService:          stageService,
+		ReconciliationJob:     reconciliationJob,
 	}
 }

@@ -364,13 +364,14 @@ func (s *BulkFarmerServiceImpl) extractIDsFromContext(procCtx *pipeline.Processi
 
 // processSingleFarmer processes a single farmer using the pipeline
 func (s *BulkFarmerServiceImpl) processSingleFarmer(ctx context.Context, bulkOp *bulk.BulkOperation, farmer *requests.FarmerBulkData, index int, options requests.BulkProcessingOptions) (*pipeline.ProcessingContext, error) {
-	// Create processing context
-	procCtx := pipeline.NewProcessingContext(
+	// Create processing context with deduplication mode
+	procCtx := pipeline.NewProcessingContextWithOptions(
 		bulkOp.ID,
 		bulkOp.FPOOrgID,
 		bulkOp.InitiatedBy,
 		index,
 		farmer,
+		options.DeduplicationMode,
 	)
 
 	// Build processing pipeline

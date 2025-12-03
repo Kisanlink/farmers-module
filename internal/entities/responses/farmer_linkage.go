@@ -37,3 +37,42 @@ func (r *FarmerLinkageResponse) SetRequestID(requestID string) {
 		r.BaseResponse.RequestID = requestID
 	}
 }
+
+// BulkLinkFarmersResponse represents the response for bulk farmer linkage operations
+type BulkLinkFarmersResponse struct {
+	*base.BaseResponse
+	Data *BulkLinkFarmersData `json:"data"`
+}
+
+// BulkLinkFarmersData represents bulk farmer linkage result data
+type BulkLinkFarmersData struct {
+	AAAOrgID     string           `json:"aaa_org_id"`
+	TotalCount   int              `json:"total_count"`
+	SuccessCount int              `json:"success_count"`
+	FailureCount int              `json:"failure_count"`
+	SkippedCount int              `json:"skipped_count"` // Already linked
+	Results      []BulkLinkResult `json:"results"`
+}
+
+// BulkLinkResult represents the result of linking a single farmer
+type BulkLinkResult struct {
+	AAAUserID string `json:"aaa_user_id"`
+	Success   bool   `json:"success"`
+	Error     string `json:"error,omitempty"`
+	Status    string `json:"status"` // LINKED, ALREADY_LINKED, FAILED, UNLINKED
+}
+
+// NewBulkLinkFarmersResponse creates a new bulk link farmers response
+func NewBulkLinkFarmersResponse(data *BulkLinkFarmersData, message string) *BulkLinkFarmersResponse {
+	return &BulkLinkFarmersResponse{
+		BaseResponse: base.NewSuccessResponse(message, data),
+		Data:         data,
+	}
+}
+
+// SetRequestID sets the request ID for tracking
+func (r *BulkLinkFarmersResponse) SetRequestID(requestID string) {
+	if r.BaseResponse != nil {
+		r.BaseResponse.RequestID = requestID
+	}
+}

@@ -22,6 +22,10 @@ type FarmerLinkageService interface {
 	CreateKisanSathiUser(ctx context.Context, req interface{}) (interface{}, error)
 	// List KisanSathis (users assigned to farmers)
 	ListKisanSathis(ctx context.Context, req interface{}) (interface{}, error)
+	// Bulk link multiple farmers to an FPO
+	BulkLinkFarmersToFPO(ctx context.Context, req interface{}) (interface{}, error)
+	// Bulk unlink multiple farmers from an FPO
+	BulkUnlinkFarmersFromFPO(ctx context.Context, req interface{}) (interface{}, error)
 }
 
 // FPOService handles FPO creation and management workflows

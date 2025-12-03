@@ -234,3 +234,137 @@ func GetFPORef(service services.FPOService) gin.HandlerFunc {
 		})
 	}
 }
+
+// BulkLinkFarmersToFPO handles bulk linking of farmers to an FPO
+// @Summary Bulk link farmers to FPO
+// @Description Link multiple farmers to a Farmer Producer Organization in a single operation
+// @Tags identity
+// @Accept json
+// @Produce json
+// @Param linkage body requests.BulkLinkFarmersRequest true "Bulk farmer linkage data"
+// @Success 200 {object} responses.BulkLinkFarmersResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /identity/farmer/bulk-link [post]
+func BulkLinkFarmersToFPO(service services.FarmerLinkageService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req requests.BulkLinkFarmersRequest
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Invalid request format",
+				"details": err.Error(),
+			})
+			return
+		}
+
+		// Set request ID if not provided
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+
+		// Call the service
+		result, err := service.BulkLinkFarmersToFPO(c.Request.Context(), &req)
+		if err != nil {
+			statusCode := http.StatusInternalServerError
+			if isValidationError(err) {
+				statusCode = http.StatusBadRequest
+			} else if isPermissionError(err) {
+				statusCode = http.StatusForbidden
+			} else if isNotFoundError(err) {
+				statusCode = http.StatusNotFound
+			}
+
+			c.JSON(statusCode, gin.H{
+				"error":          err.Error(),
+				"request_id":     req.RequestID,
+				"correlation_id": req.RequestID,
+			})
+			return
+		}
+
+		data, ok := result.(*responses.BulkLinkFarmersData)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":      "Invalid response format",
+				"request_id": req.RequestID,
+			})
+			return
+		}
+
+		response := responses.NewBulkLinkFarmersResponse(data, "Bulk farmer linking completed")
+		response.SetRequestID(req.RequestID)
+
+		c.JSON(http.StatusOK, response)
+	}
+}
+
+// BulkUnlinkFarmersFromFPO handles bulk unlinking of farmers from an FPO
+// @Summary Bulk unlink farmers from FPO
+// @Description Unlink multiple farmers from a Farmer Producer Organization in a single operation
+// @Tags identity
+// @Accept json
+// @Produce json
+// @Param unlinkage body requests.BulkUnlinkFarmersRequest true "Bulk farmer unlinkage data"
+// @Success 200 {object} responses.BulkLinkFarmersResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /identity/farmer/bulk-unlink [delete]
+func BulkUnlinkFarmersFromFPO(service services.FarmerLinkageService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req requests.BulkUnlinkFarmersRequest
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Invalid request format",
+				"details": err.Error(),
+			})
+			return
+		}
+
+		// Set request ID if not provided
+		if req.RequestID == "" {
+			req.RequestID = generateRequestID()
+		}
+
+		// Call the service
+		result, err := service.BulkUnlinkFarmersFromFPO(c.Request.Context(), &req)
+		if err != nil {
+			statusCode := http.StatusInternalServerError
+			if isValidationError(err) {
+				statusCode = http.StatusBadRequest
+			} else if isPermissionError(err) {
+				statusCode = http.StatusForbidden
+			} else if isNotFoundError(err) {
+				statusCode = http.StatusNotFound
+			}
+
+			c.JSON(statusCode, gin.H{
+				"error":          err.Error(),
+				"request_id":     req.RequestID,
+				"correlation_id": req.RequestID,
+			})
+			return
+		}
+
+		data, ok := result.(*responses.BulkLinkFarmersData)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":      "Invalid response format",
+				"request_id": req.RequestID,
+			})
+			return
+		}
+
+		response := responses.NewBulkLinkFarmersResponse(data, "Bulk farmer unlinking completed")
+		response.SetRequestID(req.RequestID)
+
+		c.JSON(http.StatusOK, response)
+	}
+}

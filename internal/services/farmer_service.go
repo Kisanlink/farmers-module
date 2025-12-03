@@ -19,6 +19,7 @@ import (
 type FarmerService interface {
 	CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error)
 	GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*responses.FarmerProfileResponse, error)
+	GetFarmerByUserID(ctx context.Context, aaaUserID string) (*responses.FarmerResponse, error)
 	UpdateFarmer(ctx context.Context, req *requests.UpdateFarmerRequest) (*responses.FarmerResponse, error)
 	DeleteFarmer(ctx context.Context, req *requests.DeleteFarmerRequest) error
 	ListFarmers(ctx context.Context, req *requests.ListFarmersRequest) (*responses.FarmerListResponse, error)
@@ -476,6 +477,39 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 
 	response := responses.NewFarmerProfileResponse(farmerProfileData, "Farmer retrieved successfully")
 	return &response, nil
+}
+
+// GetFarmerByUserID retrieves a farmer by AAA user ID
+func (s *FarmerServiceImpl) GetFarmerByUserID(ctx context.Context, aaaUserID string) (*responses.FarmerResponse, error) {
+	if aaaUserID == "" {
+		return nil, fmt.Errorf("aaa_user_id is required")
+	}
+
+	filter := base.NewFilterBuilder().
+		Where("aaa_user_id", base.OpEqual, aaaUserID).
+		Build()
+
+	farmer, err := s.repository.FindOne(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	if farmer == nil {
+		return nil, fmt.Errorf("farmer not found with aaa_user_id=%s", aaaUserID)
+	}
+
+	farmerProfileData := &responses.FarmerProfileData{
+		ID:          farmer.ID,
+		AAAUserID:   farmer.AAAUserID,
+		FirstName:   farmer.FirstName,
+		LastName:    farmer.LastName,
+		PhoneNumber: farmer.PhoneNumber,
+		Email:       farmer.Email,
+	}
+
+	return &responses.FarmerResponse{
+		BaseResponse: base.NewSuccessResponse("Farmer found", farmerProfileData),
+		Data:         farmerProfileData,
+	}, nil
 }
 
 // UpdateFarmer updates an existing farmer
