@@ -247,3 +247,63 @@ func (r *FarmerLinkRepository) Count(ctx context.Context, filter *base.Filter, m
 
 	return count, nil
 }
+
+// FindUnscoped finds farmer links including soft-deleted records
+func (r *FarmerLinkRepository) FindUnscoped(ctx context.Context, filter *base.Filter) ([]*farmerentity.FarmerLink, error) {
+	if r.db == nil {
+		return nil, fmt.Errorf("database connection not available")
+	}
+
+	query := r.db.Unscoped().Model(&farmerentity.FarmerLink{}).WithContext(ctx)
+
+	// Apply filters
+	if filter != nil && filter.Group.Conditions != nil {
+		for _, condition := range filter.Group.Conditions {
+			switch condition.Operator {
+			case base.OpEqual:
+				query = query.Where(condition.Field+" = ?", condition.Value)
+			case base.OpNotEqual:
+				query = query.Where(condition.Field+" != ?", condition.Value)
+			case base.OpIn:
+				query = query.Where(condition.Field+" IN ?", condition.Value)
+			default:
+				query = query.Where(condition.Field+" = ?", condition.Value)
+			}
+		}
+	}
+
+	var results []*farmerentity.FarmerLink
+	if err := query.Find(&results).Error; err != nil {
+		return nil, fmt.Errorf("failed to find farmer links (unscoped): %w", err)
+	}
+
+	return results, nil
+}
+
+// Restore restores a soft-deleted farmer link by clearing deleted_at and updating status
+func (r *FarmerLinkRepository) Restore(ctx context.Context, entity *farmerentity.FarmerLink) error {
+	if r.db == nil {
+		return fmt.Errorf("database connection not available")
+	}
+
+	// Use Unscoped to update soft-deleted records
+	result := r.db.Unscoped().WithContext(ctx).
+		Model(&farmerentity.FarmerLink{}).
+		Where("id = ?", entity.ID).
+		Updates(map[string]interface{}{
+			"deleted_at": nil,
+			"deleted_by": nil,
+			"status":     entity.Status,
+			"updated_at": r.db.NowFunc(),
+		})
+
+	if result.Error != nil {
+		return fmt.Errorf("failed to restore farmer link: %w", result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("no farmer link found with id: %s", entity.ID)
+	}
+
+	return nil
+}

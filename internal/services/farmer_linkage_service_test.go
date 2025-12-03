@@ -43,8 +43,8 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 					AAAUserID: "user123",
 					AAAOrgID:  "org456",
 				}, nil)
-				// No existing link
-				repo.On("Find", mock.Anything, mock.Anything).Return([]*farmerentity.FarmerLink{}, nil)
+				// No existing link (including soft-deleted)
+				repo.On("FindUnscoped", mock.Anything, mock.Anything).Return([]*farmerentity.FarmerLink{}, nil)
 				// Create succeeds
 				repo.On("Create", mock.Anything, mock.Anything).Return(nil)
 			},
@@ -147,7 +147,7 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 					AAAOrgID:  "org456",
 					Status:    "INACTIVE",
 				}
-				repo.On("Find", mock.Anything, mock.Anything).Return([]*farmerentity.FarmerLink{existingLink}, nil)
+				repo.On("FindUnscoped", mock.Anything, mock.Anything).Return([]*farmerentity.FarmerLink{existingLink}, nil)
 				// Update succeeds
 				repo.On("Update", mock.Anything, mock.Anything).Return(nil)
 			},

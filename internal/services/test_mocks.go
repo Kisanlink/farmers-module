@@ -286,6 +286,19 @@ func (m *MockFarmerLinkageRepoShared) SetDBManager(dbManager any) {
 	m.Called(dbManager)
 }
 
+func (m *MockFarmerLinkageRepoShared) FindUnscoped(ctx context.Context, filter *base.Filter) ([]*farmerentity.FarmerLink, error) {
+	args := m.Called(ctx, filter)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*farmerentity.FarmerLink), args.Error(1)
+}
+
+func (m *MockFarmerLinkageRepoShared) Restore(ctx context.Context, entity *farmerentity.FarmerLink) error {
+	args := m.Called(ctx, entity)
+	return args.Error(0)
+}
+
 // MockAAAService is an alias for MockAAAServiceShared for backward compatibility
 // This ensures all tests can use either MockAAAService or MockAAAServiceShared
 // and get the same enhanced functionality including permission matrix support

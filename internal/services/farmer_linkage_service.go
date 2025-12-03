@@ -17,6 +17,10 @@ type FarmerLinkRepository interface {
 	Create(ctx context.Context, entity *farmerentity.FarmerLink) error
 	Update(ctx context.Context, entity *farmerentity.FarmerLink) error
 	Find(ctx context.Context, filter *base.Filter) ([]*farmerentity.FarmerLink, error)
+	// FindUnscoped finds records including soft-deleted ones
+	FindUnscoped(ctx context.Context, filter *base.Filter) ([]*farmerentity.FarmerLink, error)
+	// Restore restores a soft-deleted record by clearing deleted_at
+	Restore(ctx context.Context, entity *farmerentity.FarmerLink) error
 }
 
 // FarmerRepository defines the interface for farmer repository operations
@@ -90,9 +94,15 @@ func (s *FarmerLinkageServiceImpl) LinkFarmerToFPO(ctx context.Context, req inte
 		return fmt.Errorf("farmer with aaa_user_id=%s must be created before linking to FPO", linkReq.AAAUserID)
 	}
 
-	// Check if linkage already exists
-	existingLink, err := s.getFarmerLinkByUserAndOrg(ctx, linkReq.AAAUserID, linkReq.AAAOrgID)
+	// Check if linkage already exists (including soft-deleted)
+	existingLink, err := s.getFarmerLinkByUserAndOrgUnscoped(ctx, linkReq.AAAUserID, linkReq.AAAOrgID)
 	if err == nil && existingLink != nil {
+		// Check if it's soft-deleted (DeletedAt is *time.Time, not nil means deleted)
+		if existingLink.DeletedAt != nil {
+			// Restore the soft-deleted link
+			existingLink.Status = "ACTIVE"
+			return s.farmerLinkageRepo.Restore(ctx, existingLink)
+		}
 		// Update existing link to ACTIVE if it was inactive
 		if existingLink.Status != "ACTIVE" {
 			existingLink.Status = "ACTIVE"
@@ -479,6 +489,25 @@ func (s *FarmerLinkageServiceImpl) getFarmerLinkByUserAndOrg(ctx context.Context
 	return results[0], nil
 }
 
+// getFarmerLinkByUserAndOrgUnscoped finds farmer link including soft-deleted records
+func (s *FarmerLinkageServiceImpl) getFarmerLinkByUserAndOrgUnscoped(ctx context.Context, userID, orgID string) (*farmerentity.FarmerLink, error) {
+	filter := base.NewFilterBuilder().
+		Where("aaa_user_id", base.OpEqual, userID).
+		Where("aaa_org_id", base.OpEqual, orgID).
+		Build()
+
+	results, err := s.farmerLinkageRepo.FindUnscoped(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(results) == 0 {
+		return nil, fmt.Errorf("farmer link not found")
+	}
+
+	return results[0], nil
+}
+
 // ListKisanSathis lists all KisanSathis (users assigned to at least one farmer)
 func (s *FarmerLinkageServiceImpl) ListKisanSathis(ctx context.Context, req interface{}) (interface{}, error) {
 	listReq, ok := req.(*requests.ListKisanSathisRequest)
@@ -678,9 +707,26 @@ func (s *FarmerLinkageServiceImpl) BulkLinkFarmersToFPO(ctx context.Context, req
 			continue
 		}
 
-		// Check if linkage already exists
-		existingLink, err := s.getFarmerLinkByUserAndOrg(ctx, userID, bulkReq.AAAOrgID)
+		// Check if linkage already exists (including soft-deleted)
+		existingLink, err := s.getFarmerLinkByUserAndOrgUnscoped(ctx, userID, bulkReq.AAAOrgID)
 		if err == nil && existingLink != nil {
+			// Check if it's soft-deleted (DeletedAt is *time.Time, not nil means deleted)
+			if existingLink.DeletedAt != nil {
+				// Restore the soft-deleted link
+				existingLink.Status = "ACTIVE"
+				if err := s.farmerLinkageRepo.Restore(ctx, existingLink); err != nil {
+					result.Success = false
+					result.Error = fmt.Sprintf("failed to restore link: %v", err)
+					result.Status = "FAILED"
+					failureCount++
+				} else {
+					result.Success = true
+					result.Status = "LINKED"
+					successCount++
+				}
+				results = append(results, result)
+				continue
+			}
 			// Update existing link to ACTIVE if it was inactive
 			if existingLink.Status != "ACTIVE" {
 				existingLink.Status = "ACTIVE"
