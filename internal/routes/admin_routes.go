@@ -30,5 +30,10 @@ func RegisterAdminRoutes(router *gin.RouterGroup, services *services.ServiceFact
 		// Reconciliation endpoints
 		admin.POST("/reconcile", handlers.TriggerReconciliation(services.ReconciliationJob))
 		admin.GET("/reconcile/status", handlers.GetReconciliationStatus(services.ReconciliationJob))
+
+		// Permanent delete endpoints (super admin only)
+		admin.POST("/permanent-delete", handlers.PermanentDelete(services.PermanentDeleteService))
+		admin.POST("/permanent-delete/org", handlers.PermanentDeleteByOrg(services.PermanentDeleteService))
+		admin.POST("/cleanup-orphaned", handlers.CleanupOrphanedRecords(services.PermanentDeleteService))
 	}
 }

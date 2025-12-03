@@ -462,6 +462,29 @@ func (s *FarmActivityServiceImpl) GetFarmActivity(ctx context.Context, activityI
 	return &response, nil
 }
 
+// DeleteActivity deletes a farm activity by ID (soft delete)
+func (s *FarmActivityServiceImpl) DeleteActivity(ctx context.Context, activityID string) error {
+	// Get activity to verify it exists
+	activity := &farmActivityEntity.FarmActivity{}
+	_, err := s.farmActivityRepo.GetByID(ctx, activityID, activity)
+	if err != nil {
+		return fmt.Errorf("farm activity not found: %w", err)
+	}
+
+	// Only allow deletion of PLANNED or CANCELLED activities
+	// COMPLETED activities should be preserved for audit trail
+	if activity.Status == "COMPLETED" {
+		return fmt.Errorf("cannot delete completed activities - they are preserved for audit trail")
+	}
+
+	// Perform soft delete
+	if err := s.farmActivityRepo.Delete(ctx, activityID, activity); err != nil {
+		return fmt.Errorf("failed to delete farm activity: %w", err)
+	}
+
+	return nil
+}
+
 // GetStageProgress gets stage-wise activity completion statistics for a crop cycle
 func (s *FarmActivityServiceImpl) GetStageProgress(ctx context.Context, cropCycleID string) (interface{}, error) {
 	// Get crop cycle to verify it exists and get crop info

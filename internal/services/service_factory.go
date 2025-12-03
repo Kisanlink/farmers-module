@@ -62,6 +62,9 @@ type ServiceFactory struct {
 
 	// Background Jobs
 	ReconciliationJob *ReconciliationJob
+
+	// Admin Services
+	PermanentDeleteService *PermanentDeleteService
 }
 
 // NewServiceFactory creates a new service factory
@@ -157,26 +160,30 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	// Initialize reconciliation job (runs every 5 minutes)
 	reconciliationJob := NewReconciliationJob(gormDB, aaaService, logger, 5*time.Minute)
 
+	// Initialize permanent delete service
+	permanentDeleteService := NewPermanentDeleteService(gormDB, aaaService, logger)
+
 	return &ServiceFactory{
-		FarmerService:         farmerService,
-		FarmerLinkageService:  farmerLinkageService,
-		FPOService:            fpoService,
-		FPOLifecycleService:   fpoLifecycleService,
-		FPOConfigService:      fpoConfigService,
-		KisanSathiService:     kisanSathiService,
-		FarmService:           farmService,
-		CropService:           cropService,
-		CropCycleService:      cropCycleService,
-		FarmActivityService:   farmActivityService,
-		DataQualityService:    dataQualityService,
-		LookupService:         lookupService,
-		ReportingService:      reportingService,
-		AdministrativeService: administrativeService,
-		BulkFarmerService:     bulkFarmerService,
-		AAAService:            aaaService,
-		AuditService:          auditService,
-		AAAClient:             aaaClient,
-		StageService:          stageService,
-		ReconciliationJob:     reconciliationJob,
+		FarmerService:          farmerService,
+		FarmerLinkageService:   farmerLinkageService,
+		FPOService:             fpoService,
+		FPOLifecycleService:    fpoLifecycleService,
+		FPOConfigService:       fpoConfigService,
+		KisanSathiService:      kisanSathiService,
+		FarmService:            farmService,
+		CropService:            cropService,
+		CropCycleService:       cropCycleService,
+		FarmActivityService:    farmActivityService,
+		DataQualityService:     dataQualityService,
+		LookupService:          lookupService,
+		ReportingService:       reportingService,
+		AdministrativeService:  administrativeService,
+		BulkFarmerService:      bulkFarmerService,
+		AAAService:             aaaService,
+		AuditService:           auditService,
+		AAAClient:              aaaClient,
+		StageService:           stageService,
+		ReconciliationJob:      reconciliationJob,
+		PermanentDeleteService: permanentDeleteService,
 	}
 }
