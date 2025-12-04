@@ -4,10 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/constants"
+	cropcycle "github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
+	"github.com/Kisanlink/farmers-module/internal/entities/farm"
+	farmactivity "github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
 	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/kisanlink-db/pkg/base"
@@ -34,6 +38,7 @@ type ReconciliationReport struct {
 	RolesProcessed       int       `json:"roles_processed"`
 	RolesFixed           int       `json:"roles_fixed"`
 	RolesStillPending    int       `json:"roles_still_pending"`
+	OrphanedDeleted      int       `json:"orphaned_deleted"`
 	FPOLinksProcessed    int       `json:"fpo_links_processed"`
 	FPOLinksFixed        int       `json:"fpo_links_fixed"`
 	FPOLinksStillPending int       `json:"fpo_links_still_pending"`
@@ -114,9 +119,10 @@ func (j *ReconciliationJob) runOnce() {
 	}
 
 	// Only log if there was work to do
-	if report.RolesProcessed > 0 || report.FPOLinksProcessed > 0 {
-		log.Printf("Reconciliation completed: roles=%d/%d fixed, fpo_links=%d/%d fixed, duration=%s",
+	if report.RolesProcessed > 0 || report.FPOLinksProcessed > 0 || report.OrphanedDeleted > 0 {
+		log.Printf("Reconciliation completed: roles=%d/%d fixed, orphaned=%d deleted, fpo_links=%d/%d fixed, duration=%s",
 			report.RolesFixed, report.RolesProcessed,
+			report.OrphanedDeleted,
 			report.FPOLinksFixed, report.FPOLinksProcessed,
 			report.Duration)
 	}
@@ -129,6 +135,9 @@ func (j *ReconciliationJob) Reconcile(ctx context.Context) (*ReconciliationRepor
 		Errors:    []string{},
 	}
 
+	// First, clean up orphaned farmers (users that don't exist in AAA)
+	j.cleanupOrphanedFarmers(ctx, report)
+
 	// Reconcile pending role assignments
 	j.reconcileRoleAssignments(ctx, report)
 
@@ -139,6 +148,48 @@ func (j *ReconciliationJob) Reconcile(ctx context.Context) (*ReconciliationRepor
 	report.Duration = report.EndTime.Sub(report.StartTime).String()
 
 	return report, nil
+}
+
+// cleanupOrphanedFarmers checks all farmers and permanently deletes those whose AAA user doesn't exist
+func (j *ReconciliationJob) cleanupOrphanedFarmers(ctx context.Context, report *ReconciliationReport) {
+	// Query all farmers in batches
+	var farmers []farmerentity.Farmer
+	err := j.db.WithContext(ctx).
+		Where("deleted_at IS NULL").
+		Limit(100). // Process in batches
+		Find(&farmers).Error
+
+	if err != nil {
+		report.Errors = append(report.Errors, fmt.Sprintf("failed to query farmers for orphan cleanup: %v", err))
+		return
+	}
+
+	for _, farmer := range farmers {
+		select {
+		case <-ctx.Done():
+			report.Errors = append(report.Errors, "context cancelled during orphan cleanup")
+			return
+		default:
+		}
+
+		// Check if the AAA user exists
+		userExists, err := j.checkUserExists(ctx, farmer.AAAUserID)
+		if err != nil {
+			// Network/service error - skip this farmer
+			continue
+		}
+
+		if !userExists {
+			// User doesn't exist in AAA - permanently delete this orphaned farmer
+			log.Printf("Orphaned farmer detected: %s (AAA user %s not found), permanently deleting", farmer.GetID(), farmer.AAAUserID)
+			err := j.permanentlyDeleteOrphanedFarmer(ctx, &farmer)
+			if err != nil {
+				report.Errors = append(report.Errors, fmt.Sprintf("farmer %s: failed to delete orphaned record: %v", farmer.AAAUserID, err))
+				continue
+			}
+			report.OrphanedDeleted++
+		}
+	}
 }
 
 // reconcileRoleAssignments retries failed role assignments
@@ -166,7 +217,28 @@ func (j *ReconciliationJob) reconcileRoleAssignments(ctx context.Context, report
 		default:
 		}
 
-		err := j.retryRoleAssignment(ctx, &farmer)
+		// First check if the AAA user exists
+		userExists, err := j.checkUserExists(ctx, farmer.AAAUserID)
+		if err != nil {
+			report.Errors = append(report.Errors, fmt.Sprintf("farmer %s: failed to check user existence: %v", farmer.AAAUserID, err))
+			report.RolesStillPending++
+			continue
+		}
+
+		if !userExists {
+			// User doesn't exist in AAA - permanently delete this orphaned farmer
+			log.Printf("Orphaned farmer detected: %s (AAA user %s not found), permanently deleting", farmer.GetID(), farmer.AAAUserID)
+			err := j.permanentlyDeleteOrphanedFarmer(ctx, &farmer)
+			if err != nil {
+				report.Errors = append(report.Errors, fmt.Sprintf("farmer %s: failed to delete orphaned record: %v", farmer.AAAUserID, err))
+				report.RolesStillPending++
+				continue
+			}
+			report.OrphanedDeleted++
+			continue
+		}
+
+		err = j.retryRoleAssignment(ctx, &farmer)
 		if err != nil {
 			report.RolesStillPending++
 			report.Errors = append(report.Errors, fmt.Sprintf("farmer %s: %v", farmer.AAAUserID, err))
@@ -300,6 +372,64 @@ func (j *ReconciliationJob) GetPendingCounts(ctx context.Context) (rolesPending,
 	}
 
 	return rolesPending, fpoLinksPending, nil
+}
+
+// checkUserExists checks if the user exists in AAA service
+func (j *ReconciliationJob) checkUserExists(ctx context.Context, userID string) (bool, error) {
+	_, err := j.aaaService.GetUser(ctx, userID)
+	if err != nil {
+		// Check if it's a "not found" error
+		if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "NotFound") {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+// permanentlyDeleteOrphanedFarmer permanently deletes a farmer and all related data
+func (j *ReconciliationJob) permanentlyDeleteOrphanedFarmer(ctx context.Context, farmer *farmerentity.Farmer) error {
+	return j.db.Transaction(func(tx *gorm.DB) error {
+		farmerID := farmer.GetID()
+
+		// Get all farms for this farmer
+		var farms []farm.Farm
+		if err := tx.Unscoped().Where("farmer_id = ?", farmerID).Find(&farms).Error; err != nil {
+			return fmt.Errorf("failed to find farms: %w", err)
+		}
+
+		// Delete farm activities for each farm
+		for _, f := range farms {
+			if err := tx.Unscoped().Where("farm_id = ?", f.GetID()).Delete(&farmactivity.FarmActivity{}).Error; err != nil {
+				return fmt.Errorf("failed to delete farm activities: %w", err)
+			}
+		}
+
+		// Delete crop cycles for each farm
+		for _, f := range farms {
+			if err := tx.Unscoped().Where("farm_id = ?", f.GetID()).Delete(&cropcycle.CropCycle{}).Error; err != nil {
+				return fmt.Errorf("failed to delete crop cycles: %w", err)
+			}
+		}
+
+		// Delete farms
+		if err := tx.Unscoped().Where("farmer_id = ?", farmerID).Delete(&farm.Farm{}).Error; err != nil {
+			return fmt.Errorf("failed to delete farms: %w", err)
+		}
+
+		// Delete farmer links
+		if err := tx.Unscoped().Where("farmer_id = ?", farmerID).Delete(&farmerentity.FarmerLink{}).Error; err != nil {
+			return fmt.Errorf("failed to delete farmer links: %w", err)
+		}
+
+		// Delete the farmer
+		if err := tx.Unscoped().Where("id = ?", farmerID).Delete(&farmerentity.Farmer{}).Error; err != nil {
+			return fmt.Errorf("failed to delete farmer: %w", err)
+		}
+
+		log.Printf("Permanently deleted orphaned farmer %s and all related data", farmerID)
+		return nil
+	})
 }
 
 // FarmerRepository interface for reconciliation (uses base filterable pattern)

@@ -624,8 +624,8 @@ func PermanentDelete(svc *services.PermanentDeleteService) gin.HandlerFunc {
 			return
 		}
 
-		// Get user from context
-		userID := c.GetString("user_id")
+		// Get user from context (middleware sets aaa_subject)
+		userID := c.GetString("aaa_subject")
 		if userID == "" {
 			c.JSON(http.StatusForbidden, responses.ErrorResponse{
 				Error:         "Authentication required",
@@ -740,8 +740,8 @@ func PermanentDeleteByOrg(svc *services.PermanentDeleteService) gin.HandlerFunc 
 			return
 		}
 
-		// Get user from context
-		userID := c.GetString("user_id")
+		// Get user from context (middleware sets aaa_subject)
+		userID := c.GetString("aaa_subject")
 		if userID == "" {
 			c.JSON(http.StatusForbidden, responses.ErrorResponse{
 				Error:         "Authentication required",
@@ -818,8 +818,8 @@ func CleanupOrphanedRecords(svc *services.PermanentDeleteService) gin.HandlerFun
 	return func(c *gin.Context) {
 		dryRun := c.Query("dry_run") == "true"
 
-		// Get user from context
-		userID := c.GetString("user_id")
+		// Get user from context (middleware sets aaa_subject)
+		userID := c.GetString("aaa_subject")
 		if userID == "" {
 			c.JSON(http.StatusForbidden, responses.ErrorResponse{
 				Error:         "Authentication required",

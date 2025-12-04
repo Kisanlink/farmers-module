@@ -27,6 +27,10 @@ const (
 	// Grants full permissions across all organizations and resources
 	RoleAdmin = "admin"
 
+	// RoleSuperAdmin is assigned to super administrators
+	// Grants full permissions including permanent deletion capabilities
+	RoleSuperAdmin = "super_admin"
+
 	// RoleReadOnly is assigned to users who need read-only access
 	// Grants read permissions without write/update/delete capabilities
 	RoleReadOnly = "readonly"
@@ -40,6 +44,7 @@ var RoleDisplayNames = map[string]string{
 	RoleFPOCEO:     "FPO CEO",
 	RoleFPOManager: "FPO Manager",
 	RoleAdmin:      "Administrator",
+	RoleSuperAdmin: "Super Administrator",
 	RoleReadOnly:   "Read-Only User",
 }
 
@@ -50,6 +55,7 @@ var RoleDescriptions = map[string]string{
 	RoleFPOCEO:     "Chief executive officer of a Farmer Producer Organization with full organizational management permissions",
 	RoleFPOManager: "Manager within an FPO with permissions to manage operations and access organizational data",
 	RoleAdmin:      "System administrator with full permissions across all organizations and resources",
+	RoleSuperAdmin: "Super administrator with full permissions including permanent deletion capabilities",
 	RoleReadOnly:   "User with read-only access to resources within their organization",
 }
 
@@ -62,6 +68,7 @@ func AllRoles() []string {
 		RoleFPOCEO,
 		RoleFPOManager,
 		RoleAdmin,
+		RoleSuperAdmin,
 		RoleReadOnly,
 	}
 }

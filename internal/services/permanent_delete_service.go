@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Kisanlink/farmers-module/internal/constants"
 	cropcycle "github.com/Kisanlink/farmers-module/internal/entities/crop_cycle"
 	"github.com/Kisanlink/farmers-module/internal/entities/farm"
 	farmactivity "github.com/Kisanlink/farmers-module/internal/entities/farm_activity"
@@ -51,12 +50,18 @@ func NewPermanentDeleteService(db *gorm.DB, aaaService AAAService, logger interf
 
 // CanUserPerformPermanentDelete checks if the user has super admin privileges
 func (s *PermanentDeleteService) CanUserPerformPermanentDelete(ctx context.Context, userID string) (bool, error) {
-	// Check if user has admin role
-	hasRole, err := s.aaaService.CheckUserRole(ctx, userID, constants.RoleAdmin)
+	// Use CheckPermission to verify admin-level access
+	// Check for permanent_delete action on admin resource
+	allowed, err := s.aaaService.CheckPermission(ctx, userID, "admin", "permanent_delete", "", "")
 	if err != nil {
-		return false, fmt.Errorf("failed to check admin role: %w", err)
+		log.Printf("Permission check failed for permanent_delete: %v", err)
+		// Fallback: try checking for admin.maintain permission
+		allowed, err = s.aaaService.CheckPermission(ctx, userID, "admin", "maintain", "", "")
+		if err != nil {
+			return false, fmt.Errorf("failed to check admin permission: %w", err)
+		}
 	}
-	return hasRole, nil
+	return allowed, nil
 }
 
 // PermanentDeleteFarmer permanently deletes a farmer and all related data

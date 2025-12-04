@@ -713,6 +713,7 @@ func (c *Client) AssignRole(ctx context.Context, userID, orgID, roleName string)
 }
 
 // CheckUserRole checks if a user has a specific role
+// NOTE: RoleService.CheckUserRole is not yet implemented in AAA, so we fall back to UserService.GetUser
 func (c *Client) CheckUserRole(ctx context.Context, userID, roleName string) (bool, error) {
 	log.Printf("AAA CheckUserRole: userID=%s, role=%s", userID, roleName)
 
@@ -725,13 +726,11 @@ func (c *Client) CheckUserRole(ctx context.Context, userID, roleName string) (bo
 	}
 
 	if c.userClient == nil {
-		// NOTE: Role service is not yet available, using stub response
-		log.Printf("STUB: CheckUserRole called - RoleService not yet available")
-		// Default to false for security
+		log.Printf("STUB: CheckUserRole called - UserService not available")
 		return false, nil
 	}
 
-	// Try to get user and check roles from UserService
+	// Get user and check roles from UserService
 	req := &pb.GetUserRequest{Id: userID}
 	resp, err := c.userClient.GetUser(ctx, req)
 	if err != nil {

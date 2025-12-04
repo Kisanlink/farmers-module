@@ -299,14 +299,16 @@ func TestRoleConstants(t *testing.T) {
 	assert.Equal(t, "CEO", constants.RoleFPOCEO)
 	assert.Equal(t, "fpo_manager", constants.RoleFPOManager)
 	assert.Equal(t, "admin", constants.RoleAdmin)
+	assert.Equal(t, "super_admin", constants.RoleSuperAdmin)
 	assert.Equal(t, "readonly", constants.RoleReadOnly)
 
 	// Verify AllRoles returns all expected roles
 	allRoles := constants.AllRoles()
-	assert.Len(t, allRoles, 6)
+	assert.Len(t, allRoles, 7)
 	assert.Contains(t, allRoles, constants.RoleFarmer)
 	assert.Contains(t, allRoles, constants.RoleKisanSathi)
 	assert.Contains(t, allRoles, constants.RoleFPOCEO)
+	assert.Contains(t, allRoles, constants.RoleSuperAdmin)
 
 	// Verify IsValidRole works correctly
 	assert.True(t, constants.IsValidRole(constants.RoleFarmer))
