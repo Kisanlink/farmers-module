@@ -103,6 +103,46 @@ definitions:
     - stage_id
     - stage_order
     type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.BulkLinkFarmersRequest:
+    properties:
+      aaa_org_id:
+        example: ORGN00000005
+        type: string
+      aaa_user_ids:
+        example:
+        - '["USR00000001"'
+        - '"USR00000002"]'
+        items:
+          type: string
+        maxItems: 1000
+        minItems: 1
+        type: array
+      continue_on_error:
+        description: Continue processing on individual failures
+        example: true
+        type: boolean
+      metadata:
+        additionalProperties: true
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_ids
+    type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.BulkProcessingOptions:
     properties:
       assign_kisan_sathi:
@@ -149,6 +189,46 @@ definitions:
         description: Dry run mode
         example: false
         type: boolean
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.BulkUnlinkFarmersRequest:
+    properties:
+      aaa_org_id:
+        example: ORGN00000005
+        type: string
+      aaa_user_ids:
+        example:
+        - '["USR00000001"'
+        - '"USR00000002"]'
+        items:
+          type: string
+        maxItems: 1000
+        minItems: 1
+        type: array
+      continue_on_error:
+        description: Continue processing on individual failures
+        example: true
+        type: boolean
+      metadata:
+        additionalProperties: true
+        type: object
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - aaa_org_id
+    - aaa_user_ids
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.CEOUserData:
     properties:
@@ -1346,6 +1426,50 @@ definitions:
         type: number
       utilization_percentage:
         type: number
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkFarmersData:
+    properties:
+      aaa_org_id:
+        type: string
+      failure_count:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkResult'
+        type: array
+      skipped_count:
+        description: Already linked
+        type: integer
+      success_count:
+        type: integer
+      total_count:
+        type: integer
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkFarmersResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkFarmersData'
+      error: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkResult:
+    properties:
+      aaa_user_id:
+        type: string
+      error:
+        type: string
+      status:
+        description: LINKED, ALREADY_LINKED, FAILED, UNLINKED
+        type: string
+      success:
+        type: boolean
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_responses.BulkOperationData:
     properties:
@@ -2896,6 +3020,15 @@ definitions:
         example: true
         type: boolean
     type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerSuccessResponse:
+    properties:
+      message:
+        example: Operation completed successfully
+        type: string
+      request_id:
+        example: req_123456789
+        type: string
+    type: object
   github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerValidateGeometryResponse:
     properties:
       area_ha:
@@ -2977,6 +3110,60 @@ definitions:
       yield_per_tree:
         type: number
     type: object
+  github_com_Kisanlink_farmers-module_internal_services.DeleteReport:
+    properties:
+      activities_deleted:
+        type: integer
+      addresses_deleted:
+        type: integer
+      crop_cycles_deleted:
+        type: integer
+      deleted_at:
+        type: string
+      entity_id:
+        type: string
+      entity_type:
+        type: string
+      errors:
+        items:
+          type: string
+        type: array
+      farmers_deleted:
+        type: integer
+      farms_deleted:
+        type: integer
+      irrigation_deleted:
+        type: integer
+      links_deleted:
+        type: integer
+      soil_types_deleted:
+        type: integer
+    type: object
+  github_com_Kisanlink_farmers-module_internal_services.ReconciliationReport:
+    properties:
+      duration:
+        type: string
+      end_time:
+        type: string
+      errors:
+        items:
+          type: string
+        type: array
+      fpo_links_fixed:
+        type: integer
+      fpo_links_processed:
+        type: integer
+      fpo_links_still_pending:
+        type: integer
+      roles_fixed:
+        type: integer
+      roles_processed:
+        type: integer
+      roles_still_pending:
+        type: integer
+      start_time:
+        type: string
+    type: object
   internal_handlers.CheckPermissionRequest:
     properties:
       action:
@@ -3011,6 +3198,70 @@ definitions:
         type: boolean
       total:
         type: integer
+    type: object
+  internal_handlers.PermanentDeleteOrgRequest:
+    properties:
+      confirm:
+        type: boolean
+      dry_run:
+        type: boolean
+      org_id:
+        type: string
+    required:
+    - org_id
+    type: object
+  internal_handlers.PermanentDeleteRequest:
+    properties:
+      confirm:
+        type: boolean
+      entity_id:
+        type: string
+      entity_type:
+        enum:
+        - farmer
+        - farm
+        - crop_cycle
+        - farmer_link
+        type: string
+    required:
+    - confirm
+    - entity_id
+    - entity_type
+    type: object
+  internal_handlers.PermanentDeleteResponse:
+    properties:
+      correlation_id:
+        type: string
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_services.DeleteReport'
+      message:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  internal_handlers.ReconciliationResponse:
+    properties:
+      correlation_id:
+        type: string
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_services.ReconciliationReport'
+      message:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  internal_handlers.ReconciliationStatusResponse:
+    properties:
+      correlation_id:
+        type: string
+      fpo_links_pending:
+        type: integer
+      message:
+        type: string
+      roles_pending:
+        type: integer
+      timestamp:
+        type: string
     type: object
 host: localhost:8000
 info:
@@ -3089,6 +3340,37 @@ paths:
       summary: Check user permission
       tags:
       - admin
+  /admin/cleanup-orphaned:
+    post:
+      consumes:
+      - application/json
+      description: Remove orphaned soft-deleted records where parent data no longer
+        exists. Requires super admin role.
+      parameters:
+      - description: Preview without deleting
+        in: query
+        name: dry_run
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.PermanentDeleteResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cleanup orphaned records
+      tags:
+      - admin
   /admin/health:
     get:
       consumes:
@@ -3113,6 +3395,128 @@ paths:
       security:
       - BearerAuth: []
       summary: Health check
+      tags:
+      - admin
+  /admin/permanent-delete:
+    post:
+      consumes:
+      - application/json
+      description: Permanently delete an entity and all related data. Requires super
+        admin role. This action is IRREVERSIBLE.
+      parameters:
+      - description: Delete request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.PermanentDeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.PermanentDeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Permanent delete
+      tags:
+      - admin
+  /admin/permanent-delete/org:
+    post:
+      consumes:
+      - application/json
+      description: Permanently delete all data for an organization. Requires super
+        admin role. This action is IRREVERSIBLE.
+      parameters:
+      - description: Delete request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.PermanentDeleteOrgRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.PermanentDeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Permanent delete by organization
+      tags:
+      - admin
+  /admin/reconcile:
+    post:
+      consumes:
+      - application/json
+      description: Manually trigger reconciliation of pending role assignments and
+        FPO links
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ReconciliationResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Trigger reconciliation
+      tags:
+      - admin
+  /admin/reconcile/status:
+    get:
+      consumes:
+      - application/json
+      description: Get counts of pending role assignments and FPO links that need
+        reconciliation
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ReconciliationStatusResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get reconciliation status
       tags:
       - admin
   /admin/seed:
@@ -4455,6 +4859,49 @@ paths:
       tags:
       - farm-activities
   /crops/activities/{activity_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a farm activity by its ID. Only PLANNED or CANCELLED activities
+        can be deleted.
+      parameters:
+      - description: Activity ID
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a farm activity
+      tags:
+      - farm-activities
     get:
       consumes:
       - application/json
@@ -5553,6 +6000,88 @@ paths:
       summary: Check ERP Health
       tags:
       - FPO Config
+  /identity/farmer/bulk-link:
+    post:
+      consumes:
+      - application/json
+      description: Link multiple farmers to a Farmer Producer Organization in a single
+        operation
+      parameters:
+      - description: Bulk farmer linkage data
+        in: body
+        name: linkage
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.BulkLinkFarmersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkFarmersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Bulk link farmers to FPO
+      tags:
+      - identity
+  /identity/farmer/bulk-unlink:
+    delete:
+      consumes:
+      - application/json
+      description: Unlink multiple farmers from a Farmer Producer Organization in
+        a single operation
+      parameters:
+      - description: Bulk farmer unlinkage data
+        in: body
+        name: unlinkage
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.BulkUnlinkFarmersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkFarmersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Bulk unlink farmers from FPO
+      tags:
+      - identity
   /identity/farmer/link:
     post:
       consumes:
