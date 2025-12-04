@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/auth"
 	"github.com/Kisanlink/farmers-module/internal/entities/bulk"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
@@ -138,10 +139,17 @@ func (s *BulkFarmerServiceImpl) BulkAddFarmersToFPO(ctx context.Context, req *re
 		s.logger.Error(fmt.Sprintf("Failed to create processing details: %v", err))
 	}
 
+	// Extract user context to propagate to background goroutine
+	// This ensures FPO linkage and other operations have access to authenticated user
+	bgCtx := context.Background()
+	if userCtx, err := auth.GetUserFromContext(ctx); err == nil {
+		bgCtx = auth.SetUserInContext(bgCtx, userCtx)
+	}
+
 	// Determine processing strategy
 	if req.ProcessingMode == "sync" || len(farmers) <= s.config.MaxSyncRecords {
 		// Process synchronously
-		go s.processSynchronously(context.Background(), bulkOp, farmers, req.Options)
+		go s.processSynchronously(bgCtx, bulkOp, farmers, req.Options)
 
 		// For sync mode with small batches, wait a bit to get initial progress
 		if req.ProcessingMode == "sync" && len(farmers) <= 10 {
@@ -149,7 +157,7 @@ func (s *BulkFarmerServiceImpl) BulkAddFarmersToFPO(ctx context.Context, req *re
 		}
 	} else {
 		// Process asynchronously
-		go s.processAsynchronously(context.Background(), bulkOp, farmers, req.Options)
+		go s.processAsynchronously(bgCtx, bulkOp, farmers, req.Options)
 	}
 
 	// Return operation info
