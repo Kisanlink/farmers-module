@@ -48,7 +48,7 @@ type ReconciliationReport struct {
 // NewReconciliationJob creates a new reconciliation job
 func NewReconciliationJob(db *gorm.DB, aaaService AAAService, logger interfaces.Logger, interval time.Duration) *ReconciliationJob {
 	if interval == 0 {
-		interval = 5 * time.Minute // Default: run every 5 minutes
+		interval = 6 * time.Hour // Default: run 4 times per day
 	}
 	return &ReconciliationJob{
 		db:         db,
@@ -264,13 +264,28 @@ func (j *ReconciliationJob) retryRoleAssignment(ctx context.Context, farmer *far
 			return fmt.Errorf("failed to assign role: %w", err)
 		}
 
-		// Verify assignment
-		hasRole, err = j.aaaService.CheckUserRole(ctx, farmer.AAAUserID, constants.RoleFarmer)
-		if err != nil {
-			return fmt.Errorf("failed to verify role: %w", err)
+		// Wait briefly for role assignment to propagate in AAA service
+		time.Sleep(500 * time.Millisecond)
+
+		// Verify assignment with retry
+		var verificationErr error
+		for attempt := 0; attempt < 3; attempt++ {
+			hasRole, err = j.aaaService.CheckUserRole(ctx, farmer.AAAUserID, constants.RoleFarmer)
+			if err != nil {
+				verificationErr = fmt.Errorf("failed to verify role: %w", err)
+				time.Sleep(200 * time.Millisecond)
+				continue
+			}
+			if hasRole {
+				log.Printf("Role farmer assigned successfully to user %s (verified on attempt %d)", farmer.AAAUserID, attempt+1)
+				break
+			}
+			verificationErr = fmt.Errorf("role assignment verification failed")
+			time.Sleep(200 * time.Millisecond)
 		}
+
 		if !hasRole {
-			return fmt.Errorf("role assignment verification failed")
+			return verificationErr
 		}
 	}
 

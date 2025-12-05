@@ -38,6 +38,8 @@ type FPOService interface {
 	GetFPORef(ctx context.Context, orgID string) (interface{}, error)
 	// CompleteFPOSetup retries failed setup operations for PENDING_SETUP FPOs
 	CompleteFPOSetup(ctx context.Context, orgID string) (interface{}, error)
+	// UpdateCEO updates the CEO of an FPO and assigns the CEO role
+	UpdateCEO(ctx context.Context, orgID string, req interface{}) (interface{}, error)
 }
 
 // KisanSathiService handles KisanSathi assignment workflows

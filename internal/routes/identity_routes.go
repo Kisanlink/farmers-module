@@ -105,6 +105,9 @@ func RegisterIdentityRoutes(router *gin.RouterGroup, services *services.ServiceF
 			// Get FPO reference with organization access validation
 			fpo.GET("/reference/:aaa_org_id", fpoHandler.GetFPORef)
 
+			// Update FPO CEO (uses org/ prefix to avoid conflict with /:id routes)
+			fpo.PUT("/org/:aaa_org_id/ceo", fpoHandler.UpdateCEO)
+
 			// FPO Lifecycle endpoints
 			lifecycleHandler := handlers.NewFPOLifecycleHandler(services.FPOLifecycleService, logger)
 

@@ -157,8 +157,8 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		aaaService,
 	)
 
-	// Initialize reconciliation job (runs every 5 minutes)
-	reconciliationJob := NewReconciliationJob(gormDB, aaaService, logger, 5*time.Minute)
+	// Initialize reconciliation job (runs 4 times per day - every 6 hours)
+	reconciliationJob := NewReconciliationJob(gormDB, aaaService, logger, 6*time.Hour)
 
 	// Initialize permanent delete service
 	permanentDeleteService := NewPermanentDeleteService(gormDB, aaaService, logger)
