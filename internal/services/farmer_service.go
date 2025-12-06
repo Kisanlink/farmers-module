@@ -843,7 +843,8 @@ func (s *FarmerServiceImpl) linkFPOConfigToFarmer(ctx context.Context, farmer *f
 	}
 
 	// If config exists but is not configured, skip linking
-	if fpoConfig.APIHealthStatus == "not_configured" {
+	// Check metadata for config_status
+	if configStatus, ok := fpoConfig.Metadata["config_status"].(string); ok && configStatus == "not_configured" {
 		log.Printf("FPO config not configured for org %s, skipping link", aaaOrgID)
 		return fmt.Errorf("FPO config not configured for org %s", aaaOrgID)
 	}
