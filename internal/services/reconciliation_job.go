@@ -92,9 +92,6 @@ func (j *ReconciliationJob) Stop() {
 func (j *ReconciliationJob) run() {
 	defer j.wg.Done()
 
-	// Run immediately on start
-	j.runOnce()
-
 	ticker := time.NewTicker(j.interval)
 	defer ticker.Stop()
 

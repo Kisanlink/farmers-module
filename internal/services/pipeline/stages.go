@@ -9,7 +9,6 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
-	"github.com/Kisanlink/farmers-module/internal/utils"
 	"go.uber.org/zap"
 )
 
@@ -214,16 +213,17 @@ func (ds *DeduplicationStage) Process(ctx context.Context, data interface{}) (in
 // AAAUserCreationStage creates users in the AAA service
 type AAAUserCreationStage struct {
 	*BasePipelineStage
-	aaaService  AAAServiceInterface
-	passwordGen *utils.PasswordGenerator
+	aaaService      AAAServiceInterface
+	defaultPassword string
 }
 
 // NewAAAUserCreationStage creates a new AAA user creation stage
-func NewAAAUserCreationStage(aaaService AAAServiceInterface, logger interfaces.Logger) PipelineStage {
+// defaultPassword should come from config (AAA_DEFAULT_PASSWORD env with fallback "Welcome@123")
+func NewAAAUserCreationStage(aaaService AAAServiceInterface, defaultPassword string, logger interfaces.Logger) PipelineStage {
 	return &AAAUserCreationStage{
 		BasePipelineStage: NewBasePipelineStage("aaa_user_creation", 30*time.Second, true, logger),
 		aaaService:        aaaService,
-		passwordGen:       utils.NewPasswordGenerator(),
+		defaultPassword:   defaultPassword,
 	}
 }
 
@@ -261,19 +261,20 @@ func (aus *AAAUserCreationStage) Process(ctx context.Context, data interface{}) 
 		}
 	}
 
+	// Determine password: use provided password or default from config
+	password := farmerData.Password
+	if password == "" {
+		password = aus.defaultPassword
+	}
+
 	// Create new user
 	createUserReq := map[string]interface{}{
 		"username":     fmt.Sprintf("farmer_%s", farmerData.PhoneNumber),
 		"phone_number": farmerData.PhoneNumber,
 		"email":        farmerData.Email,
-		"password":     farmerData.Password,
+		"password":     password,
 		"country_code": "+91",
 		"full_name":    fmt.Sprintf("%s %s", farmerData.FirstName, farmerData.LastName),
-	}
-
-	// Use provided password or generate one
-	if farmerData.Password == "" {
-		createUserReq["password"] = aus.generatePassword(farmerData)
 	}
 
 	userResponse, err := aus.aaaService.CreateUser(ctx, createUserReq)
@@ -302,28 +303,6 @@ func (aus *AAAUserCreationStage) Process(ctx context.Context, data interface{}) 
 	})
 
 	return procCtx, nil
-}
-
-func (aus *AAAUserCreationStage) generatePassword(farmer *requests.FarmerBulkData) string {
-	// Generate a cryptographically secure password
-	password, err := aus.passwordGen.GenerateSecurePassword()
-	if err != nil {
-		// Fallback to a more secure pattern if generation fails
-		aus.logger.Error("Failed to generate secure password, using fallback",
-			zap.Error(err),
-			zap.String("phone", farmer.PhoneNumber))
-
-		// Generate a more secure fallback than the original
-		return fmt.Sprintf("%s%s!%d",
-			strings.ToTitle(farmer.FirstName[:min(3, len(farmer.FirstName))]),
-			farmer.PhoneNumber[len(farmer.PhoneNumber)-4:],
-			time.Now().Unix()%10000)
-	}
-
-	aus.logger.Debug("Generated secure password for farmer",
-		zap.String("phone", farmer.PhoneNumber))
-
-	return password
 }
 
 // FarmerRegistrationStage registers the farmer in the local database

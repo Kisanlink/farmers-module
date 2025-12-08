@@ -145,6 +145,7 @@ type AAAService interface {
 
 	// User Group Management
 	CreateUserGroup(ctx context.Context, req interface{}) (interface{}, error)
+	GetOrCreateFarmersGroup(ctx context.Context, orgID string) (string, error)
 	AddUserToGroup(ctx context.Context, userID, groupID string) error
 	RemoveUserFromGroup(ctx context.Context, userID, groupID string) error
 

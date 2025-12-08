@@ -47,6 +47,9 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 				repo.On("FindUnscoped", mock.Anything, mock.Anything).Return([]*farmerentity.FarmerLink{}, nil)
 				// Create succeeds
 				repo.On("Create", mock.Anything, mock.Anything).Return(nil)
+				// Farmers group operations
+				aaa.On("GetOrCreateFarmersGroup", mock.Anything, "org456").Return("farmers-group-id", nil)
+				aaa.On("AddUserToGroup", mock.Anything, "user123", "farmers-group-id").Return(nil)
 			},
 			shouldSucceed: true,
 		},
@@ -150,6 +153,9 @@ func TestFarmerLinkageServiceImpl_LinkFarmerToFPO(t *testing.T) {
 				repo.On("FindUnscoped", mock.Anything, mock.Anything).Return([]*farmerentity.FarmerLink{existingLink}, nil)
 				// Update succeeds
 				repo.On("Update", mock.Anything, mock.Anything).Return(nil)
+				// Farmers group operations (on reactivation)
+				aaa.On("GetOrCreateFarmersGroup", mock.Anything, "org456").Return("farmers-group-id", nil)
+				aaa.On("AddUserToGroup", mock.Anything, "user123", "farmers-group-id").Return(nil)
 			},
 			shouldSucceed: true,
 		},

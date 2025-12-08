@@ -209,6 +209,11 @@ func (m *MockAAAServiceShared) CreateUserGroup(ctx context.Context, req any) (an
 	return args.Get(0), args.Error(1)
 }
 
+func (m *MockAAAServiceShared) GetOrCreateFarmersGroup(ctx context.Context, orgID string) (string, error) {
+	args := m.Called(ctx, orgID)
+	return args.String(0), args.Error(1)
+}
+
 func (m *MockAAAServiceShared) AddUserToGroup(ctx context.Context, userID, groupID string) error {
 	args := m.Called(ctx, userID, groupID)
 	return args.Error(0)

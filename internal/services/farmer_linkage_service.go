@@ -101,12 +101,26 @@ func (s *FarmerLinkageServiceImpl) LinkFarmerToFPO(ctx context.Context, req inte
 		if existingLink.DeletedAt != nil {
 			// Restore the soft-deleted link
 			existingLink.Status = "ACTIVE"
-			return s.farmerLinkageRepo.Restore(ctx, existingLink)
+			if err := s.farmerLinkageRepo.Restore(ctx, existingLink); err != nil {
+				return err
+			}
+			// Add user to farmers group on restore
+			if err := s.addUserToFarmersGroup(ctx, linkReq.AAAUserID, linkReq.AAAOrgID); err != nil {
+				return fmt.Errorf("failed to add user to farmers group: %w", err)
+			}
+			return nil
 		}
 		// Update existing link to ACTIVE if it was inactive
 		if existingLink.Status != "ACTIVE" {
 			existingLink.Status = "ACTIVE"
-			return s.farmerLinkageRepo.Update(ctx, existingLink)
+			if err := s.farmerLinkageRepo.Update(ctx, existingLink); err != nil {
+				return err
+			}
+			// Add user to farmers group on reactivation
+			if err := s.addUserToFarmersGroup(ctx, linkReq.AAAUserID, linkReq.AAAOrgID); err != nil {
+				return fmt.Errorf("failed to add user to farmers group: %w", err)
+			}
+			return nil
 		}
 		return nil // Already linked and active
 	}
@@ -117,7 +131,16 @@ func (s *FarmerLinkageServiceImpl) LinkFarmerToFPO(ctx context.Context, req inte
 	farmerLink.AAAOrgID = linkReq.AAAOrgID
 	farmerLink.Status = "ACTIVE"
 
-	return s.farmerLinkageRepo.Create(ctx, farmerLink)
+	if err := s.farmerLinkageRepo.Create(ctx, farmerLink); err != nil {
+		return err
+	}
+
+	// Add user to the organization's "farmers" group
+	if err := s.addUserToFarmersGroup(ctx, linkReq.AAAUserID, linkReq.AAAOrgID); err != nil {
+		return fmt.Errorf("failed to add user to farmers group: %w", err)
+	}
+
+	return nil
 }
 
 // UnlinkFarmerFromFPO implements W2: Unlink farmer from FPO with soft delete
@@ -782,6 +805,23 @@ func (s *FarmerLinkageServiceImpl) BulkLinkFarmersToFPO(ctx context.Context, req
 	}
 
 	return responseData, nil
+}
+
+// addUserToFarmersGroup gets or creates the "farmers" group for an org and adds the user to it
+// This is idempotent - adding a user who's already in the group is a no-op
+func (s *FarmerLinkageServiceImpl) addUserToFarmersGroup(ctx context.Context, userID, orgID string) error {
+	// Get or create the "farmers" group for this organization
+	groupID, err := s.aaaService.GetOrCreateFarmersGroup(ctx, orgID)
+	if err != nil {
+		return fmt.Errorf("failed to get or create farmers group: %w", err)
+	}
+
+	// Add the user to the group (idempotent in AAA service)
+	if err := s.aaaService.AddUserToGroup(ctx, userID, groupID); err != nil {
+		return fmt.Errorf("failed to add user to farmers group: %w", err)
+	}
+
+	return nil
 }
 
 // BulkUnlinkFarmersFromFPO unlinks multiple farmers from an FPO

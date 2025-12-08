@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/Kisanlink/farmers-module/internal/constants"
@@ -31,10 +32,6 @@ func TestFarmerService_EnsureFarmerRole_Success(t *testing.T) {
 	// 2. Assign role
 	mockAAA.On("AssignRole", ctx, userID, orgID, constants.RoleFarmer).
 		Return(nil).Once()
-
-	// 3. Verify role was assigned
-	mockAAA.On("CheckUserRole", ctx, userID, constants.RoleFarmer).
-		Return(true, nil).Once()
 
 	// Execute
 	err := service.ensureFarmerRole(ctx, userID, orgID)
@@ -106,8 +103,9 @@ func TestFarmerService_EnsureFarmerRole_AssignmentFails(t *testing.T) {
 	mockAAA.AssertExpectations(t)
 }
 
-// TestFarmerService_EnsureFarmerRole_VerificationFails tests verification failure
-func TestFarmerService_EnsureFarmerRole_VerificationFails(t *testing.T) {
+// TestFarmerService_EnsureFarmerRole_AlreadyAssignedError tests handling of "already assigned" error
+// This handles eventual consistency where CheckUserRole says false but AssignRole says already assigned
+func TestFarmerService_EnsureFarmerRole_AlreadyAssignedError(t *testing.T) {
 	// Setup
 	mockAAA := new(MockAAAService)
 
@@ -121,25 +119,20 @@ func TestFarmerService_EnsureFarmerRole_VerificationFails(t *testing.T) {
 	userID := "test-user-123"
 	orgID := "test-org-456"
 
-	// Mock expectations
-	// 1. Check role doesn't exist
+	// Mock expectations - simulating eventual consistency issue
+	// 1. Check role says not present
 	mockAAA.On("CheckUserRole", ctx, userID, constants.RoleFarmer).
 		Return(false, nil).Once()
 
-	// 2. Assign role succeeds
+	// 2. Assign role fails with "already assigned" (eventual consistency)
 	mockAAA.On("AssignRole", ctx, userID, orgID, constants.RoleFarmer).
-		Return(nil).Once()
-
-	// 3. Verification check fails (role not present)
-	mockAAA.On("CheckUserRole", ctx, userID, constants.RoleFarmer).
-		Return(false, nil).Once()
+		Return(fmt.Errorf("role already assigned to user")).Once()
 
 	// Execute
 	err := service.ensureFarmerRole(ctx, userID, orgID)
 
-	// Verify
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "verification failed")
+	// Verify - should succeed because "already assigned" is treated as success
+	assert.NoError(t, err)
 	mockAAA.AssertExpectations(t)
 }
 
@@ -164,9 +157,6 @@ func TestFarmerService_EnsureFarmerRoleWithRetry_SucceedsOnFirstAttempt(t *testi
 
 	mockAAA.On("AssignRole", ctx, userID, orgID, constants.RoleFarmer).
 		Return(nil).Once()
-
-	mockAAA.On("CheckUserRole", ctx, userID, constants.RoleFarmer).
-		Return(true, nil).Once()
 
 	// Execute
 	err := service.ensureFarmerRoleWithRetry(ctx, userID, orgID)
@@ -204,9 +194,6 @@ func TestFarmerService_EnsureFarmerRoleWithRetry_SucceedsOnSecondAttempt(t *test
 
 	mockAAA.On("AssignRole", ctx, userID, orgID, constants.RoleFarmer).
 		Return(nil).Once()
-
-	mockAAA.On("CheckUserRole", ctx, userID, constants.RoleFarmer).
-		Return(true, nil).Once()
 
 	// Execute
 	err := service.ensureFarmerRoleWithRetry(ctx, userID, orgID)
@@ -278,10 +265,6 @@ func TestFarmerService_EnsureFarmerRole_CheckRoleFails_ContinuesWithAssignment(t
 	// 2. Assignment should still be attempted
 	mockAAA.On("AssignRole", ctx, userID, orgID, constants.RoleFarmer).
 		Return(nil).Once()
-
-	// 3. Verification succeeds
-	mockAAA.On("CheckUserRole", ctx, userID, constants.RoleFarmer).
-		Return(true, nil).Once()
 
 	// Execute
 	err := service.ensureFarmerRole(ctx, userID, orgID)

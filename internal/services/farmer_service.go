@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/constants"
@@ -30,6 +31,7 @@ type FarmerServiceImpl struct {
 	repository       *farmer.FarmerRepository
 	aaaService       AAAService
 	fpoConfigService FPOConfigService
+	linkageService   FarmerLinkageService
 	defaultPassword  string
 }
 
@@ -48,6 +50,17 @@ func NewFarmerServiceWithFPOConfig(repository *farmer.FarmerRepository, aaaServi
 		repository:       repository,
 		aaaService:       aaaService,
 		fpoConfigService: fpoConfigService,
+		defaultPassword:  defaultPassword,
+	}
+}
+
+// NewFarmerServiceFull creates a new farmer service with all dependencies
+func NewFarmerServiceFull(repository *farmer.FarmerRepository, aaaService AAAService, fpoConfigService FPOConfigService, linkageService FarmerLinkageService, defaultPassword string) FarmerService {
+	return &FarmerServiceImpl{
+		repository:       repository,
+		aaaService:       aaaService,
+		fpoConfigService: fpoConfigService,
+		linkageService:   linkageService,
 		defaultPassword:  defaultPassword,
 	}
 }
@@ -322,6 +335,22 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		if updateErr := s.repository.Update(ctx, farmer); updateErr != nil {
 			log.Printf("Error: Failed to store role assignment failure metadata: %v", updateErr)
 		}
+	}
+
+	// Link farmer to FPO and add to farmers group if org ID is provided
+	if aaaOrgID != "" && s.linkageService != nil {
+		linkReq := &requests.LinkFarmerRequest{
+			BaseRequest: requests.BaseRequest{
+				UserID: farmer.CreatedBy,
+				OrgID:  aaaOrgID,
+			},
+			AAAUserID: aaaUserID,
+			AAAOrgID:  aaaOrgID,
+		}
+		if err := s.linkageService.LinkFarmerToFPO(ctx, linkReq); err != nil {
+			return nil, fmt.Errorf("failed to link farmer to FPO: %w", err)
+		}
+		log.Printf("Farmer %s linked to FPO %s and added to farmers group", aaaUserID, aaaOrgID)
 	}
 
 	// Convert to response format
@@ -797,8 +826,8 @@ func (s *FarmerServiceImpl) ensureFarmerRoleWithRetry(ctx context.Context, userI
 	return nil
 }
 
-// ensureFarmerRole ensures the user has the farmer role with idempotency and verification
-// Implements the "Check-Assign-Verify" pattern from ADR-001
+// ensureFarmerRole ensures the user has the farmer role with idempotency
+// Implements a simplified approach that handles eventual consistency in AAA
 func (s *FarmerServiceImpl) ensureFarmerRole(ctx context.Context, userID, orgID string) error {
 	// 1. Check if role already exists (idempotency)
 	hasRole, err := s.aaaService.CheckUserRole(ctx, userID, constants.RoleFarmer)
@@ -813,19 +842,16 @@ func (s *FarmerServiceImpl) ensureFarmerRole(ctx context.Context, userID, orgID 
 	// 2. Assign farmer role
 	err = s.aaaService.AssignRole(ctx, userID, orgID, constants.RoleFarmer)
 	if err != nil {
+		// Check if error is "already assigned" - this is actually success due to eventual consistency
+		errStr := err.Error()
+		if strings.Contains(errStr, "already assigned") || strings.Contains(errStr, "AlreadyExists") {
+			log.Printf("Farmer role already assigned to user %s (eventual consistency)", userID)
+			return nil
+		}
 		return fmt.Errorf("failed to assign farmer role: %w", err)
 	}
 
-	// 3. Verify assignment succeeded
-	hasRole, err = s.aaaService.CheckUserRole(ctx, userID, constants.RoleFarmer)
-	if err != nil {
-		return fmt.Errorf("failed to verify farmer role assignment: %w", err)
-	}
-	if !hasRole {
-		return fmt.Errorf("farmer role assignment verification failed (role not present)")
-	}
-
-	log.Printf("Successfully assigned and verified farmer role for user %s", userID)
+	log.Printf("Successfully assigned farmer role for user %s", userID)
 	return nil
 }
 

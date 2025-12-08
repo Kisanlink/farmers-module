@@ -181,6 +181,7 @@ type MockAAAService struct {
 	CreateOrganizationFunc      func(ctx context.Context, req interface{}) (interface{}, error)
 	GetOrganizationFunc         func(ctx context.Context, orgID string) (interface{}, error)
 	CreateUserGroupFunc         func(ctx context.Context, req interface{}) (interface{}, error)
+	GetOrCreateFarmersGroupFunc func(ctx context.Context, orgID string) (string, error)
 	AddUserToGroupFunc          func(ctx context.Context, userID, groupID string) error
 	RemoveUserFromGroupFunc     func(ctx context.Context, userID, groupID string) error
 	AssignRoleFunc              func(ctx context.Context, userID, orgID, roleName string) error
@@ -251,6 +252,13 @@ func (m *MockAAAService) CreateUserGroup(ctx context.Context, req interface{}) (
 		return m.CreateUserGroupFunc(ctx, req)
 	}
 	return nil, nil
+}
+
+func (m *MockAAAService) GetOrCreateFarmersGroup(ctx context.Context, orgID string) (string, error) {
+	if m.GetOrCreateFarmersGroupFunc != nil {
+		return m.GetOrCreateFarmersGroupFunc(ctx, orgID)
+	}
+	return "mock-farmers-group-id", nil
 }
 
 func (m *MockAAAService) AddUserToGroup(ctx context.Context, userID, groupID string) error {

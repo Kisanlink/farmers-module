@@ -47,6 +47,7 @@ type BulkFarmerServiceImpl struct {
 	processingPipeline pipeline.ProcessingPipeline
 	logger             interfaces.Logger
 	config             *BulkServiceConfig
+	defaultPassword    string
 }
 
 // BulkServiceConfig contains configuration for bulk service
@@ -60,6 +61,7 @@ type BulkServiceConfig struct {
 }
 
 // NewBulkFarmerService creates a new bulk farmer service
+// defaultPassword should come from config (AAA_DEFAULT_PASSWORD env with fallback "Welcome@123")
 func NewBulkFarmerService(
 	bulkOpRepo bulkRepo.BulkOperationRepository,
 	processingRepo bulkRepo.ProcessingDetailRepository,
@@ -67,6 +69,7 @@ func NewBulkFarmerService(
 	linkageService FarmerLinkageService,
 	aaaService AAAService,
 	logger interfaces.Logger,
+	defaultPassword string,
 ) BulkFarmerService {
 	config := &BulkServiceConfig{
 		MaxSyncRecords:    100,
@@ -93,6 +96,7 @@ func NewBulkFarmerService(
 		processingPipeline: processingPipeline,
 		logger:             logger,
 		config:             config,
+		defaultPassword:    defaultPassword,
 	}
 }
 
@@ -407,7 +411,7 @@ func (s *BulkFarmerServiceImpl) buildProcessingPipeline(options requests.BulkPro
 	}
 
 	// Add AAA user creation stage
-	pipe.AddStage(pipeline.NewAAAUserCreationStage(s.aaaService, s.logger))
+	pipe.AddStage(pipeline.NewAAAUserCreationStage(s.aaaService, s.defaultPassword, s.logger))
 
 	// Add farmer registration stage
 	pipe.AddStage(pipeline.NewFarmerRegistrationStage(s.farmerService, s.logger))

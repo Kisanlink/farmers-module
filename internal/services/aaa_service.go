@@ -22,6 +22,7 @@ type AAAClientInterface interface {
 	CreateOrganization(ctx context.Context, req *aaa.CreateOrganizationRequest) (*aaa.CreateOrganizationResponse, error)
 	GetOrganization(ctx context.Context, orgID string) (*aaa.OrganizationData, error)
 	CreateUserGroup(ctx context.Context, req *aaa.CreateUserGroupRequest) (*aaa.CreateUserGroupResponse, error)
+	GetOrCreateFarmersGroup(ctx context.Context, orgID string) (string, error)
 	AddUserToGroup(ctx context.Context, userID, groupID string) error
 	RemoveUserFromGroup(ctx context.Context, userID, groupID string) error
 	AssignRole(ctx context.Context, userID, orgID, roleName string) error
@@ -260,6 +261,21 @@ func (s *AAAServiceImpl) CreateUserGroup(ctx context.Context, req interface{}) (
 		"org_id":     response.OrgID,
 		"created_at": response.CreatedAt,
 	}, nil
+}
+
+// GetOrCreateFarmersGroup gets or creates the "farmers" group for an organization (idempotent)
+// This is used when linking farmers to FPOs to add them to the organization's farmers group
+func (s *AAAServiceImpl) GetOrCreateFarmersGroup(ctx context.Context, orgID string) (string, error) {
+	if s.client == nil {
+		return "", fmt.Errorf("AAA client not available")
+	}
+
+	groupID, err := s.client.GetOrCreateFarmersGroup(ctx, orgID)
+	if err != nil {
+		return "", s.mapGRPCError(err, "get or create farmers group")
+	}
+
+	return groupID, nil
 }
 
 // AddUserToGroup adds a user to a group
