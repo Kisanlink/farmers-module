@@ -32,6 +32,11 @@ func (m *MockFPORefRepository) FindOne(ctx context.Context, filter *base.Filter)
 	return args.Get(0).(*fpo.FPORef), args.Error(1)
 }
 
+func (m *MockFPORefRepository) UpdateCEO(ctx context.Context, fpoID string, ceoUserID string) error {
+	args := m.Called(ctx, fpoID, ceoUserID)
+	return args.Error(0)
+}
+
 func TestFPOService_CreateFPO_Success(t *testing.T) {
 	// Setup mocks
 	mockRepo := &MockFPORefRepository{}

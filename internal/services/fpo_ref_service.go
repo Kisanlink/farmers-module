@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/clients/aaa"
 	"github.com/Kisanlink/farmers-module/internal/constants"
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/fpo"
@@ -18,6 +20,7 @@ import (
 type FPORefRepository interface {
 	Create(ctx context.Context, entity *fpo.FPORef) error
 	FindOne(ctx context.Context, filter *base.Filter) (*fpo.FPORef, error)
+	UpdateCEO(ctx context.Context, fpoID string, ceoUserID string) error
 }
 
 // FPOServiceImpl implements FPOService
@@ -514,15 +517,13 @@ func (s *FPOServiceImpl) UpdateCEO(ctx context.Context, orgID string, req interf
 		return nil, fmt.Errorf("failed to verify organization: %w", err)
 	}
 
-	orgMap, ok := orgResp.(map[string]interface{})
+	// Type assert to *aaa.OrganizationData (the actual return type from AAA client)
+	orgData, ok := orgResp.(*aaa.OrganizationData)
 	if !ok {
 		return nil, fmt.Errorf("invalid organization response from AAA")
 	}
 
-	orgName := ""
-	if n, ok := orgMap["name"].(string); ok {
-		orgName = n
-	}
+	orgName := orgData.Name
 
 	// Step 2: Verify the new CEO user exists in AAA
 	_, err = s.aaaService.GetUser(ctx, updateReq.NewCEOUserID)
@@ -544,21 +545,22 @@ func (s *FPOServiceImpl) UpdateCEO(ctx context.Context, orgID string, req interf
 	log.Printf("Assigning CEO role to user %s for organization %s", updateReq.NewCEOUserID, orgID)
 	err = s.aaaService.AssignRole(ctx, updateReq.NewCEOUserID, orgID, constants.RoleFPOCEO)
 	if err != nil {
-		return nil, fmt.Errorf("failed to assign CEO role to new user: %w", err)
+		// Check if role is already assigned - this is not an error
+		if strings.Contains(err.Error(), "role already assigned") {
+			log.Printf("CEO role already assigned to user %s for organization %s, continuing", updateReq.NewCEOUserID, orgID)
+		} else {
+			return nil, fmt.Errorf("failed to assign CEO role to new user: %w", err)
+		}
 	}
 
-	// Wait briefly for role assignment to propagate
-	time.Sleep(300 * time.Millisecond)
-
-	// Step 5: Verify the role was assigned
-	hasCEORole, err := s.aaaService.CheckUserRole(ctx, updateReq.NewCEOUserID, constants.RoleFPOCEO)
+	// Step 5: Update the FPO ref in database with the new CEO user ID
+	log.Printf("Updating FPO ref with CEO user ID %s for organization %s", updateReq.NewCEOUserID, orgID)
+	err = s.fpoRefRepo.UpdateCEO(ctx, orgID, updateReq.NewCEOUserID)
 	if err != nil {
-		log.Printf("Warning: Failed to verify CEO role assignment: %v", err)
-		// Continue - the assignment was attempted
-	} else if !hasCEORole {
-		log.Printf("Warning: CEO role verification failed for user %s, but continuing", updateReq.NewCEOUserID)
+		log.Printf("Warning: Failed to update FPO ref with CEO: %v", err)
+		// Continue - the AAA role assignment was successful
 	} else {
-		log.Printf("CEO role successfully verified for user %s", updateReq.NewCEOUserID)
+		log.Printf("FPO ref updated with CEO user ID %s", updateReq.NewCEOUserID)
 	}
 
 	// Prepare response
