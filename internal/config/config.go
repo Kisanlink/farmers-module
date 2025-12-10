@@ -17,6 +17,7 @@ type Config struct {
 	Server        ServerConfig
 	AAA           AAAConfig
 	Observability ObservabilityConfig
+	CORS          CORSConfig
 }
 
 // DatabaseConfig holds database configuration matching kisanlink-db
@@ -56,6 +57,12 @@ type ObservabilityConfig struct {
 	EnableTracing            bool
 	EnableMetrics            bool
 	OTELExporterOTLPEndpoint string
+}
+
+// CORSConfig holds CORS configuration
+type CORSConfig struct {
+	AllowedOrigins   []string
+	AllowCredentials bool
 }
 
 // Load loads configuration from environment variables
@@ -98,6 +105,10 @@ func Load() *Config {
 			EnableTracing:            getEnvAsBool("ENABLE_TRACING", true),
 			EnableMetrics:            getEnvAsBool("ENABLE_METRICS", true),
 			OTELExporterOTLPEndpoint: getEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4317"),
+		},
+		CORS: CORSConfig{
+			AllowedOrigins:   getEnvAsSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000", "http://localhost:5173"}),
+			AllowCredentials: getEnvAsBool("CORS_ALLOW_CREDENTIALS", false),
 		},
 	}
 
@@ -166,4 +177,68 @@ func getEnvAsBool(key string, defaultValue bool) bool {
 		}
 	}
 	return defaultValue
+}
+
+// getEnvAsSlice gets an environment variable as string slice (comma-separated) with a default value
+func getEnvAsSlice(key string, defaultValue []string) []string {
+	if value := os.Getenv(key); value != "" {
+		var result []string
+		for _, item := range splitAndTrim(value, ",") {
+			if item != "" {
+				result = append(result, item)
+			}
+		}
+		if len(result) > 0 {
+			return result
+		}
+	}
+	return defaultValue
+}
+
+// splitAndTrim splits a string by delimiter and trims whitespace from each part
+func splitAndTrim(s, delimiter string) []string {
+	parts := []string{}
+	for _, part := range splitString(s, delimiter) {
+		trimmed := trimSpace(part)
+		if trimmed != "" {
+			parts = append(parts, trimmed)
+		}
+	}
+	return parts
+}
+
+// splitString splits a string by delimiter
+func splitString(s, delimiter string) []string {
+	if s == "" {
+		return []string{}
+	}
+	result := []string{}
+	start := 0
+	for i := 0; i < len(s); i++ {
+		if i+len(delimiter) <= len(s) && s[i:i+len(delimiter)] == delimiter {
+			result = append(result, s[start:i])
+			start = i + len(delimiter)
+			i += len(delimiter) - 1
+		}
+	}
+	result = append(result, s[start:])
+	return result
+}
+
+// trimSpace removes leading and trailing whitespace from a string
+func trimSpace(s string) string {
+	start := 0
+	end := len(s)
+	for start < end && isSpace(s[start]) {
+		start++
+	}
+	for start < end && isSpace(s[end-1]) {
+		end--
+	}
+	return s[start:end]
+}
+
+// isSpace checks if a byte is a whitespace character
+func isSpace(b byte) bool {
+	return b == ' ' || b == '\t' || b == '\n' || b == '\r'
 }

@@ -73,21 +73,8 @@ func main() {
 	// Initialize router
 	router := gin.Default()
 
-	// Add CORS middleware
-	router.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-
-		c.Next()
-	})
-
 	// Setup all routes with handlers and middleware
+	// Note: CORS middleware is applied in SetupRoutes using config from environment
 	routes.SetupRoutes(router, serviceFactory, cfg, logger)
 
 	// Seed AAA roles and permissions on startup (non-fatal)
