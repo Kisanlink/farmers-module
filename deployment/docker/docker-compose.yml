@@ -61,6 +61,10 @@ services:
       # PostGIS Configuration
       - POSTGIS_SRID=${POSTGIS_SRID:-4326}
 
+      # CORS Configuration
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      - CORS_ALLOW_CREDENTIALS=${CORS_ALLOW_CREDENTIALS:-false}
+
     # Service dependencies
     depends_on:
       postgres:
