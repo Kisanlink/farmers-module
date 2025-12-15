@@ -22,6 +22,10 @@ type FarmerLinkageService interface {
 	CreateKisanSathiUser(ctx context.Context, req interface{}) (interface{}, error)
 	// List KisanSathis (users assigned to farmers)
 	ListKisanSathis(ctx context.Context, req interface{}) (interface{}, error)
+	// Bulk link multiple farmers to an FPO
+	BulkLinkFarmersToFPO(ctx context.Context, req interface{}) (interface{}, error)
+	// Bulk unlink multiple farmers from an FPO
+	BulkUnlinkFarmersFromFPO(ctx context.Context, req interface{}) (interface{}, error)
 }
 
 // FPOService handles FPO creation and management workflows
@@ -34,6 +38,8 @@ type FPOService interface {
 	GetFPORef(ctx context.Context, orgID string) (interface{}, error)
 	// CompleteFPOSetup retries failed setup operations for PENDING_SETUP FPOs
 	CompleteFPOSetup(ctx context.Context, orgID string) (interface{}, error)
+	// UpdateCEO updates the CEO of an FPO and assigns the CEO role
+	UpdateCEO(ctx context.Context, orgID string, req interface{}) (interface{}, error)
 }
 
 // KisanSathiService handles KisanSathi assignment workflows
@@ -88,6 +94,8 @@ type FarmActivityService interface {
 	ListActivities(ctx context.Context, req interface{}) (interface{}, error)
 	// Get farm activity by ID
 	GetFarmActivity(ctx context.Context, activityID string) (interface{}, error)
+	// Delete farm activity by ID
+	DeleteActivity(ctx context.Context, activityID string) error
 	// Get stage-wise progress for a crop cycle
 	GetStageProgress(ctx context.Context, cropCycleID string) (interface{}, error)
 }
@@ -137,6 +145,7 @@ type AAAService interface {
 
 	// User Group Management
 	CreateUserGroup(ctx context.Context, req interface{}) (interface{}, error)
+	GetOrCreateFarmersGroup(ctx context.Context, orgID string) (string, error)
 	AddUserToGroup(ctx context.Context, userID, groupID string) error
 	RemoveUserFromGroup(ctx context.Context, userID, groupID string) error
 

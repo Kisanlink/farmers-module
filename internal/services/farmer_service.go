@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/constants"
@@ -19,6 +20,7 @@ import (
 type FarmerService interface {
 	CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error)
 	GetFarmer(ctx context.Context, req *requests.GetFarmerRequest) (*responses.FarmerProfileResponse, error)
+	GetFarmerByUserID(ctx context.Context, aaaUserID string) (*responses.FarmerResponse, error)
 	UpdateFarmer(ctx context.Context, req *requests.UpdateFarmerRequest) (*responses.FarmerResponse, error)
 	DeleteFarmer(ctx context.Context, req *requests.DeleteFarmerRequest) error
 	ListFarmers(ctx context.Context, req *requests.ListFarmersRequest) (*responses.FarmerListResponse, error)
@@ -29,6 +31,7 @@ type FarmerServiceImpl struct {
 	repository       *farmer.FarmerRepository
 	aaaService       AAAService
 	fpoConfigService FPOConfigService
+	linkageService   FarmerLinkageService
 	defaultPassword  string
 }
 
@@ -47,6 +50,17 @@ func NewFarmerServiceWithFPOConfig(repository *farmer.FarmerRepository, aaaServi
 		repository:       repository,
 		aaaService:       aaaService,
 		fpoConfigService: fpoConfigService,
+		defaultPassword:  defaultPassword,
+	}
+}
+
+// NewFarmerServiceFull creates a new farmer service with all dependencies
+func NewFarmerServiceFull(repository *farmer.FarmerRepository, aaaService AAAService, fpoConfigService FPOConfigService, linkageService FarmerLinkageService, defaultPassword string) FarmerService {
+	return &FarmerServiceImpl{
+		repository:       repository,
+		aaaService:       aaaService,
+		fpoConfigService: fpoConfigService,
+		linkageService:   linkageService,
 		defaultPassword:  defaultPassword,
 	}
 }
@@ -323,6 +337,22 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		}
 	}
 
+	// Link farmer to FPO and add to farmers group if org ID is provided
+	if aaaOrgID != "" && s.linkageService != nil {
+		linkReq := &requests.LinkFarmerRequest{
+			BaseRequest: requests.BaseRequest{
+				UserID: farmer.CreatedBy,
+				OrgID:  aaaOrgID,
+			},
+			AAAUserID: aaaUserID,
+			AAAOrgID:  aaaOrgID,
+		}
+		if err := s.linkageService.LinkFarmerToFPO(ctx, linkReq); err != nil {
+			return nil, fmt.Errorf("failed to link farmer to FPO: %w", err)
+		}
+		log.Printf("Farmer %s linked to FPO %s and added to farmers group", aaaUserID, aaaOrgID)
+	}
+
 	// Convert to response format
 	// Handle address data safely
 	var addressData responses.AddressData
@@ -476,6 +506,39 @@ func (s *FarmerServiceImpl) GetFarmer(ctx context.Context, req *requests.GetFarm
 
 	response := responses.NewFarmerProfileResponse(farmerProfileData, "Farmer retrieved successfully")
 	return &response, nil
+}
+
+// GetFarmerByUserID retrieves a farmer by AAA user ID
+func (s *FarmerServiceImpl) GetFarmerByUserID(ctx context.Context, aaaUserID string) (*responses.FarmerResponse, error) {
+	if aaaUserID == "" {
+		return nil, fmt.Errorf("aaa_user_id is required")
+	}
+
+	filter := base.NewFilterBuilder().
+		Where("aaa_user_id", base.OpEqual, aaaUserID).
+		Build()
+
+	farmer, err := s.repository.FindOne(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	if farmer == nil {
+		return nil, fmt.Errorf("farmer not found with aaa_user_id=%s", aaaUserID)
+	}
+
+	farmerProfileData := &responses.FarmerProfileData{
+		ID:          farmer.ID,
+		AAAUserID:   farmer.AAAUserID,
+		FirstName:   farmer.FirstName,
+		LastName:    farmer.LastName,
+		PhoneNumber: farmer.PhoneNumber,
+		Email:       farmer.Email,
+	}
+
+	return &responses.FarmerResponse{
+		BaseResponse: base.NewSuccessResponse("Farmer found", farmerProfileData),
+		Data:         farmerProfileData,
+	}, nil
 }
 
 // UpdateFarmer updates an existing farmer
@@ -632,15 +695,12 @@ func (s *FarmerServiceImpl) DeleteFarmer(ctx context.Context, req *requests.Dele
 }
 
 // ListFarmers lists farmers with filtering
+// When aaa_org_id is provided, it filters farmers based on their linkage to the FPO organization
+// through the farmer_links table instead of the direct aaa_org_id field in the farmers table
 func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListFarmersRequest) (*responses.FarmerListResponse, error) {
-	// Build filter for database query
+	// Build filter for additional query parameters
 	filter := base.NewFilterBuilder().
 		Page(req.Page, req.PageSize)
-
-	// Add organization filter if specified
-	if req.AAAOrgID != "" {
-		filter = filter.Where("aaa_org_id", base.OpEqual, req.AAAOrgID)
-	}
 
 	// Add KisanSathi filter if specified
 	if req.KisanSathiUserID != "" {
@@ -652,30 +712,54 @@ func (s *FarmerServiceImpl) ListFarmers(ctx context.Context, req *requests.ListF
 		filter = filter.Where("phone_number", base.OpEqual, req.PhoneNumber)
 	}
 
-	// Query farmers from repository
-	farmers, err := s.repository.Find(ctx, filter.Build())
-	if err != nil {
-		return nil, fmt.Errorf("failed to list farmers: %w", err)
-	}
+	var farmers []*farmerentity.Farmer
+	var totalCount int64
+	var err error
 
-	// Get total count - use a temporary count query
-	countFilter := base.NewFilterBuilder()
+	// If organization filter is specified, use the FPO linkage-based filtering
 	if req.AAAOrgID != "" {
-		countFilter = countFilter.Where("aaa_org_id", base.OpEqual, req.AAAOrgID)
-	}
-	if req.KisanSathiUserID != "" {
-		countFilter = countFilter.Where("kisan_sathi_user_id", base.OpEqual, req.KisanSathiUserID)
-	}
-	if req.PhoneNumber != "" {
-		countFilter = countFilter.Where("phone_number", base.OpEqual, req.PhoneNumber)
-	}
+		// Use the custom FindByOrgID method that joins with farmer_links table
+		farmers, err = s.repository.FindByOrgID(ctx, req.AAAOrgID, filter.Build())
+		if err != nil {
+			return nil, fmt.Errorf("failed to list farmers by org_id: %w", err)
+		}
 
-	// Count without pagination
-	allResults, err := s.repository.Find(ctx, countFilter.Build())
-	if err != nil {
-		return nil, fmt.Errorf("failed to count farmers: %w", err)
+		// Get count using the same join-based approach
+		countFilter := base.NewFilterBuilder()
+		if req.KisanSathiUserID != "" {
+			countFilter = countFilter.Where("kisan_sathi_user_id", base.OpEqual, req.KisanSathiUserID)
+		}
+		if req.PhoneNumber != "" {
+			countFilter = countFilter.Where("phone_number", base.OpEqual, req.PhoneNumber)
+		}
+
+		totalCount, err = s.repository.CountByOrgID(ctx, req.AAAOrgID, countFilter.Build())
+		if err != nil {
+			return nil, fmt.Errorf("failed to count farmers by org_id: %w", err)
+		}
+	} else {
+		// If no organization filter, use standard repository Find method
+		farmers, err = s.repository.Find(ctx, filter.Build())
+		if err != nil {
+			return nil, fmt.Errorf("failed to list farmers: %w", err)
+		}
+
+		// Get total count for pagination
+		countFilter := base.NewFilterBuilder()
+		if req.KisanSathiUserID != "" {
+			countFilter = countFilter.Where("kisan_sathi_user_id", base.OpEqual, req.KisanSathiUserID)
+		}
+		if req.PhoneNumber != "" {
+			countFilter = countFilter.Where("phone_number", base.OpEqual, req.PhoneNumber)
+		}
+
+		// Count without pagination
+		allResults, err := s.repository.Find(ctx, countFilter.Build())
+		if err != nil {
+			return nil, fmt.Errorf("failed to count farmers: %w", err)
+		}
+		totalCount = int64(len(allResults))
 	}
-	totalCount := int64(len(allResults))
 
 	// Convert to response format
 	var farmerProfilesData []*responses.FarmerProfileData
@@ -742,8 +826,8 @@ func (s *FarmerServiceImpl) ensureFarmerRoleWithRetry(ctx context.Context, userI
 	return nil
 }
 
-// ensureFarmerRole ensures the user has the farmer role with idempotency and verification
-// Implements the "Check-Assign-Verify" pattern from ADR-001
+// ensureFarmerRole ensures the user has the farmer role with idempotency
+// Implements a simplified approach that handles eventual consistency in AAA
 func (s *FarmerServiceImpl) ensureFarmerRole(ctx context.Context, userID, orgID string) error {
 	// 1. Check if role already exists (idempotency)
 	hasRole, err := s.aaaService.CheckUserRole(ctx, userID, constants.RoleFarmer)
@@ -758,19 +842,16 @@ func (s *FarmerServiceImpl) ensureFarmerRole(ctx context.Context, userID, orgID 
 	// 2. Assign farmer role
 	err = s.aaaService.AssignRole(ctx, userID, orgID, constants.RoleFarmer)
 	if err != nil {
+		// Check if error is "already assigned" - this is actually success due to eventual consistency
+		errStr := err.Error()
+		if strings.Contains(errStr, "already assigned") || strings.Contains(errStr, "AlreadyExists") {
+			log.Printf("Farmer role already assigned to user %s (eventual consistency)", userID)
+			return nil
+		}
 		return fmt.Errorf("failed to assign farmer role: %w", err)
 	}
 
-	// 3. Verify assignment succeeded
-	hasRole, err = s.aaaService.CheckUserRole(ctx, userID, constants.RoleFarmer)
-	if err != nil {
-		return fmt.Errorf("failed to verify farmer role assignment: %w", err)
-	}
-	if !hasRole {
-		return fmt.Errorf("farmer role assignment verification failed (role not present)")
-	}
-
-	log.Printf("Successfully assigned and verified farmer role for user %s", userID)
+	log.Printf("Successfully assigned farmer role for user %s", userID)
 	return nil
 }
 
@@ -788,7 +869,8 @@ func (s *FarmerServiceImpl) linkFPOConfigToFarmer(ctx context.Context, farmer *f
 	}
 
 	// If config exists but is not configured, skip linking
-	if fpoConfig.APIHealthStatus == "not_configured" {
+	// Check metadata for config_status
+	if configStatus, ok := fpoConfig.Metadata["config_status"].(string); ok && configStatus == "not_configured" {
 		log.Printf("FPO config not configured for org %s, skipping link", aaaOrgID)
 		return fmt.Errorf("FPO config not configured for org %s", aaaOrgID)
 	}

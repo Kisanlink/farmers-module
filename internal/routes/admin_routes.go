@@ -4,13 +4,18 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/config"
 	"github.com/Kisanlink/farmers-module/internal/handlers"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
+	"github.com/Kisanlink/farmers-module/internal/middleware"
 	"github.com/Kisanlink/farmers-module/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterAdminRoutes registers routes for Admin & Access Control workflows
 func RegisterAdminRoutes(router *gin.RouterGroup, services *services.ServiceFactory, cfg *config.Config, logger interfaces.Logger) {
+	// Initialize authentication middleware
+	authenticationMW := middleware.AuthenticationMiddleware(services.AAAService, logger)
+
 	admin := router.Group("/admin")
+	admin.Use(authenticationMW) // Apply auth middleware to all admin routes
 	{
 		// W18: Seed roles and permissions
 		admin.POST("/seed", handlers.SeedRolesAndPermissions(services.AdministrativeService))
@@ -26,5 +31,14 @@ func RegisterAdminRoutes(router *gin.RouterGroup, services *services.ServiceFact
 
 		// Audit trail
 		admin.GET("/audit", handlers.GetAuditTrail(services.AuditService))
+
+		// Reconciliation endpoints
+		admin.POST("/reconcile", handlers.TriggerReconciliation(services.ReconciliationJob))
+		admin.GET("/reconcile/status", handlers.GetReconciliationStatus(services.ReconciliationJob))
+
+		// Permanent delete endpoints (super admin only)
+		admin.POST("/permanent-delete", handlers.PermanentDelete(services.PermanentDeleteService))
+		admin.POST("/permanent-delete/org", handlers.PermanentDeleteByOrg(services.PermanentDeleteService))
+		admin.POST("/cleanup-orphaned", handlers.CleanupOrphanedRecords(services.PermanentDeleteService))
 	}
 }

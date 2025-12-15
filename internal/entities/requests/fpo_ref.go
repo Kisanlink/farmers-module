@@ -73,3 +73,16 @@ type DeactivateFPORequest struct {
 	BaseRequest
 	Reason string `json:"reason" validate:"required" example:"Business closure"`
 }
+
+// UpdateCEORequest represents a request to update FPO's CEO
+type UpdateCEORequest struct {
+	BaseRequest
+	NewCEOUserID string `json:"new_ceo_user_id" validate:"required" example:"USER00000123"`
+}
+
+// NewUpdateCEORequest creates a new update CEO request
+func NewUpdateCEORequest() UpdateCEORequest {
+	return UpdateCEORequest{
+		BaseRequest: NewBaseRequest(),
+	}
+}

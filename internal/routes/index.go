@@ -7,6 +7,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
 	"github.com/Kisanlink/farmers-module/internal/middleware"
 	"github.com/Kisanlink/farmers-module/internal/services"
+	externalMiddleware "github.com/Kisanlink/farmers-module/middleware"
 	scalar "github.com/MarceloPetrucio/go-scalar-api-reference"
 	"github.com/gin-gonic/gin"
 )
@@ -58,6 +59,10 @@ func SetupRoutes(router *gin.Engine, services *services.ServiceFactory, cfg *con
 	// Add core middleware
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+
+	// Add CORS middleware (must be early in the chain, after Logger/Recovery)
+	corsMW := externalMiddleware.NewCORSMiddleware(cfg.CORS.AllowedOrigins, cfg.CORS.AllowCredentials)
+	router.Use(corsMW)
 
 	// Add audit middleware for all routes
 	if services.AuditService != nil {

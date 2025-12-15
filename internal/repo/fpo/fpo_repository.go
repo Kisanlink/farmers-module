@@ -151,3 +151,25 @@ func (r *FPORepository) IncrementSetupAttempt(ctx context.Context, fpoID string)
 		UpdateColumn("setup_attempts", gorm.Expr("setup_attempts + ?", 1)).
 		Error
 }
+
+// UpdateCEO updates the CEO user ID for an FPO
+func (r *FPORepository) UpdateCEO(ctx context.Context, fpoID string, ceoUserID string) error {
+	if r.db == nil {
+		return fmt.Errorf("database connection not available")
+	}
+
+	result := r.db.WithContext(ctx).
+		Model(&fpo.FPORef{}).
+		Where("id = ?", fpoID).
+		Update("ceo_user_id", ceoUserID)
+
+	if result.Error != nil {
+		return fmt.Errorf("failed to update CEO: %w", result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("FPO not found: %s", fpoID)
+	}
+
+	return nil
+}

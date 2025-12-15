@@ -73,21 +73,8 @@ func main() {
 	// Initialize router
 	router := gin.Default()
 
-	// Add CORS middleware
-	router.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-
-		c.Next()
-	})
-
 	// Setup all routes with handlers and middleware
+	// Note: CORS middleware is applied in SetupRoutes using config from environment
 	routes.SetupRoutes(router, serviceFactory, cfg, logger)
 
 	// Seed AAA roles and permissions on startup (non-fatal)
@@ -108,6 +95,11 @@ func main() {
 		log.Println("Use the /admin/seed endpoint with force=true to manually trigger role reseeding")
 	} else {
 		log.Println("Successfully seeded AAA roles and permissions")
+	}
+
+	// Start reconciliation job for pending role assignments and FPO links
+	if serviceFactory.ReconciliationJob != nil {
+		serviceFactory.ReconciliationJob.Start()
 	}
 
 	// Get port from configuration
@@ -134,6 +126,11 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	log.Println("Shutting down server...")
+
+	// Stop reconciliation job
+	if serviceFactory.ReconciliationJob != nil {
+		serviceFactory.ReconciliationJob.Stop()
+	}
 
 	// Close database connection before exit
 	if err := dbManager.Close(); err != nil {

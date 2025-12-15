@@ -9,7 +9,6 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
-	"github.com/Kisanlink/farmers-module/internal/utils"
 	"go.uber.org/zap"
 )
 
@@ -148,7 +147,8 @@ func (vs *ValidationStage) isValidGender(gender string) bool {
 // FarmerServiceInterface defines the interface for farmer service used by pipeline
 type FarmerServiceInterface interface {
 	CreateFarmer(ctx context.Context, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error)
-	// Add other methods as needed
+	GetFarmerByUserID(ctx context.Context, aaaUserID string) (*responses.FarmerResponse, error)
+	UpdateFarmer(ctx context.Context, req *requests.UpdateFarmerRequest) (*responses.FarmerResponse, error)
 }
 
 // AAAServiceInterface defines the interface for AAA service used by pipeline
@@ -178,7 +178,9 @@ func NewDeduplicationStage(farmerService FarmerServiceInterface, logger interfac
 	}
 }
 
-// Process checks for duplicate farmers
+// Process checks for duplicate farmers (pre-check stage)
+// Note: The actual duplicate handling is done in the FarmerRegistrationStage
+// based on the deduplication_mode setting (skip, update, error)
 func (ds *DeduplicationStage) Process(ctx context.Context, data interface{}) (interface{}, error) {
 	procCtx, ok := data.(*ProcessingContext)
 	if !ok {
@@ -190,37 +192,20 @@ func (ds *DeduplicationStage) Process(ctx context.Context, data interface{}) (in
 		return nil, fmt.Errorf("invalid farmer data type")
 	}
 
-	ds.logger.Debug("Checking for duplicates",
+	ds.logger.Debug("Pre-checking for duplicates",
 		zap.String("operation_id", procCtx.OperationID),
 		zap.Int("record_index", procCtx.RecordIndex),
 		zap.String("phone", farmerData.PhoneNumber),
+		zap.String("deduplication_mode", procCtx.DeduplicationMode),
 	)
 
-	// Check for existing farmer by phone number
-	// TODO: Implement actual duplicate checking logic
-	// This would involve querying the database for existing farmers with the same phone number
-
-	isDuplicate := false
-	duplicateReason := ""
-	existingFarmerID := ""
-
-	// Placeholder logic - randomly mark some as duplicates for testing
-	if procCtx.RecordIndex%13 == 0 {
-		isDuplicate = true
-		duplicateReason = "Phone number already exists"
-		existingFarmerID = "existing_farmer_123"
-	}
-
+	// Record the deduplication mode for downstream stages
+	// The actual duplicate detection happens in FarmerRegistrationStage
+	// after AAA user creation (when we have the aaa_user_id)
 	procCtx.SetStageResult("deduplication", map[string]interface{}{
-		"is_duplicate":       isDuplicate,
-		"duplicate_reason":   duplicateReason,
-		"existing_farmer_id": existingFarmerID,
+		"deduplication_mode": procCtx.DeduplicationMode,
 		"checked_at":         time.Now(),
 	})
-
-	if isDuplicate {
-		return nil, fmt.Errorf("duplicate farmer found: %s", duplicateReason)
-	}
 
 	return procCtx, nil
 }
@@ -228,16 +213,17 @@ func (ds *DeduplicationStage) Process(ctx context.Context, data interface{}) (in
 // AAAUserCreationStage creates users in the AAA service
 type AAAUserCreationStage struct {
 	*BasePipelineStage
-	aaaService  AAAServiceInterface
-	passwordGen *utils.PasswordGenerator
+	aaaService      AAAServiceInterface
+	defaultPassword string
 }
 
 // NewAAAUserCreationStage creates a new AAA user creation stage
-func NewAAAUserCreationStage(aaaService AAAServiceInterface, logger interfaces.Logger) PipelineStage {
+// defaultPassword should come from config (AAA_DEFAULT_PASSWORD env with fallback "Welcome@123")
+func NewAAAUserCreationStage(aaaService AAAServiceInterface, defaultPassword string, logger interfaces.Logger) PipelineStage {
 	return &AAAUserCreationStage{
 		BasePipelineStage: NewBasePipelineStage("aaa_user_creation", 30*time.Second, true, logger),
 		aaaService:        aaaService,
-		passwordGen:       utils.NewPasswordGenerator(),
+		defaultPassword:   defaultPassword,
 	}
 }
 
@@ -275,19 +261,20 @@ func (aus *AAAUserCreationStage) Process(ctx context.Context, data interface{}) 
 		}
 	}
 
+	// Determine password: use provided password or default from config
+	password := farmerData.Password
+	if password == "" {
+		password = aus.defaultPassword
+	}
+
 	// Create new user
 	createUserReq := map[string]interface{}{
 		"username":     fmt.Sprintf("farmer_%s", farmerData.PhoneNumber),
 		"phone_number": farmerData.PhoneNumber,
 		"email":        farmerData.Email,
-		"password":     farmerData.Password,
+		"password":     password,
 		"country_code": "+91",
 		"full_name":    fmt.Sprintf("%s %s", farmerData.FirstName, farmerData.LastName),
-	}
-
-	// Use provided password or generate one
-	if farmerData.Password == "" {
-		createUserReq["password"] = aus.generatePassword(farmerData)
 	}
 
 	userResponse, err := aus.aaaService.CreateUser(ctx, createUserReq)
@@ -316,28 +303,6 @@ func (aus *AAAUserCreationStage) Process(ctx context.Context, data interface{}) 
 	})
 
 	return procCtx, nil
-}
-
-func (aus *AAAUserCreationStage) generatePassword(farmer *requests.FarmerBulkData) string {
-	// Generate a cryptographically secure password
-	password, err := aus.passwordGen.GenerateSecurePassword()
-	if err != nil {
-		// Fallback to a more secure pattern if generation fails
-		aus.logger.Error("Failed to generate secure password, using fallback",
-			zap.Error(err),
-			zap.String("phone", farmer.PhoneNumber))
-
-		// Generate a more secure fallback than the original
-		return fmt.Sprintf("%s%s!%d",
-			strings.ToTitle(farmer.FirstName[:min(3, len(farmer.FirstName))]),
-			farmer.PhoneNumber[len(farmer.PhoneNumber)-4:],
-			time.Now().Unix()%10000)
-	}
-
-	aus.logger.Debug("Generated secure password for farmer",
-		zap.String("phone", farmer.PhoneNumber))
-
-	return password
 }
 
 // FarmerRegistrationStage registers the farmer in the local database
@@ -387,7 +352,71 @@ func (frs *FarmerRegistrationStage) Process(ctx context.Context, data interface{
 		zap.Int("record_index", procCtx.RecordIndex),
 		zap.String("aaa_user_id", aaaUserID),
 		zap.String("phone", farmerData.PhoneNumber),
+		zap.String("deduplication_mode", procCtx.DeduplicationMode),
 	)
+
+	// Check if farmer already exists
+	existingFarmer, err := frs.farmerService.GetFarmerByUserID(ctx, aaaUserID)
+	if err == nil && existingFarmer != nil && existingFarmer.Data != nil {
+		// Farmer already exists - handle based on deduplication mode
+		switch procCtx.DeduplicationMode {
+		case "skip":
+			// Skip - return existing farmer info as success
+			frs.logger.Debug("Farmer already exists, skipping (deduplication_mode=skip)",
+				zap.String("aaa_user_id", aaaUserID),
+				zap.String("existing_farmer_id", existingFarmer.Data.ID),
+			)
+			procCtx.SetStageResult("farmer_registration", map[string]interface{}{
+				"farmer_id":   existingFarmer.Data.ID,
+				"aaa_user_id": aaaUserID,
+				"skipped":     true,
+				"reason":      "farmer already exists",
+			})
+			return procCtx, nil
+
+		case "update":
+			// Update existing farmer
+			frs.logger.Debug("Farmer already exists, updating (deduplication_mode=update)",
+				zap.String("aaa_user_id", aaaUserID),
+			)
+			updateReq := &requests.UpdateFarmerRequest{
+				AAAUserID: aaaUserID,
+				Profile: requests.FarmerProfileData{
+					FirstName:   farmerData.FirstName,
+					LastName:    farmerData.LastName,
+					PhoneNumber: farmerData.PhoneNumber,
+					Email:       farmerData.Email,
+					DateOfBirth: farmerData.DateOfBirth,
+					Gender:      farmerData.Gender,
+					Address: requests.AddressData{
+						StreetAddress: farmerData.StreetAddress,
+						City:          farmerData.City,
+						State:         farmerData.State,
+						PostalCode:    farmerData.PostalCode,
+						Country:       farmerData.Country,
+					},
+					Preferences: farmerData.CustomFields,
+				},
+			}
+			updatedFarmer, err := frs.farmerService.UpdateFarmer(ctx, updateReq)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update existing farmer: %w", err)
+			}
+			farmerID := ""
+			if updatedFarmer != nil && updatedFarmer.Data != nil {
+				farmerID = updatedFarmer.Data.ID
+			}
+			procCtx.SetStageResult("farmer_registration", map[string]interface{}{
+				"farmer_id":   farmerID,
+				"aaa_user_id": aaaUserID,
+				"updated":     true,
+			})
+			return procCtx, nil
+
+		default: // "error" or any other value
+			return nil, fmt.Errorf("farmer already exists with aaa_user_id=%s (deduplication_mode=%s)", aaaUserID, procCtx.DeduplicationMode)
+		}
+	}
 
 	// Create farmer registration request
 	createFarmerReq := &requests.CreateFarmerRequest{

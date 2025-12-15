@@ -61,6 +61,9 @@ func RegisterCropRoutes(router *gin.RouterGroup, services *services.ServiceFacto
 
 			// Get farm activity by ID
 			activities.GET("/:activity_id", handlers.GetFarmActivity(services.FarmActivityService))
+
+			// Delete farm activity
+			activities.DELETE("/:activity_id", handlers.DeleteFarmActivity(services.FarmActivityService))
 		}
 	}
 

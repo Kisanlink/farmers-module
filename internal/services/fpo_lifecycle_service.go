@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/clients/aaa"
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/fpo"
 	repofpo "github.com/Kisanlink/farmers-module/internal/repo/fpo"
@@ -47,20 +48,19 @@ func (s *FPOLifecycleService) SyncFPOFromAAA(ctx context.Context, aaaOrgID strin
 		return nil, fmt.Errorf("failed to get organization from AAA: %w", err)
 	}
 
-	orgMap, ok := org.(map[string]interface{})
+	// Type assert to *aaa.OrganizationData (the actual return type from AAA client)
+	orgData, ok := org.(*aaa.OrganizationData)
 	if !ok {
 		return nil, fmt.Errorf("invalid organization response from AAA")
 	}
 
 	// Extract organization details
-	name := ""
-	if n, ok := orgMap["name"].(string); ok {
-		name = n
-	}
+	name := orgData.Name
 
+	// Convert map[string]string to entities.JSONB (map[string]interface{})
 	metadata := make(entities.JSONB)
-	if m, ok := orgMap["metadata"].(map[string]interface{}); ok {
-		metadata = m
+	for k, v := range orgData.Metadata {
+		metadata[k] = v
 	}
 
 	// Create local reference using constructor
@@ -71,7 +71,8 @@ func (s *FPOLifecycleService) SyncFPOFromAAA(ctx context.Context, aaaOrgID strin
 	fpoRef.Metadata = metadata
 
 	// Try to extract registration number if available
-	if regNo, ok := orgMap["registration_number"].(string); ok {
+	// Note: OrganizationData doesn't have a RegistrationNo field, so we'll check metadata
+	if regNo, ok := orgData.Metadata["registration_number"]; ok {
 		fpoRef.RegistrationNo = regNo
 	}
 

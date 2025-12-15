@@ -209,6 +209,11 @@ func (m *MockAAAServiceShared) CreateUserGroup(ctx context.Context, req any) (an
 	return args.Get(0), args.Error(1)
 }
 
+func (m *MockAAAServiceShared) GetOrCreateFarmersGroup(ctx context.Context, orgID string) (string, error) {
+	args := m.Called(ctx, orgID)
+	return args.String(0), args.Error(1)
+}
+
 func (m *MockAAAServiceShared) AddUserToGroup(ctx context.Context, userID, groupID string) error {
 	args := m.Called(ctx, userID, groupID)
 	return args.Error(0)
@@ -284,6 +289,19 @@ func (m *MockFarmerLinkageRepoShared) Delete(ctx context.Context, id string) err
 
 func (m *MockFarmerLinkageRepoShared) SetDBManager(dbManager any) {
 	m.Called(dbManager)
+}
+
+func (m *MockFarmerLinkageRepoShared) FindUnscoped(ctx context.Context, filter *base.Filter) ([]*farmerentity.FarmerLink, error) {
+	args := m.Called(ctx, filter)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*farmerentity.FarmerLink), args.Error(1)
+}
+
+func (m *MockFarmerLinkageRepoShared) Restore(ctx context.Context, entity *farmerentity.FarmerLink) error {
+	args := m.Called(ctx, entity)
+	return args.Error(0)
 }
 
 // MockAAAService is an alias for MockAAAServiceShared for backward compatibility

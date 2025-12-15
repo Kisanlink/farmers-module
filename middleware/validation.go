@@ -222,6 +222,62 @@ func (vm *ValidationMiddleware) ValidateOrganizationAccess(orgIDParam string) gi
 	}
 }
 
+// ValidateFarmerUpdate validates farmer update requests (aaa_org_id is optional)
+func (vm *ValidationMiddleware) ValidateFarmerUpdate() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Read the body
+		bodyBytes, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Failed to read request body",
+				"message": err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		// Restore the body so the handler can read it again
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+		// Parse the JSON for validation
+		var requestData map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &requestData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Invalid request format",
+				"message": err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		// Validate update fields (org_id not required)
+		if err := vm.validateFarmerUpdateFields(requestData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Validation failed",
+				"message": err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		// Verify organization exists in AAA service if provided
+		if orgID, exists := requestData["aaa_org_id"]; exists && orgID != "" {
+			if err := vm.verifyOrganization(c.Request.Context(), fmt.Sprintf("%v", orgID)); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error":   "Organization validation failed",
+					"message": err.Error(),
+				})
+				c.Abort()
+				return
+			}
+		}
+
+		// Store validated data in context for handlers
+		c.Set("validated_farmer_data", requestData)
+		c.Next()
+	}
+}
+
 // ValidateFarmCreation validates farm creation requests
 func (vm *ValidationMiddleware) ValidateFarmCreation() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -298,9 +354,9 @@ func (vm *ValidationMiddleware) validateFPOFields(data map[string]interface{}) e
 	return nil
 }
 
-// validateFarmerFields validates farmer-specific fields
+// validateFarmerFields validates farmer-specific fields for creation (requires aaa_org_id)
 func (vm *ValidationMiddleware) validateFarmerFields(data map[string]interface{}) error {
-	// Always require aaa_org_id
+	// Require aaa_org_id for farmer creation
 	if value, exists := data["aaa_org_id"]; !exists || value == "" {
 		return fmt.Errorf("required field 'aaa_org_id' is missing or empty")
 	}
@@ -324,6 +380,20 @@ func (vm *ValidationMiddleware) validateFarmerFields(data map[string]interface{}
 		return fmt.Errorf("either 'aaa_user_id' or both 'country_code' and 'phone_number' in profile must be provided")
 	}
 
+	// Validate profile fields if present
+	if profile, exists := data["profile"]; exists {
+		if profileMap, ok := profile.(map[string]interface{}); ok {
+			if err := vm.validateFarmerProfile(profileMap); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// validateFarmerUpdateFields validates farmer-specific fields for updates (aaa_org_id is optional)
+func (vm *ValidationMiddleware) validateFarmerUpdateFields(data map[string]interface{}) error {
 	// Validate profile fields if present
 	if profile, exists := data["profile"]; exists {
 		if profileMap, ok := profile.(map[string]interface{}); ok {

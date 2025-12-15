@@ -126,6 +126,54 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/cleanup-orphaned": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove orphaned soft-deleted records where parent data no longer exists. Requires super admin role.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Cleanup orphaned records",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Preview without deleting",
+                        "name": "dry_run",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.PermanentDeleteResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/health": {
             "get": {
                 "security": [
@@ -163,6 +211,194 @@ const docTemplate = `{
                         "description": "Service Unavailable",
                         "schema": {
                             "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerAdminHealthResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/permanent-delete": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently delete an entity and all related data. Requires super admin role. This action is IRREVERSIBLE.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Permanent delete",
+                "parameters": [
+                    {
+                        "description": "Delete request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.PermanentDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.PermanentDeleteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/permanent-delete/org": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently delete all data for an organization. Requires super admin role. This action is IRREVERSIBLE.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Permanent delete by organization",
+                "parameters": [
+                    {
+                        "description": "Delete request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.PermanentDeleteOrgRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.PermanentDeleteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/reconcile": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Manually trigger reconciliation of pending role assignments and FPO links",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Trigger reconciliation",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ReconciliationResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/reconcile/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get counts of pending role assignments and FPO links that need reconciliation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Get reconciliation status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ReconciliationStatusResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
                     }
                 }
@@ -2195,6 +2431,71 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a farm activity by its ID. Only PLANNED or CANCELLED activities can be deleted.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "farm-activities"
+                ],
+                "summary": "Delete a farm activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "activity_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/crops/activities/{activity_id}/complete": {
@@ -3906,6 +4207,132 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/identity/farmer/bulk-link": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Link multiple farmers to a Farmer Producer Organization in a single operation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "summary": "Bulk link farmers to FPO",
+                "parameters": [
+                    {
+                        "description": "Bulk farmer linkage data",
+                        "name": "linkage",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.BulkLinkFarmersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkFarmersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/identity/farmer/bulk-unlink": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Unlink multiple farmers from a Farmer Producer Organization in a single operation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "summary": "Bulk unlink farmers from FPO",
+                "parameters": [
+                    {
+                        "description": "Bulk farmer unlinkage data",
+                        "name": "unlinkage",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.BulkUnlinkFarmersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkFarmersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse"
                         }
@@ -6281,6 +6708,60 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.BulkLinkFarmersRequest": {
+            "type": "object",
+            "required": [
+                "aaa_org_id",
+                "aaa_user_ids"
+            ],
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string",
+                    "example": "ORGN00000005"
+                },
+                "aaa_user_ids": {
+                    "type": "array",
+                    "maxItems": 1000,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[\"USR00000001\"",
+                        "\"USR00000002\"]"
+                    ]
+                },
+                "continue_on_error": {
+                    "description": "Continue processing on individual failures",
+                    "type": "boolean",
+                    "example": true
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "org_id": {
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
+                },
+                "request_type": {
+                    "type": "string",
+                    "example": "create_farmer"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
         "github_com_Kisanlink_farmers-module_internal_entities_requests.BulkProcessingOptions": {
             "type": "object",
             "properties": {
@@ -6338,6 +6819,60 @@ const docTemplate = `{
                     "description": "Dry run mode",
                     "type": "boolean",
                     "example": false
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_requests.BulkUnlinkFarmersRequest": {
+            "type": "object",
+            "required": [
+                "aaa_org_id",
+                "aaa_user_ids"
+            ],
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string",
+                    "example": "ORGN00000005"
+                },
+                "aaa_user_ids": {
+                    "type": "array",
+                    "maxItems": 1000,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[\"USR00000001\"",
+                        "\"USR00000002\"]"
+                    ]
+                },
+                "continue_on_error": {
+                    "description": "Continue processing on individual failures",
+                    "type": "boolean",
+                    "example": true
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "org_id": {
+                    "type": "string",
+                    "example": "org_123e4567-e89b-12d3-a456-426614174000"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123e4567e89b12d3"
+                },
+                "request_type": {
+                    "type": "string",
+                    "example": "create_farmer"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "usr_123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
@@ -7969,6 +8504,72 @@ const docTemplate = `{
                 },
                 "utilization_percentage": {
                     "type": "number"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkFarmersData": {
+            "type": "object",
+            "properties": {
+                "aaa_org_id": {
+                    "type": "string"
+                },
+                "failure_count": {
+                    "type": "integer"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkResult"
+                    }
+                },
+                "skipped_count": {
+                    "description": "Already linked",
+                    "type": "integer"
+                },
+                "success_count": {
+                    "type": "integer"
+                },
+                "total_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkFarmersResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkFarmersData"
+                },
+                "error": {},
+                "message": {
+                    "type": "string"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.BulkLinkResult": {
+            "type": "object",
+            "properties": {
+                "aaa_user_id": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "LINKED, ALREADY_LINKED, FAILED, UNLINKED",
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
                 }
             }
         },
@@ -10237,6 +10838,19 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Operation completed successfully"
+                },
+                "request_id": {
+                    "type": "string",
+                    "example": "req_123456789"
+                }
+            }
+        },
         "github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerValidateGeometryResponse": {
             "type": "object",
             "properties": {
@@ -10357,6 +10971,88 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_Kisanlink_farmers-module_internal_services.DeleteReport": {
+            "type": "object",
+            "properties": {
+                "activities_deleted": {
+                    "type": "integer"
+                },
+                "addresses_deleted": {
+                    "type": "integer"
+                },
+                "crop_cycles_deleted": {
+                    "type": "integer"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "entity_id": {
+                    "type": "string"
+                },
+                "entity_type": {
+                    "type": "string"
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "farmers_deleted": {
+                    "type": "integer"
+                },
+                "farms_deleted": {
+                    "type": "integer"
+                },
+                "irrigation_deleted": {
+                    "type": "integer"
+                },
+                "links_deleted": {
+                    "type": "integer"
+                },
+                "soil_types_deleted": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_Kisanlink_farmers-module_internal_services.ReconciliationReport": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fpo_links_fixed": {
+                    "type": "integer"
+                },
+                "fpo_links_processed": {
+                    "type": "integer"
+                },
+                "fpo_links_still_pending": {
+                    "type": "integer"
+                },
+                "roles_fixed": {
+                    "type": "integer"
+                },
+                "roles_processed": {
+                    "type": "integer"
+                },
+                "roles_still_pending": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_handlers.CheckPermissionRequest": {
             "type": "object",
             "required": [
@@ -10406,6 +11102,102 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "internal_handlers.PermanentDeleteOrgRequest": {
+            "type": "object",
+            "required": [
+                "org_id"
+            ],
+            "properties": {
+                "confirm": {
+                    "type": "boolean"
+                },
+                "dry_run": {
+                    "type": "boolean"
+                },
+                "org_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.PermanentDeleteRequest": {
+            "type": "object",
+            "required": [
+                "confirm",
+                "entity_id",
+                "entity_type"
+            ],
+            "properties": {
+                "confirm": {
+                    "type": "boolean"
+                },
+                "entity_id": {
+                    "type": "string"
+                },
+                "entity_type": {
+                    "type": "string",
+                    "enum": [
+                        "farmer",
+                        "farm",
+                        "crop_cycle",
+                        "farmer_link"
+                    ]
+                }
+            }
+        },
+        "internal_handlers.PermanentDeleteResponse": {
+            "type": "object",
+            "properties": {
+                "correlation_id": {
+                    "type": "string"
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_services.DeleteReport"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.ReconciliationResponse": {
+            "type": "object",
+            "properties": {
+                "correlation_id": {
+                    "type": "string"
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_Kisanlink_farmers-module_internal_services.ReconciliationReport"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.ReconciliationStatusResponse": {
+            "type": "object",
+            "properties": {
+                "correlation_id": {
+                    "type": "string"
+                },
+                "fpo_links_pending": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "roles_pending": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
                 }
             }
         }

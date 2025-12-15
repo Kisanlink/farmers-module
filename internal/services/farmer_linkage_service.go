@@ -17,6 +17,10 @@ type FarmerLinkRepository interface {
 	Create(ctx context.Context, entity *farmerentity.FarmerLink) error
 	Update(ctx context.Context, entity *farmerentity.FarmerLink) error
 	Find(ctx context.Context, filter *base.Filter) ([]*farmerentity.FarmerLink, error)
+	// FindUnscoped finds records including soft-deleted ones
+	FindUnscoped(ctx context.Context, filter *base.Filter) ([]*farmerentity.FarmerLink, error)
+	// Restore restores a soft-deleted record by clearing deleted_at
+	Restore(ctx context.Context, entity *farmerentity.FarmerLink) error
 }
 
 // FarmerRepository defines the interface for farmer repository operations
@@ -90,13 +94,33 @@ func (s *FarmerLinkageServiceImpl) LinkFarmerToFPO(ctx context.Context, req inte
 		return fmt.Errorf("farmer with aaa_user_id=%s must be created before linking to FPO", linkReq.AAAUserID)
 	}
 
-	// Check if linkage already exists
-	existingLink, err := s.getFarmerLinkByUserAndOrg(ctx, linkReq.AAAUserID, linkReq.AAAOrgID)
+	// Check if linkage already exists (including soft-deleted)
+	existingLink, err := s.getFarmerLinkByUserAndOrgUnscoped(ctx, linkReq.AAAUserID, linkReq.AAAOrgID)
 	if err == nil && existingLink != nil {
+		// Check if it's soft-deleted (DeletedAt is *time.Time, not nil means deleted)
+		if existingLink.DeletedAt != nil {
+			// Restore the soft-deleted link
+			existingLink.Status = "ACTIVE"
+			if err := s.farmerLinkageRepo.Restore(ctx, existingLink); err != nil {
+				return err
+			}
+			// Add user to farmers group on restore
+			if err := s.addUserToFarmersGroup(ctx, linkReq.AAAUserID, linkReq.AAAOrgID); err != nil {
+				return fmt.Errorf("failed to add user to farmers group: %w", err)
+			}
+			return nil
+		}
 		// Update existing link to ACTIVE if it was inactive
 		if existingLink.Status != "ACTIVE" {
 			existingLink.Status = "ACTIVE"
-			return s.farmerLinkageRepo.Update(ctx, existingLink)
+			if err := s.farmerLinkageRepo.Update(ctx, existingLink); err != nil {
+				return err
+			}
+			// Add user to farmers group on reactivation
+			if err := s.addUserToFarmersGroup(ctx, linkReq.AAAUserID, linkReq.AAAOrgID); err != nil {
+				return fmt.Errorf("failed to add user to farmers group: %w", err)
+			}
+			return nil
 		}
 		return nil // Already linked and active
 	}
@@ -107,7 +131,16 @@ func (s *FarmerLinkageServiceImpl) LinkFarmerToFPO(ctx context.Context, req inte
 	farmerLink.AAAOrgID = linkReq.AAAOrgID
 	farmerLink.Status = "ACTIVE"
 
-	return s.farmerLinkageRepo.Create(ctx, farmerLink)
+	if err := s.farmerLinkageRepo.Create(ctx, farmerLink); err != nil {
+		return err
+	}
+
+	// Add user to the organization's "farmers" group
+	if err := s.addUserToFarmersGroup(ctx, linkReq.AAAUserID, linkReq.AAAOrgID); err != nil {
+		return fmt.Errorf("failed to add user to farmers group: %w", err)
+	}
+
+	return nil
 }
 
 // UnlinkFarmerFromFPO implements W2: Unlink farmer from FPO with soft delete
@@ -479,6 +512,25 @@ func (s *FarmerLinkageServiceImpl) getFarmerLinkByUserAndOrg(ctx context.Context
 	return results[0], nil
 }
 
+// getFarmerLinkByUserAndOrgUnscoped finds farmer link including soft-deleted records
+func (s *FarmerLinkageServiceImpl) getFarmerLinkByUserAndOrgUnscoped(ctx context.Context, userID, orgID string) (*farmerentity.FarmerLink, error) {
+	filter := base.NewFilterBuilder().
+		Where("aaa_user_id", base.OpEqual, userID).
+		Where("aaa_org_id", base.OpEqual, orgID).
+		Build()
+
+	results, err := s.farmerLinkageRepo.FindUnscoped(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(results) == 0 {
+		return nil, fmt.Errorf("farmer link not found")
+	}
+
+	return results[0], nil
+}
+
 // ListKisanSathis lists all KisanSathis (users assigned to at least one farmer)
 func (s *FarmerLinkageServiceImpl) ListKisanSathis(ctx context.Context, req interface{}) (interface{}, error) {
 	listReq, ok := req.(*requests.ListKisanSathisRequest)
@@ -624,4 +676,234 @@ func (s *FarmerLinkageServiceImpl) ensureKisanSathiRole(ctx context.Context, use
 	}
 
 	return nil
+}
+
+// BulkLinkFarmersToFPO links multiple farmers to an FPO
+func (s *FarmerLinkageServiceImpl) BulkLinkFarmersToFPO(ctx context.Context, req interface{}) (interface{}, error) {
+	bulkReq, ok := req.(*requests.BulkLinkFarmersRequest)
+	if !ok {
+		return nil, fmt.Errorf("invalid request type for BulkLinkFarmersToFPO")
+	}
+
+	// Validate input
+	if bulkReq.AAAOrgID == "" {
+		return nil, fmt.Errorf("aaa_org_id is required")
+	}
+	if len(bulkReq.AAAUserIDs) == 0 {
+		return nil, fmt.Errorf("aaa_user_ids is required and must not be empty")
+	}
+	if len(bulkReq.AAAUserIDs) > 1000 {
+		return nil, fmt.Errorf("aaa_user_ids cannot exceed 1000 entries")
+	}
+
+	// Verify FPO exists in AAA service
+	_, err := s.aaaService.GetOrganization(ctx, bulkReq.AAAOrgID)
+	if err != nil {
+		return nil, fmt.Errorf("FPO not found in AAA service: %w", err)
+	}
+
+	results := make([]responses.BulkLinkResult, 0, len(bulkReq.AAAUserIDs))
+	successCount := 0
+	failureCount := 0
+	skippedCount := 0
+
+	for _, userID := range bulkReq.AAAUserIDs {
+		result := responses.BulkLinkResult{
+			AAAUserID: userID,
+		}
+
+		// Verify farmer exists in local database
+		farmerFilter := base.NewFilterBuilder().
+			Where("aaa_user_id", base.OpEqual, userID).
+			Build()
+
+		existingFarmer, err := s.farmerRepo.FindOne(ctx, farmerFilter)
+		if err != nil || existingFarmer == nil {
+			result.Success = false
+			result.Error = fmt.Sprintf("farmer with aaa_user_id=%s not found in database", userID)
+			result.Status = "FAILED"
+			failureCount++
+			results = append(results, result)
+			if !bulkReq.ContinueOnError {
+				break
+			}
+			continue
+		}
+
+		// Check if linkage already exists (including soft-deleted)
+		existingLink, err := s.getFarmerLinkByUserAndOrgUnscoped(ctx, userID, bulkReq.AAAOrgID)
+		if err == nil && existingLink != nil {
+			// Check if it's soft-deleted (DeletedAt is *time.Time, not nil means deleted)
+			if existingLink.DeletedAt != nil {
+				// Restore the soft-deleted link
+				existingLink.Status = "ACTIVE"
+				if err := s.farmerLinkageRepo.Restore(ctx, existingLink); err != nil {
+					result.Success = false
+					result.Error = fmt.Sprintf("failed to restore link: %v", err)
+					result.Status = "FAILED"
+					failureCount++
+				} else {
+					result.Success = true
+					result.Status = "LINKED"
+					successCount++
+				}
+				results = append(results, result)
+				continue
+			}
+			// Update existing link to ACTIVE if it was inactive
+			if existingLink.Status != "ACTIVE" {
+				existingLink.Status = "ACTIVE"
+				if err := s.farmerLinkageRepo.Update(ctx, existingLink); err != nil {
+					result.Success = false
+					result.Error = fmt.Sprintf("failed to reactivate link: %v", err)
+					result.Status = "FAILED"
+					failureCount++
+				} else {
+					result.Success = true
+					result.Status = "LINKED"
+					successCount++
+				}
+			} else {
+				result.Success = true
+				result.Status = "ALREADY_LINKED"
+				skippedCount++
+			}
+			results = append(results, result)
+			continue
+		}
+
+		// Create new farmer link
+		farmerLink := farmerentity.NewFarmerLink()
+		farmerLink.AAAUserID = userID
+		farmerLink.AAAOrgID = bulkReq.AAAOrgID
+		farmerLink.Status = "ACTIVE"
+
+		if err := s.farmerLinkageRepo.Create(ctx, farmerLink); err != nil {
+			result.Success = false
+			result.Error = fmt.Sprintf("failed to create link: %v", err)
+			result.Status = "FAILED"
+			failureCount++
+			if !bulkReq.ContinueOnError {
+				results = append(results, result)
+				break
+			}
+		} else {
+			result.Success = true
+			result.Status = "LINKED"
+			successCount++
+		}
+		results = append(results, result)
+	}
+
+	responseData := &responses.BulkLinkFarmersData{
+		AAAOrgID:     bulkReq.AAAOrgID,
+		TotalCount:   len(bulkReq.AAAUserIDs),
+		SuccessCount: successCount,
+		FailureCount: failureCount,
+		SkippedCount: skippedCount,
+		Results:      results,
+	}
+
+	return responseData, nil
+}
+
+// addUserToFarmersGroup gets or creates the "farmers" group for an org and adds the user to it
+// This is idempotent - adding a user who's already in the group is a no-op
+func (s *FarmerLinkageServiceImpl) addUserToFarmersGroup(ctx context.Context, userID, orgID string) error {
+	// Get or create the "farmers" group for this organization
+	groupID, err := s.aaaService.GetOrCreateFarmersGroup(ctx, orgID)
+	if err != nil {
+		return fmt.Errorf("failed to get or create farmers group: %w", err)
+	}
+
+	// Add the user to the group (idempotent in AAA service)
+	if err := s.aaaService.AddUserToGroup(ctx, userID, groupID); err != nil {
+		return fmt.Errorf("failed to add user to farmers group: %w", err)
+	}
+
+	return nil
+}
+
+// BulkUnlinkFarmersFromFPO unlinks multiple farmers from an FPO
+func (s *FarmerLinkageServiceImpl) BulkUnlinkFarmersFromFPO(ctx context.Context, req interface{}) (interface{}, error) {
+	bulkReq, ok := req.(*requests.BulkUnlinkFarmersRequest)
+	if !ok {
+		return nil, fmt.Errorf("invalid request type for BulkUnlinkFarmersFromFPO")
+	}
+
+	// Validate input
+	if bulkReq.AAAOrgID == "" {
+		return nil, fmt.Errorf("aaa_org_id is required")
+	}
+	if len(bulkReq.AAAUserIDs) == 0 {
+		return nil, fmt.Errorf("aaa_user_ids is required and must not be empty")
+	}
+	if len(bulkReq.AAAUserIDs) > 1000 {
+		return nil, fmt.Errorf("aaa_user_ids cannot exceed 1000 entries")
+	}
+
+	results := make([]responses.BulkLinkResult, 0, len(bulkReq.AAAUserIDs))
+	successCount := 0
+	failureCount := 0
+	skippedCount := 0
+
+	for _, userID := range bulkReq.AAAUserIDs {
+		result := responses.BulkLinkResult{
+			AAAUserID: userID,
+		}
+
+		// Find existing link
+		existingLink, err := s.getFarmerLinkByUserAndOrg(ctx, userID, bulkReq.AAAOrgID)
+		if err != nil {
+			result.Success = false
+			result.Error = "farmer link not found"
+			result.Status = "FAILED"
+			failureCount++
+			results = append(results, result)
+			if !bulkReq.ContinueOnError {
+				break
+			}
+			continue
+		}
+
+		// Check if already inactive
+		if existingLink.Status == "INACTIVE" {
+			result.Success = true
+			result.Status = "ALREADY_UNLINKED"
+			skippedCount++
+			results = append(results, result)
+			continue
+		}
+
+		// Soft delete by setting status to INACTIVE
+		existingLink.Status = "INACTIVE"
+		existingLink.KisanSathiUserID = nil
+
+		if err := s.farmerLinkageRepo.Update(ctx, existingLink); err != nil {
+			result.Success = false
+			result.Error = fmt.Sprintf("failed to unlink: %v", err)
+			result.Status = "FAILED"
+			failureCount++
+			if !bulkReq.ContinueOnError {
+				results = append(results, result)
+				break
+			}
+		} else {
+			result.Success = true
+			result.Status = "UNLINKED"
+			successCount++
+		}
+		results = append(results, result)
+	}
+
+	responseData := &responses.BulkLinkFarmersData{
+		AAAOrgID:     bulkReq.AAAOrgID,
+		TotalCount:   len(bulkReq.AAAUserIDs),
+		SuccessCount: successCount,
+		FailureCount: failureCount,
+		SkippedCount: skippedCount,
+		Results:      results,
+	}
+
+	return responseData, nil
 }
