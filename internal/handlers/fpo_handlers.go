@@ -245,3 +245,96 @@ func (h *FPOHandler) GetFPORef(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+// UpdateCEO updates the CEO of an FPO organization
+// @Summary Update FPO CEO
+// @Description Updates the CEO of an FPO organization and assigns the CEO role
+// @Tags FPO Management
+// @Accept json
+// @Produce json
+// @Param aaa_org_id path string true "AAA Organization ID"
+// @Param request body requests.UpdateCEORequest true "Update CEO Request"
+// @Success 200 {object} responses.UpdateCEOResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 409 {object} responses.SwaggerErrorResponse "User is already CEO of another FPO"
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /identity/fpo/org/{aaa_org_id}/ceo [put]
+func (h *FPOHandler) UpdateCEO(c *gin.Context) {
+	aaaOrgID := c.Param("aaa_org_id")
+	requestID := c.GetString("request_id")
+
+	h.logger.Info("Updating FPO CEO",
+		zap.String("request_id", requestID),
+		zap.String("aaa_org_id", aaaOrgID),
+	)
+
+	if aaaOrgID == "" {
+		h.logger.Error("Missing AAA organization ID parameter",
+			zap.String("request_id", requestID),
+		)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "AAA organization ID is required"})
+		return
+	}
+
+	var req requests.UpdateCEORequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		h.logger.Error("Invalid request body for UpdateCEO", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	// Set request metadata
+	req.RequestID = requestID
+	req.UserID = c.GetString("aaa_subject")
+	req.OrgID = c.GetString("aaa_org")
+	if timestampStr := c.GetString("timestamp"); timestampStr != "" {
+		if parsedTime, err := time.Parse(time.RFC3339, timestampStr); err == nil {
+			req.Timestamp = parsedTime
+		}
+	}
+
+	h.logger.Info("Processing UpdateCEO request",
+		zap.String("request_id", req.RequestID),
+		zap.String("aaa_org_id", aaaOrgID),
+		zap.String("new_ceo_user_id", req.NewCEOUserID),
+	)
+
+	// Call service
+	result, err := h.fpoService.UpdateCEO(c.Request.Context(), aaaOrgID, &req)
+	if err != nil {
+		h.logger.Error("Failed to update FPO CEO",
+			zap.String("request_id", requestID),
+			zap.String("aaa_org_id", aaaOrgID),
+			zap.Error(err),
+		)
+
+		handleServiceError(c, err)
+		return
+	}
+
+	// Type assert result
+	updateData, ok := result.(*responses.UpdateCEOData)
+	if !ok {
+		h.logger.Error("Invalid service response type for UpdateCEO",
+			zap.String("request_id", requestID),
+		)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	// Create response
+	response := responses.NewUpdateCEOResponse(updateData, "FPO CEO updated successfully")
+	response.SetRequestID(requestID)
+
+	h.logger.Info("FPO CEO updated successfully",
+		zap.String("request_id", requestID),
+		zap.String("aaa_org_id", aaaOrgID),
+		zap.String("new_ceo_user_id", updateData.NewCEOUserID),
+	)
+
+	c.JSON(http.StatusOK, response)
+}

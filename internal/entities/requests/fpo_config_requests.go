@@ -7,28 +7,28 @@ import (
 )
 
 // CreateFPOConfigRequest represents a request to create FPO configuration
+// Minimal configuration with API endpoint, UI link, contact, business hours and metadata
 type CreateFPOConfigRequest struct {
 	BaseRequest
 	AAAOrgID      string         `json:"aaa_org_id" binding:"required"`
 	FPOName       string         `json:"fpo_name" binding:"required"`
 	ERPBaseURL    string         `json:"erp_base_url" binding:"required"`
-	ERPAPIVersion string         `json:"erp_api_version"`
-	Features      entities.JSONB `json:"features"`
+	ERPUIBaseURL  string         `json:"erp_ui_base_url"`
 	Contact       entities.JSONB `json:"contact"`
 	BusinessHours entities.JSONB `json:"business_hours"`
-	SyncInterval  int            `json:"sync_interval_minutes"`
+	Metadata      entities.JSONB `json:"metadata"`
 }
 
 // UpdateFPOConfigRequest represents a request to update FPO configuration
+// All fields are optional - only send fields you want to update
 type UpdateFPOConfigRequest struct {
 	BaseRequest
 	FPOName       *string        `json:"fpo_name"`
 	ERPBaseURL    *string        `json:"erp_base_url"`
-	ERPAPIVersion *string        `json:"erp_api_version"`
-	Features      entities.JSONB `json:"features"`
+	ERPUIBaseURL  *string        `json:"erp_ui_base_url"`
 	Contact       entities.JSONB `json:"contact"`
 	BusinessHours entities.JSONB `json:"business_hours"`
-	SyncInterval  *int           `json:"sync_interval_minutes"`
+	Metadata      entities.JSONB `json:"metadata"`
 }
 
 // ListFPOConfigsRequest represents a request to list FPO configurations
@@ -48,20 +48,14 @@ type GetFPOConfigRequest struct {
 
 // SetDefaults sets default values for CreateFPOConfigRequest
 func (r *CreateFPOConfigRequest) SetDefaults() {
-	if r.ERPAPIVersion == "" {
-		r.ERPAPIVersion = "v1"
-	}
-	if r.SyncInterval == 0 {
-		r.SyncInterval = 5
-	}
-	if r.Features == nil {
-		r.Features = entities.JSONB{}
-	}
 	if r.Contact == nil {
 		r.Contact = entities.JSONB{}
 	}
 	if r.BusinessHours == nil {
 		r.BusinessHours = entities.JSONB{}
+	}
+	if r.Metadata == nil {
+		r.Metadata = entities.JSONB{}
 	}
 }
 
@@ -99,9 +93,15 @@ func (r *CreateFPOConfigRequest) Validate() error {
 	if r.ERPBaseURL == "" {
 		return fmt.Errorf("erp_base_url is required")
 	}
-	// Basic URL validation
+	// Basic URL validation for ERPBaseURL
 	if len(r.ERPBaseURL) < 10 || (r.ERPBaseURL[:7] != "http://" && r.ERPBaseURL[:8] != "https://") {
 		return fmt.Errorf("erp_base_url must be a valid URL")
+	}
+	// Basic URL validation for ERPUIBaseURL if provided
+	if r.ERPUIBaseURL != "" {
+		if len(r.ERPUIBaseURL) < 10 || (r.ERPUIBaseURL[:7] != "http://" && r.ERPUIBaseURL[:8] != "https://") {
+			return fmt.Errorf("erp_ui_base_url must be a valid URL")
+		}
 	}
 	return nil
 }
@@ -115,6 +115,12 @@ func (r *UpdateFPOConfigRequest) Validate() error {
 		// Basic URL validation
 		if len(*r.ERPBaseURL) < 10 || ((*r.ERPBaseURL)[:7] != "http://" && (*r.ERPBaseURL)[:8] != "https://") {
 			return fmt.Errorf("erp_base_url must be a valid URL")
+		}
+	}
+	if r.ERPUIBaseURL != nil && *r.ERPUIBaseURL != "" {
+		// Basic URL validation
+		if len(*r.ERPUIBaseURL) < 10 || ((*r.ERPUIBaseURL)[:7] != "http://" && (*r.ERPUIBaseURL)[:8] != "https://") {
+			return fmt.Errorf("erp_ui_base_url must be a valid URL")
 		}
 	}
 	return nil

@@ -64,6 +64,11 @@ func (m *MockAAAServiceForAdmin) CreateUserGroup(ctx context.Context, req interf
 	return args.Get(0), args.Error(1)
 }
 
+func (m *MockAAAServiceForAdmin) GetOrCreateFarmersGroup(ctx context.Context, orgID string) (string, error) {
+	args := m.Called(ctx, orgID)
+	return args.String(0), args.Error(1)
+}
+
 func (m *MockAAAServiceForAdmin) AddUserToGroup(ctx context.Context, userID, groupID string) error {
 	args := m.Called(ctx, userID, groupID)
 	return args.Error(0)

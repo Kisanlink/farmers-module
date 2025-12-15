@@ -33,6 +33,10 @@ services:
       # Observability (should point to staging monitoring)
       - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-otel-collector:4317}
 
+      # CORS Configuration (staging)
+      - CORS_ALLOWED_ORIGINS=https://staging.app.kisanlink.in
+      - CORS_ALLOW_CREDENTIALS=true
+
     # Resource limits (production-like)
     deploy:
       resources:

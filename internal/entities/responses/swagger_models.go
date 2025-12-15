@@ -357,3 +357,42 @@ type SwaggerAreaAllocationSummaryResponse struct {
 	RequestID string                     `json:"request_id" example:"req_123456789"`
 	Data      *AreaAllocationSummaryData `json:"data"`
 }
+
+// SwaggerSuccessResponse represents a simple success response for Swagger
+type SwaggerSuccessResponse struct {
+	Message   string `json:"message" example:"Operation completed successfully"`
+	RequestID string `json:"request_id" example:"req_123456789"`
+}
+
+// SwaggerPermanentDeleteResponse represents a permanent delete response for Swagger
+type SwaggerPermanentDeleteResponse struct {
+	Message   string                       `json:"message" example:"Permanently deleted farmer and related records"`
+	DeletedBy string                       `json:"deleted_by" example:"user_123"`
+	Report    SwaggerPermanentDeleteReport `json:"report"`
+}
+
+// SwaggerPermanentDeleteReport represents the deletion report for Swagger
+type SwaggerPermanentDeleteReport struct {
+	FarmersDeleted     int64 `json:"farmers_deleted" example:"1"`
+	FarmsDeleted       int64 `json:"farms_deleted" example:"3"`
+	CropCyclesDeleted  int64 `json:"crop_cycles_deleted" example:"5"`
+	ActivitiesDeleted  int64 `json:"activities_deleted" example:"12"`
+	FarmerLinksDeleted int64 `json:"farmer_links_deleted" example:"2"`
+}
+
+// SwaggerPermanentDeleteOrgResponse represents an org-wide permanent delete response for Swagger
+type SwaggerPermanentDeleteOrgResponse struct {
+	Message   string                       `json:"message" example:"Permanently deleted all org data"`
+	DryRun    bool                         `json:"dry_run,omitempty" example:"false"`
+	DeletedBy string                       `json:"deleted_by" example:"user_123"`
+	Report    SwaggerPermanentDeleteReport `json:"report"`
+}
+
+// SwaggerReconciliationStatusResponse represents a reconciliation job status response for Swagger
+type SwaggerReconciliationStatusResponse struct {
+	Running        bool   `json:"running" example:"true"`
+	LastRunAt      string `json:"last_run_at,omitempty" example:"2024-01-15T10:30:00Z"`
+	RecordsFixed   int    `json:"records_fixed" example:"5"`
+	RecordsFailed  int    `json:"records_failed" example:"1"`
+	TotalProcessed int    `json:"total_processed" example:"100"`
+}

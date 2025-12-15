@@ -2,7 +2,6 @@ package fpo_config
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/pkg/common"
@@ -11,19 +10,16 @@ import (
 )
 
 // FPOConfig represents FPO configuration for e-commerce integration
+// Minimal configuration with API endpoint, UI link, contact, business hours and metadata
 type FPOConfig struct {
 	base.BaseModel
-	AAAOrgID        string         `json:"aaa_org_id" gorm:"type:varchar(255);uniqueIndex;not null"`
-	FPOName         string         `json:"fpo_name" gorm:"type:varchar(255);not null"`
-	ERPBaseURL      string         `json:"erp_base_url" gorm:"type:varchar(500);not null"`
-	ERPAPIVersion   string         `json:"erp_api_version" gorm:"type:varchar(10);default:'v1'"`
-	Features        entities.JSONB `json:"features" gorm:"type:jsonb;default:'{}';serializer:json"`
-	Contact         entities.JSONB `json:"contact" gorm:"type:jsonb;default:'{}';serializer:json"`
-	BusinessHours   entities.JSONB `json:"business_hours" gorm:"type:jsonb;default:'{}';serializer:json"`
-	Metadata        entities.JSONB `json:"metadata" gorm:"type:jsonb;default:'{}';serializer:json"`
-	APIHealthStatus string         `json:"api_health_status" gorm:"type:varchar(50);default:'unknown'"`
-	LastSyncedAt    *time.Time     `json:"last_synced_at" gorm:"type:timestamp"`
-	SyncInterval    int            `json:"sync_interval_minutes" gorm:"type:integer;default:5"`
+	AAAOrgID      string         `json:"aaa_org_id" gorm:"type:varchar(255);uniqueIndex;not null"`
+	FPOName       string         `json:"fpo_name" gorm:"type:varchar(255);not null"`
+	ERPBaseURL    string         `json:"erp_base_url" gorm:"type:varchar(500);not null"`
+	ERPUIBaseURL  string         `json:"erp_ui_base_url" gorm:"type:varchar(500)"`
+	Contact       entities.JSONB `json:"contact" gorm:"type:jsonb;default:'{}';serializer:json"`
+	BusinessHours entities.JSONB `json:"business_hours" gorm:"type:jsonb;default:'{}';serializer:json"`
+	Metadata      entities.JSONB `json:"metadata" gorm:"type:jsonb;default:'{}';serializer:json"`
 }
 
 // NewFPOConfig creates a new FPO configuration with proper initialization
@@ -35,14 +31,10 @@ func NewFPOConfig(aaaOrgID string) *FPOConfig {
 				ID: aaaOrgID, // Set ID to aaa_org_id for lookups
 			},
 		},
-		AAAOrgID:        aaaOrgID,
-		ERPAPIVersion:   "v1",                         // Default version
-		Features:        make(map[string]interface{}), // Initialize empty map
-		Contact:         make(map[string]interface{}), // Initialize empty map
-		BusinessHours:   make(map[string]interface{}), // Initialize empty map
-		Metadata:        make(map[string]interface{}), // Initialize empty map
-		APIHealthStatus: "unknown",                    // Default status
-		SyncInterval:    30,                           // Default 30 minutes
+		AAAOrgID:      aaaOrgID,
+		Contact:       make(map[string]interface{}), // Initialize empty map
+		BusinessHours: make(map[string]interface{}), // Initialize empty map
+		Metadata:      make(map[string]interface{}), // Initialize empty map
 	}
 }
 
@@ -72,9 +64,15 @@ func (f *FPOConfig) Validate() error {
 	if f.ERPBaseURL == "" {
 		return fmt.Errorf("%w: erp_base_url is required", common.ErrInvalidInput)
 	}
-	// Basic URL validation
+	// Basic URL validation for ERPBaseURL
 	if len(f.ERPBaseURL) < 10 || (f.ERPBaseURL[:7] != "http://" && f.ERPBaseURL[:8] != "https://") {
 		return fmt.Errorf("%w: erp_base_url must be a valid URL", common.ErrInvalidInput)
+	}
+	// Basic URL validation for ERPUIBaseURL if provided
+	if f.ERPUIBaseURL != "" {
+		if len(f.ERPUIBaseURL) < 10 || (f.ERPUIBaseURL[:7] != "http://" && f.ERPUIBaseURL[:8] != "https://") {
+			return fmt.Errorf("%w: erp_ui_base_url must be a valid URL", common.ErrInvalidInput)
+		}
 	}
 	return nil
 }
@@ -98,20 +96,6 @@ func (f *FPOConfig) BeforeUpdate() error {
 	return nil
 }
 
-// IsHealthy checks if the FPO's ERP service is healthy
-func (f *FPOConfig) IsHealthy() bool {
-	return f.APIHealthStatus == "healthy"
-}
-
-// FeaturesData represents the features configuration
-type FeaturesData struct {
-	InventoryRealTime bool `json:"inventory_real_time"`
-	CreditLimitCheck  bool `json:"credit_limit_check"`
-	BatchOperations   bool `json:"batch_operations"`
-	MinOrderValue     int  `json:"min_order_value"`
-	MaxOrderValue     int  `json:"max_order_value"`
-}
-
 // ContactData represents the contact information
 type ContactData struct {
 	AdminName  string `json:"admin_name"`
@@ -125,11 +109,4 @@ type BusinessHoursData struct {
 	OpenTime    string   `json:"open_time"`
 	CloseTime   string   `json:"close_time"`
 	WorkingDays []string `json:"working_days"`
-}
-
-// MetadataData represents additional metadata
-type MetadataData struct {
-	LastSyncedAt        time.Time `json:"last_synced_at"`
-	SyncIntervalMinutes int       `json:"sync_interval_minutes"`
-	APIHealthStatus     string    `json:"api_health_status"`
 }

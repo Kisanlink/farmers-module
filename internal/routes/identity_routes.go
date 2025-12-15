@@ -40,14 +40,14 @@ func RegisterIdentityRoutes(router *gin.RouterGroup, services *services.ServiceF
 			// Get farmer by user ID and org ID (legacy endpoint)
 			farmers.GET("/:aaa_user_id/:aaa_org_id", handlers.GetFarmer(services.FarmerService, logger))
 
-			// Update farmer by farmer ID (primary key)
-			farmers.PUT("/id/:farmer_id", validation.ValidateFarmerCreation(), handlers.UpdateFarmerByID(services.FarmerService, logger))
+			// Update farmer by farmer ID (primary key) - no org required
+			farmers.PUT("/id/:farmer_id", validation.ValidateFarmerUpdate(), handlers.UpdateFarmerByID(services.FarmerService, logger))
 
 			// Update farmer by user ID only (no org required)
-			farmers.PUT("/user/:aaa_user_id", validation.ValidateFarmerCreation(), handlers.UpdateFarmerByUserID(services.FarmerService, logger))
+			farmers.PUT("/user/:aaa_user_id", validation.ValidateFarmerUpdate(), handlers.UpdateFarmerByUserID(services.FarmerService, logger))
 
 			// Update farmer by user ID and org ID (legacy endpoint)
-			farmers.PUT("/:aaa_user_id/:aaa_org_id", validation.ValidateFarmerCreation(), handlers.UpdateFarmer(services.FarmerService, logger))
+			farmers.PUT("/:aaa_user_id/:aaa_org_id", validation.ValidateFarmerUpdate(), handlers.UpdateFarmer(services.FarmerService, logger))
 
 			// Delete farmer by farmer ID (primary key)
 			farmers.DELETE("/id/:farmer_id", handlers.DeleteFarmerByID(services.FarmerService, logger))
@@ -64,6 +64,12 @@ func RegisterIdentityRoutes(router *gin.RouterGroup, services *services.ServiceF
 
 		// W2: Unlink farmer from FPO
 		identity.DELETE("/farmer/unlink", handlers.UnlinkFarmerFromFPO(services.FarmerLinkageService))
+
+		// Bulk link multiple farmers to FPO
+		identity.POST("/farmer/bulk-link", handlers.BulkLinkFarmersToFPO(services.FarmerLinkageService))
+
+		// Bulk unlink multiple farmers from FPO
+		identity.DELETE("/farmer/bulk-unlink", handlers.BulkUnlinkFarmersFromFPO(services.FarmerLinkageService))
 
 		// Get farmer linkage status
 		identity.GET("/farmer/linkage/:farmer_id/:org_id", handlers.GetFarmerLinkage(services.FarmerLinkageService))
@@ -98,6 +104,9 @@ func RegisterIdentityRoutes(router *gin.RouterGroup, services *services.ServiceF
 
 			// Get FPO reference with organization access validation
 			fpo.GET("/reference/:aaa_org_id", fpoHandler.GetFPORef)
+
+			// Update FPO CEO (uses org/ prefix to avoid conflict with /:id routes)
+			fpo.PUT("/org/:aaa_org_id/ceo", fpoHandler.UpdateCEO)
 
 			// FPO Lifecycle endpoints
 			lifecycleHandler := handlers.NewFPOLifecycleHandler(services.FPOLifecycleService, logger)

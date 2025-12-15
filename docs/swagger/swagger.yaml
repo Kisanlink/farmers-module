@@ -332,17 +332,14 @@ definitions:
         $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
       contact:
         $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
-      erp_api_version:
-        type: string
       erp_base_url:
         type: string
-      features:
-        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
+      erp_ui_base_url:
+        type: string
       fpo_name:
         type: string
       metadata:
-        additionalProperties: true
-        type: object
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
@@ -352,8 +349,6 @@ definitions:
       request_type:
         example: create_farmer
         type: string
-      sync_interval_minutes:
-        type: integer
       timestamp:
         example: "2024-01-15T10:30:00Z"
         type: string
@@ -1070,6 +1065,32 @@ definitions:
     required:
     - id
     type: object
+  github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCEORequest:
+    properties:
+      metadata:
+        additionalProperties: true
+        type: object
+      new_ceo_user_id:
+        example: USER00000123
+        type: string
+      org_id:
+        example: org_123e4567-e89b-12d3-a456-426614174000
+        type: string
+      request_id:
+        example: req_123e4567e89b12d3
+        type: string
+      request_type:
+        example: create_farmer
+        type: string
+      timestamp:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      user_id:
+        example: usr_123e4567-e89b-12d3-a456-426614174000
+        type: string
+    required:
+    - new_ceo_user_id
+    type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropRequest:
     type: object
   github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCropStageRequest:
@@ -1168,17 +1189,14 @@ definitions:
         $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
       contact:
         $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
-      erp_api_version:
-        type: string
       erp_base_url:
         type: string
-      features:
-        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
+      erp_ui_base_url:
+        type: string
       fpo_name:
         type: string
       metadata:
-        additionalProperties: true
-        type: object
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
       org_id:
         example: org_123e4567-e89b-12d3-a456-426614174000
         type: string
@@ -1188,8 +1206,6 @@ definitions:
       request_type:
         example: create_farmer
         type: string
-      sync_interval_minutes:
-        type: integer
       timestamp:
         example: "2024-01-15T10:30:00Z"
         type: string
@@ -1878,30 +1894,22 @@ definitions:
     properties:
       aaa_org_id:
         type: string
-      api_health_status:
-        type: string
       business_hours:
         $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
       contact:
         $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
       created_at:
         type: string
-      erp_api_version:
-        type: string
       erp_base_url:
         type: string
-      features:
-        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
+      erp_ui_base_url:
+        type: string
       fpo_name:
         type: string
       id:
         type: string
-      last_synced_at:
-        type: string
       metadata:
         $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities.JSONB'
-      sync_interval_minutes:
-        type: integer
       updated_at:
         type: string
     type: object
@@ -1910,6 +1918,8 @@ definitions:
       aaa_org_id:
         type: string
       erp_base_url:
+        type: string
+      erp_ui_base_url:
         type: string
       error:
         type: string
@@ -3061,6 +3071,31 @@ definitions:
         example: POLYGON((...))
         type: string
     type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.UpdateCEOData:
+    properties:
+      aaa_org_id:
+        type: string
+      new_ceo_user_id:
+        type: string
+      org_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_Kisanlink_farmers-module_internal_entities_responses.UpdateCEOResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.UpdateCEOData'
+      error: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
   github_com_Kisanlink_farmers-module_internal_entities_responses.UserGroupData:
     properties:
       created_at:
@@ -3154,6 +3189,8 @@ definitions:
       fpo_links_processed:
         type: integer
       fpo_links_still_pending:
+        type: integer
+      orphaned_deleted:
         type: integer
       roles_fixed:
         type: integer
@@ -5698,10 +5735,6 @@ paths:
         in: query
         name: search
         type: string
-      - description: Filter by health status
-        in: query
-        name: status
-        type: string
       produces:
       - application/json
       responses:
@@ -5828,7 +5861,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Deletes an FPO configuration (soft delete, Admin only)
+      description: Deletes an FPO configuration (soft delete, Super Admin only)
       parameters:
       - description: AAA Organization ID
         in: path
@@ -5851,7 +5884,7 @@ paths:
           schema:
             $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
         "403":
-          description: Forbidden
+          description: Requires super_admin role
           schema:
             $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
         "404":
@@ -6905,6 +6938,59 @@ paths:
       security:
       - BearerAuth: []
       summary: Create FPO Organization
+      tags:
+      - FPO Management
+  /identity/fpo/org/{aaa_org_id}/ceo:
+    put:
+      consumes:
+      - application/json
+      description: Updates the CEO of an FPO organization and assigns the CEO role
+      parameters:
+      - description: AAA Organization ID
+        in: path
+        name: aaa_org_id
+        required: true
+        type: string
+      - description: Update CEO Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_requests.UpdateCEORequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.UpdateCEOResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "409":
+          description: User is already CEO of another FPO
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_Kisanlink_farmers-module_internal_entities_responses.SwaggerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update FPO CEO
       tags:
       - FPO Management
   /identity/fpo/reference/{aaa_org_id}:

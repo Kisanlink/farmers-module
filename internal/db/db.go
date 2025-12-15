@@ -438,7 +438,7 @@ func initializeCounters(gormDB *gorm.DB) error {
 	}{
 		{"farmers", "FMRR", hash.Large},
 		{"addresses", "ADDR", hash.Medium},
-		{"farmer_links", "FMLK", hash.Large},
+		{"farmer_links", "FMLK", hash.Medium},
 		{"farms", "FARM", hash.Medium},       // Must match Farm.GetTableSize()
 		{"crop_cycles", "CRCY", hash.Medium}, // Must match CropCycle.GetTableSize()
 		{"farm_activities", "FACT", hash.XLarge},

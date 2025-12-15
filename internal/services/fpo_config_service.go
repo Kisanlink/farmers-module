@@ -16,6 +16,13 @@ import (
 	"gorm.io/gorm"
 )
 
+// Note: The FPO configuration has been simplified to:
+// - API endpoint (erp_base_url)
+// - UI link (erp_ui_base_url)
+// - Contact information
+// - Business hours
+// - Metadata
+
 // FPOConfigService defines the interface for FPO configuration operations
 type FPOConfigService interface {
 	// GetFPOConfig retrieves FPO configuration by AAA Org ID
@@ -76,18 +83,14 @@ func (s *fpoConfigService) GetFPOConfig(ctx context.Context, aaaOrgID string) (*
 			metadata["message"] = "FPO configuration has not been set up yet"
 
 			return &responses.FPOConfigData{
-				ID:              aaaOrgID,
-				AAAOrgID:        aaaOrgID,
-				FPOName:         "",
-				ERPBaseURL:      "",
-				ERPAPIVersion:   "",
-				Features:        make(map[string]interface{}),
-				Contact:         make(map[string]interface{}),
-				BusinessHours:   make(map[string]interface{}),
-				Metadata:        metadata,
-				APIHealthStatus: "not_configured",
-				LastSyncedAt:    nil,
-				SyncInterval:    0,
+				ID:            aaaOrgID,
+				AAAOrgID:      aaaOrgID,
+				FPOName:       "",
+				ERPBaseURL:    "",
+				ERPUIBaseURL:  "",
+				Contact:       make(map[string]interface{}),
+				BusinessHours: make(map[string]interface{}),
+				Metadata:      metadata,
 			}, nil
 		}
 		return nil, fmt.Errorf("failed to fetch FPO config: %w", err)
@@ -120,11 +123,10 @@ func (s *fpoConfigService) CreateFPOConfig(ctx context.Context, req *requests.Cr
 	// Set user-provided fields
 	config.FPOName = req.FPOName
 	config.ERPBaseURL = req.ERPBaseURL
-	config.ERPAPIVersion = req.ERPAPIVersion
-	config.Features = req.Features
+	config.ERPUIBaseURL = req.ERPUIBaseURL
 	config.Contact = req.Contact
 	config.BusinessHours = req.BusinessHours
-	config.SyncInterval = req.SyncInterval
+	config.Metadata = req.Metadata
 
 	// Validate entity
 	if err := config.Validate(); err != nil {
@@ -170,11 +172,8 @@ func (s *fpoConfigService) UpdateFPOConfig(ctx context.Context, aaaOrgID string,
 	if req.ERPBaseURL != nil {
 		config.ERPBaseURL = *req.ERPBaseURL
 	}
-	if req.ERPAPIVersion != nil {
-		config.ERPAPIVersion = *req.ERPAPIVersion
-	}
-	if req.Features != nil {
-		config.Features = req.Features
+	if req.ERPUIBaseURL != nil {
+		config.ERPUIBaseURL = *req.ERPUIBaseURL
 	}
 	if req.Contact != nil {
 		config.Contact = req.Contact
@@ -182,8 +181,8 @@ func (s *fpoConfigService) UpdateFPOConfig(ctx context.Context, aaaOrgID string,
 	if req.BusinessHours != nil {
 		config.BusinessHours = req.BusinessHours
 	}
-	if req.SyncInterval != nil {
-		config.SyncInterval = *req.SyncInterval
+	if req.Metadata != nil {
+		config.Metadata = req.Metadata
 	}
 
 	// Validate entity
@@ -279,6 +278,7 @@ func (s *fpoConfigService) ListFPOConfigs(ctx context.Context, req *requests.Lis
 }
 
 // CheckERPHealth checks the health of FPO's ERP service
+// This is an on-demand health check and does not persist status to the database
 func (s *fpoConfigService) CheckERPHealth(ctx context.Context, aaaOrgID string) (*responses.FPOHealthCheckData, error) {
 	if aaaOrgID == "" {
 		return nil, common.ErrInvalidInput
@@ -288,6 +288,18 @@ func (s *fpoConfigService) CheckERPHealth(ctx context.Context, aaaOrgID string) 
 	configData, err := s.GetFPOConfig(ctx, aaaOrgID)
 	if err != nil {
 		return nil, err
+	}
+
+	// Check if config exists
+	if configData.ERPBaseURL == "" {
+		return &responses.FPOHealthCheckData{
+			AAAOrgID:     aaaOrgID,
+			ERPBaseURL:   "",
+			ERPUIBaseURL: "",
+			Status:       "not_configured",
+			LastChecked:  time.Now(),
+			Error:        "FPO configuration has not been set up yet",
+		}, nil
 	}
 
 	// Perform health check
@@ -303,6 +315,7 @@ func (s *fpoConfigService) CheckERPHealth(ctx context.Context, aaaOrgID string) 
 	healthData := &responses.FPOHealthCheckData{
 		AAAOrgID:       aaaOrgID,
 		ERPBaseURL:     configData.ERPBaseURL,
+		ERPUIBaseURL:   configData.ERPUIBaseURL,
 		LastChecked:    time.Now(),
 		ResponseTimeMs: responseTime,
 	}
@@ -310,10 +323,6 @@ func (s *fpoConfigService) CheckERPHealth(ctx context.Context, aaaOrgID string) 
 	if err != nil {
 		healthData.Status = "unhealthy"
 		healthData.Error = err.Error()
-
-		// Update config status
-		s.updateHealthStatus(ctx, aaaOrgID, "unhealthy")
-
 		return healthData, nil
 	}
 	defer func() {
@@ -322,60 +331,32 @@ func (s *fpoConfigService) CheckERPHealth(ctx context.Context, aaaOrgID string) 
 
 	if resp.StatusCode == http.StatusOK {
 		healthData.Status = "healthy"
-
-		// Update config status
-		s.updateHealthStatus(ctx, aaaOrgID, "healthy")
 	} else {
 		healthData.Status = "unhealthy"
 		healthData.Error = fmt.Sprintf("HTTP status: %d", resp.StatusCode)
-
-		// Update config status
-		s.updateHealthStatus(ctx, aaaOrgID, "unhealthy")
 	}
 
 	return healthData, nil
 }
 
-// updateHealthStatus updates the health status of FPO config
-func (s *fpoConfigService) updateHealthStatus(ctx context.Context, aaaOrgID string, status string) {
-	config := &fpo_config.FPOConfig{}
-	config, err := s.repo.GetByID(ctx, aaaOrgID, config)
-	if err != nil {
-		return
-	}
-
-	config.APIHealthStatus = status
-	now := time.Now()
-	config.LastSyncedAt = &now
-
-	_ = s.repo.Update(ctx, config)
-}
-
 // toResponseData converts FPOConfig entity to response data
 func (s *fpoConfigService) toResponseData(config *fpo_config.FPOConfig) *responses.FPOConfigData {
-	// Build metadata
+	// Initialize metadata if nil
 	metadata := config.Metadata
 	if metadata == nil {
 		metadata = make(map[string]interface{})
 	}
-	metadata["last_synced_at"] = config.LastSyncedAt
-	metadata["sync_interval_minutes"] = config.SyncInterval
-	metadata["api_health_status"] = config.APIHealthStatus
 
 	return &responses.FPOConfigData{
-		ID:              config.ID,
-		AAAOrgID:        config.AAAOrgID,
-		FPOName:         config.FPOName,
-		ERPBaseURL:      config.ERPBaseURL,
-		ERPAPIVersion:   config.ERPAPIVersion,
-		Features:        config.Features,
-		Contact:         config.Contact,
-		BusinessHours:   config.BusinessHours,
-		Metadata:        metadata,
-		APIHealthStatus: config.APIHealthStatus,
-		LastSyncedAt:    config.LastSyncedAt,
-		SyncInterval:    config.SyncInterval,
-		CreatedAt:       config.CreatedAt,
-		UpdatedAt:       config.UpdatedAt,
+		ID:            config.ID,
+		AAAOrgID:      config.AAAOrgID,
+		FPOName:       config.FPOName,
+		ERPBaseURL:    config.ERPBaseURL,
+		ERPUIBaseURL:  config.ERPUIBaseURL,
+		Contact:       config.Contact,
+		BusinessHours: config.BusinessHours,
+		Metadata:      metadata,
+		CreatedAt:     config.CreatedAt,
+		UpdatedAt:     config.UpdatedAt,
 	}
 }

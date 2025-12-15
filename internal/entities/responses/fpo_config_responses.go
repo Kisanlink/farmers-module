@@ -7,21 +7,18 @@ import (
 )
 
 // FPOConfigData represents FPO configuration data in responses
+// Minimal configuration with API endpoint, UI link, contact, business hours and metadata
 type FPOConfigData struct {
-	ID              string         `json:"id"`
-	AAAOrgID        string         `json:"aaa_org_id"`
-	FPOName         string         `json:"fpo_name"`
-	ERPBaseURL      string         `json:"erp_base_url"`
-	ERPAPIVersion   string         `json:"erp_api_version"`
-	Features        entities.JSONB `json:"features"`
-	Contact         entities.JSONB `json:"contact"`
-	BusinessHours   entities.JSONB `json:"business_hours"`
-	Metadata        entities.JSONB `json:"metadata"`
-	APIHealthStatus string         `json:"api_health_status"`
-	LastSyncedAt    *time.Time     `json:"last_synced_at"`
-	SyncInterval    int            `json:"sync_interval_minutes"`
-	CreatedAt       time.Time      `json:"created_at"`
-	UpdatedAt       time.Time      `json:"updated_at"`
+	ID            string         `json:"id"`
+	AAAOrgID      string         `json:"aaa_org_id"`
+	FPOName       string         `json:"fpo_name"`
+	ERPBaseURL    string         `json:"erp_base_url"`
+	ERPUIBaseURL  string         `json:"erp_ui_base_url"`
+	Contact       entities.JSONB `json:"contact"`
+	BusinessHours entities.JSONB `json:"business_hours"`
+	Metadata      entities.JSONB `json:"metadata"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
 }
 
 // FPOConfigResponse represents a response for FPO configuration operations
@@ -45,6 +42,7 @@ type FPOConfigListResponse struct {
 type FPOHealthCheckData struct {
 	AAAOrgID       string    `json:"aaa_org_id"`
 	ERPBaseURL     string    `json:"erp_base_url"`
+	ERPUIBaseURL   string    `json:"erp_ui_base_url,omitempty"`
 	Status         string    `json:"status"`
 	ResponseTimeMs int64     `json:"response_time_ms,omitempty"`
 	Error          string    `json:"error,omitempty"`

@@ -307,7 +307,7 @@ func (h *FPOConfigHandler) UpdateFPOConfig(c *gin.Context) {
 
 // DeleteFPOConfig deletes an FPO configuration
 // @Summary Delete FPO Configuration
-// @Description Deletes an FPO configuration (soft delete, Admin only)
+// @Description Deletes an FPO configuration (soft delete, Super Admin only)
 // @Tags FPO Config
 // @Accept json
 // @Produce json
@@ -315,7 +315,7 @@ func (h *FPOConfigHandler) UpdateFPOConfig(c *gin.Context) {
 // @Success 200 {object} responses.SwaggerBaseResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse
-// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse "Requires super_admin role"
 // @Failure 404 {object} responses.SwaggerErrorResponse
 // @Failure 500 {object} responses.SwaggerErrorResponse
 // @Security BearerAuth
@@ -372,7 +372,6 @@ func (h *FPOConfigHandler) DeleteFPOConfig(c *gin.Context) {
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(20)
 // @Param search query string false "Search by FPO ID or name"
-// @Param status query string false "Filter by health status"
 // @Success 200 {object} responses.SwaggerFPOConfigListResponse
 // @Failure 400 {object} responses.SwaggerErrorResponse
 // @Failure 401 {object} responses.SwaggerErrorResponse

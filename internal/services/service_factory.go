@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/clients/aaa"
 	"github.com/Kisanlink/farmers-module/internal/config"
@@ -58,6 +59,12 @@ type ServiceFactory struct {
 
 	// Stage Management Services
 	StageService StageService
+
+	// Background Jobs
+	ReconciliationJob *ReconciliationJob
+
+	// Admin Services
+	PermanentDeleteService *PermanentDeleteService
 }
 
 // NewServiceFactory creates a new service factory
@@ -84,10 +91,12 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 	// Initialize FPO config service first (needed by farmer service)
 	fpoConfigService := NewFPOConfigService(repoFactory.FPOConfigRepo)
 
-	// Initialize identity services
-	// Use NewFarmerServiceWithFPOConfig to enable FPO config linking
-	farmerService := NewFarmerServiceWithFPOConfig(repoFactory.FarmerRepo, aaaService, fpoConfigService, cfg.AAA.DefaultPassword)
+	// Initialize farmer linkage service first (needed by farmer service for FPO linking)
 	farmerLinkageService := NewFarmerLinkageService(repoFactory.FarmerLinkageRepo, repoFactory.FarmerRepo, aaaService)
+
+	// Initialize identity services
+	// Use NewFarmerServiceFull to enable FPO config linking and FPO linkage with farmers group
+	farmerService := NewFarmerServiceFull(repoFactory.FarmerRepo, aaaService, fpoConfigService, farmerLinkageService, cfg.AAA.DefaultPassword)
 	fpoService := NewFPOService(repoFactory.FPORefRepo, aaaService)
 
 	// Initialize FPO lifecycle service with enhanced repository
@@ -138,6 +147,7 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		farmerLinkageService,
 		aaaService,
 		logger,
+		cfg.AAA.DefaultPassword,
 	)
 
 	// Initialize audit service
@@ -150,25 +160,33 @@ func NewServiceFactory(repoFactory *repo.RepositoryFactory, postgresManager *db.
 		aaaService,
 	)
 
+	// Initialize reconciliation job (runs 4 times per day - every 6 hours)
+	reconciliationJob := NewReconciliationJob(gormDB, aaaService, logger, 6*time.Hour)
+
+	// Initialize permanent delete service
+	permanentDeleteService := NewPermanentDeleteService(gormDB, aaaService, logger)
+
 	return &ServiceFactory{
-		FarmerService:         farmerService,
-		FarmerLinkageService:  farmerLinkageService,
-		FPOService:            fpoService,
-		FPOLifecycleService:   fpoLifecycleService,
-		FPOConfigService:      fpoConfigService,
-		KisanSathiService:     kisanSathiService,
-		FarmService:           farmService,
-		CropService:           cropService,
-		CropCycleService:      cropCycleService,
-		FarmActivityService:   farmActivityService,
-		DataQualityService:    dataQualityService,
-		LookupService:         lookupService,
-		ReportingService:      reportingService,
-		AdministrativeService: administrativeService,
-		BulkFarmerService:     bulkFarmerService,
-		AAAService:            aaaService,
-		AuditService:          auditService,
-		AAAClient:             aaaClient,
-		StageService:          stageService,
+		FarmerService:          farmerService,
+		FarmerLinkageService:   farmerLinkageService,
+		FPOService:             fpoService,
+		FPOLifecycleService:    fpoLifecycleService,
+		FPOConfigService:       fpoConfigService,
+		KisanSathiService:      kisanSathiService,
+		FarmService:            farmService,
+		CropService:            cropService,
+		CropCycleService:       cropCycleService,
+		FarmActivityService:    farmActivityService,
+		DataQualityService:     dataQualityService,
+		LookupService:          lookupService,
+		ReportingService:       reportingService,
+		AdministrativeService:  administrativeService,
+		BulkFarmerService:      bulkFarmerService,
+		AAAService:             aaaService,
+		AuditService:           auditService,
+		AAAClient:              aaaClient,
+		StageService:           stageService,
+		ReconciliationJob:      reconciliationJob,
+		PermanentDeleteService: permanentDeleteService,
 	}
 }

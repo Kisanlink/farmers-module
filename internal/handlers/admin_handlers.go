@@ -456,3 +456,426 @@ func GetAuditTrail(auditService *audit.AuditService) gin.HandlerFunc {
 		})
 	}
 }
+
+// ReconciliationResponse represents the response for reconciliation operations
+type ReconciliationResponse struct {
+	Message       string                         `json:"message"`
+	Data          *services.ReconciliationReport `json:"data"`
+	CorrelationID string                         `json:"correlation_id"`
+	Timestamp     time.Time                      `json:"timestamp"`
+}
+
+// ReconciliationStatusResponse represents the response for reconciliation status
+type ReconciliationStatusResponse struct {
+	Message         string    `json:"message"`
+	RolesPending    int64     `json:"roles_pending"`
+	FPOLinksPending int64     `json:"fpo_links_pending"`
+	CorrelationID   string    `json:"correlation_id"`
+	Timestamp       time.Time `json:"timestamp"`
+}
+
+// TriggerReconciliation triggers an immediate reconciliation run
+// @Summary Trigger reconciliation
+// @Description Manually trigger reconciliation of pending role assignments and FPO links
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Success 200 {object} ReconciliationResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /admin/reconcile [post]
+func TriggerReconciliation(job *services.ReconciliationJob) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if job == nil {
+			c.JSON(http.StatusServiceUnavailable, responses.ErrorResponse{
+				Error:         "Reconciliation service unavailable",
+				Message:       "Reconciliation job is not configured",
+				Code:          "SERVICE_UNAVAILABLE",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		report, err := job.RunNow(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.ErrorResponse{
+				Error:         "Reconciliation failed",
+				Message:       err.Error(),
+				Code:          "RECONCILIATION_FAILED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, ReconciliationResponse{
+			Message:       "Reconciliation completed",
+			Data:          report,
+			CorrelationID: c.GetString("correlation_id"),
+			Timestamp:     time.Now(),
+		})
+	}
+}
+
+// GetReconciliationStatus gets the current count of pending items
+// @Summary Get reconciliation status
+// @Description Get counts of pending role assignments and FPO links that need reconciliation
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Success 200 {object} ReconciliationStatusResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /admin/reconcile/status [get]
+func GetReconciliationStatus(job *services.ReconciliationJob) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if job == nil {
+			c.JSON(http.StatusServiceUnavailable, responses.ErrorResponse{
+				Error:         "Reconciliation service unavailable",
+				Message:       "Reconciliation job is not configured",
+				Code:          "SERVICE_UNAVAILABLE",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		rolesPending, fpoLinksPending, err := job.GetPendingCounts(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.ErrorResponse{
+				Error:         "Failed to get pending counts",
+				Message:       err.Error(),
+				Code:          "QUERY_FAILED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, ReconciliationStatusResponse{
+			Message:         "Reconciliation status retrieved",
+			RolesPending:    rolesPending,
+			FPOLinksPending: fpoLinksPending,
+			CorrelationID:   c.GetString("correlation_id"),
+			Timestamp:       time.Now(),
+		})
+	}
+}
+
+// PermanentDeleteRequest represents a request for permanent deletion
+type PermanentDeleteRequest struct {
+	EntityType string `json:"entity_type" binding:"required,oneof=farmer farm crop_cycle farmer_link"`
+	EntityID   string `json:"entity_id" binding:"required"`
+	Confirm    bool   `json:"confirm" binding:"required"`
+}
+
+// PermanentDeleteResponse represents the response for permanent deletion
+type PermanentDeleteResponse struct {
+	Message       string                 `json:"message"`
+	Data          *services.DeleteReport `json:"data"`
+	CorrelationID string                 `json:"correlation_id"`
+	Timestamp     time.Time              `json:"timestamp"`
+}
+
+// PermanentDeleteOrgRequest represents a request for org-wide permanent deletion
+type PermanentDeleteOrgRequest struct {
+	OrgID   string `json:"org_id" binding:"required"`
+	DryRun  bool   `json:"dry_run"`
+	Confirm bool   `json:"confirm"`
+}
+
+// PermanentDelete permanently deletes an entity and all related data (super admin only)
+// @Summary Permanent delete
+// @Description Permanently delete an entity and all related data. Requires super admin role. This action is IRREVERSIBLE.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param request body PermanentDeleteRequest true "Delete request"
+// @Success 200 {object} PermanentDeleteResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /admin/permanent-delete [post]
+func PermanentDelete(svc *services.PermanentDeleteService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req PermanentDeleteRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, responses.ErrorResponse{
+				Error:         "Invalid request format",
+				Message:       err.Error(),
+				Code:          "INVALID_REQUEST",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		if !req.Confirm {
+			c.JSON(http.StatusBadRequest, responses.ErrorResponse{
+				Error:         "Confirmation required",
+				Message:       "You must set confirm=true to proceed with permanent deletion",
+				Code:          "CONFIRMATION_REQUIRED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		// Get user from context (middleware sets aaa_subject)
+		userID := c.GetString("aaa_subject")
+		if userID == "" {
+			c.JSON(http.StatusForbidden, responses.ErrorResponse{
+				Error:         "Authentication required",
+				Message:       "User ID not found in context",
+				Code:          "AUTH_REQUIRED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		// Check if user has permission
+		canDelete, err := svc.CanUserPerformPermanentDelete(c.Request.Context(), userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.ErrorResponse{
+				Error:         "Permission check failed",
+				Message:       err.Error(),
+				Code:          "PERMISSION_CHECK_FAILED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+		if !canDelete {
+			c.JSON(http.StatusForbidden, responses.ErrorResponse{
+				Error:         "Permission denied",
+				Message:       "Only super admins can perform permanent deletions",
+				Code:          "PERMISSION_DENIED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		var report *services.DeleteReport
+
+		switch req.EntityType {
+		case "farmer":
+			report, err = svc.PermanentDeleteFarmer(c.Request.Context(), req.EntityID, userID)
+		case "farm":
+			report, err = svc.PermanentDeleteFarm(c.Request.Context(), req.EntityID, userID)
+		case "crop_cycle":
+			report, err = svc.PermanentDeleteCropCycle(c.Request.Context(), req.EntityID, userID)
+		case "farmer_link":
+			report, err = svc.PermanentDeleteFarmerLink(c.Request.Context(), req.EntityID, userID)
+		default:
+			c.JSON(http.StatusBadRequest, responses.ErrorResponse{
+				Error:         "Invalid entity type",
+				Message:       "Supported types: farmer, farm, crop_cycle, farmer_link",
+				Code:          "INVALID_ENTITY_TYPE",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.ErrorResponse{
+				Error:         "Deletion failed",
+				Message:       err.Error(),
+				Code:          "DELETION_FAILED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, PermanentDeleteResponse{
+			Message:       "Permanent deletion completed",
+			Data:          report,
+			CorrelationID: c.GetString("correlation_id"),
+			Timestamp:     time.Now(),
+		})
+	}
+}
+
+// PermanentDeleteByOrg permanently deletes all data for an organization (super admin only)
+// @Summary Permanent delete by organization
+// @Description Permanently delete all data for an organization. Requires super admin role. This action is IRREVERSIBLE.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param request body PermanentDeleteOrgRequest true "Delete request"
+// @Success 200 {object} PermanentDeleteResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /admin/permanent-delete/org [post]
+func PermanentDeleteByOrg(svc *services.PermanentDeleteService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req PermanentDeleteOrgRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, responses.ErrorResponse{
+				Error:         "Invalid request format",
+				Message:       err.Error(),
+				Code:          "INVALID_REQUEST",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		if !req.DryRun && !req.Confirm {
+			c.JSON(http.StatusBadRequest, responses.ErrorResponse{
+				Error:         "Confirmation required",
+				Message:       "You must set confirm=true to proceed with permanent deletion (or use dry_run=true to preview)",
+				Code:          "CONFIRMATION_REQUIRED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		// Get user from context (middleware sets aaa_subject)
+		userID := c.GetString("aaa_subject")
+		if userID == "" {
+			c.JSON(http.StatusForbidden, responses.ErrorResponse{
+				Error:         "Authentication required",
+				Message:       "User ID not found in context",
+				Code:          "AUTH_REQUIRED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		// Check if user has permission
+		canDelete, err := svc.CanUserPerformPermanentDelete(c.Request.Context(), userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.ErrorResponse{
+				Error:         "Permission check failed",
+				Message:       err.Error(),
+				Code:          "PERMISSION_CHECK_FAILED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+		if !canDelete {
+			c.JSON(http.StatusForbidden, responses.ErrorResponse{
+				Error:         "Permission denied",
+				Message:       "Only super admins can perform permanent deletions",
+				Code:          "PERMISSION_DENIED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		report, err := svc.PermanentDeleteByOrg(c.Request.Context(), req.OrgID, userID, req.DryRun)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.ErrorResponse{
+				Error:         "Deletion failed",
+				Message:       err.Error(),
+				Code:          "DELETION_FAILED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		message := "Permanent deletion completed"
+		if req.DryRun {
+			message = "Dry run completed - no data was deleted"
+		}
+
+		c.JSON(http.StatusOK, PermanentDeleteResponse{
+			Message:       message,
+			Data:          report,
+			CorrelationID: c.GetString("correlation_id"),
+			Timestamp:     time.Now(),
+		})
+	}
+}
+
+// CleanupOrphanedRecords removes orphaned soft-deleted records (super admin only)
+// @Summary Cleanup orphaned records
+// @Description Remove orphaned soft-deleted records where parent data no longer exists. Requires super admin role.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param dry_run query bool false "Preview without deleting"
+// @Success 200 {object} PermanentDeleteResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /admin/cleanup-orphaned [post]
+func CleanupOrphanedRecords(svc *services.PermanentDeleteService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		dryRun := c.Query("dry_run") == "true"
+
+		// Get user from context (middleware sets aaa_subject)
+		userID := c.GetString("aaa_subject")
+		if userID == "" {
+			c.JSON(http.StatusForbidden, responses.ErrorResponse{
+				Error:         "Authentication required",
+				Message:       "User ID not found in context",
+				Code:          "AUTH_REQUIRED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		// Check if user has permission
+		canDelete, err := svc.CanUserPerformPermanentDelete(c.Request.Context(), userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.ErrorResponse{
+				Error:         "Permission check failed",
+				Message:       err.Error(),
+				Code:          "PERMISSION_CHECK_FAILED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+		if !canDelete {
+			c.JSON(http.StatusForbidden, responses.ErrorResponse{
+				Error:         "Permission denied",
+				Message:       "Only super admins can perform cleanup operations",
+				Code:          "PERMISSION_DENIED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		report, err := svc.CleanupOrphanedRecords(c.Request.Context(), dryRun)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.ErrorResponse{
+				Error:         "Cleanup failed",
+				Message:       err.Error(),
+				Code:          "CLEANUP_FAILED",
+				CorrelationID: c.GetString("correlation_id"),
+				Timestamp:     time.Now(),
+			})
+			return
+		}
+
+		message := "Orphaned records cleanup completed"
+		if dryRun {
+			message = "Dry run completed - no data was deleted"
+		}
+
+		c.JSON(http.StatusOK, PermanentDeleteResponse{
+			Message:       message,
+			Data:          report,
+			CorrelationID: c.GetString("correlation_id"),
+			Timestamp:     time.Now(),
+		})
+	}
+}

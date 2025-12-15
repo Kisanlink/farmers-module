@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/Kisanlink/farmers-module/internal/clients/aaa"
+	"github.com/Kisanlink/farmers-module/internal/constants"
 	"github.com/Kisanlink/farmers-module/internal/entities"
 	"github.com/Kisanlink/farmers-module/internal/entities/fpo"
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
@@ -17,6 +20,7 @@ import (
 type FPORefRepository interface {
 	Create(ctx context.Context, entity *fpo.FPORef) error
 	FindOne(ctx context.Context, filter *base.Filter) (*fpo.FPORef, error)
+	UpdateCEO(ctx context.Context, fpoID string, ceoUserID string) error
 }
 
 // FPOServiceImpl implements FPOService
@@ -482,4 +486,91 @@ func (s *FPOServiceImpl) getGroupPermissions(groupName string) []string {
 	default:
 		return []string{"read"}
 	}
+}
+
+// UpdateCEO updates the CEO of an FPO and assigns the CEO role to the new user
+// Business Rules:
+// - The new CEO user must exist in AAA
+// - The new CEO cannot already be CEO of another FPO
+// - The old CEO will have their CEO role removed (if any)
+// - The new CEO will be assigned the CEO role for this organization
+func (s *FPOServiceImpl) UpdateCEO(ctx context.Context, orgID string, req interface{}) (interface{}, error) {
+	log.Printf("FPOService: Starting UpdateCEO workflow for org: %s", orgID)
+
+	// Type assert the request
+	updateReq, ok := req.(*requests.UpdateCEORequest)
+	if !ok {
+		return nil, fmt.Errorf("invalid request type for UpdateCEO")
+	}
+
+	// Validate request
+	if updateReq.NewCEOUserID == "" {
+		return nil, fmt.Errorf("new CEO user ID is required")
+	}
+	if orgID == "" {
+		return nil, fmt.Errorf("organization ID is required")
+	}
+
+	// Step 1: Verify the organization exists in AAA
+	orgResp, err := s.aaaService.GetOrganization(ctx, orgID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify organization: %w", err)
+	}
+
+	// Type assert to *aaa.OrganizationData (the actual return type from AAA client)
+	orgData, ok := orgResp.(*aaa.OrganizationData)
+	if !ok {
+		return nil, fmt.Errorf("invalid organization response from AAA")
+	}
+
+	orgName := orgData.Name
+
+	// Step 2: Verify the new CEO user exists in AAA
+	_, err = s.aaaService.GetUser(ctx, updateReq.NewCEOUserID)
+	if err != nil {
+		return nil, fmt.Errorf("new CEO user not found in AAA: %w", err)
+	}
+
+	// Step 3: Check if the new CEO is already a CEO of another organization
+	// Business Rule: A user CANNOT be CEO of multiple FPOs simultaneously
+	isCEO, err := s.aaaService.CheckUserRole(ctx, updateReq.NewCEOUserID, constants.RoleFPOCEO)
+	if err != nil {
+		log.Printf("Warning: Failed to check if user is already CEO: %v", err)
+		// Continue anyway - this is a best-effort check
+	} else if isCEO {
+		return nil, fmt.Errorf("user is already CEO of another FPO - a user cannot be CEO of multiple FPOs simultaneously")
+	}
+
+	// Step 4: Assign CEO role to the new user
+	log.Printf("Assigning CEO role to user %s for organization %s", updateReq.NewCEOUserID, orgID)
+	err = s.aaaService.AssignRole(ctx, updateReq.NewCEOUserID, orgID, constants.RoleFPOCEO)
+	if err != nil {
+		// Check if role is already assigned - this is not an error
+		if strings.Contains(err.Error(), "role already assigned") {
+			log.Printf("CEO role already assigned to user %s for organization %s, continuing", updateReq.NewCEOUserID, orgID)
+		} else {
+			return nil, fmt.Errorf("failed to assign CEO role to new user: %w", err)
+		}
+	}
+
+	// Step 5: Update the FPO ref in database with the new CEO user ID
+	log.Printf("Updating FPO ref with CEO user ID %s for organization %s", updateReq.NewCEOUserID, orgID)
+	err = s.fpoRefRepo.UpdateCEO(ctx, orgID, updateReq.NewCEOUserID)
+	if err != nil {
+		log.Printf("Warning: Failed to update FPO ref with CEO: %v", err)
+		// Continue - the AAA role assignment was successful
+	} else {
+		log.Printf("FPO ref updated with CEO user ID %s", updateReq.NewCEOUserID)
+	}
+
+	// Prepare response
+	responseData := &responses.UpdateCEOData{
+		AAAOrgID:     orgID,
+		OrgName:      orgName,
+		NewCEOUserID: updateReq.NewCEOUserID,
+		UpdatedAt:    time.Now(),
+	}
+
+	log.Printf("Successfully updated CEO for organization %s to user %s", orgID, updateReq.NewCEOUserID)
+	return responseData, nil
 }

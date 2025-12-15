@@ -387,6 +387,7 @@ func (h *FPOLifecycleHandler) GetFPOByAAAOrgID(c *gin.Context) {
 			"name":                fpoRef.Name,
 			"registration_number": fpoRef.RegistrationNo,
 			"status":              fpoRef.Status.String(),
+			"ceo_user_id":         fpoRef.CEOUserID,
 			"business_config":     fpoRef.BusinessConfig,
 			"metadata":            fpoRef.Metadata,
 			"created_at":          fpoRef.CreatedAt.Format(time.RFC3339),

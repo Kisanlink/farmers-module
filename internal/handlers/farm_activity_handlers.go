@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
 	"github.com/Kisanlink/farmers-module/internal/entities/responses"
@@ -338,5 +339,50 @@ func GetFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, result)
+	}
+}
+
+// DeleteFarmActivity handles deleting a farm activity by ID
+// @Summary Delete a farm activity
+// @Description Delete a farm activity by its ID. Only PLANNED or CANCELLED activities can be deleted.
+// @Tags farm-activities
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param activity_id path string true "Activity ID"
+// @Success 200 {object} responses.SwaggerSuccessResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 403 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Router /crops/activities/{activity_id} [delete]
+func DeleteFarmActivity(service services.FarmActivityService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Get activity ID from path
+		activityID := c.Param("activity_id")
+		if activityID == "" {
+			c.JSON(http.StatusBadRequest, responses.NewValidationError("Activity ID is required", "Missing activity ID in path"))
+			return
+		}
+
+		// Call service
+		err := service.DeleteActivity(c.Request.Context(), activityID)
+		if err != nil {
+			errStr := err.Error()
+			if strings.Contains(errStr, "not found") {
+				c.JSON(http.StatusNotFound, responses.NewNotFoundError("Resource not found", errStr))
+			} else if strings.Contains(errStr, "cannot delete") {
+				c.JSON(http.StatusForbidden, responses.NewForbiddenError(errStr))
+			} else {
+				c.JSON(http.StatusInternalServerError, responses.NewInternalServerError("Internal server error", errStr))
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":    "Farm activity deleted successfully",
+			"request_id": c.GetString("request_id"),
+		})
 	}
 }

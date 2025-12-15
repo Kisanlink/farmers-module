@@ -76,3 +76,31 @@ func (r *FPORefResponse) SetRequestID(requestID string) {
 func (r *CreateFPOResponse) SetRequestID(requestID string) {
 	r.BaseResponse.RequestID = requestID
 }
+
+// UpdateCEOResponse represents the response for CEO update
+type UpdateCEOResponse struct {
+	*BaseResponse `json:",inline"`
+	Data          *UpdateCEOData `json:"data"`
+}
+
+// UpdateCEOData represents CEO update data in responses
+type UpdateCEOData struct {
+	AAAOrgID     string    `json:"aaa_org_id"`
+	OrgName      string    `json:"org_name"`
+	NewCEOUserID string    `json:"new_ceo_user_id"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+// NewUpdateCEOResponse creates a new CEO update response
+func NewUpdateCEOResponse(data *UpdateCEOData, message string) UpdateCEOResponse {
+	baseResp := NewSuccessResponse(message, data)
+	return UpdateCEOResponse{
+		BaseResponse: baseResp,
+		Data:         data,
+	}
+}
+
+// SetRequestID sets the request ID for tracking
+func (r *UpdateCEOResponse) SetRequestID(requestID string) {
+	r.BaseResponse.RequestID = requestID
+}

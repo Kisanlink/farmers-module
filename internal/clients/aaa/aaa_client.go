@@ -588,6 +588,67 @@ func (c *Client) CreateUserGroup(ctx context.Context, req *CreateUserGroupReques
 	}, nil
 }
 
+// GetOrCreateFarmersGroup gets or creates the "farmers" group for an organization (idempotent)
+// This ensures that every FPO has a "farmers" group that farmers are added to when linked
+func (c *Client) GetOrCreateFarmersGroup(ctx context.Context, orgID string) (string, error) {
+	log.Printf("AAA GetOrCreateFarmersGroup: orgID=%s", orgID)
+
+	if orgID == "" {
+		return "", fmt.Errorf("organization ID is required")
+	}
+
+	// First, try to find existing "farmers" group for this organization
+	listReq := &pb.ListGroupsRequest{
+		OrganizationId: orgID,
+		Search:         "farmers",
+		PageSize:       10,
+	}
+
+	listResp, err := c.groupClient.ListGroups(ctx, listReq)
+	if err != nil {
+		log.Printf("AAA GetOrCreateFarmersGroup: ListGroups failed: %v, will try to create", err)
+	} else {
+		// Search for exact match of "farmers" group
+		for _, group := range listResp.Groups {
+			if group.Name == "farmers" && group.OrganizationId == orgID {
+				log.Printf("AAA GetOrCreateFarmersGroup: Found existing farmers group: %s", group.Id)
+				return group.Id, nil
+			}
+		}
+	}
+
+	// Group not found, create it
+	createReq := &pb.CreateGroupRequest{
+		Name:           "farmers",
+		Description:    "Default group for all farmers linked to this FPO",
+		OrganizationId: orgID,
+	}
+
+	createResp, err := c.groupClient.CreateGroup(ctx, createReq)
+	if err != nil {
+		// Check if it's AlreadyExists error (race condition - another request created it)
+		if st, ok := status.FromError(err); ok {
+			if st.Code() == codes.AlreadyExists {
+				// Try to fetch it again
+				listResp, listErr := c.groupClient.ListGroups(ctx, listReq)
+				if listErr == nil {
+					for _, group := range listResp.Groups {
+						if group.Name == "farmers" && group.OrganizationId == orgID {
+							log.Printf("AAA GetOrCreateFarmersGroup: Found farmers group after AlreadyExists: %s", group.Id)
+							return group.Id, nil
+						}
+					}
+				}
+				return "", fmt.Errorf("farmers group exists but could not be retrieved")
+			}
+		}
+		return "", fmt.Errorf("failed to create farmers group: %w", err)
+	}
+
+	log.Printf("AAA GetOrCreateFarmersGroup: Created farmers group: %s", createResp.Group.Id)
+	return createResp.Group.Id, nil
+}
+
 // AddUserToGroup adds a user to a group
 func (c *Client) AddUserToGroup(ctx context.Context, userID, groupID string) error {
 	log.Printf("AAA AddUserToGroup: userID=%s, groupID=%s", userID, groupID)
@@ -713,6 +774,7 @@ func (c *Client) AssignRole(ctx context.Context, userID, orgID, roleName string)
 }
 
 // CheckUserRole checks if a user has a specific role
+// NOTE: RoleService.CheckUserRole is not yet implemented in AAA, so we fall back to UserService.GetUser
 func (c *Client) CheckUserRole(ctx context.Context, userID, roleName string) (bool, error) {
 	log.Printf("AAA CheckUserRole: userID=%s, role=%s", userID, roleName)
 
@@ -725,13 +787,11 @@ func (c *Client) CheckUserRole(ctx context.Context, userID, roleName string) (bo
 	}
 
 	if c.userClient == nil {
-		// NOTE: Role service is not yet available, using stub response
-		log.Printf("STUB: CheckUserRole called - RoleService not yet available")
-		// Default to false for security
+		log.Printf("STUB: CheckUserRole called - UserService not available")
 		return false, nil
 	}
 
-	// Try to get user and check roles from UserService
+	// Get user and check roles from UserService
 	req := &pb.GetUserRequest{Id: userID}
 	resp, err := c.userClient.GetUser(ctx, req)
 	if err != nil {
