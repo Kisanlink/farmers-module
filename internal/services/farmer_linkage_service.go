@@ -16,6 +16,7 @@ import (
 type FarmerLinkRepository interface {
 	Create(ctx context.Context, entity *farmerentity.FarmerLink) error
 	Update(ctx context.Context, entity *farmerentity.FarmerLink) error
+	Delete(ctx context.Context, id string, entity *farmerentity.FarmerLink) error
 	Find(ctx context.Context, filter *base.Filter) ([]*farmerentity.FarmerLink, error)
 	// FindUnscoped finds records including soft-deleted ones
 	FindUnscoped(ctx context.Context, filter *base.Filter) ([]*farmerentity.FarmerLink, error)
@@ -27,6 +28,7 @@ type FarmerLinkRepository interface {
 type FarmerRepository interface {
 	Create(ctx context.Context, entity *farmerentity.Farmer) error
 	FindOne(ctx context.Context, filter *base.Filter) (*farmerentity.Farmer, error)
+	Delete(ctx context.Context, id string, entity *farmerentity.Farmer) error
 }
 
 // FarmerLinkageServiceImpl implements FarmerLinkageService
@@ -137,6 +139,10 @@ func (s *FarmerLinkageServiceImpl) LinkFarmerToFPO(ctx context.Context, req inte
 
 	// Add user to the organization's "farmers" group
 	if err := s.addUserToFarmersGroup(ctx, linkReq.AAAUserID, linkReq.AAAOrgID); err != nil {
+		// Rollback: delete the farmer_link since group addition failed
+		if delErr := s.farmerLinkageRepo.Delete(ctx, farmerLink.GetID(), farmerLink); delErr != nil {
+			fmt.Printf("Error: failed to rollback farmer_link %s: %v\n", farmerLink.GetID(), delErr)
+		}
 		return fmt.Errorf("failed to add user to farmers group: %w", err)
 	}
 
@@ -179,6 +185,12 @@ func (s *FarmerLinkageServiceImpl) UnlinkFarmerFromFPO(ctx context.Context, req 
 	// Check if already inactive
 	if existingLink.Status == "INACTIVE" {
 		return fmt.Errorf("farmer is already unlinked from FPO")
+	}
+
+	// Remove user from the organization's "farmers" group
+	if err := s.removeUserFromFarmersGroup(ctx, unlinkReq.AAAUserID, unlinkReq.AAAOrgID); err != nil {
+		fmt.Printf("Warning: failed to remove user from farmers group: %v\n", err)
+		// Continue with unlinking - group cleanup is best-effort
 	}
 
 	// Soft delete by setting status to INACTIVE
@@ -821,6 +833,37 @@ func (s *FarmerLinkageServiceImpl) addUserToFarmersGroup(ctx context.Context, us
 		return fmt.Errorf("failed to add user to farmers group: %w", err)
 	}
 
+	return nil
+}
+
+// GetFarmerLinksByUserID returns all farmer links for a user
+func (s *FarmerLinkageServiceImpl) GetFarmerLinksByUserID(ctx context.Context, aaaUserID string) ([]*farmerentity.FarmerLink, error) {
+	filter := base.NewFilterBuilder().
+		Where("aaa_user_id", base.OpEqual, aaaUserID).
+		Build()
+
+	links, err := s.farmerLinkageRepo.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find farmer links: %w", err)
+	}
+
+	return links, nil
+}
+
+// removeUserFromFarmersGroup removes a user from the organization's farmers group
+func (s *FarmerLinkageServiceImpl) removeUserFromFarmersGroup(ctx context.Context, userID, orgID string) error {
+	// Get the "farmers" group ID for this organization
+	groupID, err := s.aaaService.GetOrCreateFarmersGroup(ctx, orgID)
+	if err != nil {
+		return fmt.Errorf("failed to get farmers group: %w", err)
+	}
+
+	// Remove the user from the group
+	if err := s.aaaService.RemoveUserFromGroup(ctx, userID, groupID); err != nil {
+		return fmt.Errorf("failed to remove user from farmers group: %w", err)
+	}
+
+	fmt.Printf("Removed user %s from farmers group %s\n", userID, groupID)
 	return nil
 }
 

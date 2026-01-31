@@ -18,9 +18,37 @@ import (
 //   - Exposed Headers: Content-Length, Content-Type, Authorization
 //   - Max Age: 12 hours (43200 seconds)
 func NewCORSMiddleware(allowedOrigins []string, allowCredentials bool) gin.HandlerFunc {
-	// Default to localhost origins if none provided
+	// Default to allowing all origins if none provided (for development)
 	if len(allowedOrigins) == 0 {
-		allowedOrigins = []string{"http://localhost:3000", "http://localhost:5173"}
+		return cors.New(cors.Config{
+			AllowAllOrigins: true,
+			AllowMethods: []string{
+				"GET",
+				"POST",
+				"PUT",
+				"PATCH",
+				"DELETE",
+				"HEAD",
+				"OPTIONS",
+			},
+			AllowHeaders: []string{
+				"Origin",
+				"Content-Type",
+				"Accept",
+				"Authorization",
+				"X-Requested-With",
+				"aaa-auth-token",
+				"X-Request-ID",
+				"X-Organization-ID",
+			},
+			ExposeHeaders: []string{
+				"Content-Length",
+				"Content-Type",
+				"Authorization",
+			},
+			AllowCredentials: allowCredentials,
+			MaxAge:           12 * 60 * 60, // 12 hours
+		})
 	}
 
 	return cors.New(cors.Config{
@@ -42,6 +70,7 @@ func NewCORSMiddleware(allowedOrigins []string, allowCredentials bool) gin.Handl
 			"X-Requested-With",
 			"aaa-auth-token",
 			"X-Request-ID",
+			"X-Organization-ID",
 		},
 		ExposeHeaders: []string{
 			"Content-Length",

@@ -55,7 +55,7 @@ type Farmer struct {
 	// AAA Integration (External System IDs)
 	// A farmer is uniquely identified by their AAA user ID only
 	// AAAOrgID is optional - kept for backward compatibility but not part of unique constraint
-	AAAUserID        string  `json:"aaa_user_id" gorm:"type:varchar(255);not null;uniqueIndex:idx_farmer_aaa_user_id"`
+	AAAUserID        string  `json:"aaa_user_id" gorm:"type:varchar(255);not null"`
 	AAAOrgID         string  `json:"aaa_org_id,omitempty" gorm:"type:varchar(255)"` // Optional: primary FPO org (backward compat)
 	KisanSathiUserID *string `json:"kisan_sathi_user_id" gorm:"type:varchar(255)"`
 

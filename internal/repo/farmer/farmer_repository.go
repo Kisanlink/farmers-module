@@ -157,6 +157,69 @@ func (r *FarmerRepository) FindByOrgID(ctx context.Context, aaaOrgID string, fil
 	return farmers, nil
 }
 
+// FindOneUnscoped finds a farmer by aaa_user_id including soft-deleted records
+// Used for restoring soft-deleted farmers during re-registration
+func (r *FarmerRepository) FindOneUnscoped(ctx context.Context, aaaUserID, aaaOrgID string) (*farmerentity.Farmer, error) {
+	if r.db == nil {
+		return nil, fmt.Errorf("database connection not available")
+	}
+
+	var farmer farmerentity.Farmer
+	query := r.db.Unscoped().WithContext(ctx).
+		Where("aaa_user_id = ?", aaaUserID)
+
+	if aaaOrgID != "" {
+		query = query.Where("aaa_org_id = ?", aaaOrgID)
+	}
+
+	if err := query.First(&farmer).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to find farmer (unscoped): %w", err)
+	}
+
+	return &farmer, nil
+}
+
+// Restore restores a soft-deleted farmer by clearing deleted_at and updating fields
+func (r *FarmerRepository) Restore(ctx context.Context, farmer *farmerentity.Farmer) error {
+	if r.db == nil {
+		return fmt.Errorf("database connection not available")
+	}
+
+	// Use Unscoped to update soft-deleted records
+	result := r.db.Unscoped().WithContext(ctx).
+		Model(&farmerentity.Farmer{}).
+		Where("id = ?", farmer.GetID()).
+		Updates(map[string]interface{}{
+			"deleted_at":           nil,
+			"deleted_by":           nil,
+			"status":               farmer.Status,
+			"first_name":           farmer.FirstName,
+			"last_name":            farmer.LastName,
+			"phone_number":         farmer.PhoneNumber,
+			"email":                farmer.Email,
+			"date_of_birth":        farmer.DateOfBirth,
+			"gender":               farmer.Gender,
+			"kisan_sathi_user_id":  farmer.KisanSathiUserID,
+			"preferences":          farmer.Preferences,
+			"metadata":             farmer.Metadata,
+			"updated_at":           r.db.NowFunc(),
+			"updated_by":           farmer.UpdatedBy,
+		})
+
+	if result.Error != nil {
+		return fmt.Errorf("failed to restore farmer: %w", result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("no farmer found with id: %s", farmer.GetID())
+	}
+
+	return nil
+}
+
 // CountByOrgID counts farmers linked to a specific organization through the farmer_links table
 func (r *FarmerRepository) CountByOrgID(ctx context.Context, aaaOrgID string, filter *base.Filter) (int64, error) {
 	if r.db == nil {

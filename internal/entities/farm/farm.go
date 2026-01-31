@@ -60,7 +60,7 @@ func (m Metadata) Value() (driver.Value, error) {
 // Farm represents a farm with geographic boundaries
 type Farm struct {
 	base.BaseModel
-	FarmerID                  string        `json:"farmer_id" gorm:"type:varchar(255);not null;index"`
+	FarmerID                  string        `json:"farmer_id" gorm:"type:varchar(255);index;default:''"`
 	AAAUserID                 string        `json:"aaa_user_id" gorm:"type:varchar(255);not null"`
 	AAAOrgID                  string        `json:"aaa_org_id" gorm:"type:varchar(255);not null"`
 	Name                      *string       `json:"name" gorm:"type:varchar(255)"`

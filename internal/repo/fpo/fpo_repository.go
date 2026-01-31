@@ -158,17 +158,31 @@ func (r *FPORepository) UpdateCEO(ctx context.Context, fpoID string, ceoUserID s
 		return fmt.Errorf("database connection not available")
 	}
 
+	fmt.Printf("DEBUG: Updating CEO for FPO %s to User %s\n", fpoID, ceoUserID)
+
 	result := r.db.WithContext(ctx).
 		Model(&fpo.FPORef{}).
-		Where("id = ?", fpoID).
+		Where("aaa_org_id = ?", fpoID).
 		Update("ceo_user_id", ceoUserID)
+
+	fmt.Printf("DEBUG: Update result - RowsAffected: %d, Error: %v\n", result.RowsAffected, result.Error)
 
 	if result.Error != nil {
 		return fmt.Errorf("failed to update CEO: %w", result.Error)
 	}
 
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("FPO not found: %s", fpoID)
+		// Fallback: try updating by ID if aaa_org_id failed
+		fmt.Printf("DEBUG: No rows affected with aaa_org_id, trying ID = %s\n", fpoID)
+		result = r.db.WithContext(ctx).
+			Model(&fpo.FPORef{}).
+			Where("id = ?", fpoID).
+			Update("ceo_user_id", ceoUserID)
+		fmt.Printf("DEBUG: Fallback result - RowsAffected: %d, Error: %v\n", result.RowsAffected, result.Error)
+		
+		if result.RowsAffected == 0 {
+			return fmt.Errorf("FPO not found: %s", fpoID)
+		}
 	}
 
 	return nil

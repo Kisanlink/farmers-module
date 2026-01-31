@@ -19,6 +19,7 @@ import (
 	"github.com/Kisanlink/farmers-module/internal/entities/irrigation_source"
 	"github.com/Kisanlink/farmers-module/internal/entities/soil_type"
 	"github.com/Kisanlink/farmers-module/internal/entities/stage"
+	"github.com/Kisanlink/farmers-module/internal/migrations"
 	"github.com/Kisanlink/kisanlink-db/pkg/core/hash"
 	"github.com/Kisanlink/kisanlink-db/pkg/db"
 	"go.uber.org/zap"
@@ -87,6 +88,9 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 		// Fix farmer constraints before AutoMigrate (idempotent)
 		fixFarmerConstraints(gormDB)
 
+		// Fix farm schema before AutoMigrate (add farmer_id column if missing)
+		fixFarmSchema(gormDB)
+
 		// Skip the farm entity that requires PostGIS geometry types
 		// Migration order: independent tables first, then tables with FK dependencies
 		models := []interface{}{
@@ -141,6 +145,9 @@ func SetupDatabase(postgresManager *db.PostgresManager) error {
 
 		// Fix farmer constraints before AutoMigrate (idempotent)
 		fixFarmerConstraints(gormDB)
+
+		// Fix farm schema before AutoMigrate (add farmer_id column if missing)
+		fixFarmSchema(gormDB)
 
 		// AutoMigrate all models including farm (PostGIS enabled)
 		// Migration order: independent tables first, then tables with FK dependencies
@@ -258,6 +265,25 @@ func fixFarmerConstraints(gormDB *gorm.DB) {
 	log.Println("Farmer constraints fixed successfully")
 }
 
+// fixFarmSchema fixes farm-related schema before AutoMigrate
+// This handles adding farmer_id column to existing farms table
+// GORM AutoMigrate won't add new columns to existing tables automatically
+func fixFarmSchema(gormDB *gorm.DB) {
+	log.Println("Fixing farm schema...")
+
+	// Check if farmer_id column exists on farms table
+	if !gormDB.Migrator().HasColumn(&farm.Farm{}, "FarmerID") {
+		log.Println("Adding farmer_id column to farms table...")
+		if err := gormDB.Migrator().AddColumn(&farm.Farm{}, "FarmerID"); err != nil {
+			log.Printf("Warning: Failed to add farmer_id column: %v", err)
+		} else {
+			log.Println("✅ farmer_id column added successfully")
+		}
+	}
+
+	log.Println("Farm schema fix completed")
+}
+
 // setupPostMigration sets up computed columns, indexes, and constraints
 func setupPostMigration(gormDB *gorm.DB) {
 	// Check if PostGIS is available before setting up spatial features
@@ -308,6 +334,11 @@ func setupPostMigration(gormDB *gorm.DB) {
 		gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_farmer_id_idx ON farms (farmer_id);`)
 		gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_fpo_id_idx ON farms (aaa_org_id);`)
 		gormDB.Exec(`CREATE INDEX IF NOT EXISTS farms_created_at_idx ON farms (created_at);`)
+	}
+
+	// Migrate partial unique index for soft-delete support on farmers.aaa_user_id
+	if err := migrations.MigratePartialUniqueIndex(gormDB); err != nil {
+		log.Printf("Warning: Failed to migrate partial unique index: %v", err)
 	}
 
 	// Create indexes for farmer tables

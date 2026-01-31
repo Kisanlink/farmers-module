@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Kisanlink/farmers-module/internal/clients/aaa"
 	"github.com/Kisanlink/farmers-module/internal/config"
@@ -125,7 +126,7 @@ func (s *AAAServiceImpl) CreateUser(ctx context.Context, req interface{}) (inter
 		"id":         response.UserID,
 		"username":   response.Username,
 		"status":     response.Status,
-		"created_at": response.CreatedAt,
+		"created_at": response.CreatedAt.Format(time.RFC3339),
 	}, nil
 }
 
@@ -207,7 +208,7 @@ func (s *AAAServiceImpl) CreateOrganization(ctx context.Context, req interface{}
 		"org_id":     response.OrgID,
 		"name":       response.Name,
 		"status":     response.Status,
-		"created_at": response.CreatedAt,
+		"created_at": response.CreatedAt.Format(time.RFC3339),
 	}, nil
 }
 
@@ -259,7 +260,7 @@ func (s *AAAServiceImpl) CreateUserGroup(ctx context.Context, req interface{}) (
 		"group_id":   response.GroupID,
 		"name":       response.Name,
 		"org_id":     response.OrgID,
-		"created_at": response.CreatedAt,
+		"created_at": response.CreatedAt.Format(time.RFC3339),
 	}, nil
 }
 

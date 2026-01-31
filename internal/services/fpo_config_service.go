@@ -35,7 +35,7 @@ type FPOConfigService interface {
 	UpdateFPOConfig(ctx context.Context, aaaOrgID string, req *requests.UpdateFPOConfigRequest) (*responses.FPOConfigData, error)
 
 	// DeleteFPOConfig deletes an FPO configuration (soft delete)
-	DeleteFPOConfig(ctx context.Context, aaaOrgID string) error
+	DeleteFPOConfig(ctx context.Context, aaaOrgID string, deletedBy ...string) error
 
 	// ListFPOConfigs lists all FPO configurations with pagination
 	ListFPOConfigs(ctx context.Context, req *requests.ListFPOConfigsRequest) ([]*responses.FPOConfigData, *responses.PaginationInfo, error)
@@ -199,7 +199,7 @@ func (s *fpoConfigService) UpdateFPOConfig(ctx context.Context, aaaOrgID string,
 }
 
 // DeleteFPOConfig deletes an FPO configuration (soft delete)
-func (s *fpoConfigService) DeleteFPOConfig(ctx context.Context, aaaOrgID string) error {
+func (s *fpoConfigService) DeleteFPOConfig(ctx context.Context, aaaOrgID string, deletedBy ...string) error {
 	if aaaOrgID == "" {
 		return common.ErrInvalidInput
 	}
@@ -214,8 +214,12 @@ func (s *fpoConfigService) DeleteFPOConfig(ctx context.Context, aaaOrgID string)
 		return fmt.Errorf("failed to fetch FPO config: %w", err)
 	}
 
-	// Soft delete
-	if err := s.repo.Delete(ctx, config.ID, config); err != nil {
+	// Soft delete with audit trail
+	deletedByUser := ""
+	if len(deletedBy) > 0 {
+		deletedByUser = deletedBy[0]
+	}
+	if err := s.repo.SoftDelete(ctx, config.ID, deletedByUser); err != nil {
 		return fmt.Errorf("failed to delete FPO config: %w", err)
 	}
 
@@ -290,8 +294,16 @@ func (s *fpoConfigService) CheckERPHealth(ctx context.Context, aaaOrgID string) 
 		return nil, err
 	}
 
-	// Check if config exists
-	if configData.ERPBaseURL == "" {
+	// ERP URL to test - prioritizing override from context if added later, 
+	// or fallback to saved config
+	erpURL := configData.ERPBaseURL
+	
+	// Check if we have an override URL in context (added by handler for "Test Connection" button)
+	if overrideURL, ok := ctx.Value("override_erp_url").(string); ok && overrideURL != "" {
+		erpURL = overrideURL
+	}
+
+	if erpURL == "" {
 		return &responses.FPOHealthCheckData{
 			AAAOrgID:     aaaOrgID,
 			ERPBaseURL:   "",
@@ -308,32 +320,56 @@ func (s *fpoConfigService) CheckERPHealth(ctx context.Context, aaaOrgID string) 
 		Timeout: 10 * time.Second,
 	}
 
-	healthURL := configData.ERPBaseURL + "/health"
-	resp, err := client.Get(healthURL)
+	// Try multiple health check paths
+	// 1. URL + /health (as provided)
+	// 2. If URL has /v1 or /v2, try stripping it and adding /health (root health check)
+	
+	healthPaths := []string{erpURL + "/health"}
+	
+	// If URL ends with /v1, /v2, etc, try root /health
+	if strings.Contains(erpURL, "/v") {
+		// Attempt to find the base domain (strip anything after the last / before /v)
+		// Example: http://localhost:8002/v1 -> http://localhost:8002/health
+		baseDomain := erpURL
+		if idx := strings.LastIndex(erpURL, "/v"); idx != -1 {
+			baseDomain = erpURL[:idx]
+			healthPaths = append(healthPaths, baseDomain+"/health")
+		}
+	}
+
+	var lastErr error
+	var finalStatus string = "unhealthy"
+	
+	for _, healthURL := range healthPaths {
+		resp, err := client.Get(healthURL)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusOK {
+			finalStatus = "healthy"
+			lastErr = nil
+			break
+		} else {
+			lastErr = fmt.Errorf("HTTP status: %d", resp.StatusCode)
+		}
+	}
+
 	responseTime := time.Since(startTime).Milliseconds()
 
 	healthData := &responses.FPOHealthCheckData{
 		AAAOrgID:       aaaOrgID,
-		ERPBaseURL:     configData.ERPBaseURL,
+		ERPBaseURL:     erpURL,
 		ERPUIBaseURL:   configData.ERPUIBaseURL,
 		LastChecked:    time.Now(),
 		ResponseTimeMs: responseTime,
+		Status:         finalStatus,
 	}
 
-	if err != nil {
-		healthData.Status = "unhealthy"
-		healthData.Error = err.Error()
-		return healthData, nil
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	if resp.StatusCode == http.StatusOK {
-		healthData.Status = "healthy"
-	} else {
-		healthData.Status = "unhealthy"
-		healthData.Error = fmt.Sprintf("HTTP status: %d", resp.StatusCode)
+	if lastErr != nil {
+		healthData.Error = lastErr.Error()
 	}
 
 	return healthData, nil

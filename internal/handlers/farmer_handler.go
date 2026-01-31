@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	_ "github.com/Kisanlink/farmers-module/internal/docs" // Import for Swagger docs
 	farmerReq "github.com/Kisanlink/farmers-module/internal/entities/requests"
@@ -93,7 +94,7 @@ func (h *FarmerHandler) CreateFarmer(c *gin.Context) {
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
-		if err.Error() == "farmer already exists" {
+		if strings.Contains(err.Error(), "farmer already exists") {
 			status = http.StatusConflict
 			apiError = base.NewConflictError("Farmer", err.Error())
 		} else {
@@ -152,7 +153,7 @@ func (h *FarmerHandler) GetFarmer(c *gin.Context) {
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
-		if err.Error() == "farmer not found" {
+		if strings.Contains(err.Error(), "farmer not found") {
 			status = http.StatusNotFound
 			apiError = base.NewNotFoundError("Farmer", aaaUserID)
 		} else {
@@ -201,7 +202,7 @@ func (h *FarmerHandler) GetFarmerByUserID(c *gin.Context) {
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
-		if err.Error() == "farmer not found" {
+		if strings.Contains(err.Error(), "farmer not found") {
 			status = http.StatusNotFound
 			apiError = base.NewNotFoundError("Farmer", aaaUserID)
 		} else {
@@ -250,7 +251,7 @@ func (h *FarmerHandler) GetFarmerByID(c *gin.Context) {
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
-		if err.Error() == "farmer not found" {
+		if strings.Contains(err.Error(), "farmer not found") {
 			status = http.StatusNotFound
 			apiError = base.NewNotFoundError("Farmer", farmerID)
 		} else {
@@ -385,7 +386,7 @@ func (h *FarmerHandler) UpdateFarmer(c *gin.Context) {
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
-		if err.Error() == "farmer not found" {
+		if strings.Contains(err.Error(), "farmer not found") {
 			status = http.StatusNotFound
 			apiError = base.NewNotFoundError("Farmer", aaaUserID)
 		} else {
@@ -441,7 +442,7 @@ func (h *FarmerHandler) UpdateFarmerByUserID(c *gin.Context) {
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
-		if err.Error() == "farmer not found" {
+		if strings.Contains(err.Error(), "farmer not found") {
 			status = http.StatusNotFound
 			apiError = base.NewNotFoundError("Farmer", aaaUserID)
 		} else {
@@ -497,7 +498,7 @@ func (h *FarmerHandler) UpdateFarmerByID(c *gin.Context) {
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
-		if err.Error() == "farmer not found" {
+		if strings.Contains(err.Error(), "farmer not found") {
 			status = http.StatusNotFound
 			apiError = base.NewNotFoundError("Farmer", farmerID)
 		} else {
@@ -538,10 +539,16 @@ func (h *FarmerHandler) DeleteFarmer(c *gin.Context) {
 		zap.String("aaa_user_id", aaaUserID),
 		zap.String("aaa_org_id", aaaOrgID))
 
+	var deletedBy string
+	if userID, exists := c.Get("aaa_subject"); exists {
+		deletedBy, _ = userID.(string)
+	}
+
 	req := farmerReq.DeleteFarmerRequest{
 		AAAUserID: aaaUserID,
 		AAAOrgID:  aaaOrgID,
 	}
+	req.UserID = deletedBy
 
 	err := h.farmerService.DeleteFarmer(c.Request.Context(), &req)
 	if err != nil {
@@ -549,7 +556,7 @@ func (h *FarmerHandler) DeleteFarmer(c *gin.Context) {
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
-		if err.Error() == "farmer not found" {
+		if strings.Contains(err.Error(), "farmer not found") {
 			status = http.StatusNotFound
 			apiError = base.NewNotFoundError("Farmer", aaaUserID)
 		} else {
@@ -591,9 +598,15 @@ func (h *FarmerHandler) DeleteFarmerByUserID(c *gin.Context) {
 	h.logger.Info("Deleting farmer profile by user ID",
 		zap.String("aaa_user_id", aaaUserID))
 
+	var deletedBy string
+	if userID, exists := c.Get("aaa_subject"); exists {
+		deletedBy, _ = userID.(string)
+	}
+
 	req := farmerReq.DeleteFarmerRequest{
 		AAAUserID: aaaUserID,
 	}
+	req.UserID = deletedBy
 
 	err := h.farmerService.DeleteFarmer(c.Request.Context(), &req)
 	if err != nil {
@@ -601,7 +614,7 @@ func (h *FarmerHandler) DeleteFarmerByUserID(c *gin.Context) {
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
-		if err.Error() == "farmer not found" {
+		if strings.Contains(err.Error(), "farmer not found") {
 			status = http.StatusNotFound
 			apiError = base.NewNotFoundError("Farmer", aaaUserID)
 		} else {
@@ -642,9 +655,15 @@ func (h *FarmerHandler) DeleteFarmerByID(c *gin.Context) {
 	h.logger.Info("Deleting farmer profile by farmer ID",
 		zap.String("farmer_id", farmerID))
 
+	var deletedBy string
+	if userID, exists := c.Get("aaa_subject"); exists {
+		deletedBy, _ = userID.(string)
+	}
+
 	req := farmerReq.DeleteFarmerRequest{
 		FarmerID: farmerID,
 	}
+	req.UserID = deletedBy
 
 	err := h.farmerService.DeleteFarmer(c.Request.Context(), &req)
 	if err != nil {
@@ -652,7 +671,7 @@ func (h *FarmerHandler) DeleteFarmerByID(c *gin.Context) {
 		status := http.StatusInternalServerError
 		var apiError base.ErrorInterface
 
-		if err.Error() == "farmer not found" {
+		if strings.Contains(err.Error(), "farmer not found") {
 			status = http.StatusNotFound
 			apiError = base.NewNotFoundError("Farmer", farmerID)
 		} else {

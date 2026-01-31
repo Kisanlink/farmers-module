@@ -25,15 +25,17 @@ type FPORefRepository interface {
 
 // FPOServiceImpl implements FPOService
 type FPOServiceImpl struct {
-	fpoRefRepo FPORefRepository
-	aaaService AAAService
+	fpoRefRepo       FPORefRepository
+	aaaService       AAAService
+	fpoConfigService FPOConfigService
 }
 
 // NewFPOService creates a new FPO service
-func NewFPOService(fpoRefRepo FPORefRepository, aaaService AAAService) FPOService {
+func NewFPOService(fpoRefRepo FPORefRepository, aaaService AAAService, fpoConfigService FPOConfigService) FPOService {
 	return &FPOServiceImpl{
-		fpoRefRepo: fpoRefRepo,
-		aaaService: aaaService,
+		fpoRefRepo:       fpoRefRepo,
+		aaaService:       aaaService,
+		fpoConfigService: fpoConfigService,
 	}
 }
 
@@ -78,10 +80,21 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 
 		ceoFullName = fmt.Sprintf("%s %s", createReq.CEOUser.FirstName, createReq.CEOUser.LastName)
 
+		// Normalize phone number (remove +91 prefix if present)
+		// AAA service expects 10-digit number for India as country_code is sent separately
+		phone := createReq.CEOUser.PhoneNumber
+		if strings.HasPrefix(phone, "+91") {
+			phone = strings.TrimPrefix(phone, "+91")
+		} else if len(phone) > 10 {
+			// Basic cleanup for other formats if needed, but primarily targeting +91 overflow
+			// Taking last 10 digits as fallback for Indian numbers
+			phone = phone[len(phone)-10:]
+		}
+
 		// Create CEO user in AAA
 		createUserReq := map[string]interface{}{
 			"username":     fmt.Sprintf("%s_%s", createReq.CEOUser.FirstName, createReq.CEOUser.LastName),
-			"phone_number": createReq.CEOUser.PhoneNumber,
+			"phone_number": phone,
 			"email":        createReq.CEOUser.Email,
 			"password":     createReq.CEOUser.Password,
 			"full_name":    ceoFullName,
@@ -200,6 +213,16 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 
 		log.Printf("Created user group: %s with ID: %s", groupName, userGroup.GroupID)
 
+		// Add CEO to directors group to ensure they have organization context in AAA
+		if groupName == "directors" {
+			if err := s.aaaService.AddUserToGroup(ctx, ceoUserID, userGroup.GroupID); err != nil {
+				log.Printf("Warning: Failed to add CEO to directors group: %v", err)
+				setupErrors["ceo_group_membership"] = err.Error()
+			} else {
+				log.Printf("Added CEO %s to directors group %s", ceoUserID, userGroup.GroupID)
+			}
+		}
+
 		// Assign permissions to group
 		for _, permission := range s.getGroupPermissions(groupName) {
 			err = s.aaaService.AssignPermissionToGroup(ctx, userGroup.GroupID, "fpo", permission)
@@ -233,6 +256,44 @@ func (s *FPOServiceImpl) CreateFPO(ctx context.Context, req interface{}) (interf
 		// Continue as AAA organization is already created
 		// Generate a temporary ID for the response if save failed
 		fpoRef.ID = ""
+	}
+
+	// Step 7.5: Auto-create FPO configuration
+	if s.fpoConfigService != nil {
+		log.Printf("Auto-creating FPO configuration for org ID: %s", aaaOrgID)
+		
+		var erpBaseURL, erpUIBaseURL string
+		
+		// Extract URLs from BusinessConfig if available
+		if createReq.BusinessConfig != nil {
+			if url, ok := createReq.BusinessConfig["erp_base_url"].(string); ok {
+				erpBaseURL = url
+			}
+			if url, ok := createReq.BusinessConfig["erp_ui_base_url"].(string); ok {
+				erpUIBaseURL = url
+			}
+		}
+		
+		// Create config request
+		configReq := &requests.CreateFPOConfigRequest{
+			AAAOrgID:     aaaOrgID,
+			FPOName:      createReq.Name,
+			ERPBaseURL:   erpBaseURL,
+			ERPUIBaseURL: erpUIBaseURL,
+			Metadata:     createReq.Metadata,
+		}
+		
+		// Set defaults if URLs are empty (optional, could be done in service)
+		configReq.SetDefaults()
+		
+		_, err := s.fpoConfigService.CreateFPOConfig(ctx, configReq)
+		if err != nil {
+			log.Printf("Warning: Failed to auto-create FPO config: %v", err)
+			// Don't fail the request, just log
+			setupErrors["fpo_config_creation"] = err.Error()
+		} else {
+			log.Printf("Successfully auto-created FPO config for %s", aaaOrgID)
+		}
 	}
 
 	// Step 8: Prepare response (now fpoRef.ID is populated after save)
@@ -316,6 +377,7 @@ func (s *FPOServiceImpl) RegisterFPORef(ctx context.Context, req interface{}) (i
 		AAAOrgID:       fpoRef.AAAOrgID,
 		Name:           fpoRef.Name,
 		RegistrationNo: fpoRef.RegistrationNo,
+		CEOUserID:      fpoRef.CEOUserID,
 		BusinessConfig: fpoRef.BusinessConfig,
 		Status:         fpoRef.Status.String(),
 		Metadata:       registerReq.Metadata,
@@ -363,6 +425,7 @@ func (s *FPOServiceImpl) GetFPORef(ctx context.Context, orgID string) (interface
 		AAAOrgID:       fpoRef.AAAOrgID,
 		Name:           fpoRef.Name,
 		RegistrationNo: fpoRef.RegistrationNo,
+		CEOUserID:      fpoRef.CEOUserID,
 		BusinessConfig: fpoRef.BusinessConfig,
 		Status:         fpoRef.Status.String(),
 		CreatedAt:      fpoRef.CreatedAt.Format(time.RFC3339),
@@ -462,6 +525,7 @@ func (s *FPOServiceImpl) CompleteFPOSetup(ctx context.Context, orgID string) (in
 		AAAOrgID:       fpoRef.AAAOrgID,
 		Name:           fpoRef.Name,
 		RegistrationNo: fpoRef.RegistrationNo,
+		CEOUserID:      fpoRef.CEOUserID,
 		BusinessConfig: fpoRef.BusinessConfig,
 		Status:         fpoRef.Status.String(),
 		CreatedAt:      fpoRef.CreatedAt.Format(time.RFC3339),

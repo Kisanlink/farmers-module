@@ -93,6 +93,7 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 
 	// If aaa_user_id is provided, check if farmer already exists (by user ID only)
 	if req.AAAUserID != "" {
+		// First check for active farmer (existing logic)
 		existingFilter := base.NewFilterBuilder().
 			Where("aaa_user_id", base.OpEqual, req.AAAUserID).
 			Build()
@@ -100,6 +101,16 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		existing, err := s.repository.FindOne(ctx, existingFilter)
 		if err == nil && existing != nil {
 			return nil, fmt.Errorf("farmer already exists with aaa_user_id=%s", req.AAAUserID)
+		}
+
+		// Check for soft-deleted farmer that can be restored
+		deletedFarmer, err := s.repository.FindOneUnscoped(ctx, req.AAAUserID, req.AAAOrgID)
+		if err != nil {
+			log.Printf("Warning: Failed to check for soft-deleted farmer: %v", err)
+		} else if deletedFarmer != nil && deletedFarmer.DeletedAt != nil {
+			// Soft-deleted farmer exists - restore it instead of creating new
+			log.Printf("Found soft-deleted farmer %s, restoring instead of creating new", deletedFarmer.GetID())
+			return s.restoreFarmer(ctx, deletedFarmer, req)
 		}
 	}
 
@@ -124,10 +135,14 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 			"country_code": req.Profile.CountryCode,
 		}
 
-		// Add username if provided, otherwise AAA will auto-generate one
-		if req.Profile.Username != "" {
-			createUserReq["username"] = req.Profile.Username
+		// Set username: use provided value or generate from first_name + last 4 digits of phone
+		username := req.Profile.Username
+		if username == "" && req.Profile.FirstName != "" && len(req.Profile.PhoneNumber) >= 4 {
+			// Auto-generate: firstname_last4digits (e.g., "rahul_3210")
+			last4 := req.Profile.PhoneNumber[len(req.Profile.PhoneNumber)-4:]
+			username = strings.ToLower(req.Profile.FirstName) + "_" + last4
 		}
+		createUserReq["username"] = username
 
 		aaaUser, err := s.aaaService.CreateUser(ctx, createUserReq)
 		if err != nil {
@@ -348,6 +363,10 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 			AAAOrgID:  aaaOrgID,
 		}
 		if err := s.linkageService.LinkFarmerToFPO(ctx, linkReq); err != nil {
+			// Rollback: delete the farmer record since linkage failed
+			if delErr := s.repository.Delete(ctx, farmer.GetID(), farmer); delErr != nil {
+				log.Printf("Error: failed to rollback farmer %s after linkage failure: %v", farmer.GetID(), delErr)
+			}
 			return nil, fmt.Errorf("failed to link farmer to FPO: %w", err)
 		}
 		log.Printf("Farmer %s linked to FPO %s and added to farmers group", aaaUserID, aaaOrgID)
@@ -396,6 +415,71 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 	}
 
 	response := responses.NewFarmerResponse(farmerProfileData, message)
+	return &response, nil
+}
+
+// restoreFarmer restores a soft-deleted farmer with updated data
+func (s *FarmerServiceImpl) restoreFarmer(ctx context.Context, farmer *farmerentity.Farmer, req *requests.CreateFarmerRequest) (*responses.FarmerResponse, error) {
+	// Update farmer fields from request
+	farmer.Status = "ACTIVE"
+	farmer.FirstName = req.Profile.FirstName
+	farmer.LastName = req.Profile.LastName
+	farmer.PhoneNumber = req.Profile.PhoneNumber
+	farmer.Email = req.Profile.Email
+	farmer.DateOfBirth = stringToPtr(req.Profile.DateOfBirth)
+	farmer.Gender = req.Profile.Gender
+	farmer.Preferences = req.Profile.Preferences
+	farmer.Metadata = req.Profile.Metadata
+	farmer.SetUpdatedBy(req.UserID)
+
+	// Validate and set KisanSathi if provided
+	if req.KisanSathiUserID != nil && *req.KisanSathiUserID != "" {
+		hasRole, err := s.aaaService.CheckUserRole(ctx, *req.KisanSathiUserID, "kisansathi")
+		if err == nil && hasRole {
+			farmer.KisanSathiUserID = req.KisanSathiUserID
+		} else {
+			log.Printf("Warning: KisanSathi validation failed, skipping assignment")
+		}
+	}
+
+	// Restore the farmer (clears deleted_at and updates fields)
+	if err := s.repository.Restore(ctx, farmer); err != nil {
+		return nil, fmt.Errorf("failed to restore farmer: %w", err)
+	}
+
+	// Re-link to FPO if needed
+	if req.AAAOrgID != "" && s.linkageService != nil {
+		linkReq := &requests.LinkFarmerRequest{
+			BaseRequest: requests.BaseRequest{
+				UserID: req.UserID,
+				OrgID:  req.AAAOrgID,
+			},
+			AAAUserID: farmer.AAAUserID,
+			AAAOrgID:  req.AAAOrgID,
+		}
+		if err := s.linkageService.LinkFarmerToFPO(ctx, linkReq); err != nil {
+			log.Printf("Warning: Failed to re-link restored farmer to FPO: %v", err)
+		}
+	}
+
+	// Build response
+	farmerProfileData := &responses.FarmerProfileData{
+		ID:               farmer.GetID(),
+		AAAUserID:        farmer.AAAUserID,
+		AAAOrgID:         farmer.AAAOrgID,
+		KisanSathiUserID: farmer.KisanSathiUserID,
+		FirstName:        farmer.FirstName,
+		LastName:         farmer.LastName,
+		PhoneNumber:      farmer.PhoneNumber,
+		Email:            farmer.Email,
+		DateOfBirth:      safeDerefString(farmer.DateOfBirth),
+		Gender:           farmer.Gender,
+		Farms:            []*responses.FarmData{},
+		CreatedAt:        farmer.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:        farmer.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+	}
+
+	response := responses.NewFarmerResponse(farmerProfileData, "Farmer restored successfully")
 	return &response, nil
 }
 
@@ -684,6 +768,32 @@ func (s *FarmerServiceImpl) DeleteFarmer(ctx context.Context, req *requests.Dele
 	existingFarmer, err := s.repository.FindOne(ctx, filter)
 	if err != nil {
 		return fmt.Errorf("farmer not found: %w", err)
+	}
+
+	// Unlink farmer from all FPOs before deleting
+	// This ensures they're removed from all farmers groups
+	if s.linkageService != nil && existingFarmer.AAAUserID != "" {
+		// Get all farmer links for this farmer
+		links, err := s.linkageService.GetFarmerLinksByUserID(ctx, existingFarmer.AAAUserID)
+		if err == nil {
+			for _, link := range links {
+				if link.Status == "ACTIVE" {
+					unlinkReq := &requests.UnlinkFarmerRequest{
+						BaseRequest: requests.BaseRequest{
+							UserID: req.UserID,
+							OrgID:  link.AAAOrgID,
+						},
+						AAAUserID: link.AAAUserID,
+						AAAOrgID:  link.AAAOrgID,
+					}
+					if err := s.linkageService.UnlinkFarmerFromFPO(ctx, unlinkReq); err != nil {
+						log.Printf("Warning: failed to unlink farmer from FPO %s: %v", link.AAAOrgID, err)
+					}
+				}
+			}
+		} else {
+			log.Printf("Warning: failed to get farmer links for deletion cleanup: %v", err)
+		}
 	}
 
 	// Perform soft delete

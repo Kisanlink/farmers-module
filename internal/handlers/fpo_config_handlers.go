@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/Kisanlink/farmers-module/internal/entities/requests"
@@ -339,8 +340,13 @@ func (h *FPOConfigHandler) DeleteFPOConfig(c *gin.Context) {
 		return
 	}
 
+	var deletedBy string
+	if userID, exists := c.Get("aaa_subject"); exists {
+		deletedBy, _ = userID.(string)
+	}
+
 	// Call service
-	err := h.service.DeleteFPOConfig(c.Request.Context(), aaaOrgID)
+	err := h.service.DeleteFPOConfig(c.Request.Context(), aaaOrgID, deletedBy)
 	if err != nil {
 		h.logger.Error("Failed to delete FPO configuration",
 			zap.String("request_id", requestID),
@@ -422,6 +428,69 @@ func (h *FPOConfigHandler) ListFPOConfigs(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// GetMyOrganizationConfig retrieves FPO configuration for the authenticated user's organization
+// This is a self-access endpoint - accepts org_id as query param or uses JWT context
+// @Summary Get My Organization Configuration
+// @Description Retrieves FPO configuration for the authenticated user's organization (self-access, no special permissions required)
+// @Tags FPO Config
+// @Accept json
+// @Produce json
+// @Param org_id query string false "Organization ID (optional, uses JWT context if not provided)"
+// @Success 200 {object} responses.SwaggerFPOConfigResponse
+// @Failure 400 {object} responses.SwaggerErrorResponse
+// @Failure 401 {object} responses.SwaggerErrorResponse
+// @Failure 404 {object} responses.SwaggerErrorResponse
+// @Failure 500 {object} responses.SwaggerErrorResponse
+// @Security BearerAuth
+// @Router /me/organization/configuration [get]
+func (h *FPOConfigHandler) GetMyOrganizationConfig(c *gin.Context) {
+	requestID := c.GetString("request_id")
+
+	// Get org_id from query param first, then fall back to JWT context
+	aaaOrgID := c.Query("org_id")
+	if aaaOrgID == "" {
+		aaaOrgID = c.GetString("aaa_org")
+	}
+
+	h.logger.Info("Getting FPO configuration for authenticated user's organization",
+		zap.String("request_id", requestID),
+		zap.String("aaa_org_id", aaaOrgID),
+	)
+
+	if aaaOrgID == "" {
+		h.logger.Error("No organization context found for user", zap.String("request_id", requestID))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Organization ID is required. Pass org_id as query parameter.",
+			"error":   "ERR_NO_ORG_CONTEXT",
+		})
+		return
+	}
+
+	// Call service
+	data, err := h.service.GetFPOConfig(c.Request.Context(), aaaOrgID)
+	if err != nil {
+		h.logger.Error("Failed to get FPO configuration",
+			zap.String("request_id", requestID),
+			zap.String("aaa_org_id", aaaOrgID),
+			zap.Error(err),
+		)
+		handleServiceError(c, err)
+		return
+	}
+
+	// Create response
+	response := responses.NewFPOConfigResponse(data, "FPO configuration retrieved successfully")
+	response.SetRequestID(requestID)
+
+	h.logger.Info("FPO configuration retrieved successfully for user's organization",
+		zap.String("request_id", requestID),
+		zap.String("aaa_org_id", aaaOrgID),
+	)
+
+	c.JSON(http.StatusOK, response)
+}
+
 // CheckERPHealth checks the health of FPO's ERP service
 // @Summary Check ERP Health
 // @Description Checks if the FPO's ERP service is reachable
@@ -440,10 +509,12 @@ func (h *FPOConfigHandler) ListFPOConfigs(c *gin.Context) {
 func (h *FPOConfigHandler) CheckERPHealth(c *gin.Context) {
 	aaaOrgID := c.Param("aaa_org_id")
 	requestID := c.GetString("request_id")
+	testURL := c.Query("test_url") // Optional URL to test instead of saved one
 
 	h.logger.Info("Checking ERP health",
 		zap.String("request_id", requestID),
 		zap.String("aaa_org_id", aaaOrgID),
+		zap.String("test_url", testURL),
 	)
 
 	if aaaOrgID == "" {
@@ -456,8 +527,14 @@ func (h *FPOConfigHandler) CheckERPHealth(c *gin.Context) {
 		return
 	}
 
+	// Create context with optional override URL
+	ctx := c.Request.Context()
+	if testURL != "" {
+		ctx = context.WithValue(ctx, "override_erp_url", testURL)
+	}
+
 	// Call service
-	data, err := h.service.CheckERPHealth(c.Request.Context(), aaaOrgID)
+	data, err := h.service.CheckERPHealth(ctx, aaaOrgID)
 	if err != nil {
 		h.logger.Error("Failed to check ERP health",
 			zap.String("request_id", requestID),

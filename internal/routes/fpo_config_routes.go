@@ -18,6 +18,16 @@ func RegisterFPOConfigRoutes(api *gin.RouterGroup, services *services.ServiceFac
 	authenticationMW := middleware.AuthenticationMiddleware(services.AAAService, logger)
 	authorizationMW := middleware.AuthorizationMiddleware(services.AAAService, logger)
 
+	// Self-access routes - require authentication only (no special permissions)
+	// These endpoints use the org_id from JWT context, so any authenticated user
+	// can access their own organization's data
+	meGroup := api.Group("/me")
+	meGroup.Use(authenticationMW) // Authentication only, no authorization
+	{
+		// GET /api/v1/me/organization/configuration - Get user's org FPO config
+		meGroup.GET("/organization/configuration", handler.GetMyOrganizationConfig)
+	}
+
 	// FPO Config routes - nested under /fpo/:aaa_org_id/configuration
 	fpoGroup := api.Group("/fpo")
 	fpoGroup.Use(authenticationMW, authorizationMW) // Apply auth to all FPO routes

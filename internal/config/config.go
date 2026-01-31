@@ -98,7 +98,7 @@ func Load() *Config {
 			Enabled:         getEnvAsBool("AAA_ENABLED", true),
 			JWTSecret:       getEnv("JWT_SECRET", "dev-secret-change-in-production"),
 			JWTPublicKey:    getEnv("JWT_PUBLIC_KEY", ""),
-			DefaultPassword: getEnv("AAA_DEFAULT_PASSWORD", "Welcome@123"),
+			DefaultPassword: getEnvRequired("AAA_DEFAULT_PASSWORD"),
 		},
 		Observability: ObservabilityConfig{
 			LogLevel:                 getEnv("LOG_LEVEL", "info"),
@@ -107,8 +107,8 @@ func Load() *Config {
 			OTELExporterOTLPEndpoint: getEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4317"),
 		},
 		CORS: CORSConfig{
-			AllowedOrigins:   getEnvAsSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000", "http://localhost:5173"}),
-			AllowCredentials: getEnvAsBool("CORS_ALLOW_CREDENTIALS", false),
+			AllowedOrigins:   getEnvAsSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000", "http://localhost:5173", "http://localhost:5174", "http://localhost:5175"}),
+			AllowCredentials: getEnvAsBool("CORS_ALLOW_CREDENTIALS", true),
 		},
 	}
 
@@ -157,6 +157,15 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+// getEnvRequired gets an environment variable or panics if not set
+func getEnvRequired(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		log.Fatalf("Required environment variable %s is not set", key)
+	}
+	return value
 }
 
 // getEnvAsInt gets an environment variable as integer with a default value

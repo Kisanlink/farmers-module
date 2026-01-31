@@ -612,6 +612,10 @@ func (c *Client) GetOrCreateFarmersGroup(ctx context.Context, orgID string) (str
 		for _, group := range listResp.Groups {
 			if group.Name == "farmers" && group.OrganizationId == orgID {
 				log.Printf("AAA GetOrCreateFarmersGroup: Found existing farmers group: %s", group.Id)
+				// Ensure farmer role is assigned (idempotent)
+				if err := c.ensureFarmerRoleOnGroup(ctx, group.Id); err != nil {
+					log.Printf("AAA GetOrCreateFarmersGroup: Warning - failed to assign farmer role: %v", err)
+				}
 				return group.Id, nil
 			}
 		}
@@ -635,6 +639,10 @@ func (c *Client) GetOrCreateFarmersGroup(ctx context.Context, orgID string) (str
 					for _, group := range listResp.Groups {
 						if group.Name == "farmers" && group.OrganizationId == orgID {
 							log.Printf("AAA GetOrCreateFarmersGroup: Found farmers group after AlreadyExists: %s", group.Id)
+							// Ensure farmer role is assigned (idempotent)
+							if roleErr := c.ensureFarmerRoleOnGroup(ctx, group.Id); roleErr != nil {
+								log.Printf("AAA GetOrCreateFarmersGroup: Warning - failed to assign farmer role: %v", roleErr)
+							}
 							return group.Id, nil
 						}
 					}
@@ -646,7 +654,74 @@ func (c *Client) GetOrCreateFarmersGroup(ctx context.Context, orgID string) (str
 	}
 
 	log.Printf("AAA GetOrCreateFarmersGroup: Created farmers group: %s", createResp.Group.Id)
-	return createResp.Group.Id, nil
+	groupID := createResp.Group.Id
+
+	// Assign "farmer" role to the group (idempotent)
+	if err := c.ensureFarmerRoleOnGroup(ctx, groupID); err != nil {
+		log.Printf("AAA GetOrCreateFarmersGroup: Warning - failed to assign farmer role: %v", err)
+	}
+
+	return groupID, nil
+}
+
+// ensureFarmerRoleOnGroup ensures the "farmer" role is assigned to a group
+func (c *Client) ensureFarmerRoleOnGroup(ctx context.Context, groupID string) error {
+	// Get the "farmer" role ID
+	roleID, err := c.getRoleIDByName(ctx, "farmer")
+	if err != nil {
+		return fmt.Errorf("failed to get farmer role: %w", err)
+	}
+
+	// Check if role is already assigned
+	rolesResp, err := c.groupClient.GetGroupRoles(ctx, &pb.GetGroupRolesRequest{
+		GroupId: groupID,
+	})
+	if err == nil {
+		for _, role := range rolesResp.Roles {
+			if role.RoleId == roleID || strings.EqualFold(role.RoleName, "farmer") {
+				log.Printf("AAA: farmer role already assigned to group %s", groupID)
+				return nil
+			}
+		}
+	}
+
+	// Assign farmer role to group
+	assignResp, err := c.groupClient.AssignRoleToGroup(ctx, &pb.AssignRoleToGroupRequest{
+		GroupId: groupID,
+		RoleId:  roleID,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to assign farmer role: %w", err)
+	}
+
+	if assignResp.StatusCode != 200 && assignResp.StatusCode != 201 {
+		return fmt.Errorf("assign farmer role failed: %s", assignResp.Message)
+	}
+
+	log.Printf("AAA: Successfully assigned farmer role to group %s", groupID)
+	return nil
+}
+
+// getRoleIDByName gets a role ID by its name from CatalogService
+func (c *Client) getRoleIDByName(ctx context.Context, roleName string) (string, error) {
+	listReq := &pb.ListRolesRequest{
+		Scope:              "GLOBAL",
+		IncludePermissions: false,
+		PageSize:           100,
+	}
+
+	listResp, err := c.catalogClient.ListRoles(ctx, listReq)
+	if err != nil {
+		return "", fmt.Errorf("failed to list roles: %w", err)
+	}
+
+	for _, role := range listResp.Roles {
+		if strings.EqualFold(role.Name, roleName) {
+			return role.Id, nil
+		}
+	}
+
+	return "", fmt.Errorf("role '%s' not found", roleName)
 }
 
 // AddUserToGroup adds a user to a group
@@ -666,6 +741,14 @@ func (c *Client) AddUserToGroup(ctx context.Context, userID, groupID string) err
 		GroupId:       groupID,
 		PrincipalId:   userID,
 		PrincipalType: "user",
+	}
+
+	// Forward auth token so AAA can extract the real user ID
+	if token := auth.GetTokenFromContext(ctx); token != "" {
+		md := metadata.New(map[string]string{
+			"authorization": "Bearer " + token,
+		})
+		ctx = metadata.NewOutgoingContext(ctx, md)
 	}
 
 	// Call the AAA service

@@ -36,6 +36,7 @@ Thumbs.db
 Desktop.ini
 
 # Logs
+logs/
 *.log
 
 # Test cache

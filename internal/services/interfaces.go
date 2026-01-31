@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	farmerentity "github.com/Kisanlink/farmers-module/internal/entities/farmer"
 	"github.com/Kisanlink/farmers-module/internal/interfaces"
 )
 
@@ -26,6 +27,8 @@ type FarmerLinkageService interface {
 	BulkLinkFarmersToFPO(ctx context.Context, req interface{}) (interface{}, error)
 	// Bulk unlink multiple farmers from an FPO
 	BulkUnlinkFarmersFromFPO(ctx context.Context, req interface{}) (interface{}, error)
+	// GetFarmerLinksByUserID returns all farmer links for a user
+	GetFarmerLinksByUserID(ctx context.Context, aaaUserID string) ([]*farmerentity.FarmerLink, error)
 }
 
 // FPOService handles FPO creation and management workflows
