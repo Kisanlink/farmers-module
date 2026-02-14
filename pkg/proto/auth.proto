@@ -57,6 +57,9 @@ message RegisterRequest {
     string full_name = 3;
     string password = 4;
     repeated string role_ids = 5;
+    string phone_number = 6;
+    string country_code = 7;
+    bool must_change_password = 8;
 }
 
 // V2 Register Response

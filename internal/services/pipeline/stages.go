@@ -269,12 +269,13 @@ func (aus *AAAUserCreationStage) Process(ctx context.Context, data interface{}) 
 
 	// Create new user
 	createUserReq := map[string]interface{}{
-		"username":     fmt.Sprintf("farmer_%s", farmerData.PhoneNumber),
-		"phone_number": farmerData.PhoneNumber,
-		"email":        farmerData.Email,
-		"password":     password,
-		"country_code": "+91",
-		"full_name":    fmt.Sprintf("%s %s", farmerData.FirstName, farmerData.LastName),
+		"username":              fmt.Sprintf("farmer_%s", farmerData.PhoneNumber),
+		"phone_number":          farmerData.PhoneNumber,
+		"email":                 farmerData.Email,
+		"password":              password,
+		"country_code":          "+91",
+		"full_name":             fmt.Sprintf("%s %s", farmerData.FirstName, farmerData.LastName),
+		"must_change_password":  true,
 	}
 
 	userResponse, err := aus.aaaService.CreateUser(ctx, createUserReq)

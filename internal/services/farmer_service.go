@@ -130,9 +130,10 @@ func (s *FarmerServiceImpl) CreateFarmer(ctx context.Context, req *requests.Crea
 		log.Printf("Creating user in AAA with mobile: %s, country_code: %s", req.Profile.PhoneNumber, req.Profile.CountryCode)
 
 		createUserReq := map[string]interface{}{
-			"phone_number": req.Profile.PhoneNumber,
-			"password":     s.defaultPassword,
-			"country_code": req.Profile.CountryCode,
+			"phone_number":        req.Profile.PhoneNumber,
+			"password":            s.defaultPassword,
+			"country_code":        req.Profile.CountryCode,
+			"must_change_password": true,
 		}
 
 		// Set username: use provided value or generate from first_name + last 4 digits of phone

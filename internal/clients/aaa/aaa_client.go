@@ -69,14 +69,15 @@ type UserGroupData struct {
 
 // CreateUserRequest represents a user creation request
 type CreateUserRequest struct {
-	Username    string            `json:"username"`
-	PhoneNumber string            `json:"phone_number"`
-	CountryCode string            `json:"country_code"`
-	Email       string            `json:"email"`
-	Password    string            `json:"password"`
-	FullName    string            `json:"full_name"`
-	Role        string            `json:"role"`
-	Metadata    map[string]string `json:"metadata"`
+	Username           string            `json:"username"`
+	PhoneNumber        string            `json:"phone_number"`
+	CountryCode        string            `json:"country_code"`
+	Email              string            `json:"email"`
+	Password           string            `json:"password"`
+	FullName           string            `json:"full_name"`
+	Role               string            `json:"role"`
+	MustChangePassword bool              `json:"must_change_password"`
+	Metadata           map[string]string `json:"metadata"`
 }
 
 // CreateUserResponse represents a user creation response
@@ -260,12 +261,13 @@ func (c *Client) CreateUser(ctx context.Context, req *CreateUserRequest) (*Creat
 
 	// Create gRPC request with phone_number and country_code
 	grpcReq := &pb.RegisterRequest{
-		Username:    req.Username,
-		Email:       req.Email,
-		Password:    req.Password,
-		FullName:    req.FullName,
-		PhoneNumber: req.PhoneNumber,
-		CountryCode: req.CountryCode,
+		Username:           req.Username,
+		Email:              req.Email,
+		Password:           req.Password,
+		FullName:           req.FullName,
+		PhoneNumber:        req.PhoneNumber,
+		CountryCode:        req.CountryCode,
+		MustChangePassword: req.MustChangePassword,
 	}
 
 	// Call the AAA service

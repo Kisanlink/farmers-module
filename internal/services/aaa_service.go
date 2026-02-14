@@ -105,16 +105,18 @@ func (s *AAAServiceImpl) CreateUser(ctx context.Context, req interface{}) (inter
 	countryCode, _ := createReq["country_code"].(string)
 	fullName, _ := createReq["full_name"].(string)
 	role, _ := createReq["role"].(string)
+	mustChangePassword, _ := createReq["must_change_password"].(bool)
 
 	// Create structured request
 	userReq := &aaa.CreateUserRequest{
-		Username:    username,
-		PhoneNumber: phoneNumber,
-		CountryCode: countryCode,
-		Email:       email,
-		Password:    password,
-		FullName:    fullName,
-		Role:        role,
+		Username:           username,
+		PhoneNumber:        phoneNumber,
+		CountryCode:        countryCode,
+		Email:              email,
+		Password:           password,
+		FullName:           fullName,
+		Role:               role,
+		MustChangePassword: mustChangePassword,
 	}
 
 	response, err := s.client.CreateUser(ctx, userReq)
